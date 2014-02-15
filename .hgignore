@@ -1,0 +1,8 @@
+Base-CityGeneration/obj
+Base-CityGeneration/bin
+
+Base-CityGeneration.Test/obj
+Base-CityGeneration.Test/bin
+
+syntax: glob
+*.suo

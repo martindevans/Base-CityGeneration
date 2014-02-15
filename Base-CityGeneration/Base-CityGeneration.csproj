@@ -1,0 +1,148 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Base_CityGeneration</RootNamespace>
+    <AssemblyName>Base-CityGeneration</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EpimetheusPlugins">
+      <HintPath>..\..\..\Visual Studio 2010\Projects\HeistCore\EpimetheusPlugins\bin\x86\Release\EpimetheusPlugins.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
+    <Reference Include="Myre, Version=1.0.0.4, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Myre.1.0.0.4\lib\net40-Client\Myre.dll</HintPath>
+    </Reference>
+    <Reference Include="Myre.Entities">
+      <HintPath>..\packages\Myre.Entities.1.1.1.0\lib\net40-Client\Myre.Entities.dll</HintPath>
+    </Reference>
+    <Reference Include="Ninject">
+      <HintPath>..\packages\Ninject.3.0.1.10\lib\net40\Ninject.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Constants.cs" />
+    <Compile Include="Datastructures\HalfEdge\Extensions\MeshExtensions.cs" />
+    <Compile Include="Datastructures\HalfEdge\Extensions\QuadtreeExtensions.cs" />
+    <Compile Include="Datastructures\HalfEdge\Face.cs" />
+    <Compile Include="Datastructures\HalfEdge\HalfEdge.cs" />
+    <Compile Include="Datastructures\HalfEdge\Mesh.cs" />
+    <Compile Include="Datastructures\HalfEdge\Vertex.cs" />
+    <Compile Include="Datastructures\Path.cs" />
+    <Compile Include="Datastructures\Quadtree.cs" />
+    <Compile Include="Datastructures\Ray2D.cs" />
+    <Compile Include="Datastructures\RectangleF.cs" />
+    <Compile Include="Datastructures\SeparatingAxisTester.cs" />
+    <Compile Include="Elements\Block\BaseBlock.cs" />
+    <Compile Include="Elements\Block\IParcelElement.cs" />
+    <Compile Include="Elements\Block\Parcelling\IParceller.cs" />
+    <Compile Include="Elements\Block\Parcelling\ObbParceller.cs" />
+    <Compile Include="Elements\Block\Parcelling\Rules\AreaRule.cs" />
+    <Compile Include="Elements\Block\Parcelling\Rules\FrontageRule.cs" />
+    <Compile Include="Elements\Building\BaseBuilding.cs" />
+    <Compile Include="Elements\Generic\IGrounded.cs" />
+    <Compile Include="Elements\Generic\BigFlatPlane.cs" />
+    <Compile Include="Elements\Generic\HollowPlaceholderBlock.cs" />
+    <Compile Include="Elements\Generic\SolidPlaceholderBlock.cs" />
+    <Compile Include="Elements\Generic\SolidPlaceholderBuilding.cs" />
+    <Compile Include="Elements\Roads\BasicJunction.cs" />
+    <Compile Include="Elements\Roads\BasicRoad.cs" />
+    <Compile Include="Elements\Roads\FaceBlockBuilder.cs" />
+    <Compile Include="Elements\Roads\HalfEdgeRoadBuilder.cs" />
+    <Compile Include="Datastructures\HalfEdge\IFaceBuilder.cs" />
+    <Compile Include="Datastructures\HalfEdge\IHalfEdgeBuilder.cs" />
+    <Compile Include="Datastructures\HalfEdge\IVertexBuilder.cs" />
+    <Compile Include="Elements\Roads\VertexJunctionBuilder.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Root\BaseCityRoot.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Visual Studio 2010\Projects\Placeholder\Placeholder.AI.Pathfinding\Placeholder.AI.Pathfinding.csproj">
+      <Project>{78EF3EDC-D996-43EB-A1CB-3AD673A2A929}</Project>
+      <Name>Placeholder.AI.Pathfinding</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Visual Studio 2010\Projects\Placeholder\Placeholder.AI\Placeholder.AI.csproj">
+      <Project>{5BE1A3E5-BFE3-4479-96D7-EC2A0C4AB09C}</Project>
+      <Name>Placeholder.AI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Visual Studio 2010\Projects\Placeholder\Placeholder.ConstructiveSolidGeometry\Placeholder.ConstructiveSolidGeometry.csproj">
+      <Project>{5A008853-C9D6-407A-8AA8-235AE1E96625}</Project>
+      <Name>Placeholder.ConstructiveSolidGeometry</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Visual Studio 2010\Projects\Placeholder\Placeholder\Placeholder.csproj">
+      <Project>{EFD5A5CE-B7CB-4B46-9FC1-F397CCCC622C}</Project>
+      <Name>Placeholder</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
