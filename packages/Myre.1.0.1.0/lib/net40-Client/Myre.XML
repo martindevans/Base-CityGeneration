@@ -93,6 +93,11 @@
             The value of this box
             </summary>
         </member>
+        <member name="P:Myre.Collections.IBox.Type">
+            <summary>
+            The type of the value of this box
+            </summary>
+        </member>
         <member name="T:Myre.Collections.BaseBox`1">
             <summary>
             An object which contains a value

@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Base_CityGeneration.Elements.Building.Internals.Floors;
+using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using Base_CityGeneration.Elements.Generic;
 using EpimetheusPlugins.Procedural;
-using Microsoft.Xna.Framework;
-using Myre;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building
@@ -19,7 +21,7 @@ namespace Base_CityGeneration.Elements.Building
         private readonly float _minFloorHeight;
         private readonly float _maxFloorHeight;
 
-        public BaseBuilding(int minFloors, int maxFloors, int minBasementFloors, int maxBasementFloors, float minFloorHeight, float maxFloorHeight)
+        protected BaseBuilding(int minFloors, int maxFloors, int minBasementFloors, int maxBasementFloors, float minFloorHeight, float maxFloorHeight)
         {
             _minFloors = minFloors;
             _maxFloors = maxFloors;
@@ -43,25 +45,31 @@ namespace Base_CityGeneration.Elements.Building
             float floorHeight;
             CalculateFloorHeight(Random, _minFloors, _maxFloors, _minBasementFloors, _maxBasementFloors, _minFloorHeight, _maxFloorHeight, bounds.Height - GroundHeight, GroundHeight, out count, out basementCount, out floorHeight);
 
-            //Fill in this space solid
-            var totalHeight = floorHeight * count;
-            geometry.Union(geometry.CreatePrism(hierarchicalParameters.GetValue(new TypedName<string>("material")) ?? "concrete", bounds.Footprint, totalHeight)
-                .Translate(new Vector3(0, -bounds.Height / 2 + totalHeight / 2 + GroundHeight - basementCount * floorHeight, 0))
-            );
+            var verticals = CreateCrossFloorFeatures(bounds, count, basementCount, floorHeight).ToArray();
 
-            CreateCrossFloorFeatures(bounds, count, basementCount, floorHeight);
+            //Create floors
+            var floors = CreateFloors(bounds, count, basementCount, floorHeight, verticals).ToArray();
 
-            CreateFloors(bounds, count, basementCount, floorHeight);
+            //Associate data with floors
+            for (int i = 0; i < floors.Length; i++)
+            {
+                if (floors[i] != null)
+                {
+                    floors[i].FloorIndex = i;
+                    floors[i].ParentBuilding = this;
+                    floors[i].Overlaps = verticals.Where(a => a.BottomFloorIndex <= i && a.TopFloorIndex >= i).ToArray();
+                }
+            }
         }
 
         /// <summary>
-        /// Create features which cross severa floors (e.g. stairwells, lift shafts, utility shafts)
+        /// Create features which cross several floors (e.g. stairwells, lift shafts, utility shafts)
         /// </summary>
         /// <param name="bounds">The bounds of the entire building</param>
         /// <param name="floors">The number of above ground floors</param>
         /// <param name="basements">The number of below ground basements</param>
         /// <param name="floorHeight">The height of each floor</param>
-        protected abstract void CreateCrossFloorFeatures(Prism bounds, int floors, int basements, float floorHeight);
+        protected abstract IEnumerable<IVerticalFeature> CreateCrossFloorFeatures(Prism bounds, int floors, int basements, float floorHeight);
 
         /// <summary>
         /// Create nodes for all the floors of this building
@@ -70,11 +78,40 @@ namespace Base_CityGeneration.Elements.Building
         /// <param name="floors">The number of above ground floors</param>
         /// <param name="basements">The number of below ground basements</param>
         /// <param name="floorHeight">The height of each floor</param>
-        protected abstract void CreateFloors(Prism bounds, int floors, int basements, float floorHeight);
+        /// <param name="verticals">Vertical features which have been established in this building</param>
+        protected abstract IEnumerable<IFloor> CreateFloors(Prism bounds, int floors, int basements, float floorHeight, IVerticalFeature[] verticals);
 
-        protected float VerticalOffset(Prism bounds, int floor, float floorHeight, int basementCount)
+        /// <summary>
+        /// Calculate the vertical offset for a floor child node to be created at
+        /// </summary>
+        /// <param name="buildingBounds">The bounds of the building</param>
+        /// <param name="floor">The index of the floor (starting at zero)</param>
+        /// <param name="floorHeight">The height of floors in this building</param>
+        /// <param name="basementCount">The number of basements (floors below the value of the 'GroundHeight' property)</param>
+        /// <returns></returns>
+        protected float FloorVerticalOffset(Prism buildingBounds, int floor, float floorHeight, int basementCount)
         {
-            return floorHeight / 2 + floorHeight * (floor - basementCount) + bounds.Height / 2 - GroundHeight;
+            return floorHeight / 2 + floorHeight * (floor - basementCount) + buildingBounds.Height / 2 - GroundHeight;
+        }
+
+        /// <summary>
+        /// Calculate the offset and height of a vertical offset which starts and ends at the specified floors
+        /// </summary>
+        /// <param name="buildingBounds">The bounds of the building</param>
+        /// <param name="startFloor">The index of the lowest floor this element overlaps</param>
+        /// <param name="endFloor">The index of the highest floor this element overlaps</param>
+        /// <param name="floorHeight">The height of floors in this building</param>
+        /// <param name="basementCount">The number of basements (floors below the value of the 'GroundHeight' property)</param>
+        /// <param name="height">The height of the vertical element</param>
+        /// <param name="offset">The vertical offset of this element</param>
+        /// <returns></returns>
+        protected void VerticalElementVerticalOffset(Prism buildingBounds, int startFloor, int endFloor, float floorHeight, int basementCount, out float height, out float offset)
+        {
+            var bottom = FloorVerticalOffset(buildingBounds, startFloor, floorHeight, basementCount) - floorHeight / 2f;
+            var top = FloorVerticalOffset(buildingBounds, endFloor, floorHeight, basementCount) + floorHeight / 2f;
+
+            height = top - bottom;
+            offset = top * 0.5f + bottom * 0.5f;
         }
 
         internal static void CalculateFloorHeight(Func<double> random, int minFloors, int maxFloors, int minBasements, int maxBasements, float minFloorHeight, float maxFloorHeight, float heightAboveGround, float heightBelowGround, out int floors, out int basements, out float floorHeight)

@@ -1,6 +1,11 @@
 ﻿
+using System;
+
 namespace Base_CityGeneration.Elements.Block.Parcelling.Rules
 {
+    /// <summary>
+    /// Provides a chance to subdivide once blocks are below a max area
+    /// </summary>
     public class AreaRule
         :ITerminationRule
     {
@@ -8,6 +13,12 @@ namespace Base_CityGeneration.Elements.Block.Parcelling.Rules
         private readonly float _maxArea;
         private readonly float _terminationChance;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hardMinArea">The area which blocks may definitely not be smaller than</param>
+        /// <param name="maxArea">The area below which blocks gain a chance to terminate subdivision</param>
+        /// <param name="terminationChance">The chance to terminate subdivision</param>
         public AreaRule(float hardMinArea, float maxArea, float terminationChance)
         {
             _hardMinArea = hardMinArea;
@@ -15,12 +26,12 @@ namespace Base_CityGeneration.Elements.Block.Parcelling.Rules
             _terminationChance = terminationChance;
         }
 
-        public float TerminationChance(Parcel parcel)
+        public float? TerminationChance(Parcel parcel)
         {
             return parcel.Area() < _maxArea ? _terminationChance : 0;
         }
 
-        public bool Discard(Parcel parcel)
+        public bool Discard(Parcel parcel, Func<double> random)
         {
             return parcel.Area() < _hardMinArea;
         }
