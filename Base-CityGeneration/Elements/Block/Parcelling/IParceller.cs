@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Myre.Extensions;
@@ -27,14 +28,15 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
         /// </summary>
         /// <param name="parcel"></param>
         /// <returns></returns>
-        float TerminationChance(Parcel parcel);
+        float? TerminationChance(Parcel parcel);
 
         /// <summary>
-        /// If this parcel is invalid. If *any* rules requires discard then the parcel will be discarded and recursion terminated (possibly violating AllowTermination)
+        /// If this parcel is invalid. If *any* rules requires discard then the parcel will be discarded and recursion terminated (possibly violating a termination chance of zero)
         /// </summary>
         /// <param name="parcel"></param>
+        /// <param name="random"></param>
         /// <returns></returns>
-        bool Discard(Parcel parcel);
+        bool Discard(Parcel parcel, Func<double> random);
     }
 
     public struct Parcel
@@ -50,18 +52,19 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
         /// Construct a new parcel from a set of points, every point is assumed to have road access
         /// </summary>
         /// <param name="footprint"></param>
-        public Parcel(Vector2[] footprint)
+        /// <param name="edgeResources"></param>
+        public Parcel(Vector2[] footprint, string[] edgeResources)
         {
             Edges = new Edge[footprint.Length];
             for (int i = 0; i < footprint.Length; i++)
-                Edges[i] = new Edge { Start = footprint[i], End = footprint[(i + 1) % footprint.Length], HasRoadAccess = true };
+                Edges[i] = new Edge { Start = footprint[i], End = footprint[(i + 1) % footprint.Length], Resources = edgeResources };
         }
 
         public struct Edge
         {
             public Vector2 Start;
             public Vector2 End;
-            public bool HasRoadAccess;
+            public string[] Resources;
         }
 
         /// <summary>
@@ -86,9 +89,9 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
         /// The longest edge of this parcel which has road access
         /// </summary>
         /// <returns></returns>
-        public float? MaxFrontage()
+        public float? MaxAccessFrontage(string resource)
         {
-            var front = Edges.Where(e => e.HasRoadAccess);
+            var front = Edges.Where(e => e.Resources.Contains(resource));
             if (!front.Any())
                 return null;
 
@@ -99,9 +102,9 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
         /// The shortest edge of this parcel which has road access
         /// </summary>
         /// <returns></returns>
-        public float? MinFrontage()
+        public float? MinAccessFrontage(string resource)
         {
-            var front = Edges.Where(e => e.HasRoadAccess);
+            var front = Edges.Where(e => e.Resources.Contains(resource));
             if (!front.Any())
                 return null;
 
@@ -112,9 +115,9 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
         /// Indicates if this parcel has road access
         /// </summary>
         /// <returns></returns>
-        public bool HasRoadAccess()
+        public bool HasAccess(string resource)
         {
-            return Edges.Any(a => a.HasRoadAccess);
+            return Edges.Any(a => a.Resources.Contains(resource));
         }
     }
 }

@@ -58,10 +58,18 @@
     <Reference Include="EpimetheusPlugins">
       <HintPath>..\..\..\Visual Studio 2010\Projects\HeistCore\EpimetheusPlugins\bin\x86\Release\EpimetheusPlugins.dll</HintPath>
     </Reference>
+    <Reference Include="HandyCollections">
+      <HintPath>..\packages\HandyCollections.1.0.0.0\lib\net40\HandyCollections.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Myre, Version=1.0.0.4, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Myre.1.0.0.4\lib\net40-Client\Myre.dll</HintPath>
+    <Reference Include="Myre">
+      <HintPath>..\packages\Myre.1.0.1.0\lib\net40-Client\Myre.dll</HintPath>
+    </Reference>
+    <Reference Include="Myre.Debugging">
+      <HintPath>..\packages\Myre.Debugging.1.1.2.0\lib\net40-Client\Myre.Debugging.dll</HintPath>
     </Reference>
     <Reference Include="Myre.Entities">
       <HintPath>..\packages\Myre.Entities.1.1.1.0\lib\net40-Client\Myre.Entities.dll</HintPath>
@@ -69,8 +77,33 @@
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.3.0.1.10\lib\net40\Ninject.dll</HintPath>
     </Reference>
+    <Reference Include="NLog, Version=2.1.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NLog.2.1.0\lib\net40\NLog.dll</HintPath>
+    </Reference>
+    <Reference Include="Placeholder, Version=1.0.6.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.1.0.6.0\lib\net40-Client\Placeholder.dll</HintPath>
+    </Reference>
+    <Reference Include="Placeholder.AI.Pathfinding">
+      <HintPath>..\packages\Placeholder.AI.Pathfinding.1.0.5.0\lib\net40-Client\Placeholder.AI.Pathfinding.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Abstractions">
+      <HintPath>..\packages\System.IO.Abstractions.1.4.0.68\lib\net35\System.IO.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Core">
+      <HintPath>..\packages\Rx-Core.2.2.2\lib\net40\System.Reactive.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Interfaces">
+      <HintPath>..\packages\Rx-Interfaces.2.2.2\lib\net40\System.Reactive.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Linq">
+      <HintPath>..\packages\Rx-Linq.2.2.2\lib\net40\System.Reactive.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.PlatformServices">
+      <HintPath>..\packages\Rx-PlatformServices.2.2.2\lib\net40\System.Reactive.PlatformServices.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -94,9 +127,18 @@
     <Compile Include="Elements\Block\IParcelElement.cs" />
     <Compile Include="Elements\Block\Parcelling\IParceller.cs" />
     <Compile Include="Elements\Block\Parcelling\ObbParceller.cs" />
+    <Compile Include="Elements\Block\Parcelling\Rules\AccessRule.cs" />
     <Compile Include="Elements\Block\Parcelling\Rules\AreaRule.cs" />
     <Compile Include="Elements\Block\Parcelling\Rules\FrontageRule.cs" />
     <Compile Include="Elements\Building\BaseBuilding.cs" />
+    <Compile Include="Elements\Building\Internals\BaseContainedSpace.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\BaseFloor.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\IFloor.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\BaseRoom.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\IRoom.cs" />
+    <Compile Include="Elements\Building\Internals\VerticalFeatures\IVerticalFeature.cs" />
+    <Compile Include="Elements\Building\Internals\VerticalFeatures\Stairs\IStairwell.cs" />
+    <Compile Include="Elements\Building\Internals\VerticalFeatures\Stairs\SpiralStaircase.cs" />
     <Compile Include="Elements\Generic\IGrounded.cs" />
     <Compile Include="Elements\Generic\BigFlatPlane.cs" />
     <Compile Include="Elements\Generic\HollowPlaceholderBlock.cs" />
@@ -116,24 +158,6 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Visual Studio 2010\Projects\Placeholder\Placeholder.AI.Pathfinding\Placeholder.AI.Pathfinding.csproj">
-      <Project>{78EF3EDC-D996-43EB-A1CB-3AD673A2A929}</Project>
-      <Name>Placeholder.AI.Pathfinding</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Visual Studio 2010\Projects\Placeholder\Placeholder.AI\Placeholder.AI.csproj">
-      <Project>{5BE1A3E5-BFE3-4479-96D7-EC2A0C4AB09C}</Project>
-      <Name>Placeholder.AI</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Visual Studio 2010\Projects\Placeholder\Placeholder.ConstructiveSolidGeometry\Placeholder.ConstructiveSolidGeometry.csproj">
-      <Project>{5A008853-C9D6-407A-8AA8-235AE1E96625}</Project>
-      <Name>Placeholder.ConstructiveSolidGeometry</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Visual Studio 2010\Projects\Placeholder\Placeholder\Placeholder.csproj">
-      <Project>{EFD5A5CE-B7CB-4B46-9FC1-F397CCCC622C}</Project>
-      <Name>Placeholder</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

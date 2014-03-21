@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
 using Myre.Extensions;
-using Placeholder.ConstructiveSolidGeometry;
-using Placeholder.ConstructiveSolidGeometry.Clipping2D;
 
 namespace Base_CityGeneration.Elements.Block.Parcelling
 {
@@ -16,7 +15,6 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
     {
         private readonly Func<double> _random;
 
-        public float RoadAccessChance { get; set; }
         public float NonOptimalOabbChance { get; set; }
         public float NonOptimalOabbMaxRatio { get; set; }
 
@@ -26,13 +24,11 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
         /// 
         /// </summary>
         /// <param name="random"></param>
-        /// <param name="roadAccessChance">The chance that a plot will have road access</param>
         /// <param name="nonOptimalOabbChance">The chance that an Oabb other than the smallest will be selected</param>
         /// <param name="nonOptimalOabbMaxRatio">The maximum ratio between optimal Oabb and selected Oabb</param>
-        public ObbParceller(Func<double> random, float roadAccessChance, float nonOptimalOabbChance = 0, float nonOptimalOabbMaxRatio = 1)
+        public ObbParceller(Func<double> random, float nonOptimalOabbChance = 0, float nonOptimalOabbMaxRatio = 1)
         {
             _random = random;
-            RoadAccessChance = roadAccessChance;
             NonOptimalOabbChance = nonOptimalOabbChance;
             NonOptimalOabbMaxRatio = nonOptimalOabbMaxRatio;
         }
@@ -55,27 +51,31 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
             for (int i = 0; i < _terminators.Count && !noChance; i++)
             {
                 var c = _terminators[i].TerminationChance(parcel);
-                accumulator += c;
-                noChance |= c <= 0;
+                if (c.HasValue)
+                {
+                    accumulator += c.Value;
+                    noChance |= c.Value <= 0;
+                }
             }
 
             //If random chance beats average of all termination chances then stop here
             if (accumulator / _terminators.Count >= _random())
                 yield return parcel;
 
-            OABB oabb = FitOabb(parcel, NonOptimalOabbChance, NonOptimalOabbMaxRatio);
+            OABB oabb = FitOabb(parcel, NonOptimalOabbChance, NonOptimalOabbMaxRatio, _random);
 
             var splitLine = oabb.SplitDirection();
             var children = Split(parcel, splitLine, oabb.Middle).ToArray();
 
-            //If this split created children with no road access then flip the split line by 90 and try again
-            if (children.Any(c => !c.HasRoadAccess() && _random() <= RoadAccessChance))
+            //If any children are discarded try splitting the other way
+            if (_terminators.Any(t => children.Any(c => t.Discard(c, _random))))
             {
                 splitLine = splitLine.Perpendicular();
                 children = Split(parcel, splitLine, oabb.Middle).ToArray();
             }
 
-            if (_terminators.Any(t => children.Any(t.Discard)))
+            //Either return this parcel because we can't find any valid children, or continue recursive splitting
+            if (_terminators.Any(t => children.Any(c => t.Discard(c, _random))))
                 yield return parcel;
             else
                 foreach (var child in children.SelectMany(RecursiveSplit))
@@ -118,7 +118,7 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
             //Build edges from this set of points
             Parcel.Edge[] edges = new Parcel.Edge[points.Length];
             for (int i = 0; i < points.Length; i++)
-                edges[i] = new Parcel.Edge { Start = points[i], End = points[(i + 1) % points.Length], HasRoadAccess = false };
+                edges[i] = new Parcel.Edge { Start = points[i], End = points[(i + 1) % points.Length], Resources = new string[0] };
 
             //Find egdes in parent which are coincident with edges of child
             //Copy road accessibility across
@@ -129,12 +129,12 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
                 {
                     var childEdge = edges[j];
 
-                    var s = Math.Abs(ConvexHullExtensions.DistanceFromPointToLine(childEdge.Start, parentEdge.Start, parentDirection));
-                    var e = Math.Abs(ConvexHullExtensions.DistanceFromPointToLine(childEdge.End, parentEdge.Start, parentDirection));
+                    var s = Math.Abs(Geometry2D.DistanceFromPointToLine(childEdge.Start, parentEdge.Start, parentDirection));
+                    var e = Math.Abs(Geometry2D.DistanceFromPointToLine(childEdge.End, parentEdge.Start, parentDirection));
 
-                    if (s < 0.1 && e < 0.1) //Pretty massive threshold, but it's only really 10cm, so close enough when we're talking about entire city blocks!
+                    if (s < 0.01 && e < 0.01) //Pretty massive threshold, but it's only really 1cm, so close enough when we're talking about entire city blocks!
                     {
-                        edges[j].HasRoadAccess = parentEdge.HasRoadAccess;
+                        edges[j].Resources = parentEdge.Resources;
                         break;
                     }
                 }
@@ -143,7 +143,7 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
             return new Parcel(edges);
         }
 
-        private OABB FitOabb(Parcel parcel, float nonOptimalityChance, float maximumNonOptimality)
+        private static OABB FitOabb(Parcel parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)
         {
             //Finding the OABB of the hull is the same as finding the OABB of the parcel, but is quicker
             var hull = parcel.Points().Quickhull2D().ToArray();
@@ -194,7 +194,7 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
 
                 //We're not breaking the non optimality limit, so what's the chance of selecting this?
                 var chance = Math.Pow(nonOptimalityChance, i);
-                selected = _random() < chance ? i : selected;
+                selected = random() < chance ? i : selected;
             }
 
             return oabbs[selected];
@@ -211,7 +211,7 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
             );
         }
 
-        private struct OABB
+        struct OABB
         {
             public Vector2 Middle;
             public float Rotation;
@@ -220,9 +220,10 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
 
             public Vector2 SplitDirection()
             {
-                return ((Extents.X < Extents.Y))
-                    ? new Vector2((float) Math.Cos(Rotation), (float) Math.Sin(Rotation))
-                    : new Vector2((float) Math.Sin(Rotation), (float) Math.Cos(Rotation));
+                var sin = (float)Math.Sin(Rotation);
+                var cos = (float)Math.Cos(Rotation);
+
+                return (Extents.X < Extents.Y) ? new Vector2(cos, sin) : new Vector2(sin, cos);
             }
         }
     }
