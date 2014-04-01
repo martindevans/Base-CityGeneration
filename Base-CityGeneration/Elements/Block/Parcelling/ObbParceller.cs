@@ -82,7 +82,8 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
                     yield return child;
         }
 
-        private IEnumerable<Parcel> Split(Parcel parcel, Vector2 direction, Vector2 point)
+        #region static helpers
+        private static IEnumerable<Parcel> Split(Parcel parcel, Vector2 direction, Vector2 point)
         {
             List<IntPoint> polygon = new List<IntPoint>(parcel.Edges.Select(e => e.Start).Select(p => new IntPoint((int)(p.X * 1000), (int)(p.Y * 1000))));
             List<IntPoint> clip = new List<IntPoint>(new[]
@@ -210,6 +211,7 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
                 s * (point.X - origin.X) + c * (point.Y - origin.Y) + origin.Y
             );
         }
+        #endregion
 
         struct OABB
         {

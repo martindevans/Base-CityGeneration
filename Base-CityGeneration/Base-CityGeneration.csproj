@@ -55,6 +55,9 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Cassowary">
+      <HintPath>..\packages\Cassowary.2.0.0.0\lib\net35-Client\Cassowary.dll</HintPath>
+    </Reference>
     <Reference Include="EpimetheusPlugins">
       <HintPath>..\..\..\Visual Studio 2010\Projects\HeistCore\EpimetheusPlugins\bin\x86\Release\EpimetheusPlugins.dll</HintPath>
     </Reference>
@@ -131,6 +134,8 @@
     <Compile Include="Elements\Block\Parcelling\Rules\AreaRule.cs" />
     <Compile Include="Elements\Block\Parcelling\Rules\FrontageRule.cs" />
     <Compile Include="Elements\Building\BaseBuilding.cs" />
+    <Compile Include="Elements\Building\Facades\BaseFacade.cs" />
+    <Compile Include="Elements\Building\Facades\IFacade.cs" />
     <Compile Include="Elements\Building\Internals\BaseContainedSpace.cs" />
     <Compile Include="Elements\Building\Internals\Floors\BaseFloor.cs" />
     <Compile Include="Elements\Building\Internals\Floors\IFloor.cs" />
