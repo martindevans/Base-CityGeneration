@@ -29,10 +29,10 @@ namespace Base_CityGeneration.Datastructures
         {
             var convex1 = new Vector2[]
             {
-                new Vector2(r.Left, r.Top),
-                new Vector2(r.Right, r.Top),
+                new Vector2(r.Left, r.Bottom),
                 new Vector2(r.Right, r.Bottom),
-                new Vector2(r.Left, r.Bottom)
+                new Vector2(r.Right, r.Top),
+                new Vector2(r.Left, r.Top)
             };
 
             return Intersects(convex1, convex2);

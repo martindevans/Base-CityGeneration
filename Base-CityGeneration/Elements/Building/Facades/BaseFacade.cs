@@ -47,23 +47,16 @@ namespace Base_CityGeneration.Elements.Building.Facades
             var vOut = Section.Normal;
             var vLeft = vOut.Perpendicular();
 
-            //Create transformation matrix
-            Matrix m = Matrix.Identity;
-            m.Forward = new Vector3(vOut.X, 0, vOut.Y);
-            m.Left = new Vector3(vLeft.X, 0, vLeft.Y);
-            m.Up = Vector3.Up;
-
-            //Prisms are vertically oriented, so rotate it into a horizontal orientation before transformation
-            m = Matrix.CreateRotationX(-MathHelper.PiOver2) * m;
-
             //Calculate absolute thickness of stamp
             var thickness = (stamp.EndDepth - stamp.StartDepth) * Section.Thickness;
 
-            //Offset of stamp by start distance
-            m = Matrix.CreateTranslation(0, -(Section.Thickness - thickness) / 2 + stamp.StartDepth * Section.Thickness, 0) * m;
+            //Calculate transform from prism lyinf flat in plane to vertically aligned in plane of facade
+            var transform = Matrix.CreateTranslation(0, -(Section.Thickness - thickness) / 2 + stamp.StartDepth * Section.Thickness, 0) *
+                            Matrix.CreateRotationX(-MathHelper.PiOver2) *
+                            new Matrix { Forward = new Vector3(vOut.X, 0, vOut.Y), Left = new Vector3(vLeft.X, 0, vLeft.Y), Up = Vector3.Up, M44 = 1 };
 
             //create brush
-            return geometry.CreatePrism(material, stamp.Shape, thickness).Transform(m);
+            return geometry.CreatePrism(material, stamp.Shape, thickness).Transform(transform);
         }
 
         /// <summary>
@@ -82,7 +75,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// Get the set of stamps to be applied to the surface of this facade
         /// </summary>
         /// <returns></returns>
-        protected internal virtual IEnumerable<Stamp> EmbossingStamps(INamedDataCollection hierarchicalParameters, float width, float height)
+        protected virtual IEnumerable<Stamp> EmbossingStamps(INamedDataCollection hierarchicalParameters, float width, float height)
         {
             yield break;
         }

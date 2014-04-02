@@ -150,10 +150,10 @@ namespace Base_CityGeneration.Datastructures
                 var h = Bounds.Height / 2;
 
                 var midX = Bounds.Left + w;
-                var midY = Bounds.Top + h;
+                var midY = Bounds.Bottom + h;
 
-                TopLeft = new Node(new RectangleF(Bounds.Left, Bounds.Top, w, h), this, Positions.TopLeft);
-                TopRight = new Node(new RectangleF(midX, Bounds.Top, w, h), this, Positions.TopRight);
+                TopLeft = new Node(new RectangleF(Bounds.Left, Bounds.Bottom, w, h), this, Positions.TopLeft);
+                TopRight = new Node(new RectangleF(midX, Bounds.Bottom, w, h), this, Positions.TopRight);
                 BottomLeft = new Node(new RectangleF(Bounds.Left, midY, w, h), this, Positions.BottomLeft);
                 BottomRight = new Node(new RectangleF(midX, midY, w, h), this, Positions.BottomRight);
             }
