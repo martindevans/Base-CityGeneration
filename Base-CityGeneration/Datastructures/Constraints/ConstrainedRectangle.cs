@@ -79,16 +79,12 @@ namespace Base_CityGeneration.Datastructures.Constraints
             get { return (float)CenterYVariable.Value; }
         }
 
-        /// <summary>
-        /// The current rectangle which this set of constraints is solved to
-        /// </summary>
-        public RectangleF Rectangle
-        {
-            get { return new RectangleF(Left, Top, Width, Height); }
-        }
+        private readonly ClSimplexSolver _solver;
 
         public ConstrainedRectangle(ClSimplexSolver solver, Range left = null, Range right = null, Range top = null, Range bottom = null, Range width = null, Range height = null, Range centerX = null, Range centerY = null)
         {
+            _solver = solver;
+
             LeftVariable = (left ?? new Range()).CreateVariable(solver);
             RightVariable = (right ?? new Range()).CreateVariable(solver);
             TopVariable = (top ?? new Range()).CreateVariable(solver);
@@ -106,6 +102,31 @@ namespace Base_CityGeneration.Datastructures.Constraints
             solver.AddConstraint(CenterXVariable, LeftVariable, WidthVariable, (cx, l, w) => l + w / 2 == cx);
             solver.AddConstraint(CenterYVariable, BottomVariable, HeightVariable, (cy, b, h) => b + h / 2 == cy);
 // ReSharper restore CompareOfFloatsByEqualityOperator
+        }
+
+        public ConstrainedRectangle AspectRatio(float aspectRatio)
+        {
+// ReSharper disable CompareOfFloatsByEqualityOperator
+            _solver.AddConstraint(WidthVariable, HeightVariable, (w, h) => w == h * aspectRatio);
+// ReSharper restore CompareOfFloatsByEqualityOperator
+
+            return this;
+        }
+
+        public ConstrainedRectangle AspectRatio(Range aspectRange)
+        {
+            if (aspectRange.Min.HasValue)
+            {
+                var m = aspectRange.Min.Value;
+                _solver.AddConstraint(WidthVariable, HeightVariable, (w, h) => w >= h * m);
+            }
+            if (aspectRange.Max.HasValue)
+            {
+                var m = aspectRange.Max.Value;
+                _solver.AddConstraint(WidthVariable, HeightVariable, (w, h) => w <= h * m);
+            }
+
+            return this;
         }
     }
 }

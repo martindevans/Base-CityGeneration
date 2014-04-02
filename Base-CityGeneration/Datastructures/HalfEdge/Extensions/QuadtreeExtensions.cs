@@ -108,13 +108,13 @@ namespace Base_CityGeneration.Datastructures.HalfEdge.Extensions
             switch (side)
             {
                 case Quadtree.Node.Sides.Up:
-                    return Side(node, r => new[] { new Vector2(r.Left, r.Top), new Vector2(r.Right, r.Top) }, n => new[] { n.TopLeft, n.TopRight });
+                    return Side(node, r => new[] { new Vector2(r.Left, r.Bottom), new Vector2(r.Right, r.Bottom) }, n => new[] { n.TopLeft, n.TopRight });
                 case Quadtree.Node.Sides.Down:
-                    return Side(node, r => new[] { new Vector2(r.Right, r.Bottom), new Vector2(r.Left, r.Bottom) }, n => new[] { n.BottomRight, n.BottomLeft });
+                    return Side(node, r => new[] { new Vector2(r.Right, r.Top), new Vector2(r.Left, r.Top) }, n => new[] { n.BottomRight, n.BottomLeft });
                 case Quadtree.Node.Sides.Left:
-                    return Side(node, r => new[] { new Vector2(r.Left, r.Bottom), new Vector2(r.Left, r.Top) }, n => new[] { n.BottomLeft, n.TopLeft });
+                    return Side(node, r => new[] { new Vector2(r.Left, r.Top), new Vector2(r.Left, r.Bottom) }, n => new[] { n.BottomLeft, n.TopLeft });
                 case Quadtree.Node.Sides.Right:
-                    return Side(node, r => new[] { new Vector2(r.Right, r.Top), new Vector2(r.Right, r.Bottom) }, n => new[] { n.TopRight, n.BottomRight });
+                    return Side(node, r => new[] { new Vector2(r.Right, r.Bottom), new Vector2(r.Right, r.Top) }, n => new[] { n.TopRight, n.BottomRight });
                 default:
                     throw new ArgumentOutOfRangeException("side");
             }
