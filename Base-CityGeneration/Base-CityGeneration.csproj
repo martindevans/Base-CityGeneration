@@ -56,7 +56,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Cassowary">
-      <HintPath>..\packages\Cassowary.2.0.0.0\lib\net35-Client\Cassowary.dll</HintPath>
+      <HintPath>..\packages\Cassowary.2.7.0.0\lib\net35-Client\Cassowary.dll</HintPath>
     </Reference>
     <Reference Include="EpimetheusPlugins">
       <HintPath>..\..\..\Visual Studio 2010\Projects\HeistCore\EpimetheusPlugins\bin\x86\Release\EpimetheusPlugins.dll</HintPath>
@@ -115,6 +115,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
+    <Compile Include="Datastructures\Constraints\ConstrainedRectangle.cs" />
+    <Compile Include="Datastructures\Constraints\Range.cs" />
     <Compile Include="Datastructures\HalfEdge\Extensions\MeshExtensions.cs" />
     <Compile Include="Datastructures\HalfEdge\Extensions\QuadtreeExtensions.cs" />
     <Compile Include="Datastructures\HalfEdge\Face.cs" />

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Services.CSG;
@@ -55,7 +54,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
             m.Up = Vector3.Up;
 
             //Prisms are vertically oriented, so rotate it into a horizontal orientation before transformation
-            m = Matrix.CreateRotationX(MathHelper.PiOver2) * m;
+            m = Matrix.CreateRotationX(-MathHelper.PiOver2) * m;
 
             //Calculate absolute thickness of stamp
             var thickness = (stamp.EndDepth - stamp.StartDepth) * Section.Thickness;
@@ -83,7 +82,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// Get the set of stamps to be applied to the surface of this facade
         /// </summary>
         /// <returns></returns>
-        protected virtual IEnumerable<Stamp> EmbossingStamps(INamedDataCollection hierarchicalParameters, float width, float height)
+        protected internal virtual IEnumerable<Stamp> EmbossingStamps(INamedDataCollection hierarchicalParameters, float width, float height)
         {
             yield break;
         }
