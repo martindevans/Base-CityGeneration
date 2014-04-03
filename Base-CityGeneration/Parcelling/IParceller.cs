@@ -4,31 +4,31 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Myre.Extensions;
 
-namespace Base_CityGeneration.Elements.Block.Parcelling
+namespace Base_CityGeneration.Parcelling
 {
-    public interface IParceller
+    public interface IParceller<T> where T : class, IParcelElement<T>
     {
         /// <summary>
         /// Given the footprint of the entire block, generate parcels for buildings in the block
         /// </summary>
         /// <param name="root"></param>
         /// <returns></returns>
-        IEnumerable<Parcel> GenerateParcels(Parcel root);
+        IEnumerable<Parcel<T>> GenerateParcels(Parcel<T> root);
 
         /// <summary>
         /// Add a chance to terminate split recursion to this parceller
         /// </summary>
-        void AddTerminationRule(ITerminationRule rule);
+        void AddTerminationRule(ITerminationRule<T> rule);
     }
 
-    public interface ITerminationRule
+    public interface ITerminationRule<T> where T : class, IParcelElement<T>
     {
         /// <summary>
         /// Returns the chance of termination by this rule. If the chance is zero (on any rule) then termination will not happen (except if discard comes into play)
         /// </summary>
         /// <param name="parcel"></param>
         /// <returns></returns>
-        float? TerminationChance(Parcel parcel);
+        float? TerminationChance(Parcel<T> parcel);
 
         /// <summary>
         /// If this parcel is invalid. If *any* rules requires discard then the parcel will be discarded and recursion terminated (possibly violating a termination chance of zero)
@@ -36,12 +36,26 @@ namespace Base_CityGeneration.Elements.Block.Parcelling
         /// <param name="parcel"></param>
         /// <param name="random"></param>
         /// <returns></returns>
-        bool Discard(Parcel parcel, Func<double> random);
+        bool Discard(Parcel<T> parcel, Func<double> random);
     }
 
-    public struct Parcel
+    public class Parcel<T> where T : class, IParcelElement<T>
     {
         public readonly Edge[] Edges;
+
+        private T _node;
+        public T Node
+        {
+            get { return _node; }
+            set
+            {
+                if (value.Parcel != null && value.Parcel != null)
+                    throw new ArgumentException("Section is already set, and it is not set to this section", "value");
+                if (value.Parcel != null)
+                    value.Parcel = this;
+                _node = value;
+            }
+        }
 
         public Parcel(Edge[] edges)
         {

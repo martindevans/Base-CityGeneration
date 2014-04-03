@@ -4,13 +4,14 @@ using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using Base_CityGeneration.Elements.Generic;
+using Base_CityGeneration.Parcelling;
 using EpimetheusPlugins.Procedural;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building
 {
     public abstract class BaseBuilding
-        :ProceduralScript, IGrounded
+        :ProceduralScript, IGrounded, IParcelElement<BaseBuilding>
     {
         public float GroundHeight { get; set; }
 
@@ -20,6 +21,8 @@ namespace Base_CityGeneration.Elements.Building
         private readonly int _maxBasementFloors;
         private readonly float _minFloorHeight;
         private readonly float _maxFloorHeight;
+
+        public Parcel<BaseBuilding> Parcel { get; set; }
 
         protected BaseBuilding(int minFloors, int maxFloors, int minBasementFloors, int maxBasementFloors, float minFloorHeight, float maxFloorHeight)
         {

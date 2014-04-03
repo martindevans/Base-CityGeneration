@@ -2,6 +2,9 @@
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
+    /// <summary>
+    /// Half of a directed edge. The other half is directed in the opposite direction and can be found in the Pair property
+    /// </summary>
     public class HalfEdge
         :IEdge
     {

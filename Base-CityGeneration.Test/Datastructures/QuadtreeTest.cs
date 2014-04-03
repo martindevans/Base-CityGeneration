@@ -3,6 +3,7 @@ using System.Linq;
 using Base_CityGeneration.Datastructures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
+using Rectangle = Base_CityGeneration.Datastructures.Rectangle;
 
 namespace Base_CityGeneration.Test.Datastructures
 {
@@ -12,29 +13,29 @@ namespace Base_CityGeneration.Test.Datastructures
         [TestMethod]
         public void CreateQuadtree()
         {
-            var q = new Quadtree(new RectangleF(0, 0, 100, 100));
+            var q = new Quadtree(new Rectangle(0, 0, 100, 100));
 
             Assert.IsNotNull(q.Root);
-            Assert.AreEqual(new RectangleF(0, 0, 100, 100), q.Root.Bounds);
+            Assert.AreEqual(new Rectangle(0, 0, 100, 100), q.Root.Bounds);
         }
 
         [TestMethod]
         public void SplitQuadtree()
         {
-            var q = new Quadtree(new RectangleF(0, 0, 100, 100));
+            var q = new Quadtree(new Rectangle(0, 0, 100, 100));
 
             q.Root.Split();
 
-            Assert.AreEqual(new RectangleF(0, 0, 50, 50), q.Root.Children.ToArray()[0].Bounds);
-            Assert.AreEqual(new RectangleF(50, 0, 50, 50), q.Root.Children.ToArray()[1].Bounds);
-            Assert.AreEqual(new RectangleF(0, 50, 50, 50), q.Root.Children.ToArray()[2].Bounds);
-            Assert.AreEqual(new RectangleF(50, 50, 50, 50), q.Root.Children.ToArray()[3].Bounds);
+            Assert.AreEqual(new Rectangle(0, 0, 50, 50), q.Root.Children.ToArray()[0].Bounds);
+            Assert.AreEqual(new Rectangle(50, 0, 50, 50), q.Root.Children.ToArray()[1].Bounds);
+            Assert.AreEqual(new Rectangle(0, 50, 50, 50), q.Root.Children.ToArray()[2].Bounds);
+            Assert.AreEqual(new Rectangle(50, 50, 50, 50), q.Root.Children.ToArray()[3].Bounds);
         }
 
         [TestMethod]
         public void QueryQuadtreeByPoint()
         {
-            var q = new Quadtree(new RectangleF(0, 0, 100, 100));
+            var q = new Quadtree(new Rectangle(0, 0, 100, 100));
 
             q.Root.Split();
             q.Root.Children.First().Split();
@@ -50,11 +51,11 @@ namespace Base_CityGeneration.Test.Datastructures
         [TestMethod]
         public void QueryQuadtreeByRectangle()
         {
-            var q = new Quadtree(new RectangleF(-50, -50, 100, 100));
+            var q = new Quadtree(new Rectangle(-50, -50, 100, 100));
             q.Root.Split();
             q.Root.Children.First().Split();
 
-            var r = new RectangleF(-10, -10, 10, 10);
+            var r = new Rectangle(-10, -10, 10, 10);
 
             var result = q.IntersectingLeaves(r);
             Assert.AreEqual(4, result.Count());
@@ -63,7 +64,7 @@ namespace Base_CityGeneration.Test.Datastructures
         [TestMethod]
         public void QueryQuadtreeByQuadrangleConvex()
         {
-            var q = new Quadtree(new RectangleF(-50, -50, 100, 100));
+            var q = new Quadtree(new Rectangle(-50, -50, 100, 100));
             q.Root.Split();
             q.Root.Children.First().Split();
 
@@ -82,7 +83,7 @@ namespace Base_CityGeneration.Test.Datastructures
         [TestMethod]
         public void GetQuadtreeRootNodeSibling()
         {
-            Quadtree q = new Quadtree(new RectangleF(0, 0, 10, 10));
+            Quadtree q = new Quadtree(new Rectangle(0, 0, 10, 10));
 
             Assert.IsNull(q.Root.Sibling(Quadtree.Node.Sides.Right));
             Assert.IsNull(q.Root.Sibling(Quadtree.Node.Sides.Left));
@@ -93,7 +94,7 @@ namespace Base_CityGeneration.Test.Datastructures
         [TestMethod]
         public void GetQuadtreeNodeSiblingWithinSameParent()
         {
-            Quadtree q = new Quadtree(new RectangleF(0, 0, 10, 10));
+            Quadtree q = new Quadtree(new Rectangle(0, 0, 10, 10));
             q.Root.Split();
 
             Assert.AreEqual(q.Root.TopRight, q.Root.TopLeft.Sibling(Quadtree.Node.Sides.Right));
@@ -103,7 +104,7 @@ namespace Base_CityGeneration.Test.Datastructures
         [TestMethod]
         public void GetQuadtreeNodeSiblingWithinDifferentParent()
         {
-            Quadtree q = new Quadtree(new RectangleF(0, 0, 10, 10));
+            Quadtree q = new Quadtree(new Rectangle(0, 0, 10, 10));
             q.Root.Split();
             foreach (var child in q.Root.Children)
                 child.Split();

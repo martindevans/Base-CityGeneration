@@ -1,9 +1,10 @@
 ﻿using System;
 
-namespace Base_CityGeneration.Elements.Block.Parcelling.Rules
+namespace Base_CityGeneration.Parcelling.Rules
 {
-    public class AccessRule
-        :ITerminationRule
+    public class AccessRule<T>
+        : ITerminationRule<T>
+        where T : class, IParcelElement<T>
     {
         private readonly string _resource;
         private readonly float _chance;
@@ -14,12 +15,12 @@ namespace Base_CityGeneration.Elements.Block.Parcelling.Rules
             _chance = chance;
         }
 
-        public float? TerminationChance(Parcel parcel)
+        public float? TerminationChance(Parcel<T> parcel)
         {
             return null;
         }
 
-        public bool Discard(Parcel parcel, Func<double> random)
+        public bool Discard(Parcel<T> parcel, Func<double> random)
         {
             return !parcel.HasAccess(_resource) && random() <= _chance;
 

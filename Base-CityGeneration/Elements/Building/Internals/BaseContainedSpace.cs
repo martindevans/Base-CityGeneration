@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using Base_CityGeneration.Elements.Building.Facades;
+using Base_CityGeneration.Elements.Building.Internals.Floors;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Services.CSG;
@@ -12,7 +15,7 @@ namespace Base_CityGeneration.Elements.Building.Internals
     /// Some kind of space surrounded by walls and/or ceilings
     /// </summary>
     public abstract class BaseContainedSpace
-        : ProceduralScript
+        : ProceduralScript, IFacadeOwner
     {
         private readonly float _minHeight;
         private readonly float _maxHeight;
@@ -22,6 +25,11 @@ namespace Base_CityGeneration.Elements.Building.Internals
         protected readonly float FloorOffset;
         protected readonly float CeilingThickness;
         protected readonly float CeilingOffset;
+
+        protected virtual Type[] FacadeSearchEndTypes
+        {
+            get { return new Type[0]; }
+        }
 
         protected BaseContainedSpace(float minHeight = 1, float maxHeight = 10, float wallThickness = 0.15f, float floorThickness = 0.1f, float floorOffset = 0, float ceilingThickness = 0.1f, float ceilingOffset = 0)
         {
@@ -99,7 +107,11 @@ namespace Base_CityGeneration.Elements.Building.Internals
         /// <returns></returns>
         protected virtual ICsgShape CreateFacadeBrush(ICsgFactory geometry, INamedDataCollection hierarchicalParameters, Walls.Section previous, Walls.Section facade, Walls.Section next, float height)
         {
-            return geometry.CreatePrism(hierarchicalParameters.GetValue(new TypedName<string>("material"), true) ?? "grass", new Vector2[]
+            var f = this.FindFacade(facade, FacadeSearchEndTypes);
+            if (f != null)
+                return null;    //No need to create a facade brush, ancestor is providing a facade element instead
+
+            return geometry.CreatePrism(hierarchicalParameters.GetValue(new TypedName<string>("material")), new Vector2[]
             {
                 facade.A, facade.B, facade.C, facade.D
             }, height);

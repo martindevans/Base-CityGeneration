@@ -75,7 +75,7 @@ namespace Base_CityGeneration.Datastructures
             return quads;
         }
 
-        public bool Intersects(RectangleF r)
+        public bool Intersects(Rectangle r)
         {
             if (_quadrangles.Any(q => SeparatingAxisTester.Intersects(r, q)))
                 return true;
