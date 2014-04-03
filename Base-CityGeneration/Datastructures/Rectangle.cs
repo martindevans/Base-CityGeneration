@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Datastructures
 {
-    public struct RectangleF
+    public struct Rectangle
     {
         public readonly float Bottom;
         public readonly float Left;
@@ -40,7 +40,7 @@ namespace Base_CityGeneration.Datastructures
             get { return new Vector2(Right, Top); }
         }
 
-        public RectangleF(float left, float bottom, float width, float height)
+        public Rectangle(float left, float bottom, float width, float height)
         {
             Bottom = bottom;
             Left = left;
@@ -48,7 +48,7 @@ namespace Base_CityGeneration.Datastructures
             Height = height;
         }
 
-        public bool Intersects(RectangleF b)
+        public bool Intersects(Rectangle b)
         {
             return Left <= b.Right
                 && b.Left <= Right

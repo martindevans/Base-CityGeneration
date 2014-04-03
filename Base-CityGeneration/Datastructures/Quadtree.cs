@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Base_CityGeneration.Datastructures.HalfEdge.Extensions;
+using Base_CityGeneration.Datastructures.Extensions;
 using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Datastructures
@@ -10,7 +10,7 @@ namespace Base_CityGeneration.Datastructures
     {
         public Node Root { get; private set; }
 
-        public Quadtree(RectangleF bounds)
+        public Quadtree(Rectangle bounds)
         {
             Root = new Node(bounds, null, Node.Positions.Root);
         }
@@ -27,7 +27,7 @@ namespace Base_CityGeneration.Datastructures
             return node;
         }
 
-        public IEnumerable<Node> IntersectingLeaves(RectangleF r)
+        public IEnumerable<Node> IntersectingLeaves(Rectangle r)
         {
             return Root.IntersectingLeaves(r);
         }
@@ -64,7 +64,7 @@ namespace Base_CityGeneration.Datastructures
                 Left = 8
             }
 
-            public RectangleF Bounds { get; private set; }
+            public Rectangle Bounds { get; private set; }
 
             public Node TopLeft { get; private set; }
             public Node TopRight { get; private set; }
@@ -131,7 +131,7 @@ namespace Base_CityGeneration.Datastructures
             public Node Parent { get; private set; }
             public Positions Position { get; private set; }
 
-            public Node(RectangleF bounds, Node parent, Positions position)
+            public Node(Rectangle bounds, Node parent, Positions position)
             {
                 Bounds = bounds;
                 IsLeaf = true;
@@ -152,10 +152,10 @@ namespace Base_CityGeneration.Datastructures
                 var midX = Bounds.Left + w;
                 var midY = Bounds.Bottom + h;
 
-                TopLeft = new Node(new RectangleF(Bounds.Left, Bounds.Bottom, w, h), this, Positions.TopLeft);
-                TopRight = new Node(new RectangleF(midX, Bounds.Bottom, w, h), this, Positions.TopRight);
-                BottomLeft = new Node(new RectangleF(Bounds.Left, midY, w, h), this, Positions.BottomLeft);
-                BottomRight = new Node(new RectangleF(midX, midY, w, h), this, Positions.BottomRight);
+                TopLeft = new Node(new Rectangle(Bounds.Left, Bounds.Bottom, w, h), this, Positions.TopLeft);
+                TopRight = new Node(new Rectangle(midX, Bounds.Bottom, w, h), this, Positions.TopRight);
+                BottomLeft = new Node(new Rectangle(Bounds.Left, midY, w, h), this, Positions.BottomLeft);
+                BottomRight = new Node(new Rectangle(midX, midY, w, h), this, Positions.BottomRight);
             }
 
             public bool Contains(Vector2 point)
@@ -163,7 +163,7 @@ namespace Base_CityGeneration.Datastructures
                 return Bounds.Contains(point);
             }
 
-            public bool Intersects(RectangleF rect)
+            public bool Intersects(Rectangle rect)
             {
                 return Bounds.Intersects(rect);
             }
@@ -173,7 +173,7 @@ namespace Base_CityGeneration.Datastructures
                 return SeparatingAxisTester.Intersects(convex, Bounds.ToConvex());
             }
 
-            public IEnumerable<Node> IntersectingLeaves(RectangleF r)
+            public IEnumerable<Node> IntersectingLeaves(Rectangle r)
             {
                 return RecursiveLeafSelector(n => n.Intersects(r));
             }

@@ -1,18 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Base_CityGeneration.Elements.Block.Parcelling;
+using Base_CityGeneration.Elements.Building;
 using Base_CityGeneration.Elements.Generic;
 using EpimetheusPlugins.Procedural;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 
-namespace Base_CityGeneration.Elements.Block
+namespace Base_CityGeneration.Parcelling
 {
     public abstract class BaseBlock
         :ProceduralScript, IGrounded
     {
         public float GroundHeight { get; set; }
 
-        public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, Myre.Collections.INamedDataCollection hierarchicalParameters)
+        public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
             var nodes = CreateParcelNodes(GenerateParcels(bounds.Footprint).ToArray(), bounds.Height);
             foreach (var node in nodes)
@@ -21,9 +22,9 @@ namespace Base_CityGeneration.Elements.Block
                 if (grounded != null)
                     grounded.GroundHeight = GroundHeight;
 
-                var parcelled = node.Value as IParcelElement;
+                var parcelled = node.Value as BaseBuilding;
                 if (parcelled != null)
-                    parcelled.Parcel = node.Key;
+                    node.Key.Node = parcelled;
             }
         }
 
@@ -32,7 +33,7 @@ namespace Base_CityGeneration.Elements.Block
         /// </summary>
         /// <param name="footprint"></param>
         /// <returns></returns>
-        protected abstract IEnumerable<Parcel> GenerateParcels(Vector2[] footprint);
+        protected abstract IEnumerable<Parcel<BaseBuilding>> GenerateParcels(Vector2[] footprint);
 
         /// <summary>
         /// Create nodes filling the given parcels
@@ -40,6 +41,6 @@ namespace Base_CityGeneration.Elements.Block
         /// <param name="parcels"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        protected abstract IEnumerable<KeyValuePair<Parcel, ProceduralScript>> CreateParcelNodes(Parcel[] parcels, float height);
+        protected abstract IEnumerable<KeyValuePair<Parcel<BaseBuilding>, ProceduralScript>> CreateParcelNodes(Parcel<BaseBuilding>[] parcels, float height);
     }
 }

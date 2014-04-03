@@ -1,5 +1,7 @@
-﻿using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
+﻿using Base_CityGeneration.Elements.Building.Facades;
+using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using EpimetheusPlugins.Procedural;
+using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Services.CSG;
 using Microsoft.Xna.Framework;
@@ -13,8 +15,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
     /// </summary>
     [Script("6F711293-666D-48DA-A250-8775C39D845A", "Basic Blank Floor")]
     public class BaseFloor
-        :BaseContainedSpace, IFloor
+        :BaseContainedSpace, IFloor, IFacadeProvider
     {
+        /// <summary>
+        /// The index of this floor
+        /// </summary>
         public int FloorIndex { get; set; }
 
         public BaseBuilding ParentBuilding { get; set; }
@@ -58,5 +63,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
             return brush;
         }
+
+        #region provide facades for rooms on this floor
+        public virtual IFacade CreateFacade(IFacadeOwner owner, Walls.Section section)
+        {
+            //By default return nothing which defers the choice to either:
+            // 1. Further up the tree
+            // 2. The room makes it's own choice
+            return null;
+        }
+
+        public virtual void ConfigureFacade(IFacade facade, IFacadeOwner owner)
+        {
+        }
+        #endregion
     }
 }

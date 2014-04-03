@@ -25,7 +25,7 @@ namespace Base_CityGeneration.Datastructures
             return true;    //Couldn't find a separating axis
         }
 
-        public static bool Intersects(RectangleF r, Vector2[] convex2)
+        public static bool Intersects(Rectangle r, Vector2[] convex2)
         {
             var convex1 = new Vector2[]
             {
@@ -43,7 +43,7 @@ namespace Base_CityGeneration.Datastructures
             min = float.MaxValue;
             max = float.MinValue;
 
-            foreach (var projection in shape.Select(point => Vector2.Dot(point - r.Start, r.Direction)))
+            foreach (var projection in shape.Select(point => Vector2.Dot(point - r.Point, r.Direction)))
             {
                 min = Math.Min(projection, min);
                 max = Math.Max(projection, max);
@@ -58,18 +58,6 @@ namespace Base_CityGeneration.Datastructures
                 var b = shape[(i + 1) % shape.Length];
 
                 yield return new Ray2D(a, Vector2.Normalize(b - a));
-            }
-        }
-
-        private struct Ray2D
-        {
-            public readonly Vector2 Start;
-            public readonly Vector2 Direction;
-
-            public Ray2D(Vector2 start, Vector2 direction)
-            {
-                Start = start;
-                Direction = direction;
             }
         }
     }

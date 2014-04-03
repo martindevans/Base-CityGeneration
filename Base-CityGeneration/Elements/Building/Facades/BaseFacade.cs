@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
+using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Services.CSG;
 using Microsoft.Xna.Framework;
 using Myre;
@@ -12,6 +13,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
     /// <summary>
     /// A facade is a section of wall divided into sections along it's (horizontal) length
     /// </summary>
+    [Script("3AB052C6-D54C-4AE0-905E-9C99FAC9C0F7", "Base Facade")]
     public class BaseFacade
         : ProceduralScript, IFacade
     {
@@ -68,7 +70,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <returns></returns>
         protected virtual ICsgShape CreateFacade(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
-            return geometry.CreatePrism(hierarchicalParameters.GetValue(new Myre.TypedName<string>("material")), bounds.Footprint, bounds.Height);
+            return geometry.CreatePrism(hierarchicalParameters.GetValue(new TypedName<string>("material")), bounds.Footprint, bounds.Height);
         }
 
         /// <summary>

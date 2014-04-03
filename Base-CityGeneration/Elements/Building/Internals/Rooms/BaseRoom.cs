@@ -1,4 +1,6 @@
-﻿using Base_CityGeneration.Elements.Block.Parcelling;
+﻿using System;
+using Base_CityGeneration.Elements.Building.Internals.Floors;
+using Base_CityGeneration.Parcelling;
 using EpimetheusPlugins.Scripts;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Rooms
@@ -7,7 +9,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Rooms
     public class BaseRoom
         : BaseContainedSpace, IRoom
     {
-        public Parcel Parcel { get; set; }
+        public Parcel<IRoom> Parcel { get; set; }
+
+        protected override Type[] FacadeSearchEndTypes
+        {
+            get { return new[] { typeof(IFloor) }; }
+        }
 
         public BaseRoom()
             :this(1, 10, 0.15f, 0.1f, 0, 0.1f, 0)

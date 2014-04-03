@@ -1,7 +1,6 @@
 ﻿using System;
-using Base_CityGeneration.Elements.Block;
-using Base_CityGeneration.Elements.Block.Parcelling;
 using Base_CityGeneration.Elements.Building;
+using Base_CityGeneration.Parcelling;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
@@ -16,10 +15,10 @@ namespace Base_CityGeneration.Elements.Generic
     /// </summary>
     [Script("1AA57734-303F-42D8-8986-3881DF17DC95", "Solid Block")]
     public class SolidPlaceholderBuilding
-        :ProceduralScript, IParcelElement, IGrounded
+        :ProceduralScript, IParcelElement<BaseBuilding>, IGrounded
     {
         public float GroundHeight { get; set; }
-        public Parcel Parcel { get; set; }
+        public Parcel<BaseBuilding> Parcel { get; set; }
 
         public override bool Accept(Prism bounds, INamedDataProvider parameters)
         {

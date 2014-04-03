@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Base_CityGeneration.Datastructures.HalfEdge;
 using Microsoft.Xna.Framework;
 using Myre.Extensions;
 
-namespace Base_CityGeneration.Datastructures.HalfEdge.Extensions
+namespace Base_CityGeneration.Datastructures.Extensions
 {
     public static class QuadtreeExtensions
     {
@@ -83,7 +84,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge.Extensions
         #endregion
 
         #region side enumeration
-        private static IEnumerable<Vector2> Side(Quadtree.Node node, Func<RectangleF, IEnumerable<Vector2>> pointsAlongSide, Func<Quadtree.Node, IEnumerable<Quadtree.Node>> nodesAlongSide)
+        private static IEnumerable<Vector2> Side(Quadtree.Node node, Func<Rectangle, IEnumerable<Vector2>> pointsAlongSide, Func<Quadtree.Node, IEnumerable<Quadtree.Node>> nodesAlongSide)
         {
             if (node.IsLeaf)
             {

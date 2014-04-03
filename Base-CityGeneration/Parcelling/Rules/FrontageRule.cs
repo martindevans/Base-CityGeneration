@@ -1,10 +1,10 @@
-﻿
-using System;
+﻿using System;
 
-namespace Base_CityGeneration.Elements.Block.Parcelling.Rules
+namespace Base_CityGeneration.Parcelling.Rules
 {
-    public class FrontageRule
-        :ITerminationRule
+    public class FrontageRule<T>
+        : ITerminationRule<T>
+        where T : class, IParcelElement<T>
     {
         private readonly float _hardMinFrontage;
         private readonly float _maxFrontage;
@@ -19,12 +19,12 @@ namespace Base_CityGeneration.Elements.Block.Parcelling.Rules
             _resource = resource;
         }
 
-        public float? TerminationChance(Parcel parcel)
+        public float? TerminationChance(Parcel<T> parcel)
         {
             return parcel.MaxAccessFrontage(_resource) < _maxFrontage ? _terminationChance : 0;
         }
 
-        public bool Discard(Parcel parcel, Func<double> random)
+        public bool Discard(Parcel<T> parcel, Func<double> random)
         {
             return parcel.MinAccessFrontage(_resource) < _hardMinFrontage;
         }
