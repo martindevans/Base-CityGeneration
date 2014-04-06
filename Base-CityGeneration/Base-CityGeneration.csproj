@@ -68,14 +68,16 @@
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Myre">
-      <HintPath>..\packages\Myre.1.0.1.0\lib\net40-Client\Myre.dll</HintPath>
+    <Reference Include="Myre, Version=1.1.1.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Myre.1.1.1.0\lib\net40-Client\Myre.dll</HintPath>
     </Reference>
     <Reference Include="Myre.Debugging">
       <HintPath>..\packages\Myre.Debugging.1.1.2.0\lib\net40-Client\Myre.Debugging.dll</HintPath>
     </Reference>
-    <Reference Include="Myre.Entities">
-      <HintPath>..\packages\Myre.Entities.1.1.1.0\lib\net40-Client\Myre.Entities.dll</HintPath>
+    <Reference Include="Myre.Entities, Version=1.2.7.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Myre.Entities.1.2.7.0\lib\net40-Client\Myre.Entities.dll</HintPath>
     </Reference>
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.3.0.1.10\lib\net40\Ninject.dll</HintPath>
@@ -118,11 +120,14 @@
     <Compile Include="Datastructures\Constraints\ConstrainedRectangle.cs" />
     <Compile Include="Datastructures\Constraints\Range.cs" />
     <Compile Include="Datastructures\Extensions\MeshExtensions.cs" />
+    <Compile Include="Datastructures\Extensions\ParcelExtensions.cs" />
     <Compile Include="Datastructures\Extensions\QuadtreeExtensions.cs" />
+    <Compile Include="Datastructures\Extensions\Vector2EnumerableExtensions.cs" />
     <Compile Include="Datastructures\HalfEdge\Face.cs" />
     <Compile Include="Datastructures\HalfEdge\HalfEdge.cs" />
     <Compile Include="Datastructures\HalfEdge\Mesh.cs" />
     <Compile Include="Datastructures\HalfEdge\Vertex.cs" />
+    <Compile Include="Datastructures\OABB.cs" />
     <Compile Include="Datastructures\Path.cs" />
     <Compile Include="Datastructures\Quadtree.cs" />
     <Compile Include="Datastructures\Ray2D.cs" />

@@ -25,12 +25,6 @@ namespace Base_CityGeneration.Elements.Roads
             base.Subdivide(bounds, geometry, hierarchicalParameters);
         }
 
-        public Vertex Vertex
-        {
-            get;
-            set;
-        }
-
         public void AttachRoad(IRoad road)
         {
         }

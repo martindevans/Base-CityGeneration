@@ -5,20 +5,20 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
     /// <summary>
     /// Half of a directed edge. The other half is directed in the opposite direction and can be found in the Pair property
     /// </summary>
-    public class HalfEdge
+    public class HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>
         :IEdge
     {
         #region fields
         /// <summary>
         /// The oppositely oriented adjacent half-edge
         /// </summary>
-        public HalfEdge Pair { get; internal set; }
+        public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Pair { get; internal set; }
 
-        private readonly Vertex _end;
+        private readonly Vertex<TVertexTag, THalfEdgeTag, TFaceTag> _end;
         /// <summary>
         /// Vertex at the end of this half-edge
         /// </summary>
-        public Vertex EndVertex
+        public Vertex<TVertexTag, THalfEdgeTag, TFaceTag> EndVertex
         {
             get { return _end; }
         }
@@ -26,24 +26,21 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <summary>
         /// The face that this half edge is a border of
         /// </summary>
-        public Face Face { get; internal set; }
+        public Face<TVertexTag, THalfEdgeTag, TFaceTag> Face { get; internal set; }
 
         /// <summary>
         /// The next half-edge around the face
         /// </summary>
-        public HalfEdge Next { get; internal set; }
+        public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Next { get; internal set; }
 
         public bool IsPrimaryEdge { get; private set; }
 
-        private readonly Mesh _mesh;
-
-        internal IHalfEdgeBuilder Builder;
+        public THalfEdgeTag Tag;
         #endregion
 
         #region constructor
-        public HalfEdge(Mesh m, Vertex end, bool isPrimary)
+        public HalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end, bool isPrimary)
         {
-            _mesh = m;
             _end = end;
             IsPrimaryEdge = isPrimary;
         }
@@ -54,7 +51,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// </summary>
         /// <param name="start">The start.</param>
         /// <param name="end">The end.</param>
-        public void GetVertices(out Vertex start, out Vertex end)
+        private void GetVertices(out Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, out Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
             start = Pair.EndVertex;
             end = EndVertex;
@@ -65,7 +62,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// </summary>
         /// <param name="a">The face this edge bounds</param>
         /// <param name="b">The face the pair of this edge bounds</param>
-        public void GetFaces(out Face a, out Face b)
+        public void GetFaces(out Face<TVertexTag, THalfEdgeTag, TFaceTag> a, out Face<TVertexTag, THalfEdgeTag, TFaceTag> b)
         {
             a = Face;
             b = Pair.Face;
@@ -77,7 +74,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <param name="start">Vertex at the start</param>
         /// <param name="end">Vertex at the end</param>
         /// <returns>true, if this edge runs from A to B, false if this edge has no pair, or does not connect the given vertices</returns>
-        public bool Connects(Vertex start, Vertex end)
+        public bool Connects(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
             if (Pair == null)
                 return false;
@@ -86,21 +83,21 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public override bool Equals(object obj)
         {
-            var a = obj as HalfEdge;
+            var a = obj as HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>;
             if (a != null)
                 return Equals(a);
 
             return ReferenceEquals(this, obj);
         }
 
-        public bool Equals(HalfEdge e)
+        public bool Equals(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> e)
         {
-            Vertex a;
-            Vertex b;
+            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> a;
+            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> b;
             GetVertices(out a, out b);
 
-            Vertex x;
-            Vertex y;
+            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> x;
+            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> y;
             e.GetVertices(out x, out y);
 
             return a.Equals(x) && b.Equals(y);
@@ -108,21 +105,10 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public override int GetHashCode()
         {
-            Vertex a;
-            Vertex b;
+            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> a;
+            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> b;
             GetVertices(out a, out b);
             return a.GetHashCode() ^ b.GetHashCode();
-        }
-
-        /// <summary>
-        /// Insert a new vertex into the middle of this edge
-        /// </summary>
-        /// <param name="middle"></param>
-        /// <param name="am"></param>
-        /// <param name="mb"></param>
-        public void Split(Vertex middle, out HalfEdge am, out HalfEdge mb)
-        {
-            _mesh.Split(this, middle, out am, out mb);
         }
 
         public override string ToString()
@@ -130,6 +116,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return Pair.EndVertex + "=>" + EndVertex;
         }
 
+        #region Pathfinding IEdge
         IVertex IEdge.Start
         {
             get { return Pair.EndVertex; }
@@ -144,5 +131,6 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             get { return (EndVertex.Position - Pair.EndVertex.Position).Length(); }
         }
+        #endregion
     }
 }

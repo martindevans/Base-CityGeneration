@@ -25,12 +25,6 @@ namespace Base_CityGeneration.Elements.Roads
             base.Subdivide(bounds, geometry, hierarchicalParameters);
         }
 
-        public HalfEdge Edge
-        {
-            get;
-            set;
-        }
-
         public float Width
         {
             get;

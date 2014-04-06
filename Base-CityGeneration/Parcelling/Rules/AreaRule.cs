@@ -34,7 +34,8 @@ namespace Base_CityGeneration.Parcelling.Rules
 
         public bool Discard(Parcel<T> parcel, Func<double> random)
         {
-            return parcel.Area() < _hardMinArea;
+            var a = parcel.Area();
+            return a < _hardMinArea;
         }
     }
 }

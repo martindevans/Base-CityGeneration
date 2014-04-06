@@ -3,19 +3,17 @@ using System.Linq;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
-    public class Face
+    public class Face<TVertexTag, THalfEdgeTag, TFaceTag>
     {
         #region fields
         /// <summary>
         /// One of the half edges bounding this face
         /// </summary>
-        public HalfEdge Edge { get; internal set; }
+        public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Edge { get; internal set; }
 
-        internal readonly Mesh Mesh;
+        public TFaceTag Tag;
 
-        internal IFaceBuilder Builder;
-
-        public IEnumerable<HalfEdge> Edges
+        public IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> Edges
         {
             get
             {
@@ -28,7 +26,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             }
         }
 
-        public IEnumerable<Vertex> Vertices
+        public IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> Vertices
         {
             get
             {
@@ -36,17 +34,6 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                         select e.EndVertex);
             }
         }
-
         #endregion
-
-        public Face(Mesh m)
-        {
-            Mesh = m;
-        }
-
-        public void Delete()
-        {
-            Mesh.Delete(this);
-        }
     }
 }

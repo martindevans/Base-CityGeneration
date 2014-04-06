@@ -57,8 +57,15 @@ namespace Base_CityGeneration.Parcelling
             }
         }
 
-        public Parcel(Edge[] edges)
+        public Parcel<T> Parent { get; private set; }
+
+        public Parcel(Edge[] edges) : this(edges, null)
         {
+        }
+
+        internal Parcel(Edge[] edges, Parcel<T> parent)
+        {
+            Parent = parent;
             Edges = edges;
         }
 
@@ -69,6 +76,11 @@ namespace Base_CityGeneration.Parcelling
         /// <param name="edgeResources"></param>
         public Parcel(Vector2[] footprint, string[] edgeResources)
         {
+            Parent = null;
+
+            if (footprint.Area() < 0)
+                Array.Reverse(footprint);
+
             Edges = new Edge[footprint.Length];
             for (int i = 0; i < footprint.Length; i++)
                 Edges[i] = new Edge { Start = footprint[i], End = footprint[(i + 1) % footprint.Length], Resources = edgeResources };
@@ -87,7 +99,7 @@ namespace Base_CityGeneration.Parcelling
         /// <returns></returns>
         public float Area()
         {
-            return Points().Area();
+            return Math.Abs(Points().Area());
         }
 
         /// <summary>

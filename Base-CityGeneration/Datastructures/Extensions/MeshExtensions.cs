@@ -9,11 +9,11 @@ namespace Base_CityGeneration.Datastructures.Extensions
     public static class MeshExtensions
     {
 // ReSharper disable UnusedParameter.Global
-        public static IEnumerable<HalfEdge.HalfEdge> Pathfind(
-            this Mesh m,
+        public static IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> Pathfind<TVertexTag, THalfEdgeTag, TFaceTag>(
+            this Mesh<TVertexTag, THalfEdgeTag, TFaceTag> m,
 // ReSharper restore UnusedParameter.Global
-            Vertex start,
-            Vertex end
+            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start,
+            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end
         )
         {
             if (start.Mesh != m)
@@ -24,9 +24,9 @@ namespace Base_CityGeneration.Datastructures.Extensions
             Pathfinder p = Pathfinder.Get();
             try
             {
-                var edges = p.FindPath(start, end, (a, b) => (((Vertex) a).Position - ((Vertex) b).Position).Length());
+                var edges = p.FindPath(start, end, (a, b) => (((Vertex<TVertexTag, THalfEdgeTag, TFaceTag>)a).Position - ((Vertex<TVertexTag, THalfEdgeTag, TFaceTag>)b).Position).Length());
 
-                return edges.Cast<HalfEdge.HalfEdge>();
+                return edges.Cast<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>();
             }
             finally
             {
