@@ -6,3 +6,5 @@ Base-CityGeneration.Test/bin
 
 syntax: glob
 *.suo
+*.user
+*.cache
