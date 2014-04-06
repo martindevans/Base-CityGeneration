@@ -4,7 +4,7 @@ using Placeholder.AI.Pathfinding.Graph;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
-    public class Vertex
+    public class Vertex<TVertexTag, THalfEdgeTag, TFaceTag>
         :IVertex
     {
         public Vector2 Position { get; private set; }
@@ -12,19 +12,19 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <summary>
         /// The mesh this vertex is part of
         /// </summary>
-        internal readonly Mesh Mesh;
+        internal readonly Mesh<TVertexTag, THalfEdgeTag, TFaceTag> Mesh;
 
         internal IVertexBuilder Builder;
 
         /// <summary>
         /// Edges emanating out from this edge
         /// </summary>
-        public IEnumerable<HalfEdge> Edges
+        public IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> Edges
         {
             get { return Mesh.EdgesFromVertex(this); }
         }
 
-        internal Vertex(Mesh m, Vector2 position)
+        internal Vertex(Mesh<TVertexTag, THalfEdgeTag, TFaceTag> m, Vector2 position)
         {
             Mesh = m;
             Position = position;
@@ -50,12 +50,12 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public override bool Equals(object obj)
         {
-            if (obj is Vertex)
-                return Equals(obj as Vertex);
+            if (obj is Vertex<TVertexTag, THalfEdgeTag, TFaceTag>)
+                return Equals(obj as Vertex<TVertexTag, THalfEdgeTag, TFaceTag>);
             return ReferenceEquals(this, obj);
         }
 
-        public bool Equals(Vertex other)
+        public bool Equals(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> other)
         {
             return other.Position == Position;
         }

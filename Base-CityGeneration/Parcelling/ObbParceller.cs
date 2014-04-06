@@ -61,7 +61,7 @@ namespace Base_CityGeneration.Parcelling
 
             //If random chance beats average of all termination chances then stop here
             if (accumulator / _terminators.Count >= _random())
-                yield return parcel;
+                return new[] { parcel };
 
             OABB oabb = FitOabb(parcel, NonOptimalOabbChance, NonOptimalOabbMaxRatio, _random);
 
@@ -77,45 +77,24 @@ namespace Base_CityGeneration.Parcelling
 
             //Either return this parcel because we can't find any valid children, or continue recursive splitting
             if (_terminators.Any(t => children.Any(c => t.Discard(c, _random))))
-                yield return parcel;
+                return new[] { parcel };
             else
-                foreach (var child in children.SelectMany(RecursiveSplit))
-                    yield return child;
+                return children.SelectMany(RecursiveSplit).ToArray();
         }
 
         #region static helpers
         private static IEnumerable<Parcel<T>> Split(Parcel<T> parcel, Vector2 direction, Vector2 point)
         {
-            List<IntPoint> polygon = new List<IntPoint>(parcel.Edges.Select(e => e.Start).Select(p => new IntPoint((int)(p.X * 1000), (int)(p.Y * 1000))));
-            List<IntPoint> clip = new List<IntPoint>(new[]
-            {
-                point + direction * 50000,
-                point + direction * 50000 + direction.Perpendicular() * 50000,
-                point - direction * 50000 + direction.Perpendicular() * 50000,
-                point - direction * 50000
-            }.Select(p => new IntPoint((int) (p.X * 1000), (int) (p.Y * 1000))));
+            var slices = parcel.Points().SlicePolygon(point, direction);
 
-            var c = new Clipper();
-            c.AddPolygon(polygon, PolyType.Subject);
-            c.AddPolygon(clip, PolyType.Clip);
-
-            //Clipper cannot directly cut polygon, instead we've formed a really massive rectangle covering one side of the split line and we shall perform difference (left) and intersection (right)
-
-            List<List<IntPoint>> difference = new List<List<IntPoint>>();
-            c.Execute(ClipType.Difference, difference, PolyFillType.EvenOdd, PolyFillType.EvenOdd);
-
-            List<List<IntPoint>> intersection = new List<List<IntPoint>>();
-            c.Execute(ClipType.Intersection, intersection, PolyFillType.EvenOdd, PolyFillType.EvenOdd);
-
-            foreach (var child in difference)
-                yield return ToParcel(parcel, child);
-            foreach (var child in intersection)
-                yield return ToParcel(parcel, child);
+            return slices.Select(a => ToParcel(parcel, a));
         }
 
-        private static Parcel<T> ToParcel(Parcel<T> parent, IEnumerable<IntPoint> child)
+        private static Parcel<T> ToParcel(Parcel<T> parent, IEnumerable<Vector2> child)
         {
-            Vector2[] points = child.Select(i => new Vector2(i.X / 1000f, i.Y / 1000f)).ToArray();
+            Vector2[] points = child.ToArray();
+            if (points.Area() < 0)
+                Array.Reverse(points);
 
             //Build edges from this set of points
             Parcel<T>.Edge[] edges = new Parcel<T>.Edge[points.Length];
@@ -142,7 +121,7 @@ namespace Base_CityGeneration.Parcelling
                 }
             }
 
-            return new Parcel<T>(edges);
+            return new Parcel<T>(edges, parent);
         }
 
         private static OABB FitOabb(Parcel<T> parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)
@@ -226,7 +205,7 @@ namespace Base_CityGeneration.Parcelling
                 var sin = (float)Math.Sin(Rotation);
                 var cos = (float)Math.Cos(Rotation);
 
-                return (Extents.X < Extents.Y) ? new Vector2(cos, sin) : new Vector2(sin, cos);
+                return Vector2.Normalize((Extents.X < Extents.Y) ? new Vector2(cos, sin) : new Vector2(sin, cos));
             }
         }
     }

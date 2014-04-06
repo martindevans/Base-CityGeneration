@@ -9,7 +9,7 @@ namespace Base_CityGeneration.Elements.Roads
 {
     public class HalfEdgeRoadBuilder : IHalfEdgeBuilder
     {
-        public HalfEdge HalfEdge { get; private set; }
+        public HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> HalfEdge { get; private set; }
         private readonly float _laneWidth;
         private readonly float _sidewalkWidth;
 
@@ -73,7 +73,7 @@ namespace Base_CityGeneration.Elements.Roads
         public Vector2 LeftProjection;
         public Vector2 RightProjection;
 
-        public HalfEdgeRoadBuilder(HalfEdge halfEdge, float laneWidth, float sidewalkWidth, int roadLanes)
+        public HalfEdgeRoadBuilder(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> halfEdge, float laneWidth, float sidewalkWidth, int roadLanes)
         {
             HalfEdge = halfEdge;
             _laneWidth = laneWidth;

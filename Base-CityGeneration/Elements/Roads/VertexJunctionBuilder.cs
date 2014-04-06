@@ -9,7 +9,7 @@ namespace Base_CityGeneration.Elements.Roads
     public class VertexJunctionBuilder
         :IVertexBuilder
     {
-        private readonly Vertex _vertex;
+        private readonly Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> _vertex;
 
         private Vector2[] _footprint = null;
         public Vector2[] Shape
@@ -22,7 +22,7 @@ namespace Base_CityGeneration.Elements.Roads
             }
         }
 
-        public VertexJunctionBuilder(Vertex vertex)
+        public VertexJunctionBuilder(Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> vertex)
         {
             _vertex = vertex;
         }
@@ -44,18 +44,18 @@ namespace Base_CityGeneration.Elements.Roads
             }
         }
 
-        private Vector2[] GenerateDeadEnd(HalfEdge a)
+        private Vector2[] GenerateDeadEnd(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a)
         {
             throw new NotImplementedException();
         }
 
-        private Vector2[] GenerateRoadJoin(HalfEdge a, HalfEdge b)
+        private Vector2[] GenerateRoadJoin(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> b)
         {
-            var x = a.IsPrimaryEdge ? a.Builder : a.Pair.Builder;
+            var x = a.IsPrimaryEdge ? a.Tag : a.Pair.Tag;
             var xLeft = x.Left;
             var xRight = x.Right;
 
-            var y = b.IsPrimaryEdge ? b.Builder : b.Pair.Builder;
+            var y = b.IsPrimaryEdge ? b.Tag : b.Pair.Tag;
             var yLeft = y.Left;
             var yRight = y.Right;
 
@@ -107,12 +107,12 @@ namespace Base_CityGeneration.Elements.Roads
             }
         }
 
-        private Vector2[] GenerateTJunction(HalfEdge a, HalfEdge b, HalfEdge c)
+        private Vector2[] GenerateTJunction(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> b, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> c)
         {
             throw new NotImplementedException();
         }
 
-        private Vector2[] GenerateCrossroads(HalfEdge a, HalfEdge b, HalfEdge c, HalfEdge d)
+        private Vector2[] GenerateCrossroads(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> b, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> c, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> d)
         {
             throw new NotImplementedException();
         }

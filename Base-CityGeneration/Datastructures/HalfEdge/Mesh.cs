@@ -5,31 +5,31 @@ using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
-    public class Mesh
+    public class Mesh<TVertexTag, THalfEdgeTag, TFaceTag>
     {
-        private readonly HashSet<Face> _faces = new HashSet<Face>();
+        private readonly HashSet<Face<TVertexTag, THalfEdgeTag, TFaceTag>> _faces = new HashSet<Face<TVertexTag, THalfEdgeTag, TFaceTag>>();
 
         /// <summary>
         /// Maps from vertex to the list of edges starting at that vertex
         /// </summary>
-        private readonly Dictionary<Vertex, HashSet<HalfEdge>> _halfEdges = new Dictionary<Vertex, HashSet<HalfEdge>>();
+        private readonly Dictionary<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>, HashSet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>> _halfEdges = new Dictionary<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>, HashSet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>();
 
-        public IEnumerable<Face> Faces
+        public IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>> Faces
         {
             get { return _faces; }
         }
 
-        public IEnumerable<HalfEdge> HalfEdges
+        public IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> HalfEdges
         {
             get { return _halfEdges.Values.SelectMany(a => a); }
         }
 
-        public IEnumerable<Vertex> Vertices
+        public IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> Vertices
         {
             get { return _halfEdges.Keys; }
         }
 
-        public HalfEdge GetOrConstructHalfEdge(Vertex start, Vertex end)
+        public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructHalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
             if (start.Equals(end))
                 throw new InvalidOperationException("Attempted to create a degenerate edge");
@@ -43,8 +43,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
             if (edge == null)
             {
-                edge = new HalfEdge(this, end, true);
-                HalfEdge pair = new HalfEdge(this, start, false);
+                edge = new HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>(end, true);
+                HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> pair = new HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>(start, false);
                 edge.Pair = pair;
                 pair.Pair = edge;
 
@@ -58,7 +58,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return edge;
         }
 
-        public HalfEdge GetHalfEdge(Vertex start, Vertex end)
+        public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> GetHalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
             if (start.Equals(end))
                 throw new InvalidOperationException("Attempted to create a degenerate edge");
@@ -71,7 +71,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                         select e).Single();
         }
 
-        internal void Split(HalfEdge edge, Vertex middle, out HalfEdge am, out HalfEdge mb)
+        internal void Split(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edge, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> middle, out HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> am, out HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> mb)
         {
             // A --------> B
             // A --> m ++> B
@@ -80,10 +80,10 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             var b = edge.EndVertex;
 
             //Find the edges in the faces pointing at the two halves of this half edge
-            HalfEdge edgeBeforeEdge = null;
+            HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edgeBeforeEdge = null;
             if (edge.Face != null)
                 edgeBeforeEdge = edge.Face.Edges.Single(e => e.Next.Equals(edge));
-            HalfEdge edgeBeforeEdgePair = null;
+            HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edgeBeforeEdgePair = null;
             if (edge.Pair.Face != null)
                 edgeBeforeEdgePair = edge.Pair.Face.Edges.Single(e => e.Next.Equals(edge.Pair));
 
@@ -125,26 +125,26 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             mb.Pair.Face = edge.Pair.Face;
         }
 
-        public Vertex GetOrConstructVertex(Vector2 vector2)
+        public Vertex<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructVertex(Vector2 vector2)
         {
             var existing = Vertices.SingleOrDefault(k => k.Position == vector2);
             if (existing != null)
                 return existing;
 
-            var v = new Vertex(this, vector2);
-            _halfEdges.Add(v, new HashSet<HalfEdge>());
+            var v = new Vertex<TVertexTag, THalfEdgeTag, TFaceTag>(this, vector2);
+            _halfEdges.Add(v, new HashSet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>());
             return v;
         }
 
-        public Vertex GetVertex(Vector2 vector2)
+        public Vertex<TVertexTag, THalfEdgeTag, TFaceTag> GetVertex(Vector2 vector2)
         {
             return _halfEdges.Keys.Single(k => k.Position == vector2);
         }
 
-        public Face GetOrConstructFace(params Vertex[] vertices)
+        public Face<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructFace(params Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] vertices)
         {
-            var edges = new List<HalfEdge>();
-            var faces = new HashSet<Face>();
+            var edges = new List<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>();
+            var faces = new HashSet<Face<TVertexTag, THalfEdgeTag, TFaceTag>>();
             for (int i = 0; i < vertices.Length; i++)
             {
                 var v = vertices[i];
@@ -163,7 +163,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 return faces.Single();
 
             //Create new face
-            Face f = new Face(this) { Edge = edges.First() };
+            Face<TVertexTag, THalfEdgeTag, TFaceTag> f = new Face<TVertexTag, THalfEdgeTag, TFaceTag> { Edge = edges.First() };
             _faces.Add(f);
 
             //Connect edges to new face
@@ -176,9 +176,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return f;
         }
 
-        internal void Delete(Face f)
+        internal void Delete(Face<TVertexTag, THalfEdgeTag, TFaceTag> f)
         {
-            if (f.Mesh != this || !_faces.Contains(f))
+            if (!_faces.Contains(f))
                 throw new InvalidOperationException("Face is not part of this mesh, cannot delete it");
 
             var edges = f.Edges.ToArray();
@@ -193,15 +193,15 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             _faces.Remove(f);
         }
 
-        internal IEnumerable<HalfEdge> EdgesFromVertex(Vertex v)
+        internal IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> EdgesFromVertex(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> v)
         {
             return _halfEdges[v];
         }
 
-        public Vertex FindClosestVertex(Vector2 v)
+        public Vertex<TVertexTag, THalfEdgeTag, TFaceTag> FindClosestVertex(Vector2 v)
         {
             float shortest = float.MaxValue;
-            Vertex closest = null;
+            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> closest = null;
             foreach (var vertex in Vertices)
             {
                 var d = (v - vertex.Position).LengthSquared();

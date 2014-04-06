@@ -9,16 +9,16 @@ namespace Base_CityGeneration.Datastructures.Extensions
 {
     public static class QuadtreeExtensions
     {
-        public static Mesh ToHalfEdgeMesh(this Quadtree quadtree)
+        public static Mesh<TVertexTag, THalfEdgeTag, TFaceTag> ToHalfEdgeMesh<TVertexTag, THalfEdgeTag, TFaceTag>(this Quadtree quadtree)
         {
-            Mesh m = new Mesh();
+            Mesh<TVertexTag, THalfEdgeTag, TFaceTag> m = new Mesh<TVertexTag, THalfEdgeTag, TFaceTag>();
 
             Tessellate(m, quadtree.Root);
 
             return m;
         }
 
-        private static void Tessellate(Mesh m, Quadtree.Node node)
+        private static void Tessellate<TVertexTag, THalfEdgeTag, TFaceTag>(Mesh<TVertexTag, THalfEdgeTag, TFaceTag> m, Quadtree.Node node)
         {
             if (node.IsLeaf)
             {

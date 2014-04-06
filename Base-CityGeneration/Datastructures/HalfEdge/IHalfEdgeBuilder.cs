@@ -4,7 +4,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 {
     public interface IHalfEdgeBuilder
     {
-        HalfEdge HalfEdge { get; }
+        HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> HalfEdge { get; }
 
         Vector2[] Shape { get; }
 

@@ -6,7 +6,7 @@ namespace Base_CityGeneration.Elements.Roads
 {
     public class FaceBlockBuilder : IFaceBuilder
     {
-        public Face Face { get; private set; }
+        public Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> Face { get; private set; }
 
         private Vector2[] _footprint = null;
         public Vector2[] Shape
@@ -19,7 +19,7 @@ namespace Base_CityGeneration.Elements.Roads
             }
         }
 
-        public FaceBlockBuilder(Face face)
+        public FaceBlockBuilder(Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> face)
         {
             Face = face;
         }
@@ -30,7 +30,7 @@ namespace Base_CityGeneration.Elements.Roads
 
             foreach (var halfEdge in Face.Edges)
             {
-                var builder = halfEdge.IsPrimaryEdge ? halfEdge.Builder : halfEdge.Pair.Builder;
+                var builder = halfEdge.IsPrimaryEdge ? halfEdge.Tag : halfEdge.Pair.Tag;
                 points.Add(halfEdge.IsPrimaryEdge ? builder.RightStart : builder.LeftEnd);
             }
 
