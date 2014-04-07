@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Text;
-using System.Collections.Generic;
 using System.Linq;
-using Base_CityGeneration.Datastructures;
 using Base_CityGeneration.Datastructures.Extensions;
 using Base_CityGeneration.Parcelling;
 using Base_CityGeneration.Parcelling.Rules;
@@ -35,7 +32,7 @@ namespace Base_CityGeneration.Test.Parcelling
             AssertParcel(new[] { new Vector2(5, 0), new Vector2(5, 5), new Vector2(0, 5), new Vector2(0, 0) }, parcels[0].Points());
         }
 
-        private void AssertParcel(Vector2[] expected, Vector2[] actual)
+        private static void AssertParcel(Vector2[] expected, Vector2[] actual)
         {
             Assert.AreEqual(expected.Length, actual.Length);
 
@@ -57,7 +54,9 @@ namespace Base_CityGeneration.Test.Parcelling
             Assert.AreEqual(parcels.Length, mesh.Faces.Count());
         }
 
+// ReSharper disable ClassNeverInstantiated.Local
         private class MyParcelElement : IParcelElement<MyParcelElement>
+// ReSharper restore ClassNeverInstantiated.Local
         {
             public Parcel<MyParcelElement> Parcel { get; set; }
         }
