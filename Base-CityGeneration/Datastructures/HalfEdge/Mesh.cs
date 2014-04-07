@@ -68,7 +68,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             var edgeList = _halfEdges[start];
             return (from e in edgeList
                         where e.EndVertex.Equals(end)
-                        select e).Single();
+                        select e).SingleOrDefault();
         }
 
         internal void Split(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edge, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> middle, out HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> am, out HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> mb)

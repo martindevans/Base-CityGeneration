@@ -121,36 +121,64 @@ namespace Base_CityGeneration.Datastructures.Extensions
             if (!newA.IsSubsetOf(newB) && newB.IsSubsetOf(newA))
                 throw new InvalidOperationException("Generated vertices for paired parcels did not match up");
 
-            //Two new points
-            var x = newA.First();
-            var y = newA.Skip(1).First();
+            //Insert new vertices into existing face
+            InsertVertices(mesh, face, av);
+            InsertVertices(mesh, face, bv);
 
-            //Edges to split
-            var bc = FindHalfEdge(face, x.Position);
-            var da = FindHalfEdge(face, y.Position);
+            var faceAVertices = TraceEdges(face, av, bv).ToArray();
+            var faceBVertices = TraceEdges(face, bv, av).ToArray();
 
-            HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> bx, xc;
-            mesh.Split(bc, x, out bx, out xc);
-
-            HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> dy, ya;
-            mesh.Split(da, y, out dy, out ya);
-
-            //All vertices from A to B (inclusive)
-            var a2b = face.Edges.Append(face.Edges).SkipWhile(e => !Equals(e.Pair.EndVertex, ya.EndVertex)).TakeWhile(e => !Equals(e.Pair.EndVertex, bx.Pair.EndVertex)).Select(e => e.EndVertex).Prepend(ya.EndVertex).ToArray();
-            //All vertices from C to D (inclusive)
-            var c2d = face.Edges.Append(face.Edges).SkipWhile(e => !Equals(e.Pair.EndVertex, xc.EndVertex)).TakeWhile(e => !Equals(e.Pair.EndVertex, dy.Pair.EndVertex)).Select(e => e.EndVertex).Prepend(xc.EndVertex).ToArray();
-
-            //Delete old face
             mesh.Delete(face);
 
-            //Construct A - ? - B - X - Y
-            var a_bxy = mesh.GetOrConstructFace(a2b.Append(bx.EndVertex, dy.EndVertex).ToArray());
+            var faceA = mesh.GetOrConstructFace(faceAVertices);
+            var faceB = mesh.GetOrConstructFace(faceBVertices);
 
-            //Construct C - ? - D - Y - X
-            var c_dyx = mesh.GetOrConstructFace(c2d.Append(dy.EndVertex, bx.EndVertex).ToArray());
+            SplitFace(pa, faceA, mesh, childrenMap);
+            SplitFace(pb, faceB, mesh, childrenMap);
+        }
 
-            SplitFace(pa, a_bxy, mesh, childrenMap);
-            SplitFace(pb, c_dyx, mesh, childrenMap);
+        private static IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> TraceEdges<TVertexTag, THalfEdgeTag, TFaceTag>(Face<TVertexTag, THalfEdgeTag, TFaceTag> face, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] include, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] exclude)
+        {
+            List<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> output = new List<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>();
+
+            for (int i = 0; i < include.Length; i++)
+            {
+                var vertex = include[i];
+                var next = include[(i + 1) % include.Length];
+                if (exclude.Contains(vertex) && exclude.Contains(next))
+                    output.Add(vertex);
+                else
+                {
+                    var outwardEdge = face.Edges.Single(e => e.Pair.EndVertex.Equals(vertex));
+                    do
+                    {
+                        output.Add(outwardEdge.Pair.EndVertex);
+                        outwardEdge = outwardEdge.Next;
+                    } while (!outwardEdge.Pair.EndVertex.Equals(next));
+                }
+            }
+
+            return output;
+        }
+
+        private static void InsertVertices<TVertexTag, THalfEdge, TFaceTag>(this Mesh<TVertexTag, THalfEdge, TFaceTag> mesh, Face<TVertexTag, THalfEdge, TFaceTag> face, IEnumerable<Vertex<TVertexTag, THalfEdge, TFaceTag>> vertices)
+        {
+            foreach (var v in vertices)
+            {
+                //If this vertex has edges then we don't care, it's already inserted
+                if (v.Edges.Any())
+                    continue;
+
+                //Get the next and previous vertices according to this new shape
+                var vertex = v;
+
+                //Find halfedge this vertex lies on
+                var e = FindHalfEdge(face, vertex.Position);
+
+                //Split the edge and insert this point
+                HalfEdge<TVertexTag, THalfEdge, TFaceTag> am, mb;
+                mesh.Split(e, vertex, out am, out mb);
+            }
         }
 
         private static HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> FindHalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>(Face<TVertexTag, THalfEdgeTag, TFaceTag> face, Vector2 point)
