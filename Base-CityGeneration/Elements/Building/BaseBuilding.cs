@@ -11,7 +11,7 @@ using Myre.Collections;
 namespace Base_CityGeneration.Elements.Building
 {
     public abstract class BaseBuilding
-        :ProceduralScript, IGrounded, IParcelElement<BaseBuilding>
+        :ProceduralScript, IGrounded
     {
         public float GroundHeight { get; set; }
 
@@ -21,8 +21,6 @@ namespace Base_CityGeneration.Elements.Building
         private readonly int _maxBasementFloors;
         private readonly float _minFloorHeight;
         private readonly float _maxFloorHeight;
-
-        public Parcel<BaseBuilding> Parcel { get; set; }
 
         protected BaseBuilding(int minFloors, int maxFloors, int minBasementFloors, int maxBasementFloors, float minFloorHeight, float maxFloorHeight)
         {

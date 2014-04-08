@@ -5,7 +5,8 @@ using EpimetheusPlugins.Procedural;
 namespace Base_CityGeneration.Elements.Building.Internals.Rooms
 {
     public interface IRoom
-        : ISubdivisionContext, IParcelElement<IRoom>, IFacadeOwner
+        : ISubdivisionContext, IFacadeOwner
     {
+        Parcel Parcel { get; set; }
     }
 }

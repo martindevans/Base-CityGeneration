@@ -1,7 +1,5 @@
-﻿using Base_CityGeneration.Datastructures.HalfEdge;
-using Base_CityGeneration.Elements.Generic;
+﻿using Base_CityGeneration.Elements.Generic;
 using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Procedural.Types.Roads;
 using EpimetheusPlugins.Scripts;
 using Myre;
 using Myre.Collections;
@@ -10,7 +8,7 @@ namespace Base_CityGeneration.Elements.Roads
 {
     [Script("0C1517AB-2231-45BF-84E3-85E4780AE852", "Basic Road Junction")]
     public class BasicJunction
-        :BigFlatPlane, IRoadJunction
+        :BigFlatPlane, IJunction
     {
         public override bool Accept(Prism bounds, INamedDataProvider parameters)
         {

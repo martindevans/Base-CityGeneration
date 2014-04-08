@@ -15,10 +15,9 @@ namespace Base_CityGeneration.Elements.Generic
     /// </summary>
     [Script("1AA57734-303F-42D8-8986-3881DF17DC95", "Solid Block")]
     public class SolidPlaceholderBuilding
-        :ProceduralScript, IParcelElement<BaseBuilding>, IGrounded
+        :ProceduralScript, IGrounded
     {
         public float GroundHeight { get; set; }
-        public Parcel<BaseBuilding> Parcel { get; set; }
 
         public override bool Accept(Prism bounds, INamedDataProvider parameters)
         {

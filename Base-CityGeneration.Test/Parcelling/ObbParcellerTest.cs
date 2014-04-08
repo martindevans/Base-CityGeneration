@@ -6,26 +6,28 @@ using Base_CityGeneration.Parcelling.Rules;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
+using Myre.Extensions;
 
 namespace Base_CityGeneration.Test.Parcelling
 {
     [TestClass]
     public class ObbParcellerTest
     {
-        private ObbParceller<MyParcelElement> _parceller;
+        private ObbParceller _parceller;
         
         [TestInitialize]
         public void TestInitialize()
         {
             Random r = new Random(1);
-            _parceller = new ObbParceller<MyParcelElement>(r.NextDouble, 0, 0);
+            _parceller = new ObbParceller(r.NextDouble, 0.5f, 0.75f);
         }
 
         [TestMethod]
         public void ParcellingDoesNotProduceOverlaps()
         {
-            _parceller.AddTerminationRule(new AreaRule<MyParcelElement>(15, 50, 0.5f));
-            var parcels = _parceller.GenerateParcels(new Parcel<MyParcelElement>(new Vector2[] {new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10)}, new string[] {"edge"})).ToArray();
+            _parceller.AddTerminationRule(new AreaRule(15, 50, 0.5f));
+            _parceller.AddTerminationRule(new AccessRule("edge", 0.75f));
+            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] {new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10)}, new string[] {"edge"})).ToArray();
 
             Assert.IsTrue(parcels.All(a => a.Area() <= 50));
 
@@ -46,19 +48,14 @@ namespace Base_CityGeneration.Test.Parcelling
         [TestMethod]
         public void ParcelToMesh()
         {
-            _parceller.AddTerminationRule(new AreaRule<MyParcelElement>(15, 50, 0.5f));
-            var parcels = _parceller.GenerateParcels(new Parcel<MyParcelElement>(new Vector2[] {new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10)}, new string[] {"edge"})).ToArray();
+            _parceller.AddTerminationRule(new AreaRule(50, 150, 0.5f));
+            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] {new Vector2(0, 0), new Vector2(100, 0), new Vector2(100, 100), new Vector2(0, 100)}, new string[] {"edge"})).ToArray();
 
-            var mesh = parcels.ToMeshFromBinaryTree<MyParcelElement, int, int, int>();
+            var mesh = parcels.ToMeshFromBinaryTree<int, int>();
 
             Assert.AreEqual(parcels.Length, mesh.Faces.Count());
-        }
-
-// ReSharper disable ClassNeverInstantiated.Local
-        private class MyParcelElement : IParcelElement<MyParcelElement>
-// ReSharper restore ClassNeverInstantiated.Local
-        {
-            public Parcel<MyParcelElement> Parcel { get; set; }
+            Assert.IsTrue(parcels.All(p => p.Points().ToArray().IsConvex()));
+            Assert.IsTrue(mesh.Faces.All(p => p.Vertices.Select(v => v.Position).ToArray().IsConvex()));
         }
     }
 }

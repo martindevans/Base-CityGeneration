@@ -10,16 +10,15 @@ namespace Base_CityGeneration.Parcelling
     /// <summary>
     /// Parcels an area by recursively splitting the area along the middle of the OBB of the area
     /// </summary>
-    public class ObbParceller<T>
-        :IParceller<T>
-        where T : class, IParcelElement<T>
+    public class ObbParceller
+        :IParceller
     {
         private readonly Func<double> _random;
 
         public float NonOptimalOabbChance { get; set; }
         public float NonOptimalOabbMaxRatio { get; set; }
 
-        private readonly List<ITerminationRule<T>> _terminators = new List<ITerminationRule<T>>();
+        private readonly List<ITerminationRule> _terminators = new List<ITerminationRule>();
 
         /// <summary>
         /// 
@@ -34,17 +33,17 @@ namespace Base_CityGeneration.Parcelling
             NonOptimalOabbMaxRatio = nonOptimalOabbMaxRatio;
         }
 
-        public void AddTerminationRule(ITerminationRule<T> rule)
+        public void AddTerminationRule(ITerminationRule rule)
         {
             _terminators.Add(rule);
         }
 
-        public IEnumerable<Parcel<T>> GenerateParcels(Parcel<T> root)
+        public IEnumerable<Parcel> GenerateParcels(Parcel root)
         {
             return RecursiveSplit(root);
         }
 
-        private IEnumerable<Parcel<T>> RecursiveSplit(Parcel<T> parcel)
+        private IEnumerable<Parcel> RecursiveSplit(Parcel parcel)
         {
             //Accumulate chance of termination, checking for any rule which forbods it (i.e. probability zero)
             float accumulator = 0;
@@ -83,23 +82,23 @@ namespace Base_CityGeneration.Parcelling
         }
 
         #region static helpers
-        private static IEnumerable<Parcel<T>> Split(Parcel<T> parcel, Vector2 direction, Vector2 point)
+        private static IEnumerable<Parcel> Split(Parcel parcel, Vector2 direction, Vector2 point)
         {
             var slices = parcel.Points().SlicePolygon(point, direction);
 
             return slices.Select(a => ToParcel(parcel, a));
         }
 
-        private static Parcel<T> ToParcel(Parcel<T> parent, IEnumerable<Vector2> child)
+        private static Parcel ToParcel(Parcel parent, IEnumerable<Vector2> child)
         {
             Vector2[] points = child.ToArray();
             if (points.Area() < 0)
                 Array.Reverse(points);
 
             //Build edges from this set of points
-            Parcel<T>.Edge[] edges = new Parcel<T>.Edge[points.Length];
+            Parcel.Edge[] edges = new Parcel.Edge[points.Length];
             for (int i = 0; i < points.Length; i++)
-                edges[i] = new Parcel<T>.Edge { Start = points[i], End = points[(i + 1) % points.Length], Resources = new string[0] };
+                edges[i] = new Parcel.Edge { Start = points[i], End = points[(i + 1) % points.Length], Resources = new string[0] };
 
             //Find egdes in parent which are coincident with edges of child
             //Copy road accessibility across
@@ -121,10 +120,10 @@ namespace Base_CityGeneration.Parcelling
                 }
             }
 
-            return new Parcel<T>(edges, parent);
+            return new Parcel(edges, parent);
         }
 
-        private static OABB FitOabb(Parcel<T> parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)
+        private static OABB FitOabb(Parcel parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)
         {
             //Finding the OABB of the hull is the same as finding the OABB of the parcel, but is quicker
             var hull = parcel.Points().Quickhull2D().ToArray();

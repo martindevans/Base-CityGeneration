@@ -9,12 +9,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Rooms
     public class BaseRoom
         : BaseContainedSpace, IRoom
     {
-        public Parcel<IRoom> Parcel { get; set; }
-
         protected override Type[] FacadeSearchEndTypes
         {
             get { return new[] { typeof(IFloor) }; }
         }
+
+        public Parcel Parcel { get; set; }
 
         public BaseRoom()
             :this(1, 10, 0.15f, 0.1f, 0, 0.1f, 0)
