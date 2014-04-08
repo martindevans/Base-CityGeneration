@@ -5,9 +5,8 @@ namespace Base_CityGeneration.Parcelling.Rules
     /// <summary>
     /// Provides a chance to subdivide once blocks are below a max area
     /// </summary>
-    public class AreaRule<T>
-        : ITerminationRule<T>
-        where T : class, IParcelElement<T>
+    public class AreaRule
+        : ITerminationRule
 
     {
         private readonly float _hardMinArea;
@@ -27,12 +26,12 @@ namespace Base_CityGeneration.Parcelling.Rules
             _terminationChance = terminationChance;
         }
 
-        public float? TerminationChance(Parcel<T> parcel)
+        public float? TerminationChance(Parcel parcel)
         {
             return parcel.Area() < _maxArea ? _terminationChance : 0;
         }
 
-        public bool Discard(Parcel<T> parcel, Func<double> random)
+        public bool Discard(Parcel parcel, Func<double> random)
         {
             var a = parcel.Area();
             return a < _hardMinArea;

@@ -5,7 +5,6 @@ using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Parcelling;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
-using Myre.Extensions;
 
 namespace Base_CityGeneration.Datastructures.Extensions
 {
@@ -14,21 +13,19 @@ namespace Base_CityGeneration.Datastructures.Extensions
         /// <summary>
         /// Given the leaves of a binary tree of parcels, generate a halfedge mesh
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <typeparam name="TVertexTag"></typeparam>
-        /// <typeparam name="THalfEdgeTag"></typeparam>
         /// <typeparam name="TFaceTag"></typeparam>
         /// <param name="leaves"></param>
         /// <returns></returns>
-        public static Mesh<TVertexTag, THalfEdgeTag, TFaceTag> ToMeshFromBinaryTree<T, TVertexTag, THalfEdgeTag, TFaceTag>(this IEnumerable<Parcel<T>> leaves) where T : class, IParcelElement<T>
+        public static Mesh<TVertexTag, string[], TFaceTag> ToMeshFromBinaryTree<TVertexTag, TFaceTag>(this IEnumerable<Parcel> leaves)
         {
-            Parcel<T> root;
-            var childrenMap = MapChildren<T>(leaves, out root);
+            Parcel root;
+            var childrenMap = MapChildren(leaves, out root);
 
             //We know this is a binary tree - this means every node was created by splitting a parent node in two
             //Create the mesh by creating the root face, and then splitting it in line with the data set we just built up.
 
-            Mesh<TVertexTag, THalfEdgeTag, TFaceTag> mesh = new Mesh<TVertexTag, THalfEdgeTag, TFaceTag>();
+            Mesh<TVertexTag, string[], TFaceTag> mesh = new Mesh<TVertexTag, string[], TFaceTag>();
             var rootFace = mesh.GetOrConstructFace(root.Points().Select(mesh.GetOrConstructVertex).ToArray());
 
             SplitFace(root, rootFace, mesh, childrenMap);
@@ -36,13 +33,13 @@ namespace Base_CityGeneration.Datastructures.Extensions
             return mesh;
         }
 
-        private static Dictionary<Parcel<T>, HashSet<Parcel<T>>> MapChildren<T>(IEnumerable<Parcel<T>> leaves, out Parcel<T> root) where T : class, IParcelElement<T>
+        private static Dictionary<Parcel, HashSet<Parcel>> MapChildren(IEnumerable<Parcel> leaves, out Parcel root)
         {
-            Dictionary<Parcel<T>, HashSet<Parcel<T>>> childrenMap = new Dictionary<Parcel<T>, HashSet<Parcel<T>>>();
+            Dictionary<Parcel, HashSet<Parcel>> childrenMap = new Dictionary<Parcel, HashSet<Parcel>>();
 
             root = null;
 
-            Queue<Parcel<T>> todo = new Queue<Parcel<T>>(leaves);
+            Queue<Parcel> todo = new Queue<Parcel>(leaves);
             while (todo.Count > 0)
             {
                 var p = todo.Dequeue();
@@ -61,10 +58,10 @@ namespace Base_CityGeneration.Datastructures.Extensions
                 {
                     todo.Enqueue(p.Parent);
 
-                    HashSet<Parcel<T>> children;
+                    HashSet<Parcel> children;
                     if (!childrenMap.TryGetValue(p.Parent, out children))
                     {
-                        children = new HashSet<Parcel<T>>();
+                        children = new HashSet<Parcel>();
                         childrenMap.Add(p.Parent, children);
                     }
 
@@ -76,7 +73,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
             return childrenMap;
         }
 
-        private static void SplitFace<T, TVertexTag, THalfEdgeTag, TFaceTag>(Parcel<T> parcel, Face<TVertexTag, THalfEdgeTag, TFaceTag> face, Mesh<TVertexTag, THalfEdgeTag, TFaceTag> mesh, Dictionary<Parcel<T>, HashSet<Parcel<T>>> childrenMap) where T : class, IParcelElement<T>
+        private static void SplitFace<TVertexTag, TFaceTag>(Parcel parcel, Face<TVertexTag, string[], TFaceTag> face, Mesh<TVertexTag, string[], TFaceTag> mesh, Dictionary<Parcel, HashSet<Parcel>> childrenMap)
         {
             //We have a face, like:
             //
@@ -103,9 +100,13 @@ namespace Base_CityGeneration.Datastructures.Extensions
             // 3. Delete face ABCD
             // 4. Create face A?BXYA and C?DYX
 
-            HashSet<Parcel<T>> children;
+            HashSet<Parcel> children;
             if (!childrenMap.TryGetValue(parcel, out children))
+            {
+                TagEdges<TVertexTag, TFaceTag>(face, parcel);
+
                 return;
+            }
 
             //Get points, and create/get vertices
             var pa = children.First();
@@ -116,8 +117,8 @@ namespace Base_CityGeneration.Datastructures.Extensions
             var bv = b.Select(mesh.GetOrConstructVertex).ToArray();
 
             //Make sure that new points for both shapes are the same
-            var newA = new HashSet<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>(av.Where(v => !v.Edges.Any()).OrderBy(v => a.GetHashCode()));
-            var newB = new HashSet<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>(bv.Where(v => !v.Edges.Any()).OrderBy(v => a.GetHashCode()));
+            var newA = new HashSet<Vertex<TVertexTag, string[], TFaceTag>>(av.Where(v => !v.Edges.Any()).OrderBy(v => a.GetHashCode()));
+            var newB = new HashSet<Vertex<TVertexTag, string[], TFaceTag>>(bv.Where(v => !v.Edges.Any()).OrderBy(v => a.GetHashCode()));
             if (!newA.IsSubsetOf(newB) && newB.IsSubsetOf(newA))
                 throw new InvalidOperationException("Generated vertices for paired parcels did not match up");
 
@@ -135,6 +136,18 @@ namespace Base_CityGeneration.Datastructures.Extensions
 
             SplitFace(pa, faceA, mesh, childrenMap);
             SplitFace(pb, faceB, mesh, childrenMap);
+        }
+
+        private static void TagEdges<TVertexTag, TFaceTag>(Face<TVertexTag, string[], TFaceTag> face, Parcel parcel)
+        {
+            foreach (var halfEdge in face.Edges)
+            {
+                foreach (var edge in parcel.Edges)
+                {
+                    if (Math.Abs(Vector2.Dot(Vector2.Normalize(edge.End - edge.Start), Vector2.Normalize(halfEdge.EndVertex.Position - halfEdge.Pair.EndVertex.Position)) - 1) < float.Epsilon)
+                        halfEdge.Tag = edge.Resources;
+                }
+            }
         }
 
         private static IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> TraceEdges<TVertexTag, THalfEdgeTag, TFaceTag>(Face<TVertexTag, THalfEdgeTag, TFaceTag> face, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] include, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] exclude)

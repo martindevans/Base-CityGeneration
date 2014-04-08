@@ -9,6 +9,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
     {
         private readonly HashSet<Face<TVertexTag, THalfEdgeTag, TFaceTag>> _faces = new HashSet<Face<TVertexTag, THalfEdgeTag, TFaceTag>>();
 
+        private const float VERTEX_EPSILON = 0.05f;
+
         /// <summary>
         /// Maps from vertex to the list of edges starting at that vertex
         /// </summary>
@@ -127,7 +129,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public Vertex<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructVertex(Vector2 vector2)
         {
-            var existing = Vertices.SingleOrDefault(k => k.Position == vector2);
+            var existing = Vertices.Select(k => new { k, d = Vector2.DistanceSquared(k.Position, vector2) }).Where(a => a.d < VERTEX_EPSILON).OrderBy(a => a.d).Select(a => a.k).FirstOrDefault();
             if (existing != null)
                 return existing;
 
