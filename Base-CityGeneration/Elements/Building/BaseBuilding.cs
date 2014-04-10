@@ -4,7 +4,6 @@ using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using Base_CityGeneration.Elements.Generic;
-using Base_CityGeneration.Parcelling;
 using EpimetheusPlugins.Procedural;
 using Myre.Collections;
 
@@ -46,6 +45,13 @@ namespace Base_CityGeneration.Elements.Building
             float floorHeight;
             CalculateFloorHeight(Random, _minFloors, _maxFloors, _minBasementFloors, _maxBasementFloors, _minFloorHeight, _maxFloorHeight, bounds.Height - GroundHeight, GroundHeight, out count, out basementCount, out floorHeight);
 
+            ////Make the building space a solid block
+            //var totalHeight = floorHeight * (count + basementCount);
+            //var brush = geometry.CreatePrism(hierarchicalParameters.GetValue(new TypedName<string>("material")), bounds.Footprint, totalHeight)
+            //                    .Transform(Matrix.CreateTranslation(0, basementCount * floorHeight - bounds.Height / 2 + GroundHeight, 0));
+            //geometry.Union(brush);
+
+            //Construct vertical features (lifts, stairs, utility shafts etc)
             var verticals = CreateCrossFloorFeatures(bounds, count, basementCount, floorHeight).ToArray();
 
             //Create floors
@@ -57,9 +63,12 @@ namespace Base_CityGeneration.Elements.Building
                 if (floors[i] != null)
                 {
                     floors[i].FloorIndex = i;
-                    floors[i].ParentBuilding = this;
                     floors[i].Overlaps = verticals.Where(a => a.BottomFloorIndex <= i && a.TopFloorIndex >= i).ToArray();
                 }
+
+                //Make floors prerequisite of verticals
+                for (int j = 0; j < verticals.Length; j++)
+                    verticals[j].AddPrerequisite(floors[i]);
             }
         }
 

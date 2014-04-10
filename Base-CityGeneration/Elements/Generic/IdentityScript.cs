@@ -1,12 +1,10 @@
 ﻿using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 
-namespace Base_CityGeneration.Elements.Building.Internals.Rooms
+namespace Base_CityGeneration.Elements.Generic
 {
-    [Script("E655C852-8B0E-460B-BD30-35158DA1053C", "Base Room")]
-    public class BaseRoom
-        : ProceduralScript, IRoom
+    public class IdentityScript
+        :ProceduralScript
     {
         public override bool Accept(Prism bounds, INamedDataProvider parameters)
         {

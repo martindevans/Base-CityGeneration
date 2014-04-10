@@ -200,7 +200,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
             float score = float.MaxValue;
             foreach (var halfEdge in face.Edges)
             {
-                var closest = Geometry2D.ClosestPointOnLineSegment(halfEdge.EndVertex.Position, halfEdge.Pair.EndVertex.Position, point);
+                var closest = Geometry2D.ClosestPointOnLineSegment(new LineSegment2D(halfEdge.EndVertex.Position, halfEdge.Pair.EndVertex.Position), point);
                 var d = Vector2.DistanceSquared(closest, point);
                 if (d < score)
                 {

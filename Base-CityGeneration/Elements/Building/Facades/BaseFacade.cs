@@ -31,7 +31,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
             var stamps = EmbossingStamps(hierarchicalParameters, Section.Width, bounds.Height);
             foreach (var stamp in stamps)
             {
-                var brush = ConvertStampToBrush(stamp, geometry, hierarchicalParameters);
+                var brush = ConvertStampToBrush(Section, stamp, geometry, hierarchicalParameters);
                 if (stamp.Additive)
                     facade = facade.Union(brush);
                 else
@@ -41,19 +41,27 @@ namespace Base_CityGeneration.Elements.Building.Facades
             geometry.Union(facade);
         }
 
-        private ICsgShape ConvertStampToBrush(Stamp stamp, ICsgFactory geometry, INamedDataCollection hierarchicalParameters)
+        /// <summary>
+        /// Given a wall section and a stamp, convert it into a brush which will apply the stamp to the wall
+        /// </summary>
+        /// <param name="section"></param>
+        /// <param name="stamp"></param>
+        /// <param name="geometry"></param>
+        /// <param name="hierarchicalParameters"></param>
+        /// <returns></returns>
+        public static ICsgShape ConvertStampToBrush(Walls.Section section, Stamp stamp, ICsgFactory geometry, INamedDataCollection hierarchicalParameters)
         {
             var material = stamp.Material ?? hierarchicalParameters.GetValue(new TypedName<string>("material"));
 
             //Establish basis vectors
-            var vOut = Section.Normal;
+            var vOut = section.Normal;
             var vLeft = vOut.Perpendicular();
 
             //Calculate absolute thickness of stamp
-            var thickness = (stamp.EndDepth - stamp.StartDepth) * Section.Thickness;
+            var thickness = (stamp.EndDepth - stamp.StartDepth) * section.Thickness;
 
             //Calculate transform from prism lyinf flat in plane to vertically aligned in plane of facade
-            var transform = Matrix.CreateTranslation(0, -(Section.Thickness - thickness) / 2 + stamp.StartDepth * Section.Thickness, 0) *
+            var transform = Matrix.CreateTranslation(0, -(section.Thickness - thickness) / 2 + stamp.StartDepth * section.Thickness, 0) *
                             Matrix.CreateRotationX(-MathHelper.PiOver2) *
                             new Matrix { Forward = new Vector3(vOut.X, 0, vOut.Y), Left = new Vector3(vLeft.X, 0, vLeft.Y), Up = Vector3.Up, M44 = 1 };
 
