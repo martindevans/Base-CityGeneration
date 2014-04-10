@@ -135,6 +135,23 @@
     <Compile Include="Datastructures\Ray2D.cs" />
     <Compile Include="Datastructures\Rectangle.cs" />
     <Compile Include="Datastructures\SeparatingAxisTester.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\FloorPlan.cs" />
+    <Compile Include="Elements\Generic\BigFlatPlane.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Elements\Generic\HollowPlaceholderBlock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Elements\Generic\IGrounded.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Elements\Generic\IdentityScript.cs" />
+    <Compile Include="Elements\Generic\SolidPlaceholderBlock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Elements\Generic\SolidPlaceholderBuilding.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Elements\Roads\IJunction.cs" />
     <Compile Include="Elements\Roads\IRoad.cs" />
     <Compile Include="Parcelling\BaseBlock.cs" />
@@ -156,11 +173,6 @@
     <Compile Include="Elements\Building\Internals\VerticalFeatures\IVerticalFeature.cs" />
     <Compile Include="Elements\Building\Internals\VerticalFeatures\Stairs\IStairwell.cs" />
     <Compile Include="Elements\Building\Internals\VerticalFeatures\Stairs\SpiralStaircase.cs" />
-    <Compile Include="Elements\Generic\IGrounded.cs" />
-    <Compile Include="Elements\Generic\BigFlatPlane.cs" />
-    <Compile Include="Elements\Generic\HollowPlaceholderBlock.cs" />
-    <Compile Include="Elements\Generic\SolidPlaceholderBlock.cs" />
-    <Compile Include="Elements\Generic\SolidPlaceholderBuilding.cs" />
     <Compile Include="Elements\Roads\BasicJunction.cs" />
     <Compile Include="Elements\Roads\BasicRoad.cs" />
     <Compile Include="Elements\Roads\FaceBlockBuilder.cs" />

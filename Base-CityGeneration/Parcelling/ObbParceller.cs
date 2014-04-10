@@ -84,7 +84,7 @@ namespace Base_CityGeneration.Parcelling
         #region static helpers
         private static IEnumerable<Parcel> Split(Parcel parcel, Vector2 direction, Vector2 point)
         {
-            var slices = parcel.Points().SlicePolygon(point, direction);
+            var slices = parcel.Points().SlicePolygon(new Line2D(point, direction));
 
             return slices.Select(a => ToParcel(parcel, a));
         }
@@ -109,8 +109,8 @@ namespace Base_CityGeneration.Parcelling
                 {
                     var childEdge = edges[j];
 
-                    var s = Math.Abs(Geometry2D.DistanceFromPointToLine(childEdge.Start, parentEdge.Start, parentDirection));
-                    var e = Math.Abs(Geometry2D.DistanceFromPointToLine(childEdge.End, parentEdge.Start, parentDirection));
+                    var s = Math.Abs(Geometry2D.DistanceFromPointToLine(childEdge.Start, new Line2D(parentEdge.Start, parentDirection)));
+                    var e = Math.Abs(Geometry2D.DistanceFromPointToLine(childEdge.End, new Line2D(parentEdge.Start, parentDirection)));
 
                     if (s < 0.01 && e < 0.01) //Pretty massive threshold, but it's only really 1cm, so close enough when we're talking about entire city blocks!
                     {

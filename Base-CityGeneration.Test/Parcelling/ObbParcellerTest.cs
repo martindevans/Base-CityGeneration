@@ -18,15 +18,15 @@ namespace Base_CityGeneration.Test.Parcelling
         [TestInitialize]
         public void TestInitialize()
         {
-            Random r = new Random(1);
-            _parceller = new ObbParceller(r.NextDouble, 0.5f, 0.75f);
+            Random r = new Random(13);
+            _parceller = new ObbParceller(r.NextDouble, 0.5f, 1.25f);
         }
 
         [TestMethod]
         public void ParcellingDoesNotProduceOverlaps()
         {
             _parceller.AddTerminationRule(new AreaRule(15, 50, 0.5f));
-            _parceller.AddTerminationRule(new AccessRule("edge", 0.75f));
+            _parceller.AddTerminationRule(new AccessRule("edge", 0.5f));
             var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] {new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10)}, new string[] {"edge"})).ToArray();
 
             Assert.IsTrue(parcels.All(a => a.Area() <= 50));
@@ -49,13 +49,13 @@ namespace Base_CityGeneration.Test.Parcelling
         public void ParcelToMesh()
         {
             _parceller.AddTerminationRule(new AreaRule(50, 150, 0.5f));
-            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] {new Vector2(0, 0), new Vector2(100, 0), new Vector2(100, 100), new Vector2(0, 100)}, new string[] {"edge"})).ToArray();
+            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] {new Vector2(0, 0), new Vector2(90, 0), new Vector2(107, 93), new Vector2(0, 132)}, new string[] {"edge"})).ToArray();
 
             var mesh = parcels.ToMeshFromBinaryTree<int, int>();
 
             Assert.AreEqual(parcels.Length, mesh.Faces.Count());
-            Assert.IsTrue(parcels.All(p => p.Points().ToArray().IsConvex()));
-            Assert.IsTrue(mesh.Faces.All(p => p.Vertices.Select(v => v.Position).ToArray().IsConvex()));
+            Assert.IsTrue(parcels.All(p => p.Points().ToArray().IsConvex(0.001f)));
+            Assert.IsTrue(mesh.Faces.All(p => p.Vertices.Select(v => v.Position).ToArray().IsConvex(0.001f)));
         }
     }
 }

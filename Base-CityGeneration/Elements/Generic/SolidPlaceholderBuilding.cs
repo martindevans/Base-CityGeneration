@@ -1,6 +1,4 @@
 ﻿using System;
-using Base_CityGeneration.Elements.Building;
-using Base_CityGeneration.Parcelling;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
