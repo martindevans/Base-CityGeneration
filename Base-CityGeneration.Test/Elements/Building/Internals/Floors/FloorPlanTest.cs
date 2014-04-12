@@ -82,29 +82,122 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         }
 
         [TestMethod]
-        public void Playground()
+        public void NeighboursOfSingleRoomAreNone()
         {
+            var r = _plan.AddRoom(
+                new Vector2[] { new Vector2(-200, -10), new Vector2(-200, 10), new Vector2(100, 10), new Vector2(100, -10) },
+                0.1f,
+                new ScriptReference[0]).Single();
 
-            List<List<IntPoint>> subj = new List<List<IntPoint>> { new List<IntPoint>() };
-            subj[0].Add(new IntPoint(-100, -10));
-	        subj[0].Add(new IntPoint(-100, 10));	
-	        subj[0].Add(new IntPoint(100, 10));
-	        subj[0].Add(new IntPoint(100, -10));
+            var n = _plan.GetNeighbours(r);
+            Assert.IsFalse(n.Any());
+        }
 
-            List<List<IntPoint>> clip = new List<List<IntPoint>> { new List<IntPoint>() };
-            clip[0].Add(new IntPoint(-10, -100));
-	        clip[0].Add(new IntPoint(10, -100));	
-	        clip[0].Add(new IntPoint(10, 100));
-	        clip[0].Add(new IntPoint(-10, 100));
+        [TestMethod]
+        [Timeout(1000)]
+        public void GetRoomNeighboursFindsBasicPair()
+        {
+            //A really wide room
+            FloorPlan.RoomInfo wide = _plan.AddRoom(
+                new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
+                0.1f,
+                new ScriptReference[0]
+            ).Single();
 
-            List<List<IntPoint>> solution = new List<List<IntPoint>>();
+            //Low room
+            FloorPlan.RoomInfo low = _plan.AddRoom(
+                new Vector2[] { new Vector2(-10, -100), new Vector2(-10, -90), new Vector2(10, -90), new Vector2(10, -100) },
+                0.1f,
+                new ScriptReference[0]
+            ).Single();
 
-            Clipper c = new Clipper();
-            c.AddPolygons(subj, PolyType.Subject);
-            c.AddPolygons(clip, PolyType.Clip);
-            c.Execute(ClipType.Difference, solution, PolyFillType.EvenOdd, PolyFillType.EvenOdd);
+            _plan.Freeze();
 
-            Assert.AreEqual(2, solution.Count);
+            var wideNeighbours = _plan.GetNeighbours(wide);
+            Assert.AreEqual(1, wideNeighbours.Count());
+            Assert.IsTrue(wideNeighbours.Any(a => a.RoomCD == low));
+
+            var lowNeighbours = _plan.GetNeighbours(low);
+            Assert.AreEqual(1, lowNeighbours.Count());
+            Assert.IsTrue(lowNeighbours.Any(a => a.RoomCD == wide));
+        }
+
+        [TestMethod]
+        [Timeout(1000)]
+        public void GetRoomNeighboursFindsBasicPairReversed()
+        {
+            //A really wide room
+            FloorPlan.RoomInfo wide = _plan.AddRoom(
+                new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
+                0.1f,
+                new ScriptReference[0]
+            ).Single();
+
+            //High room
+            FloorPlan.RoomInfo high = _plan.AddRoom(
+                new Vector2[] { new Vector2(-10, 100), new Vector2(10, 100), new Vector2(10, 90), new Vector2(-10, 90) },
+                0.1f,
+                new ScriptReference[0]
+            ).Single();
+
+            _plan.Freeze();
+
+            var wideNeighbours = _plan.GetNeighbours(wide);
+            Assert.AreEqual(1, wideNeighbours.Count());
+            Assert.IsTrue(wideNeighbours.Any(a => a.RoomCD == high));
+
+            var lowNeighbours = _plan.GetNeighbours(high);
+            Assert.AreEqual(1, lowNeighbours.Count());
+            Assert.IsTrue(lowNeighbours.Any(a => a.RoomCD == wide));
+        }
+
+        [TestMethod]
+        public void GetRoomNeighboursFindsNeighbours()
+        {
+            //A really wide room
+            FloorPlan.RoomInfo wide = _plan.AddRoom(
+                new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
+                0.1f,
+                new ScriptReference[0]
+            ).Single();
+
+            ////Low room
+            //FloorPlan.RoomInfo low = _plan.AddRoom(
+            //    new Vector2[] { new Vector2(-10, -100), new Vector2(-10, -90), new Vector2(10, -90), new Vector2(10, -100) },
+            //    0.1f,
+            //    new ScriptReference[0]
+            //).Single();
+
+            //High room
+            FloorPlan.RoomInfo high = _plan.AddRoom(
+                new Vector2[] { new Vector2(-10, 100), new Vector2(10, 100), new Vector2(10, 90), new Vector2(-10, 90) },
+                0.1f,
+                new ScriptReference[0]
+            ).Single();
+
+            //High left
+            FloorPlan.RoomInfo highLeft = _plan.AddRoom(
+                new Vector2[] { new Vector2(-100, 100), new Vector2(-90, 100), new Vector2(-90, 90), new Vector2(-100, 90) },
+                0.1f,
+                new ScriptReference[0]
+            ).Single();
+
+            _plan.Freeze();
+
+            var wideNeighbours = _plan.GetNeighbours(wide);
+            Assert.AreEqual(2, wideNeighbours.Count());
+            //Assert.IsTrue(wideNeighbours.Any(a => a.RoomCD == low));
+            Assert.IsTrue(wideNeighbours.Any(a => a.RoomCD == high));
+            Assert.IsTrue(wideNeighbours.Any(a => a.RoomCD == highLeft));
+
+            ////var lowNeighbours = _plan.GetNeighbours(low);
+            ////Assert.AreEqual(1, lowNeighbours.Count());
+            ////Assert.IsTrue(lowNeighbours.Any(a => a.RoomCD == wide));
+
+            var highNeighbours = _plan.GetNeighbours(high);
+            Assert.AreEqual(2, highNeighbours.Count());
+            Assert.IsTrue(highNeighbours.Any(a => a.RoomCD == wide));
+            Assert.IsTrue(highNeighbours.Any(a => a.RoomCD == highLeft));
         }
     }
 }
