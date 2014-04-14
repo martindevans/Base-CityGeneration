@@ -183,11 +183,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
         private static bool MaybeAddNeighbour(ICollection<Neighbour> list, RoomInfo room, NeighbourInfo a, NeighbourInfo b)
         {
-            bool samePoint = Vector2.DistanceSquared(a.Point, b.Point) < SAME_POINT_EPSILON_SQR;
-            if (samePoint)
+            if (Vector2.DistanceSquared(a.Point, b.OtherPoint) < SAME_POINT_EPSILON_SQR)
+                return false;
+            if (Vector2.DistanceSquared(a.OtherPoint, b.Point) < SAME_POINT_EPSILON_SQR)
                 return false;
 
-            list.Add(new Neighbour(room, a.OtherRoom, a.Point, b.Point, b.OtherPoint, a.OtherPoint));
+            list.Add(new Neighbour(room, a.OtherRoom, a.OtherPoint, b.Point, a.Point, b.OtherPoint));
             return true;
         }
 
@@ -240,7 +241,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
                 if (ct >= 0 && ct <= 1)
                 {
-                    if (dt < 0) //End overlap
+                    if (dt < 0)                                                                        //End overlap
                     {
                         var cPoint = edgeLine.Point + edgeLine.Direction * ct;
                         var a = edge.Segment.Start;
@@ -249,25 +250,26 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
                         CreateNeighbourInfoPair(otherRoom, edge, otherEdge, c, cPoint, ct, a, aPoint, 0);
                     }
-                    else if (dt >= 0 && dt <= 1) //Contained?
+                    else if (dt >= 0 && dt <= 1)                                                       //Contained
                     {
                         var cPoint = edgeLine.Point + edgeLine.Direction * ct;
                         var dPoint = edgeLine.Point + edgeLine.Direction * dt;
 
                         CreateNeighbourInfoPair(otherRoom, edge, otherEdge, c, cPoint, ct, d, dPoint, dt);
                     }
-                    else
-                    {
-                        throw new NotImplementedException("Uhm?");
-                    }
                 }
                 else
                 {
-                    if (dt > 0 && dt < 1)
+                    if (dt > 0 && dt < 1)                                                              //Start overlap
                     {
-                        throw new NotImplementedException("Start overlap");
+                        var dPoint = edgeLine.Point + edgeLine.Direction * dt;
+                        var b = edge.Segment.End;
+                        var bt = Geometry2D.ClosestPointDistanceAlongLine(otherEdgeLine, b);
+                        var bPoint = otherEdgeLine.Point + otherEdgeLine.Direction * bt;
+
+                        CreateNeighbourInfoPair(otherRoom, edge, otherEdge, d, dPoint, dt, b, bPoint, 0);
                     }
-                    else if (Math.Sign(ct) != Math.Sign(dt))
+                    else if (Math.Sign(ct) != Math.Sign(dt))                                           //Reverse contained
                     {
                         var a = edge.Segment.Start;
                         var at = Geometry2D.ClosestPointDistanceAlongLine(otherEdgeLine, a);
@@ -277,11 +279,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                         var bt = Geometry2D.ClosestPointDistanceAlongLine(otherEdgeLine, b);
                         var bPoint = otherEdgeLine.Point + otherEdgeLine.Direction * bt;
 
-                        CreateNeighbourInfoPair(otherRoom, edge, otherEdge, a, aPoint, at, b, bPoint, bt);
+                        CreateNeighbourInfoPair(otherRoom, edge, otherEdge, a, aPoint, 0, b, bPoint, 1);
                     }
                     else
                     {
-                        continue; //Disjoint
+                                                                                                       //No overlap
                     }
                 }
             }
