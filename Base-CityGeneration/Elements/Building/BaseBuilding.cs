@@ -124,10 +124,18 @@ namespace Base_CityGeneration.Elements.Building
             offset = top * 0.5f + bottom * 0.5f;
         }
 
-        internal static void CalculateFloorHeight(Func<double> random, int minFloors, int maxFloors, int minBasements, int maxBasements, float minFloorHeight, float maxFloorHeight, float heightAboveGround, float heightBelowGround, out int floors, out int basements, out float floorHeight)
+        public static void CalculateFloorHeight(Func<double> random, int minFloors, int maxFloors, int minBasements, int maxBasements, float minFloorHeight, float maxFloorHeight, float heightAboveGround, float heightBelowGround, out int floors, out int basements, out float floorHeight)
         {
+            var aboveGroundRange = Math.Min(heightAboveGround / minFloors, maxFloorHeight);
+            if (float.IsNaN(aboveGroundRange))
+                aboveGroundRange = maxFloorHeight;
+
+            var belowGroundRange = Math.Min(heightBelowGround / minBasements, maxFloorHeight);
+            if (float.IsNaN(belowGroundRange))
+                belowGroundRange = maxFloorHeight;
+
             //what's max floor height whilst still fitting all the floors in the available space?
-            float maxHeight = Math.Min(Math.Min(heightAboveGround / minFloors, heightBelowGround / minBasements), maxFloorHeight);
+            float maxHeight = Math.Min(aboveGroundRange, belowGroundRange);
 
             //Pick a random height in the allowable range
             floorHeight = RandomUtilities.RandomSingle(random, minFloorHeight, maxHeight);

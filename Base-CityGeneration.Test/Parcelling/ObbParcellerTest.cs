@@ -31,7 +31,7 @@ namespace Base_CityGeneration.Test.Parcelling
 
             Assert.IsTrue(parcels.All(a => a.Area() <= 50));
 
-            AssertParcel(new[] { new Vector2(5, 0), new Vector2(5, 5), new Vector2(0, 5), new Vector2(0, 0) }, parcels[0].Points());
+            AssertParcel(new[] { new Vector2(5, 0), new Vector2(5, 5), new Vector2(0, 5), new Vector2(0, 0) }, parcels[1].Points());
         }
 
         private static void AssertParcel(Vector2[] expected, Vector2[] actual)
