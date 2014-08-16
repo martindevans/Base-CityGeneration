@@ -168,31 +168,53 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                     {
                         Array.Sort<Neighbour>(sectionNeighbours, CompareNeighboursAlongCommonEdge);
 
+                        ////TESTING!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                        //for (int i = 0; i < sectionNeighbours.Length - 1; i++)
+                        //{
+                        //    float miny = Math.Min(sectionNeighbours[i].At, sectionNeighbours[i].Bt);
+                        //    float maxy = Math.Max(sectionNeighbours[i].At, sectionNeighbours[i].Bt);
+
+                        //    float minz = Math.Min(sectionNeighbours[i + 1].At, sectionNeighbours[i + 1].Bt);
+                        //    float maxz = Math.Max(sectionNeighbours[i + 1].At, sectionNeighbours[i + 1].Bt);
+
+                        //    if (maxy > minz)
+                        //        throw new NotImplementedException("Overlap");
+                        //    if (maxz > miny)
+                        //        throw new NotImplementedException("Overlap");
+                        //}
+
                         float previousMax = 0;
                         for (int i = 0; i < sectionNeighbours.Length; i++)
                         {
                             var neighbour = sectionNeighbours[i];
 
-                            float min = Math.Min(neighbour.At, neighbour.At);
-                            float max = Math.Max(neighbour.At, neighbour.At);
+                            if (Math.Abs(neighbour.At - neighbour.Bt) < float.Epsilon || Math.Abs(neighbour.Ct - neighbour.Dt) < float.Epsilon)
+                            {
+                            }
+
+                            float min = Math.Min(neighbour.At, neighbour.Bt);
+                            float max = Math.Max(neighbour.At, neighbour.Bt);
 
                             //Create section from last neighbour to edge of this one
-                            var sA = section.A + section.Along * section.Width * previousMax;
-                            var sB = section.A + section.Along * section.Width * min;
-                            var sC = section.D + section.Along * section.Width * min;
-                            var sD = section.D + section.Along * section.Width * previousMax;
-                            result.Add(new Facade(null, false, new Walls.Section(false, sA, sB, sC, sD)));
+                            if (Math.Abs(min - previousMax) > float.Epsilon)
+                            {
+                                var sA = section.B - section.Along * section.Width * previousMax;
+                                var sB = section.B - section.Along * section.Width * min;
+                                var sC = section.C - section.Along * section.Width * min;
+                                var sD = section.C - section.Along * section.Width * previousMax;
+                                result.Add(new Facade(null, false, new Walls.Section(false, sA, sB, sC, sD)));
+                            }
 
                             //Create section from this room to neighbour
                             result.Add(new Facade(neighbour.Other(this), false, new Walls.Section(false, neighbour.A, neighbour.B, neighbour.C, neighbour.D)));
 
-                            if (i == sectionNeighbours.Length - 1)
+                            if (i == sectionNeighbours.Length - 1 && Math.Abs(max - 1) > float.Epsilon)
                             {
                                 //Since this is the last section, create a section to the end
-                                var eA = section.A + section.Along * section.Width * max;
-                                var eB = section.A + section.Along * section.Width * 1;
-                                var eC = section.D + section.Along * section.Width * 1;
-                                var eD = section.D + section.Along * section.Width * max;
+                                var eA = section.B - section.Along * section.Width * max;
+                                var eB = section.B - section.Along * section.Width * 1;
+                                var eC = section.C - section.Along * section.Width * 1;
+                                var eD = section.C - section.Along * section.Width * max;
                                 result.Add(new Facade(null, false, new Walls.Section(false, eA, eB, eC, eD)));
                             }
 
@@ -238,7 +260,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 {
                     var segmentSelf = n.Segment(this);
 
-                    var innerEdge = new Line2D(section.A, section.B - section.A);
+                    var innerEdge = new Line2D(section.C, section.D - section.C);
 
                     Geometry2D.Parallelism parallelism;
                     Geometry2D.LineLineIntersection(innerEdge, new Line2D(segmentSelf.Start, segmentSelf.End - segmentSelf.Start), out parallelism);
