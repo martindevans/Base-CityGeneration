@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
@@ -146,12 +148,12 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Check that points C and D lies on the edge of low room
             var n = wideNeighbours.Single(a => a.RoomCD == low);
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.C, new Line2D(new Vector2(-10, -90.1f), new Vector2(1, 0))) < 0.01f);
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.D, new Line2D(new Vector2(-10, -90.1f), new Vector2(1, 0))) < 0.01f);
+            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.C, new Line2D(new Vector2(-10, -90f), new Vector2(1, 0))) < 0.01f);
+            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.D, new Line2D(new Vector2(-10, -90f), new Vector2(1, 0))) < 0.01f);
 
             //Check that points A and B lie on the edge of wide room
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.A, new Line2D(new Vector2(-10, -9.9f), new Vector2(1, 0))) < 0.01f);
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.B, new Line2D(new Vector2(-10, -9.9f), new Vector2(1, 0))) < 0.01f);
+            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.A, new Line2D(new Vector2(-10, -10f), new Vector2(1, 0))) < 0.01f);
+            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.B, new Line2D(new Vector2(-10, -10f), new Vector2(1, 0))) < 0.01f);
 
             //Check that neighbour data is the same going the other direction
             var lowNeighbours = _plan.GetNeighbours(low);
@@ -159,13 +161,13 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             Assert.IsTrue(lowNeighbours.Any(a => a.RoomCD == wide));
 
             //Check that point is close to the edge it is supposed to lie on
-            var segment = new LineSegment2D(wide.InnerFootprint[n.EdgeIndexRoomAB], wide.InnerFootprint[(n.EdgeIndexRoomAB + 1) % wide.InnerFootprint.Length]);
+            var segment = new LineSegment2D(wide.OuterFootprint[n.EdgeIndexRoomAB], wide.OuterFootprint[(n.EdgeIndexRoomAB + 1) % wide.OuterFootprint.Length]);
             var line = segment.Line();
             var dist = Geometry2D.DistanceFromPointToLine(n.A, line);
             Assert.IsTrue(dist < 0.01f);
 
             //Check that point is close to the edge it is supposed to lie on
-            var segment2 = new LineSegment2D(low.InnerFootprint[n.EdgeIndexRoomCD], low.InnerFootprint[(n.EdgeIndexRoomCD + 1) % low.InnerFootprint.Length]);
+            var segment2 = new LineSegment2D(low.OuterFootprint[n.EdgeIndexRoomCD], low.OuterFootprint[(n.EdgeIndexRoomCD + 1) % low.OuterFootprint.Length]);
             var line2 = segment2.Line();
             var dist2 = Geometry2D.DistanceFromPointToLine(n.C, line2);
             Assert.IsTrue(dist2 < 0.01f);
@@ -266,8 +268,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             Assert.AreEqual(n1, n2);
 
-            Assert.IsTrue(a.InnerFootprint.Where(p => Vector2.Distance(p, n1.A) < 0.1f).Any());
-            Assert.IsTrue(b.InnerFootprint.Where(p => Vector2.Distance(p, n1.C) < 0.1f).Any());
+            Assert.IsTrue(a.OuterFootprint.Where(p => Vector2.Distance(p, n1.A) < 0.1f).Any());
+            Assert.IsTrue(b.OuterFootprint.Where(p => Vector2.Distance(p, n1.C) < 0.1f).Any());
         }
 
         [TestMethod]
@@ -295,13 +297,6 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void RoomsOccludeFartherRoomsFromBeingNeighbours()
         {
-            //A really wide room
-            FloorPlan.RoomInfo wide = _plan.AddRoom(
-                new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
-                0.1f,
-                new ScriptReference[0]
-            ).Single();
-
             //Low room
             FloorPlan.RoomInfo low = _plan.AddRoom(
                 new Vector2[] { new Vector2(-10, -100), new Vector2(-10, -90), new Vector2(10, -90), new Vector2(10, -100) },
@@ -315,6 +310,15 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 0.1f,
                 new ScriptReference[0]
             ).Single();
+
+            //A really wide room (which should occlude low and high from being neighbours)
+            FloorPlan.RoomInfo wide = _plan.AddRoom(
+                new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
+                0.1f,
+                new ScriptReference[0]
+            ).Single();
+
+            _plan.Freeze();
 
             var wideNeighbours = _plan.GetNeighbours(wide);
             Assert.AreEqual(2, wideNeighbours.Count());
@@ -441,16 +445,100 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             //Assert.IsTrue(roomA.InnerFootprint.Where(p => Vector2.Distance(p, n.Section.A) < 0.1f).Any());
 
             //Check that section has points adjacent to right edge of room A
-            var segment = new LineSegment2D(roomA.InnerFootprint[3], roomA.InnerFootprint[0]);
+            var segment = new LineSegment2D(roomA.OuterFootprint[3], roomA.OuterFootprint[0]);
             var line = segment.Line();
             var dist = Geometry2D.DistanceFromPointToLine(n.Section.A, line);
             Assert.IsTrue(dist < 0.01f);
 
             //Check that section has points adjacent to left edge of room B
-            var segment2 = new LineSegment2D(roomB.InnerFootprint[1], roomB.InnerFootprint[2]);
+            var segment2 = new LineSegment2D(roomB.OuterFootprint[1], roomB.OuterFootprint[2]);
             var line2 = segment2.Line();
             var dist2 = Geometry2D.DistanceFromPointToLine(n.Section.C, line2);
             Assert.IsTrue(dist2 < 0.01f);
+
+            Assert.Fail("Check that generated sections do not overlap");
+        }
+
+        [TestMethod]
+        public void SvgFloorplan()
+        {
+            ////Low room
+            //FloorPlan.RoomInfo low = _plan.AddRoom(new Vector2[] { new Vector2(0, -70), new Vector2(0, -40), new Vector2(20, -40), new Vector2(20, -70) }, 3f, new ScriptReference[0]).Single();
+            ////High room
+            //FloorPlan.RoomInfo high = _plan.AddRoom(new Vector2[] {new Vector2(-10, 70), new Vector2(10, 70), new Vector2(10, 40), new Vector2(-10, 40)}, 3f, new ScriptReference[0]).Single();
+            ////A really wide room
+            //FloorPlan.RoomInfo wide = _plan.AddRoom(new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) }, 3f, new ScriptReference[0]).Single();
+
+            var roomA = _plan.AddRoom(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(0, 100), new Vector2(0, -100) }, 3f, new ScriptReference[0]).Single();
+            var roomB = _plan.AddRoom(new Vector2[] { new Vector2(5, 10), new Vector2(5, 25), new Vector2(30, 25), new Vector2(30, 10) }, 5f, new ScriptReference[0]).Single();
+            var roomC = _plan.AddRoom(new Vector2[] {new Vector2(40, 0), new Vector2(40, 40), new Vector2(180, 40), new Vector2(180, 0)}, 5f, new ScriptReference[0]).Single();
+            var roomD = _plan.AddRoom(new Vector2[] {new Vector2(70, 70), new Vector2(70, 90), new Vector2(90, 90), new Vector2(90, 70)}, 5f, new ScriptReference[0]).Single();
+            var roomE = _plan.AddRoom(new Vector2[] { new Vector2(70, -40), new Vector2(70, -20), new Vector2(90, -20), new Vector2(90, -40) }, 5f, new ScriptReference[0]).Single();
+
+            _plan.Freeze();
+
+            //var nA = _plan.GetNeighbours(roomA).Count();
+            //var nB = _plan.GetNeighbours(roomB).Count();
+            var nC = _plan.GetNeighbours(roomC).Count();
+            //var nD = _plan.GetNeighbours(roomD).Count();
+
+            Console.WriteLine(FloorplanToSvg(_plan));
+        }
+
+        private string FloorplanToSvg(FloorPlan plan)
+        {
+            const float scale = 2f;
+
+            List<string> paths = new List<string>()
+            {
+                ToSvgPath(_plan.Footprint, "black", scale: scale, fill:"grey")
+            };
+
+            //Add Rooms
+            foreach (var r in plan.Rooms.Select((a, i) => new { room = a, i}))
+            {
+                //paths.Add(ToSvgPath(room.OuterFootprint, "green", scale: scale));
+                //paths.Add(ToSvgPath(room.InnerFootprint, "darkgreen", scale: scale));
+
+                var room = r.room;
+
+                //Sections
+                foreach (var facade in room.GetFacades())
+                {
+                    string c = "blue";
+                    if (facade.IsExternal && facade.Section.IsCorner)
+                        c = "purple";
+                    else if (facade.IsExternal)
+                        c = "green";
+                    else if (facade.Section.IsCorner)
+                        c = "cornflowerblue";
+                    else if (facade.NeighbouringRoom != null)
+                        c = "red";
+
+                    paths.Add(ToSvgPath(new[] {facade.Section.A, facade.Section.B, facade.Section.C, facade.Section.D}, c , scale: scale, fill: "none"));
+                }
+            }
+
+            const int w = 700;
+            const int h = 700;
+
+            StringBuilder b = new StringBuilder();
+            b.AppendLine("<svg height=\"" + h + "\" width=\"" + w + "\"><g transform=\"translate(" + (w / 2) + "," + (h / 2) + ")\">");
+            foreach (var path in paths)
+                b.AppendLine(path);
+            b.AppendLine("</g></svg>");
+
+            return b.ToString();
+        }
+
+        private string ToSvgPath(IEnumerable<Vector2> points, string stroke, float scale = 1, string fill="white")
+        {
+            points = points.ToArray().Select(a => a * scale);
+
+            var d = String.Format("M{0} {1}", points.First().X, points.First().Y) + 
+                String.Join(" ", points.Select(p => string.Format("L{0} {1}", p.X, p.Y))) + " Z";
+
+            return "<path d=\"" + d + "\" stroke=\"" + stroke + "\" fill=\"" + fill + "\" />";
         }
     }
 }

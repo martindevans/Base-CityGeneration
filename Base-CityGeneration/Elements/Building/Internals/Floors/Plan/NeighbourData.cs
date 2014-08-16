@@ -82,6 +82,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
             List<FloorPlan.Neighbour> neighbours = new List<FloorPlan.Neighbour>();
 
+            List<Watermark> watermarks = new List<Watermark>();
             for (int i = 0; i < edge.EdgeList.Count; i++)
             {
                 //Get a pair of points (a and z)
@@ -89,52 +90,72 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 var z = a.NaturalPair;
 
                 //We must have already handled this one if this is true
-                // Comparing directly because we only care about if they're *exactly* the same and thus sorting may have reordered them
-                // ReSharper disable CompareOfFloatsByEqualityOperator
-                if (z.Pt < a.Pt || z.Pt == a.Pt)
-                // ReSharper restore CompareOfFloatsByEqualityOperator
+                if (z.Pt <= a.Pt)
                     continue;
 
-                //Get all the points between these two
-                var between = edge.EdgeList.Skip(i + 1).TakeWhile(item => !ReferenceEquals(item, z));
+                //If any other pairs have established a lower watermark beyond this point then give up
+                if (watermarks.Any(x => x.T > a.Pt && x.Height < a.Distance))
+                    continue;
 
-                if (!between.Any())
-                    MaybeAddNeighbour(neighbours, edge.Index, room, a, z);
-                else
-                {
-                    var aPair = between.Append(z).SkipWhile(x => !IsValidPair(a, x)).First();
-                    MaybeAddNeighbour(neighbours, edge.Index, room, a, aPair);
+                //Select the next logical end point
+                var end = edge.EdgeList.Skip(i + 1).FirstOrDefault(x => IsValidPair(a, x)) ?? z;
 
-                    if (!ReferenceEquals(aPair, z))
-                    {
-                        var zPair = between.SkipWhile(x => x != aPair).Skip(1).Reverse().SkipWhile(x => !IsValidPair(z, x)).FirstOrDefault();
-                        if (zPair != null)
-                            MaybeAddNeighbour(neighbours, edge.Index, room, zPair, z);
-                    }
-                }
-
+                if (MaybeAddNeighbour(neighbours, edge.Index, room, a, end))
+                    watermarks.Add(new Watermark {Height = end.Distance, T = end.Pt});
             }
 
             return neighbours;
         }
 
-        private static bool IsValidPair(NeighbourInfo a, NeighbourInfo b)
+        private struct Watermark
         {
-            return (ReferenceEquals(a.NaturalPair, b)) || (b.Distance <= a.Distance);
+            public float Height;
+            public float T;
         }
 
-        private static void MaybeAddNeighbour(ICollection<FloorPlan.Neighbour> list, uint edgeIndex, FloorPlan.RoomInfo room, NeighbourInfo a, NeighbourInfo b)
+        private static bool IsValidPair(NeighbourInfo a, NeighbourInfo b)
         {
-            if (Vector2.DistanceSquared(a.Point, b.OtherPoint) < SAME_POINT_EPSILON_SQR)
-                return;
-            if (Vector2.DistanceSquared(a.OtherPoint, b.Point) < SAME_POINT_EPSILON_SQR)
-                return;
-            if (Vector2.DistanceSquared(a.Point, b.Point) < SAME_POINT_EPSILON_SQR)
-                return;
-            if (Vector2.DistanceSquared(a.OtherPoint, b.OtherPoint) < SAME_POINT_EPSILON_SQR)
-                return;
+            return (ReferenceEquals(a.NaturalPair, b)) || (
+                (b.Distance <= a.Distance)
+            );
+        }
 
-            list.Add(new FloorPlan.Neighbour(edgeIndex, room, a.OtherEdgeIndex, a.OtherRoom, b.Point, b.Pt, a.Point, a.Pt, a.OtherPoint, a.OPt, b.OtherPoint, b.OPt));
+        private static bool MaybeAddNeighbour(ICollection<FloorPlan.Neighbour> list, uint edgeIndex, FloorPlan.RoomInfo room, NeighbourInfo a, NeighbourInfo b)
+        {
+            var ap = a.Point;
+            var apt = a.Pt;
+
+            var aop = a.OtherPoint;
+            var aopt = a.OPt;
+
+            var bp = b.Point;
+            var bpt = b.Pt;
+
+            var bop = b.OtherPoint;
+            var bopt = b.OPt;
+
+            if (a.OtherRoom != b.OtherRoom)
+            {
+                var otherRoom = a.Distance > b.Distance ? a.OtherRoom : b.OtherRoom;
+                var otherEdge = a.Distance > b.Distance ? GetEdge(a.OtherRoom, a.OtherEdgeIndex) : GetEdge(b.OtherRoom, b.OtherEdgeIndex);
+
+                var f = Geometry2D.ClosestPointDistanceAlongLine(new Line2D(otherEdge.Segment.Start, otherEdge.Segment.End - otherEdge.Segment.Start), b.OtherPoint);
+
+                bop = otherEdge.Segment.Start + (otherEdge.Segment.End - otherEdge.Segment.Start) * f;
+                bopt = f;
+            }
+
+            if (Vector2.DistanceSquared(ap, bop) < SAME_POINT_EPSILON_SQR)
+                return false;
+            if (Vector2.DistanceSquared(aop, bp) < SAME_POINT_EPSILON_SQR)
+                return false;
+            if (Vector2.DistanceSquared(ap, bp) < SAME_POINT_EPSILON_SQR)
+                return false;
+            if (Vector2.DistanceSquared(aop, bop) < SAME_POINT_EPSILON_SQR)
+                return false;
+
+            list.Add(new FloorPlan.Neighbour(edgeIndex, room, a.OtherEdgeIndex, a.OtherRoom, bp, bpt, ap, apt, aop, aopt, bop, bopt));
+            return true;
         }
 
         private static void ProjectPointsOntoEdge(FloorPlan.RoomInfo otherRoom, Line2D edgeLine, Edge edge)
@@ -280,15 +301,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         #region static helpers
         private static IEnumerable<Edge> Edges(FloorPlan.RoomInfo room)
         {
-            for (uint i = 0; i < room.InnerFootprint.Length; i++)
+            for (uint i = 0; i < room.OuterFootprint.Length; i++)
                 yield return GetEdge(room, i);
         }
 
         private static Edge GetEdge(FloorPlan.RoomInfo room, uint index)
         {
             return new Edge(
-                room.InnerFootprint[index],
-                room.InnerFootprint[(index + 1) % room.InnerFootprint.Length],
+                room.OuterFootprint[index],
+                room.OuterFootprint[(index + 1) % room.OuterFootprint.Length],
                 index
             );
         }
