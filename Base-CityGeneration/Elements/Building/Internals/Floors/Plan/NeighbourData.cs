@@ -82,46 +82,223 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
             List<FloorPlan.Neighbour> neighbours = new List<FloorPlan.Neighbour>();
 
-            List<Watermark> watermarks = new List<Watermark>();
             for (int i = 0; i < edge.EdgeList.Count; i++)
             {
-                //Get a pair of points (a and z)
                 var a = edge.EdgeList[i];
-                var z = a.NaturalPair;
+                var b = a.NaturalPair;
 
-                //We must have already handled this one if this is true
-                if (z.Pt <= a.Pt)
+                //Skip this pair, we'll handle it when we come across it the other way around
+                if (b.Pt <= a.Pt)
                     continue;
 
-                //If any other pairs have established a lower watermark beyond this point then give up
-                if (watermarks.Any(x => x.T > a.Pt && x.Height < a.Distance))
-                    continue;
+                //No overlaps, we can add this section straight in and move on
+                if (!neighbours.Any(n => (n.At < b.Pt && n.Bt > a.Pt)))
+                {
+                    AddNeighbour(neighbours, edge.Index, room, a, b);
+                }
+                else
+                {
+                    //Iterate backwards over existing neighbour segments
+                    for (int j = neighbours.Count - 1; j >= 0; j--)
+                    {
+                        var n = neighbours[j];
 
-                //Select the next logical end point
-                var end = edge.EdgeList.Skip(i + 1).FirstOrDefault(x => IsValidPair(a, x)) ?? z;
+                        if (n.At < b.Pt && n.At >= a.Pt && n.Bt <= b.Pt && n.Bt > a.Pt)
+                        {
+                            //CONTAINS OVERLAP
+                            //e.g. AB totally contains n
+                            //  n.At == 0
+                            //  n.Bt == 0.5
+                            //  a.Pt == 0
+                            //  b.Pt == 1
 
-                if (MaybeAddNeighbour(neighbours, edge.Index, room, a, end))
-                    watermarks.Add(new Watermark {Height = end.Distance, T = end.Pt});
+                            if (a.Distance < Vector2.Distance(n.A, n.C))
+                            {
+                                //We need to simply remove and replace the neighbour section entirely since it's totally occluded by this new section
+                                neighbours.RemoveAt(j);
+                                AddNeighbour(neighbours, edge.Index, room, a, b);
+                            }
+                            else
+                            {
+                                //We need to split the new section around the neighbour section
+
+                                //Create section from a -> n.A
+                                if (Math.Abs(a.Pt - n.At) > float.Epsilon)
+                                {
+                                    throw new NotImplementedException();
+                                }
+
+                                //Create section from n.B -> b
+                                if (Math.Abs(n.Bt - b.Pt) > float.Epsilon)
+                                {
+                                    AddNeighbour_Info_To_NB(neighbours, edge.Index, room, n, b);
+                                }
+                            }
+                        }
+                        else if (n.Bt <= b.Pt && n.Bt > a.Pt)
+                        {
+                            //START OVERLAP
+                            //e.g. Start of AB overlaps n
+                            //  n.At == 0
+                            //  n.Bt == 1
+                            //  a.Pt == 0.5
+                            //  b.Pt == 1
+
+                            if (a.Distance < Vector2.Distance(n.A, n.D))
+                            {
+                                //Remove this neighbour, we need to modify it
+                                neighbours.RemoveAt(j);
+
+                                //Create 2 new neighbour sections, all of AB (since it's closest) and what's left of N
+                                AddNeighbour_NA_To_Info(neighbours, edge.Index, room, n, a);
+                                AddNeighbour(neighbours, edge.Index, room, a, b);
+                            }
+                            else
+                            {
+                                //Create 1 new neighbour sections, all of N (since it's closest) and what's left of AB
+                                AddNeighbour_Info_To_NB(neighbours, edge.Index, room, n, b);
+                            }
+                        }
+                        else if (n.At <= a.Pt && n.Bt >= b.Pt)
+                        {
+                            //Other section completely contains this section
+                            //we either need to skip this section (it's entirely occluded) or split other section
+                            if (a.Distance < Vector2.Distance(n.A, n.C))
+                            {
+                                //Remove the section we're modifying
+                                neighbours.RemoveAt(j);
+
+                                //Create new section
+                                AddNeighbour(neighbours, edge.Index, room, a, b);
+
+                                //Create section from n.A -> a (reproj)
+                                if (Math.Abs(a.Pt - n.At) > float.Epsilon)
+                                    AddNeighbour_NA_To_Info(neighbours, edge.Index, room, n, a);
+
+                                //Create section from b (reproj) -> n.B
+                                if (Math.Abs(n.Bt - b.Pt) > float.Epsilon)
+                                    AddNeighbour_NB_To_Info(neighbours, edge.Index, room, n, b);
+                            }
+                            else
+                            {
+                                //Entirely occluded section - do nothing
+                            }
+                        }
+                        else
+                            throw new NotImplementedException("Unhandled case?");
+                    }
+                }
             }
 
             return neighbours;
         }
 
-        private struct Watermark
+        private static void AddNeighbour_N_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, FloorPlan.Neighbour n, bool nA, NeighbourInfo info)
         {
-            public float Height;
-            public float T;
+            var lineOut = new Line2D(info.Point, info.OtherPoint - info.Point);
+            var otherEdge = GetEdge(n.RoomCD, n.EdgeIndexRoomCD).Segment;
+            var otherEdgeLine = new Line2D(otherEdge.Start, otherEdge.End - otherEdge.Start);
+
+            var proj = Geometry2D.LineLineIntersection(lineOut, otherEdgeLine);
+            if (!proj.HasValue)
+                throw new InvalidOperationException("Reprojected segment section does not lie on other edge");
+
+            AddNeighbour(neighbours, edgeIndex, room, nA ? ToNeighbourInfoAD(n) : ToNeighbourInfoBC(n), new NeighbourInfo
+            {
+                Distance = nA ? Vector2.Distance(n.A, n.D) : Vector2.Distance(n.B, n.C),
+                NaturalPair = null,
+                Point = info.Point,
+                Pt = info.Pt,
+                OtherPoint = proj.Value.Position,
+                OPt = proj.Value.DistanceAlongLineB,
+                OtherRoom = n.RoomCD,
+                OtherEdgeIndex = n.EdgeIndexRoomCD
+            });
         }
 
-        private static bool IsValidPair(NeighbourInfo a, NeighbourInfo b)
+        private static void AddNeighbour_NA_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, FloorPlan.Neighbour n, NeighbourInfo info)
         {
-            return (ReferenceEquals(a.NaturalPair, b)) || (
-                (b.Distance <= a.Distance)
-            );
+            AddNeighbour_N_To_Info(neighbours, edgeIndex, room, n, true, info);
         }
 
-        private static bool MaybeAddNeighbour(ICollection<FloorPlan.Neighbour> list, uint edgeIndex, FloorPlan.RoomInfo room, NeighbourInfo a, NeighbourInfo b)
+        private static void AddNeighbour_NB_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, FloorPlan.Neighbour n, NeighbourInfo info)
         {
+            AddNeighbour_N_To_Info(neighbours, edgeIndex, room, n, false, info);
+        }
+
+        private static void AddNeighbour_Info_To_N(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, NeighbourInfo info, FloorPlan.Neighbour n, bool nA)
+        {
+            var lineOut = nA ? new Line2D(n.A, n.D - n.A) : new Line2D(n.B, n.C - n.B);
+            var otherEdge = GetEdge(info.OtherRoom, info.OtherEdgeIndex).Segment;
+            var otherEdgeLine = new Line2D(otherEdge.Start, otherEdge.End - otherEdge.Start);
+
+            var proj = Geometry2D.LineLineIntersection(lineOut, otherEdgeLine);
+            if (!proj.HasValue)
+                throw new InvalidOperationException("Reprojected segment section does not lie on other edge");
+
+            AddNeighbour(neighbours, edgeIndex, room, new NeighbourInfo
+            {
+                Distance = info.Distance,
+                NaturalPair = null,
+                OtherEdgeIndex = info.OtherEdgeIndex,
+                Point = nA ? n.A : n.B,
+                Pt = nA ? n.At : n.Bt,
+                OtherPoint = proj.Value.Position,
+                OPt = proj.Value.DistanceAlongLineB,
+                OtherRoom = info.OtherRoom
+            }, info);
+        }
+
+        private static void AddNeighbour_Info_To_NA(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, FloorPlan.Neighbour n, NeighbourInfo info)
+        {
+            AddNeighbour_Info_To_N(neighbours, edgeIndex, room, info, n, true);
+        }
+
+        private static void AddNeighbour_Info_To_NB(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, FloorPlan.Neighbour n, NeighbourInfo info)
+        {
+            AddNeighbour_Info_To_N(neighbours, edgeIndex, room, info, n, false);
+        }
+
+        private static NeighbourInfo ToNeighbourInfoAD(FloorPlan.Neighbour n)
+        {
+            return new NeighbourInfo
+            {
+                Distance = Vector2.Distance(n.A, n.D),
+                NaturalPair = null,
+                OtherEdgeIndex = n.EdgeIndexRoomCD,
+                Point = n.A,
+                Pt = n.At,
+                OtherPoint = n.D,
+                OPt = n.Dt,
+                OtherRoom = n.RoomCD
+            };
+        }
+
+        private static NeighbourInfo ToNeighbourInfoBC(FloorPlan.Neighbour n)
+        {
+            return new NeighbourInfo
+            {
+                Distance = Vector2.Distance(n.B, n.C),
+                NaturalPair = null,
+                OtherEdgeIndex = n.EdgeIndexRoomCD,
+                Point = n.B,
+                Pt = n.Bt,
+                OtherPoint = n.C,
+                OPt = n.Ct,
+                OtherRoom = n.RoomCD
+            };
+        }
+
+        private static void AddNeighbour(ICollection<FloorPlan.Neighbour> list, uint edgeIndex, FloorPlan.RoomInfo room, NeighbourInfo a, NeighbourInfo b)
+        {
+            //Swap points if order is reversed
+            if (a.Pt > b.Pt)
+            {
+                var t = a;
+                a = b;
+                b = t;
+            }
+
             var ap = a.Point;
             var apt = a.Pt;
 
@@ -134,28 +311,28 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             var bop = b.OtherPoint;
             var bopt = b.OPt;
 
-            if (a.OtherRoom != b.OtherRoom)
-            {
-                var otherRoom = a.Distance > b.Distance ? a.OtherRoom : b.OtherRoom;
-                var otherEdge = a.Distance > b.Distance ? GetEdge(a.OtherRoom, a.OtherEdgeIndex) : GetEdge(b.OtherRoom, b.OtherEdgeIndex);
-
-                var f = Geometry2D.ClosestPointDistanceAlongLine(new Line2D(otherEdge.Segment.Start, otherEdge.Segment.End - otherEdge.Segment.Start), b.OtherPoint);
-
-                bop = otherEdge.Segment.Start + (otherEdge.Segment.End - otherEdge.Segment.Start) * f;
-                bopt = f;
-            }
-
             if (Vector2.DistanceSquared(ap, bop) < SAME_POINT_EPSILON_SQR)
-                return false;
+                throw new ArgumentException("Points A.Point and B.Other are the same", "a");
             if (Vector2.DistanceSquared(aop, bp) < SAME_POINT_EPSILON_SQR)
-                return false;
+                throw new ArgumentException("Points A.Other and B.Point are the same", "a");
             if (Vector2.DistanceSquared(ap, bp) < SAME_POINT_EPSILON_SQR)
-                return false;
+                throw new ArgumentException("Points A.Point and B.Point are the same", "a");
             if (Vector2.DistanceSquared(aop, bop) < SAME_POINT_EPSILON_SQR)
-                return false;
+                throw new ArgumentException("Points A.Other and B.Other are the same", "a");
 
-            list.Add(new FloorPlan.Neighbour(edgeIndex, room, a.OtherEdgeIndex, a.OtherRoom, bp, bpt, ap, apt, aop, aopt, bop, bopt));
-            return true;
+            //throw new NotImplementedException("Check and fix winding");
+
+            list.Add(new FloorPlan.Neighbour(edgeIndex, room, a.OtherEdgeIndex, a.OtherRoom,
+                ap, apt,
+                bp, bpt,
+                bop, bopt,
+                aop, aopt
+            ));
+
+            var last = list.Last();
+            if (new Vector2[] {last.A, last.B, last.C, last.D}.Area() > 0)
+            {
+            }
         }
 
         private static void ProjectPointsOntoEdge(FloorPlan.RoomInfo otherRoom, Line2D edgeLine, Edge edge)
