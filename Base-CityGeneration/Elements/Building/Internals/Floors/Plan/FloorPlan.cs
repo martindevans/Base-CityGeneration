@@ -188,10 +188,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                         {
                             var neighbour = sectionNeighbours[i];
 
-                            if (Math.Abs(neighbour.At - neighbour.Bt) < float.Epsilon || Math.Abs(neighbour.Ct - neighbour.Dt) < float.Epsilon)
-                            {
-                            }
-
                             float min = Math.Min(neighbour.At, neighbour.Bt);
                             float max = Math.Max(neighbour.At, neighbour.Bt);
 
