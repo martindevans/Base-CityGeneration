@@ -17,9 +17,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public bool Dirty { get; set; }
 
-        private Dictionary<FloorPlan.RoomInfo, List<FloorPlan.Neighbour>> _neighbours;
+        private Dictionary<RoomPlan, List<FloorPlan.Neighbour>> _neighbours;
 
-        public IEnumerable<FloorPlan.Neighbour> this[FloorPlan.RoomInfo key]
+        public IEnumerable<FloorPlan.Neighbour> this[RoomPlan key]
         {
             get { return _neighbours[key]; }
         }
@@ -63,7 +63,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             Dirty = false;
         }
 
-        private static IEnumerable<FloorPlan.Neighbour> ExtractNeighbourSections(FloorPlan.RoomInfo room, Edge edge)
+        private static IEnumerable<FloorPlan.Neighbour> ExtractNeighbourSections(RoomPlan room, Edge edge)
         {
             if (edge.EdgeList.Count == 0)
                 return new FloorPlan.Neighbour[0];
@@ -120,19 +120,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                             }
                             else
                             {
-                                //We need to split the new section around the neighbour section
-
                                 //Create section from a -> n.A
                                 if (Math.Abs(a.Pt - n.At) > float.Epsilon)
-                                {
-                                    throw new NotImplementedException();
-                                }
+                                    AddNeighbour_Info_To_NA(neighbours, edge.Index, room, n, a);
 
                                 //Create section from n.B -> b
                                 if (Math.Abs(n.Bt - b.Pt) > float.Epsilon)
-                                {
                                     AddNeighbour_Info_To_NB(neighbours, edge.Index, room, n, b);
-                                }
                             }
                         }
                         else if (n.Bt <= b.Pt && n.Bt > a.Pt)
@@ -185,7 +179,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                             }
                         }
                         else
-                            throw new NotImplementedException("Unhandled case?");
+                        {
+                            //Two completely independent sections, no one cares
+                        }
                     }
                 }
             }
@@ -193,7 +189,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return neighbours;
         }
 
-        private static void AddNeighbour_N_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, FloorPlan.Neighbour n, bool nA, NeighbourInfo info)
+        private static void AddNeighbour_N_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, bool nA, NeighbourInfo info)
         {
             var lineOut = new Line2D(info.Point, info.OtherPoint - info.Point);
             var otherEdge = GetEdge(n.RoomCD, n.EdgeIndexRoomCD).Segment;
@@ -216,17 +212,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             });
         }
 
-        private static void AddNeighbour_NA_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, FloorPlan.Neighbour n, NeighbourInfo info)
+        private static void AddNeighbour_NA_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, NeighbourInfo info)
         {
             AddNeighbour_N_To_Info(neighbours, edgeIndex, room, n, true, info);
         }
 
-        private static void AddNeighbour_NB_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, FloorPlan.Neighbour n, NeighbourInfo info)
+        private static void AddNeighbour_NB_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, NeighbourInfo info)
         {
             AddNeighbour_N_To_Info(neighbours, edgeIndex, room, n, false, info);
         }
 
-        private static void AddNeighbour_Info_To_N(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, NeighbourInfo info, FloorPlan.Neighbour n, bool nA)
+        private static void AddNeighbour_Info_To_N(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, NeighbourInfo info, FloorPlan.Neighbour n, bool nA)
         {
             var lineOut = nA ? new Line2D(n.A, n.D - n.A) : new Line2D(n.B, n.C - n.B);
             var otherEdge = GetEdge(info.OtherRoom, info.OtherEdgeIndex).Segment;
@@ -249,12 +245,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             }, info);
         }
 
-        private static void AddNeighbour_Info_To_NA(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, FloorPlan.Neighbour n, NeighbourInfo info)
+        private static void AddNeighbour_Info_To_NA(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, NeighbourInfo info)
         {
             AddNeighbour_Info_To_N(neighbours, edgeIndex, room, info, n, true);
         }
 
-        private static void AddNeighbour_Info_To_NB(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, FloorPlan.RoomInfo room, FloorPlan.Neighbour n, NeighbourInfo info)
+        private static void AddNeighbour_Info_To_NB(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, NeighbourInfo info)
         {
             AddNeighbour_Info_To_N(neighbours, edgeIndex, room, info, n, false);
         }
@@ -289,7 +285,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             };
         }
 
-        private static void AddNeighbour(ICollection<FloorPlan.Neighbour> list, uint edgeIndex, FloorPlan.RoomInfo room, NeighbourInfo a, NeighbourInfo b)
+        private static void AddNeighbour(ICollection<FloorPlan.Neighbour> list, uint edgeIndex, RoomPlan room, NeighbourInfo a, NeighbourInfo b)
         {
             //Swap points if order is reversed
             if (a.Pt > b.Pt)
@@ -299,43 +295,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 b = t;
             }
 
-            var ap = a.Point;
-            var apt = a.Pt;
-
-            var aop = a.OtherPoint;
-            var aopt = a.OPt;
-
-            var bp = b.Point;
-            var bpt = b.Pt;
-
-            var bop = b.OtherPoint;
-            var bopt = b.OPt;
-
-            if (Vector2.DistanceSquared(ap, bop) < SAME_POINT_EPSILON_SQR)
-                throw new ArgumentException("Points A.Point and B.Other are the same", "a");
-            if (Vector2.DistanceSquared(aop, bp) < SAME_POINT_EPSILON_SQR)
-                throw new ArgumentException("Points A.Other and B.Point are the same", "a");
-            if (Vector2.DistanceSquared(ap, bp) < SAME_POINT_EPSILON_SQR)
-                throw new ArgumentException("Points A.Point and B.Point are the same", "a");
-            if (Vector2.DistanceSquared(aop, bop) < SAME_POINT_EPSILON_SQR)
-                throw new ArgumentException("Points A.Other and B.Other are the same", "a");
-
-            //throw new NotImplementedException("Check and fix winding");
-
             list.Add(new FloorPlan.Neighbour(edgeIndex, room, a.OtherEdgeIndex, a.OtherRoom,
-                ap, apt,
-                bp, bpt,
-                bop, bopt,
-                aop, aopt
+                a.Point, a.Pt,
+                b.Point, b.Pt,
+                b.OtherPoint, b.OPt,
+                a.OtherPoint, a.OPt
             ));
-
-            var last = list.Last();
-            if (new Vector2[] {last.A, last.B, last.C, last.D}.Area() > 0)
-            {
-            }
         }
 
-        private static void ProjectPointsOntoEdge(FloorPlan.RoomInfo otherRoom, Line2D edgeLine, Edge edge)
+        private static void ProjectPointsOntoEdge(RoomPlan otherRoom, Line2D edgeLine, Edge edge)
         {
             foreach (var otherEdge in Edges(otherRoom))
             {
@@ -434,7 +402,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             }
         }
 
-        private static void CreateNeighbourInfoPair(FloorPlan.RoomInfo otherRoom,
+        private static void CreateNeighbourInfoPair(RoomPlan otherRoom,
             Edge edge, float point1DistanceAlongEdge, float point1ProjDistanceAlongOtherEdge,
             Edge otherEdge, float point2DistanceAlongEdge, float point2ProjDistanceAlongOtherEdge)
         {
@@ -476,17 +444,22 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         }
 
         #region static helpers
-        private static IEnumerable<Edge> Edges(FloorPlan.RoomInfo room)
+        private static Vector2[] Footprint(RoomPlan room)
         {
-            for (uint i = 0; i < room.OuterFootprint.Length; i++)
+            return room.OuterFootprint;
+        }
+
+        private static IEnumerable<Edge> Edges(RoomPlan room)
+        {
+            for (uint i = 0; i < Footprint(room).Length; i++)
                 yield return GetEdge(room, i);
         }
 
-        private static Edge GetEdge(FloorPlan.RoomInfo room, uint index)
+        private static Edge GetEdge(RoomPlan room, uint index)
         {
             return new Edge(
-                room.OuterFootprint[index],
-                room.OuterFootprint[(index + 1) % room.OuterFootprint.Length],
+                Footprint(room)[index],
+                Footprint(room)[(index + 1) % Footprint(room).Length],
                 index
             );
         }
@@ -523,7 +496,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             public Vector2 Point;
             public Vector2 OtherPoint;
 
-            public FloorPlan.RoomInfo OtherRoom;
+            public RoomPlan OtherRoom;
 
             public uint OtherEdgeIndex;
 

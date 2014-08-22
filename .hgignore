@@ -8,3 +8,4 @@ syntax: glob
 *.suo
 *.user
 *.cache
+_NCrunch_Base-CityGeneration

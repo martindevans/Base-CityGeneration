@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
@@ -24,8 +23,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private readonly float _externalWallThickness;
 
-        private readonly List<RoomInfo> _rooms = new List<RoomInfo>();
-        public IEnumerable<RoomInfo> Rooms
+        private readonly List<RoomPlan> _rooms = new List<RoomPlan>();
+        public IEnumerable<RoomPlan> Rooms
         {
             get { return _rooms; }
         }
@@ -50,7 +49,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private int _nextRoomId = 0;
 
-        public IEnumerable<RoomInfo> AddRoom(IEnumerable<Vector2> roomFootprint, float wallThickness, IEnumerable<ScriptReference> scripts, bool split = false)
+        public IEnumerable<RoomPlan> AddRoom(IEnumerable<Vector2> roomFootprint, float wallThickness, IEnumerable<ScriptReference> scripts, bool split = false)
         {
             if (_isFrozen)
                 throw new InvalidOperationException("Cannot add rooms to floorplan once it is frozen");
@@ -68,7 +67,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             _clipper.Execute(ClipType.Intersection, solution);
 
             if (solution.Count > 1 && !split)
-                return new RoomInfo[0];
+                return new RoomPlan[0];
+            if (solution.Count == 0)
+                return new RoomPlan[0];
 
             //Clip against other rooms
             if (_rooms.Count > 0)
@@ -80,12 +81,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 _clipper.Execute(ClipType.Difference, solution, PolyFillType.NonZero, PolyFillType.NonZero);
 
                 if (solution.Count > 1 && !split)
-                    return new RoomInfo[0];
+                    return new RoomPlan[0];
+                if (solution.Count == 0)
+                    return new RoomPlan[0];
             }
 
             var s = scripts.ToArray();
 
-            List<RoomInfo> result = new List<RoomInfo>();
+            List<RoomPlan> result = new List<RoomPlan>();
             foreach (var shape in solution)
             {
                 _neighbourhood.Dirty = true;
@@ -94,7 +97,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 if (Clipper.Orientation(shape))
                     shape.Reverse();
 
-                var r = new RoomInfo(this, shape.Select(ToVector2).ToArray(), wallThickness, s, _nextRoomId++);
+                var r = new RoomPlan(this, shape.Select(ToVector2).ToArray(), wallThickness, s, _nextRoomId++);
                 result.Add(r);
                 _rooms.Add(r);
             }
@@ -102,7 +105,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return result;
         }
 
-        public IEnumerable<Neighbour> GetNeighbours(RoomInfo room)
+        public IEnumerable<Neighbour> GetNeighbours(RoomPlan room)
         {
             _neighbourhood.GenerateNeighbours();
             return _neighbourhood[room];
@@ -120,201 +123,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         }
         #endregion
 
-        public class RoomInfo
-        {
-            private readonly FloorPlan _plan;
-
-            public readonly Vector2[] InnerFootprint;
-            public readonly Vector2[] OuterFootprint;
-
-            public readonly ScriptReference[] Scripts;
-            public readonly float WallThickness;
-
-            public readonly int Id;
-
-            public IRoom Node;
-
-            internal RoomInfo(FloorPlan plan, Vector2[] footprint, float wallThickness, ScriptReference[] scripts, int id)
-            {
-                _plan = plan;
-                OuterFootprint = footprint;
-                InnerFootprint = footprint.Shrink(wallThickness).ToArray();
-                Walls.MatchUp(OuterFootprint, InnerFootprint);
-
-                Scripts = scripts;
-                WallThickness = wallThickness;
-                Id = id;
-            }
-
-            /// <summary>
-            /// Get all facades surrounding this room. Facades either reach from the inner wall of this room, to the inner wall of a neighbouring room or they simple cover the width from inner->outer wall of this room (if there is no neighbour)
-            /// </summary>
-            /// <returns></returns>
-            public IEnumerable<Facade> GetFacades()
-            {
-                var result = new HashSet<Facade>();
-
-                var roomNeighbours = _plan.GetNeighbours(this).ToArray();
-
-                foreach (var section in OuterFootprint.Sections(InnerFootprint).ToArray())
-                {
-                    Neighbour[] sectionNeighbours;
-
-                    if (IsExternalSection(section))
-                    {
-                        result.Add(new Facade(null, true, section));
-                    }
-                    else if (IsNeighbourSection(section, roomNeighbours, out sectionNeighbours))
-                    {
-                        Array.Sort<Neighbour>(sectionNeighbours, CompareNeighboursAlongCommonEdge);
-
-                        ////TESTING!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                        //for (int i = 0; i < sectionNeighbours.Length - 1; i++)
-                        //{
-                        //    float miny = Math.Min(sectionNeighbours[i].At, sectionNeighbours[i].Bt);
-                        //    float maxy = Math.Max(sectionNeighbours[i].At, sectionNeighbours[i].Bt);
-
-                        //    float minz = Math.Min(sectionNeighbours[i + 1].At, sectionNeighbours[i + 1].Bt);
-                        //    float maxz = Math.Max(sectionNeighbours[i + 1].At, sectionNeighbours[i + 1].Bt);
-
-                        //    if (maxy > minz)
-                        //        throw new NotImplementedException("Overlap");
-                        //    if (maxz > miny)
-                        //        throw new NotImplementedException("Overlap");
-                        //}
-
-                        float previousMax = 0;
-                        for (int i = 0; i < sectionNeighbours.Length; i++)
-                        {
-                            var neighbour = sectionNeighbours[i];
-
-                            float min = Math.Min(neighbour.At, neighbour.Bt);
-                            float max = Math.Max(neighbour.At, neighbour.Bt);
-
-                            //Create section from last neighbour to edge of this one
-                            if (Math.Abs(min - previousMax) > float.Epsilon)
-                            {
-                                var sA = section.B - section.Along * section.Width * previousMax;
-                                var sB = section.B - section.Along * section.Width * min;
-                                var sC = section.C - section.Along * section.Width * min;
-                                var sD = section.C - section.Along * section.Width * previousMax;
-                                result.Add(new Facade(null, false, new Walls.Section(false, sA, sB, sC, sD)));
-                            }
-
-                            //Create section from this room to neighbour
-                            result.Add(new Facade(neighbour.Other(this), false, new Walls.Section(false, neighbour.A, neighbour.B, neighbour.C, neighbour.D)));
-
-                            if (i == sectionNeighbours.Length - 1 && Math.Abs(max - 1) > float.Epsilon)
-                            {
-                                //Since this is the last section, create a section to the end
-                                var eA = section.B - section.Along * section.Width * max;
-                                var eB = section.B - section.Along * section.Width * 1;
-                                var eC = section.C - section.Along * section.Width * 1;
-                                var eD = section.C - section.Along * section.Width * max;
-                                result.Add(new Facade(null, false, new Walls.Section(false, eA, eB, eC, eD)));
-                            }
-
-                            previousMax = max;
-                        }
-                    }
-                    else
-                    {
-                        result.Add(new Facade(null, false, section));
-                    }
-                }
-
-                return result;
-            }
-
-            private int CompareNeighboursAlongCommonEdge(Neighbour a, Neighbour b)
-            {
-                if (a.RoomAB != this)
-                    throw new ArgumentException("room adjacent to neighbour data is not this room", "a");
-                if (b.RoomAB != this)
-                    throw new ArgumentException("room adjacent to neighbour data is not this room", "a");
-
-                //Create a comparator function to compare neighbours along a common edge of this room
-                //Find out which points lie along the egde of this room, and then compare then
-
-                if (Math.Max(a.At, a.Bt) <= Math.Min(b.At, b.Bt))
-                    return -1;
-                else if (Math.Min(a.At, a.Bt) >= Math.Max(b.At, a.Bt))
-                    return 1;
-                else
-                    return 0;
-            }
-
-            private bool IsNeighbourSection(Walls.Section section, IEnumerable<Neighbour> neighbours, out Neighbour[] neighbourSection)
-            {
-                if (section.IsCorner)
-                {
-                    neighbourSection = null;
-                    return false;
-                }
-
-                neighbourSection = neighbours.Where(n =>
-                {
-                    var segmentSelf = n.Segment(this);
-
-                    var innerEdge = new Line2D(section.C, section.D - section.C);
-
-                    Geometry2D.Parallelism parallelism;
-                    Geometry2D.LineLineIntersection(innerEdge, new Line2D(segmentSelf.Start, segmentSelf.End - segmentSelf.Start), out parallelism);
-
-                    return parallelism == Geometry2D.Parallelism.Collinear;
-                }).ToArray();
-
-                return neighbourSection.Length != 0;
-            }
-
-            private bool IsExternalSection(Walls.Section section)
-            {
-                foreach (var outerEdge in Edges(_plan.Footprint.ToArray()).Select(edge => new Line2D(edge.Start, edge.End - edge.Start)))
-                {
-                    Geometry2D.Parallelism parallelism;
-                    if (section.IsCorner)
-                    {
-                        //Corner sections have 2 edges which may be external, A->B and B->C
-                        Geometry2D.LineLineIntersection(new Line2D(section.A, section.B - section.A), outerEdge, out parallelism);
-                        if (parallelism != Geometry2D.Parallelism.Collinear)
-                            Geometry2D.LineLineIntersection(new Line2D(section.B, section.C - section.B), outerEdge, out parallelism);
-                    }
-                    else
-                        Geometry2D.LineLineIntersection(new Line2D(section.C, section.Along), outerEdge, out parallelism);
-
-                    if (parallelism == Geometry2D.Parallelism.Collinear)
-                        return true;
-                }
-
-                return false;
-            }
-
-            private static IEnumerable<LineSegment2D> Edges(IList<Vector2> array)
-            {
-                for (int i = 0; i < array.Count; i++)
-                    yield return new LineSegment2D(array[i], array[(i + 1) % array.Count]);
-            }
-
-            public struct Facade
-            {
-                private readonly RoomInfo _neighbouringRoom;
-                public RoomInfo NeighbouringRoom { get { return _neighbouringRoom; } }
-
-                private readonly bool _isExternal;
-                public bool IsExternal { get { return _isExternal; } }
-
-                private readonly Walls.Section _section;
-                public Walls.Section Section { get { return _section; } }
-
-                    public Facade(RoomInfo other, bool external, Walls.Section section)
-                {
-                    _neighbouringRoom = other;
-                    _isExternal = external;
-                    _section = section;
-                }
-            }
-        }
-
         public class Neighbour
         {
             /// <summary>
@@ -325,7 +133,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             /// <summary>
             /// One of the rooms in a neighbourship pair (touching points A and B)
             /// </summary>
-            public RoomInfo RoomAB { get; private set; }
+            public RoomPlan RoomAB { get; private set; }
 
             /// <summary>
             /// The index of the edge on roomCD
@@ -335,7 +143,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             /// <summary>
             /// One of the rooms in a neighbourship pair (touching points C and D)
             /// </summary>
-            public RoomInfo RoomCD { get; private set; }
+            public RoomPlan RoomCD { get; private set; }
 
             /// <summary>
             /// The first point on the border of these two rooms
@@ -377,7 +185,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             /// </summary>
             public float Dt { get; private set; }
 
-            public Neighbour(uint edgeAbIndex, RoomInfo ab, uint edgeCdIndex, RoomInfo cd, Vector2 a, float at, Vector2 b, float bt, Vector2 c, float ct, Vector2 d, float dt)
+            public Neighbour(uint edgeAbIndex, RoomPlan ab, uint edgeCdIndex, RoomPlan cd, Vector2 a, float at, Vector2 b, float bt, Vector2 c, float ct, Vector2 d, float dt)
             {
                 EdgeIndexRoomAB = edgeAbIndex;
                 EdgeIndexRoomCD = edgeCdIndex;
@@ -396,7 +204,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 Dt = dt;
             }
 
-            public RoomInfo Other(RoomInfo room)
+            public RoomPlan Other(RoomPlan room)
             {
                 if (RoomAB == room)
                     return RoomCD;
@@ -404,7 +212,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                     return RoomAB;
             }
 
-            public LineSegment2D Segment(RoomInfo room)
+            public LineSegment2D Segment(RoomPlan room)
             {
                 if (RoomAB == room)
                     return new LineSegment2D(A, B);
