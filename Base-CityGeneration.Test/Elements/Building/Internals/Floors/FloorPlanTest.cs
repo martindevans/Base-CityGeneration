@@ -730,9 +730,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void SvgFloorplan()
         {
-            Random r = new Random();
+            Random r = new Random(2387098);
 
-            const int floorCount = 20;
+            const int floorCount = 1;
             const int floorHeight = 20;
             for (int i = 0; i < floorCount; i++)
             {
@@ -744,15 +744,154 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                     var minY = r.Next(-25, 20);
                     var width = r.Next(10, 20);
                     var height = r.Next(10, 20);
-                    plan.AddRoom(new[] {new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY)},
+                    plan.AddRoom(new[] { new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY) },
                         1,
                         new ScriptReference[0]
-                    );
+                        );
                 }
 
                 plan.Freeze();
 
                 Console.WriteLine(FloorplanToSvg(plan, 500, 45, 20, (i * floorHeight - floorCount * floorHeight)));
+            }
+        }
+
+        [TestMethod]
+        public void FuzzTest()
+        {
+            Action<int, bool> iterate = (seed, catchit) =>
+            {
+                Random r = new Random(seed);
+
+                try
+                {
+                    FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }, 3);
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        var minX = r.Next(-25, 20);
+                        var minY = r.Next(-25, 20);
+                        var width = r.Next(10, 20);
+                        var height = r.Next(10, 20);
+                        plan.AddRoom(new[] { new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY) },
+                            1,
+                            new ScriptReference[0]
+                            );
+                    }
+
+                    plan.Freeze();
+
+                    FloorplanToSvg(plan, 500, 45, 20);
+                }
+                catch
+                {
+                    if (!catchit)
+                        throw;
+                    else
+                        Assert.Fail("Failing seed = " + seed);
+                }
+            };
+
+            for (int s = 0; s < 10000; s++)
+            {
+                iterate(s, true);
+            }
+
+            //iterate(189, false);
+        }
+
+        [TestMethod]
+        public void RegressionTest_ShrinkingSplitsFootprint()
+        {
+            // This is a case generated from fuzz testing (i.e. generate random data, see what breaks).
+            // Shrinking a shape can generate *several* separate shapes if the original shape was convex.
+            // This used to fail, now shrinking discards all the generated shapes except the largest (fixed with a change in EpimetheusPlugins).
+
+            Random r = new Random(738);
+
+            FloorPlan plan = new FloorPlan(new[] {new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25)}, 3);
+
+            for (int j = 0; j < 3; j++)
+            {
+                var minX = r.Next(-25, 20);
+                var minY = r.Next(-25, 20);
+                var width = r.Next(10, 20);
+                var height = r.Next(10, 20);
+                plan.AddRoom(new[] {new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY)},
+                    1,
+                    new ScriptReference[0]
+                    );
+            }
+
+            plan.Freeze();
+
+            FloorplanToSvg(plan, 500, 45, 20);
+        }
+
+        [TestMethod]
+        public void RegressionTest_UnmatchedWallSections()
+        {
+            // This is a case generated from fuzz testing (i.e. generate random data, see what breaks).
+            // Sometimes matching up inner and outer sections of wall data used to fail (fixed in EpimetheusPlugins).
+            // This test will fail in that case
+
+            Random r = new Random(189);
+
+            FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }, 3);
+
+            for (int j = 0; j < 3; j++)
+            {
+                var minX = r.Next(-25, 20);
+                var minY = r.Next(-25, 20);
+                var width = r.Next(10, 20);
+                var height = r.Next(10, 20);
+                plan.AddRoom(new[] { new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY) },
+                    1,
+                    new ScriptReference[0]
+                    );
+            }
+
+            plan.Freeze();
+
+            FloorplanToSvg(plan, 500, 45, 20);
+        }
+
+        [TestMethod]
+        public void RegressionTest_NaN_WallSections()
+        {
+            // This is a case generated from fuzz testing (i.e. generate random data, see what breaks).
+            // This room is shaped like:
+            //
+            // +---------+
+            // |         |
+            // X---X     |
+            //     |     |
+            //     +-----+
+            //
+            // Shrinking this room results in a corner like this (at the X--X edge):
+            //
+            // |    +-----+
+            // |          |
+            // X----X     |
+            //
+            // The inside point is aligned with the outside point, logically this wall section is just two corners with no facade in the center.
+            // Before fixing this case, some NaN sections were generated because of this case, now they aren't, and this test makes sure we don't undo that change.
+
+            var v = new[] {new Vector2(15, 14), new Vector2(2, 14), new Vector2(2, 22), new Vector2(1, 22), new Vector2(1, 25), new Vector2(15, 25)};
+
+            var r = _plan.AddRoom(v, 1, new ScriptReference[0], false);
+
+            _plan.Freeze();
+
+            var f = r.Single().GetFacades();
+
+            foreach (var facade in f)
+            {
+                Assert.IsFalse(facade.Section.A.IsNaN());
+                Assert.IsFalse(facade.Section.B.IsNaN());
+                Assert.IsFalse(facade.Section.C.IsNaN());
+                Assert.IsFalse(facade.Section.D.IsNaN());
+                Assert.IsFalse(facade.Section.Along.IsNaN());
             }
         }
 
