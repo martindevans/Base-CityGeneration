@@ -27,29 +27,13 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <returns></returns>
         public static IFacade FindFacade(this IFacadeOwner start, Walls.Section section, params Type[] endStop)
         {
-            ISubdivisionContext node = start.Parent;
-
-            while (node != null)
+            return TreeSearch.SearchUp<IFacade, IFacadeProvider>(start, a =>
             {
-                //Once we find a provider take suggestions from it
-                var p = node as IFacadeProvider;
-                if (p != null)
-                {
-                    var f = p.CreateFacade(start, section);
-                    if (f != null)
-                        p.ConfigureFacade(f, start);
-                    return f;
-                }
-
-                if (endStop.Any(t => t.IsInstanceOfType(node)))
-                    break;
-
-                //Search further up
-                node = node.Parent;
-            }
-
-            //Found nothing
-            return null;
+                var f = a.CreateFacade(start, section);
+                if (f != null)
+                    a.ConfigureFacade(f, start);
+                return f;
+            }, endStop);
         }
     }
 }

@@ -142,9 +142,12 @@
     <Compile Include="Datastructures\Rectangle.cs" />
     <Compile Include="Datastructures\SeparatingAxisTester.cs" />
     <Compile Include="Elements\Building\Facades\ConfigurableFacade.cs" />
+    <Compile Include="Elements\Building\Facades\IExternalFacade.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\IPlannedRoom.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\FloorPlan.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\NeighbourData.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\RoomPlan.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\IRoomPlanProvider.cs" />
     <Compile Include="Elements\Generic\BigFlatPlane.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -192,9 +195,11 @@
     <Compile Include="Elements\Roads\VertexJunctionBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Root\BaseCityRoot.cs" />
+    <Compile Include="TreeSearch.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="Elements\Building\Building Hierarchy.md" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />

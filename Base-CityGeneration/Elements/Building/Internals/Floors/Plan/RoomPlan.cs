@@ -233,7 +233,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private bool IsExternalSection(Walls.Section section)
         {
-            foreach (var outerEdge in Edges(_plan.Footprint.ToArray()).Select(edge => new Line2D(edge.Start, edge.End - edge.Start)))
+            foreach (var outerEdge in Edges(_plan.ExternalFootprint.ToArray()).Select(edge => new Line2D(edge.Start, edge.End - edge.Start)))
             {
                 Geometry2D.Parallelism parallelism;
                 if (section.IsCorner)

@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
-using Base_CityGeneration.Parcelling;
-using Base_CityGeneration.Parcelling.Rules;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
-using Myre;
 using Myre.Extensions;
 using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
@@ -23,7 +20,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestInitialize]
         public void Initialize()
         {
-            _plan = new FloorPlan(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(100, 100), new Vector2(100, -100) }, 0);
+            _plan = new FloorPlan(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(100, 100), new Vector2(100, -100) });
         }
 
         [TestMethod]
@@ -390,7 +387,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void RoomSectionGenerationGeneratesExternalSections()
         {
-            var room = _plan.AddRoom(_plan.Footprint, 0.25f, new ScriptReference[0]).Single();
+            var room = _plan.AddRoom(_plan.ExternalFootprint, 0.25f, new ScriptReference[0]).Single();
 
             _plan.Freeze();
 
@@ -730,13 +727,13 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void SvgFloorplan()
         {
-            Random r = new Random(2387098);
+            Random r = new Random(23523);
 
             const int floorCount = 1;
             const int floorHeight = 20;
             for (int i = 0; i < floorCount; i++)
             {
-                FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }, 3);
+                FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) });
 
                 for (int j = 0; j < 3; j++)
                 {
@@ -745,14 +742,14 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                     var width = r.Next(10, 20);
                     var height = r.Next(10, 20);
                     plan.AddRoom(new[] { new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY) },
-                        1,
+                        r.Next(1, 5),
                         new ScriptReference[0]
                         );
                 }
 
                 plan.Freeze();
 
-                Console.WriteLine(FloorplanToSvg(plan, 500, 45, 20, (i * floorHeight - floorCount * floorHeight)));
+                Console.WriteLine(FloorplanToSvg(plan, 500, 0, 0, (i * floorHeight - floorCount * floorHeight)));
             }
         }
 
@@ -765,7 +762,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
                 try
                 {
-                    FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }, 3);
+                    FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) });
 
                     for (int j = 0; j < 3; j++)
                     {
@@ -809,7 +806,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             Random r = new Random(738);
 
-            FloorPlan plan = new FloorPlan(new[] {new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25)}, 3);
+            FloorPlan plan = new FloorPlan(new[] {new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25)});
 
             for (int j = 0; j < 3; j++)
             {
@@ -837,7 +834,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             Random r = new Random(189);
 
-            FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }, 3);
+            FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) });
 
             for (int j = 0; j < 3; j++)
             {
@@ -903,7 +900,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             List<string> paths = new List<string>()
             {
-                ToSvgPath(plan.Footprint, "black", scale: scale, fill:"grey", opacity: 0.1f)
+                ToSvgPath(plan.ExternalFootprint, "black", scale: scale, fill:"grey", opacity: 0.1f)
             };
 
             //Add Rooms
@@ -947,14 +944,14 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             return b.ToString();
         }
 
-        private static string ToSvgPath(IEnumerable<Vector2> points, string stroke, float scale = 1, string fill="white", float opacity = 0.5f)
+        private static string ToSvgPath(IEnumerable<Vector2> points, string stroke, float scale = 1, string fill="white", float opacity = 0.75f)
         {
             points = points.ToArray().Select(a => a * scale);
 
             var d = String.Format("M{0} {1}", points.First().X, points.First().Y) + 
                 String.Join(" ", points.Select(p => string.Format("L{0} {1}", p.X, p.Y))) + " Z";
 
-            return "<path d=\"" + d + "\" stroke=\"" + stroke + "\" fill=\"" + fill + "\" opacity=\"" + opacity + "\" stroke-width=\"2\"/>";
+            return "<path d=\"" + d + "\" stroke=\"" + stroke + "\" fill=\"" + fill + "\" opacity=\"" + opacity + "\" stroke-width=\"1\"/>";
         }
         #endregion
     }

@@ -16,34 +16,5 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// The wall section which this facade is filling in
         /// </summary>
         Walls.Section Section { get; set; }
-
-        /// <summary>
-        /// One of the two rooms neighbouring this wall (possibly null, if this is an external wall)
-        /// </summary>
-        IRoom Room1 { get; set; }
-
-        /// <summary>
-        /// One of the two rooms neighbouring this wall (possibly null, if this is an external wall)
-        /// </summary>
-        IRoom Room2 { get; set; }
-    }
-
-    public static class IFacadeExtensions
-    {
-        /// <summary>
-        /// Given a facade and a room, select the room on the other side of the wall (or null if no such room exists)
-        /// </summary>
-        /// <param name="facade"></param>
-        /// <param name="self"></param>
-        /// <returns></returns>
-        public static IRoom Partner(this IFacade facade, IRoom self)
-        {
-            if (facade.Room1 == self)
-                return facade.Room2;
-            else if (facade.Room2 == self)
-                return facade.Room1;
-            else
-                return null;
-        }
     }
 }
