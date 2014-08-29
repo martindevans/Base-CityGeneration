@@ -15,13 +15,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         private bool _isFrozen = false;
         private readonly Clipper _clipper = new Clipper();
 
-        private readonly Vector2[] _footprint;
-        public IEnumerable<Vector2> Footprint
+        private readonly Vector2[] _externalFootprint;
+        public IEnumerable<Vector2> ExternalFootprint
         {
-            get { return _footprint; }
+            get { return _externalFootprint; }
         }
-
-        private readonly float _externalWallThickness;
 
         private readonly List<RoomPlan> _rooms = new List<RoomPlan>();
         public IEnumerable<RoomPlan> Rooms
@@ -32,10 +30,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         private readonly NeighbourData _neighbourhood;
         #endregion
 
-        public FloorPlan(Vector2[] footprint, float externalWallThickness)
+        public FloorPlan(Vector2[] footprint)
         {
-            _footprint = footprint;
-            _externalWallThickness = externalWallThickness;
+            _externalFootprint = footprint;
 
             _neighbourhood = new NeighbourData(this);
         }
@@ -62,7 +59,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             //Contain room inside floor
             _clipper.Clear();
             _clipper.AddPolygon(clipperRoomFootprint, PolyType.Subject);
-            _clipper.AddPolygon(_footprint.Select(ToPoint).ToList(), PolyType.Clip);
+            _clipper.AddPolygon(_externalFootprint.Select(ToPoint).ToList(), PolyType.Clip);
             List<List<IntPoint>> solution = new List<List<IntPoint>>();
             _clipper.Execute(ClipType.Intersection, solution);
 

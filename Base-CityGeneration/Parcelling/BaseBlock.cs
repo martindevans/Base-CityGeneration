@@ -36,6 +36,6 @@ namespace Base_CityGeneration.Parcelling
         /// <param name="parcels"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        protected abstract IEnumerable<KeyValuePair<Parcel, ProceduralScript>> CreateParcelNodes(Parcel[] parcels, float height);
+        protected abstract IEnumerable<KeyValuePair<Parcel, ISubdivisionContext>> CreateParcelNodes(Parcel[] parcels, float height);
     }
 }
