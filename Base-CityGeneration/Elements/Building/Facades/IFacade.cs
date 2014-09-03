@@ -1,5 +1,4 @@
-﻿using Base_CityGeneration.Elements.Building.Internals.Rooms;
-using EpimetheusPlugins.Procedural;
+﻿using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 
 namespace Base_CityGeneration.Elements.Building.Facades
@@ -10,7 +9,6 @@ namespace Base_CityGeneration.Elements.Building.Facades
     /// Facades are difficult because they are owned by the floor (in this example) but are really part of the building. IFacadeOwner (the floor) and IFacadeProvider (the building) solve this problem
     /// </summary>
     public interface IFacade
-        : ISubdivisionContext
     {
         /// <summary>
         /// The wall section which this facade is filling in

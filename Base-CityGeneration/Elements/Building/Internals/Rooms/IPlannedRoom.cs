@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Rooms
@@ -9,6 +11,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Rooms
     public interface IPlannedRoom
         : IRoom
     {
+        Dictionary<RoomPlan.Facade, IConfigurableFacade> Facades { set; }
     }
 
     public static class IPlannedRoomExtensions
