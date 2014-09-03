@@ -142,16 +142,14 @@
     <Compile Include="Datastructures\Rectangle.cs" />
     <Compile Include="Datastructures\SeparatingAxisTester.cs" />
     <Compile Include="Elements\Building\Facades\ConfigurableFacade.cs" />
-    <Compile Include="Elements\Building\Facades\IExternalFacade.cs" />
+    <Compile Include="Elements\Building\Facades\IConfigurableFacade.cs" />
+    <Compile Include="Elements\Building\Facades\SubsectionFacade.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IPlannedRoom.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\FloorPlan.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\NeighbourData.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\RoomPlan.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IRoomPlanProvider.cs" />
     <Compile Include="Elements\Generic\BigFlatPlane.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Elements\Generic\HollowPlaceholderBlock.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Elements\Generic\IGrounded.cs">
@@ -175,12 +173,10 @@
     <Compile Include="Elements\Building\BaseBuilding.cs" />
     <Compile Include="Elements\Building\Facades\BaseFacade.cs" />
     <Compile Include="Elements\Building\Facades\IFacade.cs" />
-    <Compile Include="Elements\Building\Facades\IFacadeOwner.cs" />
-    <Compile Include="Elements\Building\Facades\IFacadeProvider.cs" />
     <Compile Include="Elements\Building\Internals\BaseContainedSpace.cs" />
     <Compile Include="Elements\Building\Internals\Floors\BaseFloor.cs" />
     <Compile Include="Elements\Building\Internals\Floors\IFloor.cs" />
-    <Compile Include="Elements\Building\Internals\Rooms\BaseRoom.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\BasePlannedRoom.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IRoom.cs" />
     <Compile Include="Elements\Building\Internals\VerticalFeatures\IVerticalFeature.cs" />
     <Compile Include="Elements\Building\Internals\VerticalFeatures\Stairs\IStairwell.cs" />

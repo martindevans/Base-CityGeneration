@@ -8,13 +8,15 @@ namespace Base_CityGeneration.Elements.Building.Facades
 {
     [Script("ACA20DC2-E38B-4F53-97A8-228D1E8F5009", "Externally Configurable Facade")]
     public class ConfigurableFacade
-        : BaseFacade
+        : BaseFacade, IConfigurableFacade
     {
         public bool IsSubdivided { get; private set; }
 
+        private INamedDataCollection _parameters;
+
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
-            base.Subdivide(bounds, geometry, hierarchicalParameters);
+            base.Subdivide(bounds, geometry, _parameters ?? hierarchicalParameters);
 
             IsSubdivided = true;
         }
@@ -33,6 +35,11 @@ namespace Base_CityGeneration.Elements.Building.Facades
         protected override IEnumerable<Stamp> EmbossingStamps(INamedDataCollection hierarchicalParameters, float width, float height)
         {
             return Stamps;
+        }
+
+        public void SetHierarchicalParameters(INamedDataCollection parameters)
+        {
+            _parameters = parameters;
         }
     }
 }

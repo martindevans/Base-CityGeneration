@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
@@ -36,10 +38,10 @@ namespace Base_CityGeneration.Elements.Building.Facades
             foreach (var stamp in stamps)
             {
                 var brush = ConvertStampToBrush(Section, stamp, geometry, hierarchicalParameters);
-                if (stamp.Additive)
-                    facade = facade.Union(brush);
-                else
-                    facade = facade.Subtract(brush);
+                if (brush == null)
+                    continue;
+
+                facade = stamp.Additive ? facade.Union(brush) : facade.Subtract(brush);
             }
 
             geometry.Union(facade);
@@ -53,7 +55,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <param name="geometry"></param>
         /// <param name="hierarchicalParameters"></param>
         /// <returns></returns>
-        public static ICsgShape ConvertStampToBrush(Walls.Section section, Stamp stamp, ICsgFactory geometry, INamedDataCollection hierarchicalParameters)
+        private static ICsgShape ConvertStampToBrush(Walls.Section section, Stamp stamp, ICsgFactory geometry, INamedDataCollection hierarchicalParameters)
         {
             var material = stamp.Material ?? hierarchicalParameters.GetValue(new TypedName<string>("material"));
 
@@ -64,7 +66,11 @@ namespace Base_CityGeneration.Elements.Building.Facades
             //Calculate absolute thickness of stamp
             var thickness = (stamp.EndDepth - stamp.StartDepth) * section.Thickness;
 
-            //Calculate transform from prism lyinf flat in plane to vertically aligned in plane of facade
+            //Zero thickness stamp does nothing, early exit with null
+            if (Math.Abs(thickness - 0) < float.Epsilon)
+                return null;
+
+            //Calculate transform from prism lying flat in plane to vertically aligned in plane of facade
             var transform = Matrix.CreateTranslation(0, -(section.Thickness - thickness) / 2 + stamp.StartDepth * section.Thickness, 0) *
                             Matrix.CreateRotationX(-MathHelper.PiOver2) *
                             new Matrix { Forward = new Vector3(vOut.X, 0, vOut.Y), Left = new Vector3(vLeft.X, 0, vLeft.Y), Up = Vector3.Up, M44 = 1 };

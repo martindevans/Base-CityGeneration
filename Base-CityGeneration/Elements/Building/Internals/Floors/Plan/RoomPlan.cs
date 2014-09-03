@@ -20,7 +20,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public readonly int Id;
 
-        public IRoom Node;
+        public IPlannedRoom Node;
 
         internal RoomPlan(FloorPlan plan, Vector2[] footprint, float wallThickness, ScriptReference[] scripts, int id)
         {

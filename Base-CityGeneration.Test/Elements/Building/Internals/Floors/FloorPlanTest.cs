@@ -789,12 +789,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 }
             };
 
-            for (int s = 0; s < 10000; s++)
+            for (int s = 0; s < 100; s++)
             {
-                iterate(s, true);
+                iterate(s * 2389, true);
             }
-
-            //iterate(189, false);
         }
 
         [TestMethod]
