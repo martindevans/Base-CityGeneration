@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
@@ -21,9 +19,6 @@ namespace Base_CityGeneration.Elements.Building.Facades
         : ProceduralScript, IFacade
     {
         public Walls.Section Section { get; set; }
-
-        public IRoom Room1 { get; set; }
-        public IRoom Room2 { get; set; }
 
         public override bool Accept(Prism bounds, INamedDataProvider parameters)
         {

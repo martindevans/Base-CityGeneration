@@ -227,8 +227,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             ((ISubdivisionContext) externalSection).AddPrerequisite(roomPlan.Node);
             
             //Calculate X position of subsection (map room section onto full wall section)
-            var at = Geometry2D.ClosestPointDistanceAlongLine(externalSection.Section.ExternalLineSegment.LongLine(), facade.Section.ExternalLineSegment.Start);
-            var bt = Geometry2D.ClosestPointDistanceAlongLine(externalSection.Section.ExternalLineSegment.LongLine(), facade.Section.ExternalLineSegment.End);
+            var at = Geometry2D.ClosestPointDistanceAlongLine(externalSection.Section.InternalLineSegment.LongLine(), facade.Section.ExternalLineSegment.Start);
+            var bt = Geometry2D.ClosestPointDistanceAlongLine(externalSection.Section.InternalLineSegment.LongLine(), facade.Section.ExternalLineSegment.End);
 
             //Transform distance along facade into facade local coordinates
             var minAlong = Math.Min(at, bt) * externalSection.Section.Width - externalSection.Section.Width * 0.5f;
