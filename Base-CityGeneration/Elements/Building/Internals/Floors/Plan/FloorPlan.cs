@@ -12,6 +12,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         #region fields/properties
         private const float SCALE = 100000;
 
+        private const float SAFE_DISTANCE = 0.01f;
+
         private bool _isFrozen = false;
         private readonly Clipper _clipper = new Clipper();
 
@@ -94,7 +96,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 if (Clipper.Orientation(shape))
                     shape.Reverse();
 
-                var r = new RoomPlan(this, shape.Select(ToVector2).ToArray(), wallThickness, s, _nextRoomId++);
+                var r = new RoomPlan(this, shape.Select(ToVector2).Shrink(SAFE_DISTANCE).ToArray(), wallThickness, s, _nextRoomId++);
                 result.Add(r);
                 _rooms.Add(r);
             }

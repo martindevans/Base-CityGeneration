@@ -233,24 +233,38 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private bool IsExternalSection(Walls.Section section)
         {
-            foreach (var outerEdge in Edges(_plan.ExternalFootprint.ToArray()).Select(edge => new Line2D(edge.Start, edge.End - edge.Start)))
+            if (section.IsCorner)
+            {
+                //Corner sections have 2 edges which may be external, A->B and B->C
+                return
+                    IsExternalLineSegment(new LineSegment2D(section.A, section.B)) ||
+                    IsExternalLineSegment(new LineSegment2D(section.B, section.C));
+            }
+            else
+            {
+                return IsExternalLineSegment(section.ExternalLineSegment);
+            }
+        }
+
+        private bool IsExternalLineSegment(LineSegment2D segment)
+        {
+            var externalLines = Edges(_plan.ExternalFootprint.ToArray()).Select(edge => new LineSegment2D(edge.Start, edge.End));
+
+            return externalLines.Any(l =>
             {
                 Geometry2D.Parallelism parallelism;
-                if (section.IsCorner)
-                {
-                    //Corner sections have 2 edges which may be external, A->B and B->C
-                    Geometry2D.LineLineIntersection(new Line2D(section.A, section.B - section.A), outerEdge, out parallelism);
-                    if (parallelism != Geometry2D.Parallelism.Collinear)
-                        Geometry2D.LineLineIntersection(new Line2D(section.B, section.C - section.B), outerEdge, out parallelism);
-                }
-                else
-                    Geometry2D.LineLineIntersection(new Line2D(section.C, section.Along), outerEdge, out parallelism);
-
+                Geometry2D.LineLineIntersection(l.Line(), segment.Line(), out parallelism);
                 if (parallelism == Geometry2D.Parallelism.Collinear)
                     return true;
-            }
-
-            return false;
+                else if (parallelism == Geometry2D.Parallelism.Parallel)
+                {
+                    return
+                        Geometry2D.DistanceFromPointToLineSegment(segment.Start, l) < 0.05f &&
+                        Geometry2D.DistanceFromPointToLineSegment(segment.End, l) < 0.05f;
+                }
+                else
+                    return false;
+            });
         }
 
         private static IEnumerable<LineSegment2D> Edges(IList<Vector2> array)

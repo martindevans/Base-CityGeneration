@@ -68,9 +68,9 @@
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Myre, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="Myre, Version=2.1.1.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Myre.2.1.0.0\lib\net40-Client\Myre.dll</HintPath>
+      <HintPath>..\packages\Myre.2.1.1.0\lib\net40-Client\Myre.dll</HintPath>
     </Reference>
     <Reference Include="Myre.Debugging">
       <HintPath>..\packages\Myre.Debugging.1.1.2.0\lib\net40-Client\Myre.Debugging.dll</HintPath>
@@ -143,6 +143,7 @@
     <Compile Include="Datastructures\SeparatingAxisTester.cs" />
     <Compile Include="Elements\Building\Facades\ConfigurableFacade.cs" />
     <Compile Include="Elements\Building\Facades\IConfigurableFacade.cs" />
+    <Compile Include="Elements\Building\Facades\ReverseFacade.cs" />
     <Compile Include="Elements\Building\Facades\SubsectionFacade.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IPlannedRoom.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\FloorPlan.cs" />

@@ -31,10 +31,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 new Vector2(-10, -10), new Vector2(-10, 10), new Vector2(10, 10), new Vector2(10, -10)
             }, 0.1f, new ScriptReference[0], false).Single();
 
-            Assert.IsTrue(r.InnerFootprint.Contains(new Vector2(-9.9f, 9.9f)));
-            Assert.IsTrue(r.InnerFootprint.Contains(new Vector2(-9.9f, -9.9f)));
-            Assert.IsTrue(r.InnerFootprint.Contains(new Vector2(9.9f, 9.9f)));
-            Assert.IsTrue(r.InnerFootprint.Contains(new Vector2(9.9f, -9.9f)));
+            Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(-9.9f, 9.9f), 0.1f));
+            Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(-9.9f, -9.9f), 0.1f));
+            Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(9.9f, 9.9f), 0.1f));
+            Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(9.9f, -9.9f), 0.1f));
         }
 
         [TestMethod]
@@ -45,10 +45,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 new Vector2(10, 10), new Vector2(10, 30), new Vector2(30, 30), new Vector2(30, 10)
             }, 0.1f, new ScriptReference[0], false).Single();
 
-            Assert.IsTrue(r.InnerFootprint.Contains(new Vector2(10.1f, 29.9f)));
-            Assert.IsTrue(r.InnerFootprint.Contains(new Vector2(10.1f, 10.1f)));
-            Assert.IsTrue(r.InnerFootprint.Contains(new Vector2(10.1f, 10.1f)));
-            Assert.IsTrue(r.InnerFootprint.Contains(new Vector2(29.9f, 10.1f)));
+            Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(10.11f, 29.889f), 0.1f));
+            Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(10.11f, 10.11f), 0.1f));
+            Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(29.899f, 10.11f), 0.1f));
+            Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(29.889f, 10.11f), 0.1f));
         }
 
         [TestMethod]
@@ -113,6 +113,17 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         }
 
         [TestMethod]
+        public void ExactlyMirroredRoomsAreNeighbours()
+        {
+            var a = _plan.AddRoom(new Vector2[] {new Vector2(-10, -10), new Vector2(-10, 10), new Vector2(0, 10), new Vector2(0, -10)}, 1, new ScriptReference[0], false).Single();
+            var b = _plan.AddRoom(new Vector2[] {new Vector2(0, -10), new Vector2(0, 10), new Vector2(10, 10), new Vector2(10, -10)}, 1, new ScriptReference[0], false).Single();
+
+            Console.WriteLine(FloorplanToSvg(_plan));
+
+            Assert.IsTrue(_plan.GetNeighbours(a).Any(n => n.Other(a) == b));
+        }
+
+        [TestMethod]
         public void NeighboursOfSingleRoomAreNone()
         {
             var r = _plan.AddRoom(
@@ -149,12 +160,12 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Check that points C and D lies on the edge of low room
             var n = wideNeighbours.Single(a => a.RoomCD == low);
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.C, new Line2D(new Vector2(-10, -90f), new Vector2(1, 0))) < 0.01f);
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.D, new Line2D(new Vector2(-10, -90f), new Vector2(1, 0))) < 0.01f);
+            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.C, new Line2D(new Vector2(-10, -90f), new Vector2(1, 0))) < 0.1f);
+            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.D, new Line2D(new Vector2(-10, -90f), new Vector2(1, 0))) < 0.1f);
 
             //Check that points A and B lie on the edge of wide room
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.A, new Line2D(new Vector2(-10, -10f), new Vector2(1, 0))) < 0.01f);
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.B, new Line2D(new Vector2(-10, -10f), new Vector2(1, 0))) < 0.01f);
+            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.A, new Line2D(new Vector2(-10, -10f), new Vector2(1, 0))) < 0.1f);
+            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.B, new Line2D(new Vector2(-10, -10f), new Vector2(1, 0))) < 0.1f);
 
             //Check that neighbour data is the same going the other direction
             var lowNeighbours = _plan.GetNeighbours(low);
@@ -517,10 +528,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Check that section is in right place
             var n = _plan.GetNeighbours(roomA).Single();
-            Assert.IsTrue(Math.Abs(n.At - 0) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Bt - 0.5f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Ct - 0) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Dt - 0.5f) < float.Epsilon);
+            Assert.IsTrue(Math.Abs(n.At - 0) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Bt - 0.5f) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Ct - 0) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Dt - 0.5f) < 0.01f);
 
             //Check all neighbour data is correctly wound
             AssertAllWindings();
@@ -546,17 +557,17 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Check that section to mid room is in right place
             var n = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomMid);
-            Assert.IsTrue(Math.Abs(n.At - 0.5f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Bt - 1) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Ct - 0.5f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Dt - 1) < float.Epsilon);
+            Assert.IsTrue(Math.Abs(n.At - 0.5f) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Bt - 1) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Ct - 0.5f) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Dt - 1) < 0.01f);
 
             //Check that section to right room does not overlap with mid room
             var m = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomRight);
-            Assert.IsTrue(Math.Abs(m.At - 0) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m.Bt - 0.5f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m.Ct - 0.5f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m.Dt - 1) < float.Epsilon);
+            Assert.IsTrue(Math.Abs(m.At - 0) < 0.01f);
+            Assert.IsTrue(Math.Abs(m.Bt - 0.5f) < 0.01f);
+            Assert.IsTrue(Math.Abs(m.Ct - 0.5f) < 0.01f);
+            Assert.IsTrue(Math.Abs(m.Dt - 1) < 0.01f);
 
             //Check all neighbour data is correctly wound
             AssertAllWindings();
@@ -582,17 +593,17 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Check that section to mid room is in right place
             var n = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomMid);
-            Assert.IsTrue(Math.Abs(n.At - 0f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Bt - 0.5f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Ct - 0) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Dt - 0.5f) < float.Epsilon);
+            Assert.IsTrue(Math.Abs(n.At - 0f) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Bt - 0.5f) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Ct - 0) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Dt - 0.5f) < 0.01f);
 
             //Check that section to right room does not overlap with mid room
             var m = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomRight);
-            Assert.IsTrue(Math.Abs(m.At - 0.5f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m.Bt - 1) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m.Ct - 0) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m.Dt - 0.5f) < float.Epsilon);
+            Assert.IsTrue(Math.Abs(m.At - 0.5f) < 0.01f);
+            Assert.IsTrue(Math.Abs(m.Bt - 1) < 0.01f);
+            Assert.IsTrue(Math.Abs(m.Ct - 0) < 0.01f);
+            Assert.IsTrue(Math.Abs(m.Dt - 0.5f) < 0.01f);
 
             //Check all neighbour data is correctly wound
             AssertAllWindings();
@@ -618,20 +629,20 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Check that section to mid room is in right place
             var n = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomMid);
-            Assert.IsTrue(Math.Abs(n.At - 0f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Bt - 1f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Ct - 0.25f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Dt - 0.75f) < float.Epsilon);
+            Assert.IsTrue(Math.Abs(n.At - 0f) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Bt - 1f) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Ct - 0.25f) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Dt - 0.75f) < 0.01f);
 
             //Check that left does not neighbour right
             Assert.IsFalse(_plan.GetNeighbours(roomLeft).Any(a => a.RoomCD == roomRight));
 
             //Check that section to right room does not overlap with mid room
             var m = _plan.GetNeighbours(roomRight).Single(a => a.RoomCD == roomMid);
-            Assert.IsTrue(Math.Abs(m.At - 0f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m.Bt - 1) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m.Ct - 0.25f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m.Dt - 0.75f) < float.Epsilon);
+            Assert.IsTrue(Math.Abs(m.At - 0f) < 0.01f);
+            Assert.IsTrue(Math.Abs(m.Bt - 1) < 0.01f);
+            Assert.IsTrue(Math.Abs(m.Ct - 0.25f) < 0.01f);
+            Assert.IsTrue(Math.Abs(m.Dt - 0.75f) < 0.01f);
 
             //Check all neighbour data is correctly wound
             AssertAllWindings();
@@ -657,23 +668,23 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Check that section to mid room is in right place
             var n = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomMid);
-            Assert.IsTrue(Math.Abs(n.At - 0.25f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Bt - 0.75f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Ct - 0) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(n.Dt - 1) < float.Epsilon);
+            Assert.IsTrue(Math.Abs(n.At - 0.25f) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Bt - 0.75f) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Ct - 0) < 0.01f);
+            Assert.IsTrue(Math.Abs(n.Dt - 1) < 0.01f);
 
             //Check that section to right room does not overlap with mid room
             var m1 = _plan.GetNeighbours(roomLeft).First(a => a.RoomCD == roomRight);
-            Assert.IsTrue(Math.Abs(m1.At - 0) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m1.Bt - 0.25f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m1.Ct - 0.75f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m1.Dt - 1) < float.Epsilon);
+            Assert.IsTrue(Math.Abs(m1.At - 0) < 0.01f);
+            Assert.IsTrue(Math.Abs(m1.Bt - 0.25f) < 0.01f);
+            Assert.IsTrue(Math.Abs(m1.Ct - 0.75f) < 0.01f);
+            Assert.IsTrue(Math.Abs(m1.Dt - 1) < 0.01f);
 
             var m2 = _plan.GetNeighbours(roomLeft).Where(a => a.RoomCD == roomRight).Skip(1).First();
-            Assert.IsTrue(Math.Abs(m1.At - 0f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m1.Bt - 0.25f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m1.Ct - 0.75f) < float.Epsilon);
-            Assert.IsTrue(Math.Abs(m1.Dt - 1f) < float.Epsilon);
+            Assert.IsTrue(Math.Abs(m1.At - 0f) < 0.01f);
+            Assert.IsTrue(Math.Abs(m1.Bt - 0.25f) < 0.01f);
+            Assert.IsTrue(Math.Abs(m1.Ct - 0.75f) < 0.01f);
+            Assert.IsTrue(Math.Abs(m1.Dt - 1f) < 0.01f);
 
             //Check all neighbour data is correctly wound
             AssertAllWindings();

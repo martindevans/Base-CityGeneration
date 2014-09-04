@@ -6,6 +6,9 @@ using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Building.Facades
 {
+    /// <summary>
+    /// Adds stamps to a smaller section of a parent facade (ensures that stamps added to this subsection do not overhang)
+    /// </summary>
     public class SubsectionFacade
         : IConfigurableFacade
     {
@@ -18,6 +21,15 @@ namespace Base_CityGeneration.Elements.Building.Facades
         private readonly float _rangeDepth;
         private readonly float _minDepth;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parent">The parent facade to add stamps to</param>
+        /// <param name="min">The minimum coordinate on the parent</param>
+        /// <param name="max">The maximum coordinate on the parent</param>
+        /// <param name="depthMin">The minimum depth on the parent</param>
+        /// <param name="depthMax">The maximum depth on the parent</param>
+        /// <param name="section"></param>
         public SubsectionFacade(IConfigurableFacade parent, Vector2 min, Vector2 max, float depthMin, float depthMax, Walls.Section section)
         {
             _parent = parent;
@@ -34,7 +46,13 @@ namespace Base_CityGeneration.Elements.Building.Facades
 
         public IEnumerable<BaseFacade.Stamp> Stamps
         {
-            get { throw new NotImplementedException(); }
+            get
+            {
+                throw new NotImplementedException("Project stamps from parent back into local space of this subsection");
+                //Remember to discard stamps which do not fit within this subsection!
+                //Or maybe we should keep the overhanging stamps? They may intersect this section even if they aren't entirely contained
+                //Perhaps we should clip them to this seubsection, that seems a little excessive though
+            }
         }
 
         public void AddStamp(BaseFacade.Stamp stamp)

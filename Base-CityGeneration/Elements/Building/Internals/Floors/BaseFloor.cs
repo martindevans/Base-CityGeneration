@@ -159,6 +159,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             //There are three types of facade:
             // 1. A border between 2 rooms
             //  - Create a NegotiableFacade between rooms and store for later retrieval
+            //  - Find an existing NegotiableFacade between two rooms, and return later (but wrapped in an adapter which reverses access from one side to the other)
             // 2. A facade onto nothing (dead space behind facade)
             //  - Create an IConfigurableFacade, pass it to the room
             // 3. An external wall
@@ -174,12 +175,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                     if (facade.IsExternal)
                     {
                         //Find the external wall which is co-linear with this facade section
-                        var externalSection = externalFacades.FirstOrDefault(e =>
-                        {
-                            Geometry2D.Parallelism parallelism;
-                            Geometry2D.LineLineIntersection(e.Section.ExternalLineSegment.Line(), facade.Section.ExternalLineSegment.Line(), out parallelism);
-                            return parallelism == Geometry2D.Parallelism.Collinear;
-                        });
+                        var externalSection = FindExternalFacade(externalFacades, facade.Section.ExternalLineSegment); 
 
                         //Create section (or call error handler if no externals ection was found)
                         var f = externalSection == null ? FailedToFindExternalSection(roomPlan, facade) : CreateExternalWall(roomPlan, facade, externalSection);
@@ -209,6 +205,27 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                         context.AddPrerequisite(roomPlan.Node);
                 }
             }
+        }
+
+        private static IConfigurableFacade FindExternalFacade(IEnumerable<IConfigurableFacade> facades, LineSegment2D segment)
+        {
+            return facades.FirstOrDefault(e =>
+            {
+                var l = e.Section.ExternalLineSegment;
+
+                Geometry2D.Parallelism parallelism;
+                Geometry2D.LineLineIntersection(l.Line(), segment.Line(), out parallelism);
+                if (parallelism == Geometry2D.Parallelism.Collinear)
+                    return true;
+                else if (parallelism == Geometry2D.Parallelism.Parallel)
+                {
+                    return
+                        Geometry2D.DistanceFromPointToLineSegment(segment.Start, l) < 0.05f &&
+                        Geometry2D.DistanceFromPointToLineSegment(segment.End, l) < 0.05f;
+                }
+                else
+                    return false;
+            });
         }
 
         /// <summary>
