@@ -57,7 +57,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         {
             //Get some style parameters
             var externalWallThickness = hierarchicalParameters.GetMaybeValue(new TypedName<float>("external_wall_thickness")) ?? 0.25f;
-            var material = hierarchicalParameters.GetValue(new TypedName<string>("material"));
 
             //Calculate some handy values
             _roomHeight = bounds.Height - _floorThickness - _ceilingThickness;
@@ -165,45 +164,62 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             // 3. An external wall
             //  - Get relevant external facade and then wrap subsection of it
 
+            // Facades between rooms
+            // Key is both rooms (in ID order), value is the facade
+            Dictionary<KeyValuePair<RoomPlan, RoomPlan>, IConfigurableFacade> interRoomFacades = new Dictionary<KeyValuePair<RoomPlan, RoomPlan>, IConfigurableFacade>();
+
             foreach (var roomPlan in Plan.Rooms.Where(r => r.Node != null).OrderBy(r => r.Id))
             {
+                //All facades generated for this room
                 Dictionary<RoomPlan.Facade, IConfigurableFacade> generatedFacades = new Dictionary<RoomPlan.Facade, IConfigurableFacade>();
 
                 var facades = roomPlan.GetFacades();
                 foreach (var facade in facades)
                 {
+                    IConfigurableFacade newFacade;
+
                     if (facade.IsExternal)
                     {
                         //Find the external wall which is co-linear with this facade section
                         var externalSection = FindExternalFacade(externalFacades, facade.Section.ExternalLineSegment); 
 
                         //Create section (or call error handler if no externals ection was found)
-                        var f = externalSection == null ? FailedToFindExternalSection(roomPlan, facade) : CreateExternalWall(roomPlan, facade, externalSection);
-                        if (f != null)
-                            generatedFacades.Add(facade, f);
+                        newFacade = externalSection == null ? FailedToFindExternalSection(roomPlan, facade) : CreateExternalWall(roomPlan, facade, externalSection);
                     }
                     else if (facade.NeighbouringRoom != null && facade.NeighbouringRoom.Node != null)
                     {
                         if (roomPlan.Id < facade.NeighbouringRoom.Id)
-                            throw new NotImplementedException("Create facade between these two rooms");
+                        {
+                            //Create a new facade between these rooms and store it for the other room to retrieve later
+                            newFacade = CreateInternalWall(roomPlan, facade);
+                            interRoomFacades.Add(new KeyValuePair<RoomPlan, RoomPlan>(roomPlan, facade.NeighbouringRoom), newFacade);
+                        }
                         else
-                            throw new NotImplementedException("Find already created facade between these two rooms");
+                        {
+                            // A facade between these rooms should have already been created, find it and wrap it in a reverse facade
+                            IConfigurableFacade f;
+                            if (!interRoomFacades.TryGetValue(new KeyValuePair<RoomPlan, RoomPlan>(facade.NeighbouringRoom, roomPlan), out f))
+                                newFacade = FailedToFindInternalNeighbourSection(facade.NeighbouringRoom, roomPlan, facade);
+                            else
+                            {
+                                var context = f as ISubdivisionContext;
+                                if (context != null)
+                                    context.AddPrerequisite(roomPlan.Node);
+
+                                newFacade = new ReverseFacade(f, facade.Section);
+                            }
+                        }
                     }
                     else
-                    {
-                        var f = CreateInternalWall(roomPlan, facade);
-                        if (f != null)
-                            generatedFacades.Add(facade, f);
-                    }
+                        newFacade = CreateInternalWall(roomPlan, facade);
+
+                    if (newFacade != null)
+                        generatedFacades.Add(facade, newFacade);
                 }
 
                 roomPlan.Node.Facades = generatedFacades;
-                foreach (var facade in generatedFacades.Values)
-                {
-                    var context = facade as ISubdivisionContext;
-                    if (context != null)
-                        context.AddPrerequisite(roomPlan.Node);
-                }
+                foreach (var context in generatedFacades.Values.OfType<ISubdivisionContext>())
+                    context.AddPrerequisite(roomPlan.Node);
             }
         }
 
@@ -275,6 +291,18 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             ((ISubdivisionContext)wall).AddPrerequisite(room.Node);
 
             return wall;
+        }
+
+        /// <summary>
+        /// Internal wall generation failed to find a pregenerated section between two rooms
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="facade"></param>
+        /// <returns></returns>
+        protected virtual IConfigurableFacade FailedToFindInternalNeighbourSection(RoomPlan a, RoomPlan b, RoomPlan.Facade facade)
+        {
+            return null;
         }
 
         /// <summary>
