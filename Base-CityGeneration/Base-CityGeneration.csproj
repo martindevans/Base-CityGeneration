@@ -192,6 +192,8 @@
     <Compile Include="Elements\Roads\VertexJunctionBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Root\BaseCityRoot.cs" />
+    <Compile Include="Styles\Doors.cs" />
+    <Compile Include="Styles\TypedNameDefault.cs" />
     <Compile Include="TreeSearch.cs" />
   </ItemGroup>
   <ItemGroup>

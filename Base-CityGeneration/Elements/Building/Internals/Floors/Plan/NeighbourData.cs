@@ -443,27 +443,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             edge.EdgeList.Add(y);
         }
 
-        #region static helpers
-        private static Vector2[] Footprint(RoomPlan room)
-        {
-            return room.OuterFootprint;
-        }
-
         private static IEnumerable<Edge> Edges(RoomPlan room)
         {
-            for (uint i = 0; i < Footprint(room).Length; i++)
-                yield return GetEdge(room, i);
+            return room.Edges().Select((e, i) => new Edge(e.Start, e.End, (uint)i));
         }
 
         private static Edge GetEdge(RoomPlan room, uint index)
         {
-            return new Edge(
-                Footprint(room)[index],
-                Footprint(room)[(index + 1) % Footprint(room).Length],
-                index
-            );
+            var e = room.GetEdge(index);
+            return new Edge(e.Start, e.End, index);
         }
-        #endregion
 
         private struct Edge
         {

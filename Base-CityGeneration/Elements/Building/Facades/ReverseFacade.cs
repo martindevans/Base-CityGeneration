@@ -44,5 +44,10 @@ namespace Base_CityGeneration.Elements.Building.Facades
         }
 
         public Walls.Section Section { get; set; }
+
+        public void Delete()
+        {
+            _parent.Delete();
+        }
     }
 }

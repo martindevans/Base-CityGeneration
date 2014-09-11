@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Rooms;
+using Base_CityGeneration.Parcelling;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
@@ -45,7 +46,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         /// <returns></returns>
         public IEnumerable<Facade> GetFacades()
         {
-            var result = new HashSet<Facade>();
+            var result = new List<Facade>();
 
             var roomNeighbours = _plan.GetNeighbours(this).ToArray();
 
@@ -64,12 +65,18 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 }
                 else if (IsNeighbourSection(section, roomNeighbours, out sectionNeighbours))
                 {
-                    result.UnionWith(CreateNeighbourFacades(previousSection, nextSection, section, sectionNeighbours));
+                    result.AddRange(CreateNeighbourFacades(previousSection, nextSection, section, sectionNeighbours));
                 }
                 else
                 {
                     result.Add(new Facade(null, false, section));
                 }
+            }
+
+            for (int i = 0; i < result.Count; i++)
+            {
+                result[i].Next = result[(i + 1) % result.Count];
+                result[i].Previous = result[(i + result.Count - 1) % result.Count];
             }
 
             return result;
@@ -226,6 +233,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 Geometry2D.LineLineIntersection(innerEdge, new Line2D(segmentSelf.Start, segmentSelf.End - segmentSelf.Start), out parallelism);
 
                 return parallelism == Geometry2D.Parallelism.Collinear;
+            }).Where(n =>
+            {
+                var d1 = Geometry2D.ClosestPointDistanceAlongLine(section.ExternalLineSegment.LongLine(), n.A);
+                var d2 = Geometry2D.ClosestPointDistanceAlongLine(section.ExternalLineSegment.LongLine(), n.B);
+
+                return Math.Min(d1, d2) <= 1 && Math.Max(d1, d2) >= 0;
             }).ToArray();
 
             return neighbourSection.Length != 0;
@@ -273,8 +286,29 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 .Select((t, i) => new LineSegment2D(t, array[(i + 1) % array.Count]));
         }
 
-        public struct Facade
+        private Vector2[] Footprint()
         {
+            return OuterFootprint;
+        }
+
+        internal IEnumerable<LineSegment2D> Edges()
+        {
+            for (uint i = 0; i < Footprint().Length; i++)
+                yield return GetEdge(i);
+        }
+
+        internal LineSegment2D GetEdge(uint index)
+        {
+            var f = Footprint();
+            index %= (uint)f.Length;
+            return new LineSegment2D(f[index], f[(index + 1) % f.Length]);
+        }
+
+        public class Facade
+        {
+            public Facade Next { get; internal set; }
+            public Facade Previous { get; internal set; }
+
             private readonly RoomPlan _neighbouringRoom;
             public RoomPlan NeighbouringRoom { get { return _neighbouringRoom; } }
 
