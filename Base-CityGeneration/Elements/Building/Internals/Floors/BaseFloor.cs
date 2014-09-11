@@ -166,7 +166,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
             // Facades between rooms
             // Key is both rooms (in ID order), value is the facade
-            Dictionary<KeyValuePair<RoomPlan, RoomPlan>, IConfigurableFacade> interRoomFacades = new Dictionary<KeyValuePair<RoomPlan, RoomPlan>, IConfigurableFacade>();
+            Dictionary<KeyValuePair<RoomPlan, RoomPlan>, List<IConfigurableFacade>> interRoomFacades = new Dictionary<KeyValuePair<RoomPlan, RoomPlan>, List<IConfigurableFacade>>();
+            //todo: ^ This is insufficient
+            //todo: This room could neighbour another room multiple times which leads to duplicate keys!
+            //todo: need to add something extra/change the key, perhaps use section (I previously avoided this due to keys being broken with any deviation of section coordinates)
 
             foreach (var roomPlan in Plan.Rooms.Where(r => r.Node != null).OrderBy(r => r.Id))
             {
@@ -192,21 +195,31 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                         {
                             //Create a new facade between these rooms and store it for the other room to retrieve later
                             newFacade = CreateInternalWall(roomPlan, facade);
-                            interRoomFacades.Add(new KeyValuePair<RoomPlan, RoomPlan>(roomPlan, facade.NeighbouringRoom), newFacade);
+                            interRoomFacades.AddOrUpdate(
+                                new KeyValuePair<RoomPlan, RoomPlan>(roomPlan, facade.NeighbouringRoom),
+                                _ => new List<IConfigurableFacade> { newFacade },
+                                (k, v) => { v.Add(newFacade); return v; }
+                            );
                         }
                         else
                         {
                             // A facade between these rooms should have already been created, find it and wrap it in a reverse facade
-                            IConfigurableFacade f;
-                            if (!interRoomFacades.TryGetValue(new KeyValuePair<RoomPlan, RoomPlan>(facade.NeighbouringRoom, roomPlan), out f))
+                            List<IConfigurableFacade> fs;
+                            if (!interRoomFacades.TryGetValue(new KeyValuePair<RoomPlan, RoomPlan>(facade.NeighbouringRoom, roomPlan), out fs))
                                 newFacade = FailedToFindInternalNeighbourSection(facade.NeighbouringRoom, roomPlan, facade);
                             else
                             {
-                                var context = f as ISubdivisionContext;
-                                if (context != null)
-                                    context.AddPrerequisite(roomPlan.Node);
+                                var f = fs.SingleOrDefault(a => a.Section.Matches(facade.Section, 0.01f));
+                                if (f == null)
+                                    newFacade = FailedToFindInternalNeighbourSection(facade.NeighbouringRoom, roomPlan, facade);
+                                else
+                                {
+                                    var context = f as ISubdivisionContext;
+                                    if (context != null)
+                                        context.AddPrerequisite(roomPlan.Node);
 
-                                newFacade = new ReverseFacade(f, facade.Section);
+                                    newFacade = new ReverseFacade(f, facade.Section);
+                                }
                             }
                         }
                     }

@@ -12,11 +12,14 @@ namespace Base_CityGeneration.Elements.Building.Facades
     {
         public bool IsSubdivided { get; private set; }
 
+        private bool _deleted;
+
         private INamedDataCollection _parameters;
 
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
-            base.Subdivide(bounds, geometry, _parameters ?? hierarchicalParameters);
+            if (!_deleted)
+                base.Subdivide(bounds, geometry, _parameters ?? hierarchicalParameters);
 
             IsSubdivided = true;
         }
@@ -40,6 +43,11 @@ namespace Base_CityGeneration.Elements.Building.Facades
         public void SetHierarchicalParameters(INamedDataCollection parameters)
         {
             _parameters = parameters;
+        }
+
+        public void Delete()
+        {
+            _deleted = true;
         }
     }
 }

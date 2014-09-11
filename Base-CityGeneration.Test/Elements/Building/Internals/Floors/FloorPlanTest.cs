@@ -765,6 +765,57 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         }
 
         [TestMethod]
+        public void InnerWallTurn()
+        {
+            _plan.AddRoom(new[]
+            {
+                new Vector2(-70, -75),
+                new Vector2(0, -25),
+                new Vector2(-50, -25),
+
+
+                new Vector2(-50, 25),
+                new Vector2(0, 25),
+                new Vector2(0, 75),
+
+                new Vector2(50, 75),
+                new Vector2(50, -75),
+            }, 5, new ScriptReference[0], false);
+
+            Console.WriteLine(FloorplanToSvg(_plan, 500, 0, 0, 0));
+        }
+
+        [TestMethod]
+        public void ConcaveRoomNeighbours()
+        {
+            _plan.AddRoom(new[]
+            {
+                new Vector2(-100, 20),
+                new Vector2(-100, 75),
+                new Vector2(0, 75),
+                new Vector2(0, 20),
+            }, 5, new ScriptReference[0], false);
+
+            _plan.AddRoom(new[]
+            {
+                new Vector2(-100, -75),
+                new Vector2(-100, -20),
+                new Vector2(0, -20),
+                new Vector2(0, -75),
+            }, 5, new ScriptReference[0], false);
+
+            _plan.AddRoom(new[]
+            {
+                new Vector2(-50, -75),
+                new Vector2(-50, 75),
+                new Vector2(50, 75),
+                new Vector2(50, -75),
+            }, 5, new ScriptReference[0], false);
+
+            Console.WriteLine(FloorplanToSvg(_plan, 500, 0, 0, 0));
+        }
+
+        [TestMethod]
         public void FuzzTest()
         {
             Action<int, bool> iterate = (seed, catchit) =>
