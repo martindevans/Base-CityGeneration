@@ -165,11 +165,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             //  - Get relevant external facade and then wrap subsection of it
 
             // Facades between rooms
-            // Key is both rooms (in ID order), value is the facade
+            // Key is both rooms (in ID order), value is the all the facades between the two rooms
             Dictionary<KeyValuePair<RoomPlan, RoomPlan>, List<IConfigurableFacade>> interRoomFacades = new Dictionary<KeyValuePair<RoomPlan, RoomPlan>, List<IConfigurableFacade>>();
-            //todo: ^ This is insufficient
-            //todo: This room could neighbour another room multiple times which leads to duplicate keys!
-            //todo: need to add something extra/change the key, perhaps use section (I previously avoided this due to keys being broken with any deviation of section coordinates)
 
             foreach (var roomPlan in Plan.Rooms.Where(r => r.Node != null).OrderBy(r => r.Id))
             {
@@ -177,6 +174,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                 Dictionary<RoomPlan.Facade, IConfigurableFacade> generatedFacades = new Dictionary<RoomPlan.Facade, IConfigurableFacade>();
 
                 var facades = roomPlan.GetFacades();
+
+                var duplicates = facades.Where(f => facades.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
+                if (duplicates.Length > 0)
+                {
+                    Console.WriteLine("Foo");
+                }
+
                 foreach (var facade in facades)
                 {
                     IConfigurableFacade newFacade;

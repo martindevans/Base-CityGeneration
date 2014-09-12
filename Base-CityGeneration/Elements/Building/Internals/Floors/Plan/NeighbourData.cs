@@ -69,11 +69,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 return new FloorPlan.Neighbour[0];
 
             //Sort by distance along this edge
+            //Ties are resolved by putting the closer point first
             edge.EdgeList.Sort((a, b) =>
             {
                 var ret = a.Pt.CompareTo(b.Pt);
                 if (ret == 0)
-                    ret = a.OtherEdgeIndex.CompareTo(b.OtherEdgeIndex);
+                    ret = a.Distance.CompareTo(b.Distance);
                 return ret;
             });
 
@@ -91,102 +92,98 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 if (b.Pt <= a.Pt)
                     continue;
 
-                //No overlaps, we can add this section straight in and move on
-                if (!neighbours.Any(n => (n.At < b.Pt && n.Bt > a.Pt)))
+                //Get points which are the start on an overlapping segment
+                var overlaps = edge.EdgeList.Where(x => SegmentOverlap(a, b, x)).ToArray();
+
+                //Create segment
+                List<FloorPlan.Neighbour> segmentNeighbours = new List<FloorPlan.Neighbour>();
+                AddNeighbour(segmentNeighbours, edge.Index, room, a, b);
+
+                //Narrow down segment by slicing out parts where an occluding overlap occurs
+                for (int j = 0; j < overlaps.Length; j++)
                 {
-                    AddNeighbour(neighbours, edge.Index, room, a, b);
-                }
-                else
-                {
-                    //Iterate backwards over existing neighbour segments
-                    for (int j = neighbours.Count - 1; j >= 0; j--)
+                    var o1 = overlaps[j];
+                    var o2 = o1.NaturalPair;
+
+                    for (int k = 0; k < segmentNeighbours.Count; k++)
                     {
-                        var n = neighbours[j];
+                        var s = segmentNeighbours[k];
 
-                        if (n.At < b.Pt && n.At >= a.Pt && n.Bt <= b.Pt && n.Bt > a.Pt)
+                        // Possible cases:
+                        // 1. Overlap totally contains segment, remove segment
+                        // 2. Overlap start is within segment, remove segment and replace with start -> middle
+                        // 3. Overlap end is within segment, remove segment and replace with middle -> end
+                        // 4. Overlap is totally within segment, remove segment and replace with start -> mid1 and mid2 -> end
+                        // 5. There is no overlap at all, this should not be possible
+
+                        if (o1.Pt <= s.At && o2.Pt >= s.Bt)
                         {
-                            //CONTAINS OVERLAP
-                            //e.g. AB totally contains n
-                            //  n.At == 0
-                            //  n.Bt == 0.5
-                            //  a.Pt == 0
-                            //  b.Pt == 1
-
-                            if (a.Distance < Vector2.Distance(n.A, n.C))
-                            {
-                                //We need to simply remove and replace the neighbour section entirely since it's totally occluded by this new section
-                                neighbours.RemoveAt(j);
-                                AddNeighbour(neighbours, edge.Index, room, a, b);
-                            }
-                            else
-                            {
-                                //Create section from a -> n.A
-                                if (Math.Abs(a.Pt - n.At) > float.Epsilon)
-                                    AddNeighbour_Info_To_NA(neighbours, edge.Index, room, n, a);
-
-                                //Create section from n.B -> b
-                                if (Math.Abs(n.Bt - b.Pt) > float.Epsilon)
-                                    AddNeighbour_Info_To_NB(neighbours, edge.Index, room, n, b);
-                            }
+                            //Total overlap (Case 1)
+                            segmentNeighbours.RemoveAt(k);
                         }
-                        else if (n.Bt <= b.Pt && n.Bt > a.Pt)
+                        else if (o1.Pt >= s.At && o1.Pt <= s.Bt && o2.Pt >= s.At && o2.Pt <= s.Bt)  //Overlap with segment (Case 4)
                         {
-                            //START OVERLAP
-                            //e.g. Start of AB overlaps n
-                            //  n.At == 0
-                            //  n.Bt == 1
-                            //  a.Pt == 0.5
-                            //  b.Pt == 1
+                            //Remove segment
+                            var removed = segmentNeighbours[k];
+                            segmentNeighbours.RemoveAt(k);
 
-                            if (a.Distance < Vector2.Distance(n.A, n.D))
-                            {
-                                //Remove this neighbour, we need to modify it
-                                neighbours.RemoveAt(j);
+                            //Replace with start -> mid1
+                            AddNeighbour_N_To_Info(segmentNeighbours, edge.Index, room, removed, true, o1);
 
-                                //Create 2 new neighbour sections, all of AB (since it's closest) and what's left of N
-                                AddNeighbour_NA_To_Info(neighbours, edge.Index, room, n, a);
-                                AddNeighbour(neighbours, edge.Index, room, a, b);
-                            }
-                            else
-                            {
-                                //Create 1 new neighbour sections, all of N (since it's closest) and what's left of AB
-                                AddNeighbour_Info_To_NB(neighbours, edge.Index, room, n, b);
-                            }
+                            //Replace with mid2 -> end
+                            AddNeighbour_N_To_Info(segmentNeighbours, edge.Index, room, removed, false, o2);
                         }
-                        else if (n.At <= a.Pt && n.Bt >= b.Pt)
+                        else if (o1.Pt >= s.At && o1.Pt <= s.Bt)        //Overlap start within segment (Case 2)
                         {
-                            //Other section completely contains this section
-                            //we either need to skip this section (it's entirely occluded) or split other section
-                            if (a.Distance < Vector2.Distance(n.A, n.C))
-                            {
-                                //Remove the section we're modifying
-                                neighbours.RemoveAt(j);
+                            //Remove segment
+                            var removed = segmentNeighbours[k];
+                            segmentNeighbours.RemoveAt(k);
 
-                                //Create new section
-                                AddNeighbour(neighbours, edge.Index, room, a, b);
+                            //Replace with start -> mid
+                            AddNeighbour_N_To_Info(segmentNeighbours, edge.Index, room, removed, true, o1);
+                        }
+                        else if (o2.Pt >= s.At && o2.Pt <= s.Bt)        //Overlap end within segment (Case 3)
+                        {
+                            //Remove segment
+                            var removed = segmentNeighbours[k];
+                            segmentNeighbours.RemoveAt(k);
 
-                                //Create section from n.A -> a (reproj)
-                                if (Math.Abs(a.Pt - n.At) > float.Epsilon)
-                                    AddNeighbour_NA_To_Info(neighbours, edge.Index, room, n, a);
-
-                                //Create section from b (reproj) -> n.B
-                                if (Math.Abs(n.Bt - b.Pt) > float.Epsilon)
-                                    AddNeighbour_NB_To_Info(neighbours, edge.Index, room, n, b);
-                            }
-                            else
-                            {
-                                //Entirely occluded section - do nothing
-                            }
+                            //Replace with mid -> end
+                            AddNeighbour_N_To_Info(segmentNeighbours, edge.Index, room, removed, false, o2);
                         }
                         else
-                        {
-                            //Two completely independent sections, no one cares
-                        }
+                            throw new InvalidOperationException("No overlap");
                     }
+
                 }
+
+                neighbours.AddRange(segmentNeighbours);
             }
 
             return neighbours;
+        }
+
+        private static bool SegmentOverlap(NeighbourInfo a, NeighbourInfo b, NeighbourInfo potentialOverlapPoint)
+        {
+            var x = potentialOverlapPoint;
+            var y = potentialOverlapPoint.NaturalPair;
+
+            if (y.Pt <= x.Pt)
+                return false;
+            if (potentialOverlapPoint == a || potentialOverlapPoint == b)
+                return false;
+
+            if (SegmentContains(a, b, x))
+                return x.Distance < Math.Min(a.Distance, b.Distance);
+            if (SegmentContains(a, b, y))
+                return y.Distance < Math.Min(a.Distance, b.Distance);
+
+            return false;
+        }
+
+        private static bool SegmentContains(NeighbourInfo a, NeighbourInfo b, NeighbourInfo point)
+        {
+            return a.Pt <= point.Pt && b.Pt >= point.Pt;
         }
 
         private static void AddNeighbour_N_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, bool nA, NeighbourInfo info)
@@ -210,49 +207,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 OtherRoom = n.RoomCD,
                 OtherEdgeIndex = n.EdgeIndexRoomCD
             });
-        }
-
-        private static void AddNeighbour_NA_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, NeighbourInfo info)
-        {
-            AddNeighbour_N_To_Info(neighbours, edgeIndex, room, n, true, info);
-        }
-
-        private static void AddNeighbour_NB_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, NeighbourInfo info)
-        {
-            AddNeighbour_N_To_Info(neighbours, edgeIndex, room, n, false, info);
-        }
-
-        private static void AddNeighbour_Info_To_N(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, NeighbourInfo info, FloorPlan.Neighbour n, bool nA)
-        {
-            var lineOut = nA ? new Line2D(n.A, n.D - n.A) : new Line2D(n.B, n.C - n.B);
-            var otherEdge = GetEdge(info.OtherRoom, info.OtherEdgeIndex).Segment;
-            var otherEdgeLine = new Line2D(otherEdge.Start, otherEdge.End - otherEdge.Start);
-
-            var proj = Geometry2D.LineLineIntersection(lineOut, otherEdgeLine);
-            if (!proj.HasValue)
-                throw new InvalidOperationException("Reprojected segment section does not lie on other edge");
-
-            AddNeighbour(neighbours, edgeIndex, room, new NeighbourInfo
-            {
-                Distance = info.Distance,
-                NaturalPair = null,
-                OtherEdgeIndex = info.OtherEdgeIndex,
-                Point = nA ? n.A : n.B,
-                Pt = nA ? n.At : n.Bt,
-                OtherPoint = proj.Value.Position,
-                OPt = proj.Value.DistanceAlongLineB,
-                OtherRoom = info.OtherRoom
-            }, info);
-        }
-
-        private static void AddNeighbour_Info_To_NA(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, NeighbourInfo info)
-        {
-            AddNeighbour_Info_To_N(neighbours, edgeIndex, room, info, n, true);
-        }
-
-        private static void AddNeighbour_Info_To_NB(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, NeighbourInfo info)
-        {
-            AddNeighbour_Info_To_N(neighbours, edgeIndex, room, info, n, false);
         }
 
         private static NeighbourInfo ToNeighbourInfoAD(FloorPlan.Neighbour n)
@@ -294,6 +248,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 a = b;
                 b = t;
             }
+
+            if (Vector2.Distance(a.Point, b.Point) < 0.01f)
+                return;
 
             list.Add(new FloorPlan.Neighbour(edgeIndex, room, a.OtherEdgeIndex, a.OtherRoom,
                 a.Point, a.Pt,

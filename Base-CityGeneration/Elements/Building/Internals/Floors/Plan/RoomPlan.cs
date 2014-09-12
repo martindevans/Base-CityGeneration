@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Rooms;
-using Base_CityGeneration.Parcelling;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 {
+    [DebuggerDisplay("RoomPlan Id={Id}")]
     public class RoomPlan
     {
         private readonly FloorPlan _plan;

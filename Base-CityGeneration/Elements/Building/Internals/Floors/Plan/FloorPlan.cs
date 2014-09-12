@@ -77,7 +77,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 _clipper.AddPolygons(solution, PolyType.Subject);
                 _clipper.AddPolygons(_rooms.Select(r => r.OuterFootprint.Select(ToPoint).ToList()).ToList(), PolyType.Clip);
                 solution.Clear();
-                _clipper.Execute(ClipType.Difference, solution, PolyFillType.NonZero, PolyFillType.NonZero);
+                _clipper.Execute(ClipType.Difference, solution);
 
                 if (solution.Count > 1 && !split)
                     return new RoomPlan[0];
