@@ -127,7 +127,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 {
                     var intersection = Geometry2D.LineLineIntersection(new LineSegment2D(otherRoomInnerA, otherRoomInnerB).Line(), new Line2D(a, neighbour.D - neighbour.A));
                     if (!intersection.HasValue)
-                        throw new NotImplementedException();
+                        throw new InvalidOperationException("lines are parallel, this should never happen. (famous last words)");
                     adjustedD = intersection.Value.Position;
                 }
 
@@ -136,7 +136,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 {
                     var intersection = Geometry2D.LineLineIntersection(new LineSegment2D(otherRoomInnerA, otherRoomInnerB).Line(), new Line2D(b, neighbour.C - neighbour.B));
                     if (!intersection.HasValue)
-                        throw new NotImplementedException();
+                        throw new InvalidOperationException("lines are parallel, this should never happen. (famous last words)");
                     adjustedC = intersection.Value.Position;
                 }
 
@@ -145,31 +145,30 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
                 // 3. Clamp points on other room
                 var otherRoomInnerAB = otherRoomInnerB - otherRoomInnerA;
-                var adjustedCT = Geometry2D.ClosestPointDistanceAlongLine(new Line2D(otherRoomInnerA, otherRoomInnerAB), adjustedC);
-                var adjustedDT = Geometry2D.ClosestPointDistanceAlongLine(new Line2D(otherRoomInnerA, otherRoomInnerAB), adjustedD);
-
-                var clampedAdjustedCT = MathHelper.Clamp(adjustedCT, 0, 1);
-                var clampedAdjustedDT = MathHelper.Clamp(adjustedDT, 0, 1);
+                var clampedAdjustedCT = MathHelper.Clamp(Geometry2D.ClosestPointDistanceAlongLine(new Line2D(otherRoomInnerA, otherRoomInnerAB), adjustedC), 0, 1);
+                var clampedAdjustedDT = MathHelper.Clamp(Geometry2D.ClosestPointDistanceAlongLine(new Line2D(otherRoomInnerA, otherRoomInnerAB), adjustedD), 0, 1);
 
                 var c = otherRoomInnerA + otherRoomInnerAB * clampedAdjustedCT;
                 var d = otherRoomInnerA + otherRoomInnerAB * clampedAdjustedDT;
 
                 // 4. Projected clamped/projected points back to this room
-                var intersectionABDA = Geometry2D.LineLineIntersection(new LineSegment2D(section.A, section.B).Line(), new Line2D(d, neighbour.D - neighbour.A));
+                var intersectionABDA = Geometry2D.LineLineIntersection(new LineSegment2D(section.B, section.A).Line(), new Line2D(d, neighbour.D - neighbour.A));
                 if (!intersectionABDA.HasValue)
-                    throw new NotImplementedException();
+                    throw new InvalidOperationException("lines are parallel, this should never happen. (famous last words)");
                 var reprojectedA = intersectionABDA.Value.Position;
+                var reprojectedAT = intersectionABDA.Value.DistanceAlongLineA / section.Width;
 
-                var intersectionABCB = Geometry2D.LineLineIntersection(new LineSegment2D(section.A, section.B).Line(), new Line2D(c, neighbour.C - neighbour.B));
+                var intersectionABCB = Geometry2D.LineLineIntersection(new LineSegment2D(section.B, section.A).Line(), new Line2D(c, neighbour.C - neighbour.B));
                 if (!intersectionABCB.HasValue)
-                    throw new NotImplementedException();
+                    throw new InvalidOperationException("lines are parallel, this should never happen. (famous last words)");
                 var reprojectedB = intersectionABCB.Value.Position;
+                var reprojectedBT = intersectionABCB.Value.DistanceAlongLineA / section.Width;
 
                 //Create section from this room to neighbour
                 result.Add(new Facade(otherRoom, false, new Walls.Section(false, reprojectedA, reprojectedB, c, d)));
 
                 //Create section from last neighbour to edge of this one
-                if (Math.Abs(aT - previousMax) > float.Epsilon)
+                if (Math.Abs(reprojectedAT - previousMax) * section.Width > NeighbourData.SAME_POINT_EPSILON)
                 {
                     var sA = section.B - section.Along * section.Width * previousMax;
                     var sC = Geometry2D.ClosestPointOnLineSegment(new LineSegment2D(section.C, section.D), reprojectedA);
@@ -178,7 +177,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                     result.Add(new Facade(null, false, new Walls.Section(false, sA, reprojectedA, sC, sD)));
                 }
 
-                if (i == sectionNeighbours.Length - 1 && Math.Abs(neighbour.Bt - 1) > float.Epsilon)
+                //If this is the last neighbour section, insert a facade from end of neighbour to end of wall
+                if (i == sectionNeighbours.Length - 1 && Math.Abs(1 - reprojectedBT) * section.Width > NeighbourData.SAME_POINT_EPSILON)
                 {
                     var eB = section.B - section.Along * section.Width * 1;
                     var eC = section.C - section.Along * section.Width * 1;
@@ -188,7 +188,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                     result.Add(new Facade(null, false, new Walls.Section(false, reprojectedB, eB, eC, eD)));
                 }
 
-                previousMax = Geometry2D.ClosestPointDistanceAlongLine(new Line2D(section.C, section.D - section.C), reprojectedB);
+                previousMax = reprojectedAT;
             }
 
             //Check if all sections were invalid, and if so just create a facade covering the entire section

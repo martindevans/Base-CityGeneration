@@ -27,7 +27,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
         public void AddStamp(BaseFacade.Stamp stamp)
         {
             _parent.AddStamp(new BaseFacade.Stamp(
-                ToParentDepth(stamp.StartDepth), ToParentDepth(stamp.EndDepth),
+                ToParentDepth(stamp.EndDepth), ToParentDepth(stamp.StartDepth),
                 stamp.Additive, stamp.Material,
                 stamp.Shape.Select(ToParentXY).ToArray()
             ));

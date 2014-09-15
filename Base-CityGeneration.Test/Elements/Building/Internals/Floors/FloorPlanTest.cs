@@ -818,14 +818,6 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void TheTest()
         {
-            var a = _plan.AddRoom(new[]
-            {
-                new Vector2(-100, -50),
-                new Vector2(-100, 50),
-                new Vector2(-70, 50),
-                new Vector2(-70, -50),
-            }, 5, new ScriptReference[0], false).Single();
-
             var b = _plan.AddRoom(new[]
             {
                 new Vector2(-70, -50),
@@ -842,65 +834,46 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 new Vector2(60, -50),
             }, 5, new ScriptReference[0], true).Single();
 
-            var d = _plan.AddRoom(new[]
-            {
-                new Vector2(70, -50),
-                new Vector2(70, 50),
-                new Vector2(100, 50),
-                new Vector2(100, -50),
-            }, 5, new ScriptReference[0], false).Single();
-
-            //A neighbours B, C, ~D
-            var neighboursA = _plan.GetNeighbours(a);
-            Assert.AreEqual(1, neighboursA.Count(x => x.Other(a) == b));
-            Assert.AreEqual(1, neighboursA.Count(x => x.Other(a) == c));
-            Assert.AreEqual(0, neighboursA.Count(x => x.Other(a) == d));
-
             //B neighbours A, C, ~D
             var neighboursB = _plan.GetNeighbours(b);
-            Assert.AreEqual(1, neighboursB.Count(x => x.Other(b) == a));
             Assert.AreEqual(2, neighboursB.Count(x => x.Other(b) == c));
-            Assert.AreEqual(0, neighboursB.Count(x => x.Other(b) == d));
 
             //C neighbours A, B, D
             var neighboursC = _plan.GetNeighbours(c);
-            Assert.AreEqual(1, neighboursC.Count(x => x.Other(c) == a));
             Assert.AreEqual(2, neighboursC.Count(x => x.Other(c) == b));
-            Assert.AreEqual(1, neighboursC.Count(x => x.Other(c) == d));
 
-            //D neighbours ~A, ~B, C
-            var neighboursD = _plan.GetNeighbours(d);
-            Assert.AreEqual(0, neighboursD.Count(x => x.Other(d) == a));
-            Assert.AreEqual(0, neighboursD.Count(x => x.Other(d) == b));
-            Assert.AreEqual(1, neighboursD.Count(x => x.Other(d) == c));
+            //Check that B has no duplicated facades
+            var facadesB = b.GetFacades().ToArray();
+            var duplicatesB = facadesB.Where(f => facadesB.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
+            Assert.IsFalse(duplicatesB.Any());
 
-            var duplicateCheck = c;
-            var facades = duplicateCheck.GetFacades().ToArray();
-            var duplicates = facades.Where(f => facades.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
-            Assert.IsFalse(duplicates.Any());
+            //Check that C has no duplicated facades
+            var facadesC = c.GetFacades().ToArray();
+            var duplicatesC = facadesC.Where(f => facadesC.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
+            Assert.IsFalse(duplicatesC.Any());
 
             Console.WriteLine(FloorplanToSvg(_plan, 500, 0, 0, 0));
         }
 
-        [TestMethod]
-        public void ZClipperTest()
-        {
-            Clipper clipper = new Clipper();
+        //[TestMethod]
+        //public void ZClipperTest()
+        //{
+        //    Clipper clipper = new Clipper();
 
-            Func<Vector2, IntPoint> toPoint = a => new IntPoint((long)(a.X * 10000), (long)a.Y * 10000);
+        //    Func<Vector2, IntPoint> toPoint = a => new IntPoint((long)(a.X * 10000), (long)a.Y * 10000);
 
-            clipper.Clear();
-            clipper.AddPolygon(new[] { new Vector2(0, 0), new Vector2(0, 100), new Vector2(100,100), new Vector2(100, 0) }.Select(toPoint).ToList(), PolyType.Subject);
-            //clipper.AddPolygon(new[] { new Vector2(0, 0), new Vector2(0, 50), new Vector2(50, 50), new Vector2(50, 0) }.Reverse().Select(toPoint).ToList(), PolyType.Clip);
-            clipper.AddPolygon(new[] { new Vector2(60, 60), new Vector2(60, 90), new Vector2(60, 90), new Vector2(60, 60) }.Reverse().Select(toPoint).ToList(), PolyType.Clip);
+        //    clipper.Clear();
+        //    clipper.AddPolygon(new[] { new Vector2(0, 0), new Vector2(0, 100), new Vector2(100,100), new Vector2(100, 0) }.Select(toPoint).ToList(), PolyType.Subject);
+        //    //clipper.AddPolygon(new[] { new Vector2(0, 0), new Vector2(0, 50), new Vector2(50, 50), new Vector2(50, 0) }.Reverse().Select(toPoint).ToList(), PolyType.Clip);
+        //    clipper.AddPolygon(new[] { new Vector2(60, 60), new Vector2(60, 90), new Vector2(60, 90), new Vector2(60, 60) }.Reverse().Select(toPoint).ToList(), PolyType.Clip);
 
-            //var solution = new List<List<IntPoint>>();
-            var solution = new PolyTree();
-            clipper.Execute(ClipType.Difference, solution);
+        //    //var solution = new List<List<IntPoint>>();
+        //    var solution = new PolyTree();
+        //    clipper.Execute(ClipType.Difference, solution);
 
-            //solution.
-            //Assert.AreEqual(1, solution.Count);
-        }
+        //    //solution.
+        //    //Assert.AreEqual(1, solution.Count);
+        //}
 
         [TestMethod]
         public void FuzzTest()
@@ -970,6 +943,114 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             plan.Freeze();
 
             FloorplanToSvg(plan, 500, 45, 20);
+        }
+
+        [TestMethod]
+        public void RegressionTest_OppositeWallSectionsAreNotDuplicated()
+        {
+            // This is a case I found whilst designing trains
+            // This particular setup resulted in the right hand room (d) having *two* left walls.
+            // One wall was just a wall (no neighbours) and another wall was a neighbour for the big wall in the middle (they overlapped)
+
+            var a = _plan.AddRoom(new[]
+            {
+                new Vector2(-100, -50),
+                new Vector2(-100, 50),
+                new Vector2(-70, 50),
+                new Vector2(-70, -50),
+            }, 5, new ScriptReference[0], false).Single();
+
+            var b = _plan.AddRoom(new[]
+            {
+                new Vector2(-70, -50),
+                new Vector2(-70, -10),
+                new Vector2(-30, -10),
+                new Vector2(-30, -50),
+            }, 5, new ScriptReference[0], false).Single();
+
+            var b2 = _plan.AddRoom(new[]
+            {
+                new Vector2(-30, 50),
+                new Vector2(-30, 10),
+                new Vector2(-70, 10),
+                new Vector2(-70, 50),
+            }, 5, new ScriptReference[0], false).Single();
+
+            var c = _plan.AddRoom(new[]
+            {
+                new Vector2(-69.9f, -50),
+                new Vector2(-69.9f, 50),
+                new Vector2(60, 50),
+                new Vector2(60, -50),
+            }, 5, new ScriptReference[0], true).Single();
+
+            var d = _plan.AddRoom(new[]
+            {
+                new Vector2(70, -50),
+                new Vector2(70, 50),
+                new Vector2(100, 50),
+                new Vector2(100, -50),
+            }, 5, new ScriptReference[0], false).Single();
+
+            //A neighbours B, C, ~D
+            var neighboursA = _plan.GetNeighbours(a);
+            Assert.AreEqual(1, neighboursA.Count(x => x.Other(a) == b));
+            Assert.AreEqual(1, neighboursA.Count(x => x.Other(a) == c));
+            Assert.AreEqual(0, neighboursA.Count(x => x.Other(a) == d));
+
+            //B neighbours A, C, ~D
+            var neighboursB = _plan.GetNeighbours(b);
+            Assert.AreEqual(1, neighboursB.Count(x => x.Other(b) == a));
+            Assert.AreEqual(2, neighboursB.Count(x => x.Other(b) == c));
+            Assert.AreEqual(0, neighboursB.Count(x => x.Other(b) == d));
+
+            //C neighbours A, B, D
+            var neighboursC = _plan.GetNeighbours(c);
+            Assert.AreEqual(1, neighboursC.Count(x => x.Other(c) == a));
+            Assert.AreEqual(2, neighboursC.Count(x => x.Other(c) == b));
+            Assert.AreEqual(1, neighboursC.Count(x => x.Other(c) == d));
+
+            //D neighbours ~A, ~B, C
+            var neighboursD = _plan.GetNeighbours(d);
+            Assert.AreEqual(0, neighboursD.Count(x => x.Other(d) == a));
+            Assert.AreEqual(0, neighboursD.Count(x => x.Other(d) == b));
+            Assert.AreEqual(1, neighboursD.Count(x => x.Other(d) == c));
+
+            var duplicateCheck = c;
+            var facades = duplicateCheck.GetFacades().ToArray();
+            var duplicates = facades.Where(f => facades.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
+            Assert.IsFalse(duplicates.Any());
+
+            Console.WriteLine(FloorplanToSvg(_plan, 500, 0, 0, 0));
+        }
+
+        [TestMethod]
+        public void RegressioTest_MissingFacadeStartSections()
+        {
+            // This is a test case found when designing trains
+            // The start of a wall (from wall start -> start of first neighbour) didn't generate, now it does.
+            // This test will fail if that happens again
+
+            var b = _plan.AddRoom(new[]
+            {
+                new Vector2(-70, -50),
+                new Vector2(-70, -10),
+                new Vector2(-30, -10),
+                new Vector2(-30, -50),
+            }, 5, new ScriptReference[0], false).Single();
+
+            var c = _plan.AddRoom(new[]
+            {
+                new Vector2(-69.9f, -50),
+                new Vector2(-69.9f, 50),
+                new Vector2(60, 50),
+                new Vector2(60, -50),
+            }, 5, new ScriptReference[0], true).Single();
+
+            Assert.AreEqual(8, b.GetFacades().Count());
+            Assert.AreEqual(14, c.GetFacades().Count());
+            
+            Console.WriteLine(FloorplanToSvg(_plan, 500, 0, 0, 0));
         }
 
         [TestMethod]
