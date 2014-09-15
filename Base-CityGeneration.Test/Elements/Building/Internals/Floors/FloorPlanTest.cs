@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.TestHelpers;
 using EpimetheusPlugins.Procedural.Utilities;
@@ -853,7 +855,24 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             var duplicatesC = facadesC.Where(f => facadesC.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
             Assert.IsFalse(duplicatesC.Any());
 
-            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
+            var count = c.GetFacades().Count();
+
+            var svg = SvgRoomVisualiser.FloorplanToSvg(_plan);
+            for (int i = 0; i < facadesC.Length; i++)
+            {
+                var s = facadesC[i].Section;
+                var pos = s.A * 0.5f + s.B * 0.5f + s.C * 0.25f + s.D * 0.25f;
+                svg.Descendants("g").Single().Add(
+                    new XElement("text",
+                        new XAttribute("x", pos.X),
+                        new XAttribute("y", pos.Y),
+                        new XAttribute("fill", "black"),
+                        i.ToString(CultureInfo.InvariantCulture)
+                    )
+                );
+            }
+
+            Console.WriteLine(svg.ToString());
         }
 
         //[TestMethod]

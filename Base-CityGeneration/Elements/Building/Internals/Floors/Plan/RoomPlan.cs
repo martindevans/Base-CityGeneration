@@ -164,9 +164,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 var reprojectedB = intersectionABCB.Value.Position;
                 var reprojectedBT = intersectionABCB.Value.DistanceAlongLineA / section.Width;
 
-                //Create section from this room to neighbour
-                result.Add(new Facade(otherRoom, false, new Walls.Section(false, reprojectedA, reprojectedB, c, d)));
-
                 //Create section from last neighbour to edge of this one
                 if (Math.Abs(reprojectedAT - previousMax) * section.Width > NeighbourData.SAME_POINT_EPSILON)
                 {
@@ -176,6 +173,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
                     result.Add(new Facade(null, false, new Walls.Section(false, sA, reprojectedA, sC, sD)));
                 }
+
+                //Create section from this room to neighbour
+                result.Add(new Facade(otherRoom, false, new Walls.Section(false, reprojectedA, reprojectedB, c, d)));
 
                 //If this is the last neighbour section, insert a facade from end of neighbour to end of wall
                 if (i == sectionNeighbours.Length - 1 && Math.Abs(1 - reprojectedBT) * section.Width > NeighbourData.SAME_POINT_EPSILON)

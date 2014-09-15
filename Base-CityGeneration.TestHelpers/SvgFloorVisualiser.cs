@@ -7,21 +7,23 @@ using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.TestHelpers
 {
-    public abstract class SvgRoomVisualiser
+    public static class SvgRoomVisualiser
     {
-        public string GetSvgForFloorplan(FloorPlan plan)
+        public static XElement FloorNodeToSvg(IFloorTester tester, params Vector2[] footprint)
         {
-            return FloorplanToSvg(plan).ToString();
+            FloorPlan plan = new FloorPlan(footprint);
+            tester.CreateRooms(plan);
+
+            return FloorplanToSvg(plan);
         }
 
         public static XElement FloorplanToSvg(FloorPlan plan)
         {
-            const float scale = 2f;
             Random rand = new Random();
 
             List<XObject> paths = new List<XObject>
             {
-                ToSvgPath(plan.ExternalFootprint, "black", scale: scale, fill:"grey", opacity: 0.1f)
+                ToSvgPath(plan.ExternalFootprint, "black", fill:"grey", opacity: 0.1f)
             };
 
             //Add Rooms
@@ -42,7 +44,7 @@ namespace Base_CityGeneration.TestHelpers
                     else if (facade.NeighbouringRoom != null)
                         c = string.Format("rgb({0},{1},{2})", rand.Next(100, 255), rand.Next(50), rand.Next(50));
 
-                    paths.Add(ToSvgPath(new[] { facade.Section.A, facade.Section.B, facade.Section.C, facade.Section.D }, c, scale: scale, fill: "none"));
+                    paths.Add(ToSvgPath(new[] { facade.Section.A, facade.Section.B, facade.Section.C, facade.Section.D }, c, fill: "none"));
                 }
             }
 
@@ -51,7 +53,7 @@ namespace Base_CityGeneration.TestHelpers
 
             paths.AddRange(new XObject[]
             {
-                new XAttribute("transform", string.Format("translate({0},{1}) scale(1,-1)", w/2, h/2))
+                new XAttribute("transform", string.Format("translate({0},{1}) scale(2,-2)", w/2, h/2))
             });
 
             List<XObject> svgContents = new List<XObject>
@@ -63,10 +65,8 @@ namespace Base_CityGeneration.TestHelpers
             return new XElement("svg", svgContents);
         }
 
-        private static XElement ToSvgPath(IEnumerable<Vector2> points, string stroke, float scale = 1, string fill = "white", float opacity = 0.75f)
+        private static XElement ToSvgPath(IEnumerable<Vector2> points, string stroke, string fill = "white", float opacity = 0.75f)
         {
-            points = points.ToArray().Select(a => a * scale);
-
             var d = String.Format("M{0} {1}", points.First().X, points.First().Y) +
                 String.Join(" ", points.Select(p => string.Format("L{0} {1}", p.X, p.Y))) + " Z";
 
