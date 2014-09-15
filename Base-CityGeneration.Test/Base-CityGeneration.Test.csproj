@@ -94,6 +94,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Rx-PlatformServices.2.2.5\lib\net40\System.Reactive.PlatformServices.dll</HintPath>
     </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDependentAssemblyPaths Condition=" '$(VS100COMNTOOLS)' != '' " Include="$(VS100COMNTOOLS)..\IDE\PrivateAssemblies">
@@ -113,6 +115,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Base-CityGeneration.TestHelpers\Base-CityGeneration.TestHelpers.csproj">
+      <Project>{B225867B-9AFA-432C-9BCD-8A9097C2E599}</Project>
+      <Name>Base-CityGeneration.TestHelpers</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Base-CityGeneration\Base-CityGeneration.csproj">
       <Project>{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}</Project>
       <Name>Base-CityGeneration</Name>
