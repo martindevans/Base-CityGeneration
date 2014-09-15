@@ -1,5 +1,4 @@
-﻿using Myre;
-
+﻿
 namespace Base_CityGeneration.Styles
 {
     public static class Doors
@@ -12,6 +11,6 @@ namespace Base_CityGeneration.Styles
         /// <summary>
         /// The maximum width of a normal sized door
         /// </summary>
-        public static readonly TypedNameDefault<float> MaximumStandardDoorWidth = new TypedNameDefault<float>("max_door_width", 1.2f);
+        public static readonly TypedNameDefault<float> MaximumStandardDoorWidth = new TypedNameDefault<float>("max_door_width", 2f);
     }
 }

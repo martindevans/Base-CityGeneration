@@ -53,35 +53,25 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             if (_isFrozen)
                 throw new InvalidOperationException("Cannot add rooms to floorplan once it is frozen");
 
-            var clipperRoomFootprint = roomFootprint.Select(ToPoint).ToList();
+            if (roomFootprint == null)
+                throw new ArgumentNullException("roomFootprint");
 
+            var clipperRoomFootprint = roomFootprint.Select(ToPoint).ToList();
             if (Clipper.Orientation(clipperRoomFootprint))
                 throw new ArgumentException("Room footprint must be clockwise wound");
 
-            //Contain room inside floor
-            _clipper.Clear();
-            _clipper.AddPolygon(clipperRoomFootprint, PolyType.Subject);
-            _clipper.AddPolygon(_externalFootprint.Select(ToPoint).ToList(), PolyType.Clip);
-            List<List<IntPoint>> solution = new List<List<IntPoint>>();
-            _clipper.Execute(ClipType.Intersection, solution);
-
-            if (solution.Count > 1 && !split)
-                return new RoomPlan[0];
-            if (solution.Count == 0)
+            //Contains within floor out edge
+            var solution = ClipToFloor(clipperRoomFootprint, split);
+            if (solution == null)
                 return new RoomPlan[0];
 
             //Clip against other rooms
             if (_rooms.Count > 0)
             {
-                _clipper.Clear();
-                _clipper.AddPolygons(solution, PolyType.Subject);
-                _clipper.AddPolygons(_rooms.Select(r => r.OuterFootprint.Select(ToPoint).ToList()).ToList(), PolyType.Clip);
-                solution.Clear();
-                _clipper.Execute(ClipType.Difference, solution);
+                var clips = solution.Select(a => ClipToRooms(a, split));
 
+                solution = clips.SelectMany(a => a).ToList();
                 if (solution.Count > 1 && !split)
-                    return new RoomPlan[0];
-                if (solution.Count == 0)
                     return new RoomPlan[0];
             }
 
@@ -103,6 +93,64 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
             return result;
         }
+
+        #region clipping
+        private List<List<IntPoint>> ClipToRooms(List<IntPoint> roomFootprint, bool allowSplit)
+        {
+            _clipper.Clear();
+            _clipper.AddPolygon(roomFootprint, PolyType.Subject);
+            _clipper.AddPolygons(_rooms.Select(r => r.OuterFootprint.Select(ToPoint).ToList()).ToList(), PolyType.Clip);
+
+            PolyTree solution = new PolyTree();
+            _clipper.Execute(ClipType.Difference, solution);
+
+            //Rooms with holes are not supported
+            if (HasHole(solution))
+            {
+                //Rooms with holes are not supported (issue #166 - Will Not Fix)
+                return new List<List<IntPoint>>();
+            }
+
+            var shapes = ToShapes(solution);
+
+            if (shapes.Count > 1 && !allowSplit)
+                return new List<List<IntPoint>>();
+
+            return shapes;
+        }
+
+        private bool HasHole(PolyNode tree)
+        {
+            if (tree.Contour.Count > 0 && tree.IsHole)
+                return true;
+
+            return tree.Childs.Any(HasHole);
+        }
+
+        private List<List<IntPoint>> ToShapes(PolyTree tree)
+        {
+            List<List<IntPoint>> solution = new List<List<IntPoint>>();
+            Clipper.PolyTreeToPolygons(tree, solution);
+            return solution;
+        }
+
+        private List<List<IntPoint>> ClipToFloor(List<IntPoint> roomFootprint, bool allowSplit)
+        {
+            _clipper.Clear();
+            _clipper.AddPolygon(roomFootprint, PolyType.Subject);
+            _clipper.AddPolygon(_externalFootprint.Select(ToPoint).ToList(), PolyType.Clip);
+
+            List<List<IntPoint>> solution = new List<List<IntPoint>>();
+            _clipper.Execute(ClipType.Intersection, solution);
+
+            if (solution.Count > 1 && !allowSplit)
+                return null;
+            if (solution.Count == 0)
+                return null;
+
+            return solution;
+        }
+        #endregion
 
         public IEnumerable<Neighbour> GetNeighbours(RoomPlan room)
         {

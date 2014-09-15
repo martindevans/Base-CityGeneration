@@ -10,8 +10,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
     internal class NeighbourData
     {
         #region fields/properties
-        private const float SAME_POINT_EPSILON = 0.1f;
-        private const float SAME_POINT_EPSILON_SQR = SAME_POINT_EPSILON * SAME_POINT_EPSILON;
+        internal const float SAME_POINT_EPSILON = 0.1f;
+        internal const float SAME_POINT_EPSILON_SQR = SAME_POINT_EPSILON * SAME_POINT_EPSILON;
 
         private readonly FloorPlan _plan;
 
@@ -249,7 +249,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 b = t;
             }
 
-            if (Vector2.Distance(a.Point, b.Point) < 0.01f)
+            if (Vector2.Distance(a.Point, b.Point) < 0.05f)
                 return;
 
             list.Add(new FloorPlan.Neighbour(edgeIndex, room, a.OtherEdgeIndex, a.OtherRoom,
