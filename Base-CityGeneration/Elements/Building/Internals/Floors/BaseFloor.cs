@@ -175,12 +175,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
                 var facades = roomPlan.GetFacades();
 
-                var duplicates = facades.Where(f => facades.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
-                if (duplicates.Length > 0)
-                {
-                    Console.WriteLine("Foo");
-                }
-
                 foreach (var facade in facades)
                 {
                     IConfigurableFacade newFacade;

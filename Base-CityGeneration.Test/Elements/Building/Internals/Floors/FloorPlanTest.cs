@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
+using Base_CityGeneration.TestHelpers;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -118,7 +119,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             var a = _plan.AddRoom(new Vector2[] {new Vector2(-10, -10), new Vector2(-10, 10), new Vector2(0, 10), new Vector2(0, -10)}, 1, new ScriptReference[0], false).Single();
             var b = _plan.AddRoom(new Vector2[] {new Vector2(0, -10), new Vector2(0, 10), new Vector2(10, 10), new Vector2(10, -10)}, 1, new ScriptReference[0], false).Single();
 
-            Console.WriteLine(FloorplanToSvg(_plan));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
 
             Assert.IsTrue(_plan.GetNeighbours(a).Any(n => n.Other(a) == b));
         }
@@ -468,7 +469,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             //var dist2 = Geometry2D.DistanceFromPointToLine(n.Section.C, line2);
             //Assert.IsTrue(dist2 < 0.01f);
 
-            Console.WriteLine(FloorplanToSvg(_plan));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         private void AssertAllWindings()
@@ -512,7 +513,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             //Check all sections lies on the external footprint of the involved rooms
             AssertAllSections();
 
-            Console.WriteLine(FloorplanToSvg(_plan));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -539,7 +540,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             //Check all sections lies on the external footprint of the involved rooms
             AssertAllSections();
 
-            Console.WriteLine(FloorplanToSvg(_plan));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -575,7 +576,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             //Check all sections lies on the external footprint of the involved rooms
             AssertAllSections();
 
-            Console.WriteLine(FloorplanToSvg(_plan));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -611,7 +612,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             //Check all sections lies on the external footprint of the involved rooms
             AssertAllSections();
 
-            Console.WriteLine(FloorplanToSvg(_plan));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -650,7 +651,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             //Check all sections lies on the external footprint of the involved rooms
             AssertAllSections();
 
-            Console.WriteLine(FloorplanToSvg(_plan));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -692,7 +693,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             //Check all sections lies on the external footprint of the involved rooms
             AssertAllSections();
 
-            Console.WriteLine(FloorplanToSvg(_plan));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -704,7 +705,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             Assert.IsFalse(roomLeft.GetFacades().Any(f => f.NeighbouringRoom != null));
             Assert.IsFalse(roomRight.GetFacades().Any(f => f.NeighbouringRoom != null));
 
-            Console.WriteLine(FloorplanToSvg(_plan));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -715,7 +716,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             _plan.Freeze();
 
-            Console.WriteLine(FloorplanToSvg(_plan));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -760,7 +761,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
                 plan.Freeze();
 
-                Console.WriteLine(FloorplanToSvg(plan, 500, 0, 0, (i * floorHeight - floorCount * floorHeight)));
+                //Console.WriteLine(FloorplanToSvg(plan, 500, 0, 0, (i * floorHeight - floorCount * floorHeight)));
             }
         }
 
@@ -782,7 +783,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 new Vector2(50, -75),
             }, 5, new ScriptReference[0], false);
 
-            Console.WriteLine(FloorplanToSvg(_plan, 500, 0, 0, 0));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -812,7 +813,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 new Vector2(50, -75),
             }, 5, new ScriptReference[0], false).Single();
 
-            Console.WriteLine(FloorplanToSvg(_plan, 500, 0, 0, 0));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -820,8 +821,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         {
             var b = _plan.AddRoom(new[]
             {
-                new Vector2(-70, -50),
-                new Vector2(-70, -10),
+                new Vector2(-99.9f, -50),
+                new Vector2(-99.99f, -10),
                 new Vector2(-30, -10),
                 new Vector2(-30, -50),
             }, 5, new ScriptReference[0], false).Single();
@@ -852,7 +853,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             var duplicatesC = facadesC.Where(f => facadesC.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
             Assert.IsFalse(duplicatesC.Any());
 
-            Console.WriteLine(FloorplanToSvg(_plan, 500, 0, 0, 0));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         //[TestMethod]
@@ -900,7 +901,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
                     plan.Freeze();
 
-                    FloorplanToSvg(plan, 500, 45, 20);
+                    Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
                 }
                 catch
                 {
@@ -942,7 +943,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             plan.Freeze();
 
-            FloorplanToSvg(plan, 500, 45, 20);
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -1021,7 +1022,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             var duplicates = facades.Where(f => facades.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
             Assert.IsFalse(duplicates.Any());
 
-            Console.WriteLine(FloorplanToSvg(_plan, 500, 0, 0, 0));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -1049,8 +1050,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             Assert.AreEqual(8, b.GetFacades().Count());
             Assert.AreEqual(14, c.GetFacades().Count());
-            
-            Console.WriteLine(FloorplanToSvg(_plan, 500, 0, 0, 0));
+
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -1078,7 +1079,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             plan.Freeze();
 
-            FloorplanToSvg(plan, 500, 45, 20);
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
         [TestMethod]
@@ -1119,65 +1120,5 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 Assert.IsFalse(facade.Section.Along.IsNaN());
             }
         }
-
-        #region floorplan -> SVG
-        private static string FloorplanToSvg(FloorPlan plan, int perspective = 0, int rotateX = 0, int rotateZ = 0, int translate = 0)
-        {
-            const float scale = 2f;
-            Random rand = new Random();
-
-            List<string> paths = new List<string>()
-            {
-                ToSvgPath(plan.ExternalFootprint, "black", scale: scale, fill:"grey", opacity: 0.1f)
-            };
-
-            //Add Rooms
-            foreach (var r in plan.Rooms.Select((a, i) => new { room = a, i}).Skip(0).Take(1000))
-            {
-                var room = r.room;
-
-                //Sections
-                foreach (var facade in room.GetFacades())
-                {
-                    string c = "blue";
-                    if (facade.IsExternal && facade.Section.IsCorner)
-                        c = "purple";
-                    else if (facade.IsExternal)
-                        c = "green";
-                    else if (facade.Section.IsCorner)
-                        c = "cornflowerblue";
-                    else if (facade.NeighbouringRoom != null)
-                        c = string.Format("rgb({0},{1},{2})", rand.Next(100, 255), rand.Next(50), rand.Next(50));
-
-                    paths.Add(ToSvgPath(new[] {facade.Section.A, facade.Section.B, facade.Section.C, facade.Section.D}, c, scale: scale, fill: "none"));
-                }
-            }
-
-            const int w = 700;
-            const int h = 700;
-
-            StringBuilder b = new StringBuilder();
-            b.AppendLine(string.Format("<svg height=\"{0}\" width=\"{1}\" style=\"position: absolute; transform: perspective({2}px) rotateX({3}deg) rotateZ({4}deg) translate3d(0, 0, {5}px);\"><g transform=\"translate({6},{7}) scale(1,-1)\">", 
-                h, w,
-                perspective, rotateX, rotateZ, translate, 
-                w / 2, h / 2
-            ));
-            foreach (var path in paths)
-                b.AppendLine(path);
-            b.AppendLine("</g></svg>");
-
-            return b.ToString();
-        }
-
-        private static string ToSvgPath(IEnumerable<Vector2> points, string stroke, float scale = 1, string fill="white", float opacity = 0.75f)
-        {
-            points = points.ToArray().Select(a => a * scale);
-
-            var d = String.Format("M{0} {1}", points.First().X, points.First().Y) + 
-                String.Join(" ", points.Select(p => string.Format("L{0} {1}", p.X, p.Y))) + " Z";
-
-            return "<path d=\"" + d + "\" stroke=\"" + stroke + "\" fill=\"" + fill + "\" opacity=\"" + opacity + "\" stroke-width=\"1\"/>";
-        }
-        #endregion
     }
 }

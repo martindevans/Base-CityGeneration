@@ -60,13 +60,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
                 FloorPlan.Neighbour[] sectionNeighbours;
 
-                if (IsExternalSection(section))
-                {
-                    result.Add(new Facade(null, true, section));
-                }
-                else if (IsNeighbourSection(section, roomNeighbours, out sectionNeighbours))
+                if (IsNeighbourSection(section, roomNeighbours, out sectionNeighbours))
                 {
                     result.AddRange(CreateNeighbourFacades(previousSection, nextSection, section, sectionNeighbours));
+                }
+                else if (IsExternalSection(section))
+                {
+                    result.Add(new Facade(null, true, section));
                 }
                 else
                 {
@@ -188,7 +188,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                     result.Add(new Facade(null, false, new Walls.Section(false, reprojectedB, eB, eC, eD)));
                 }
 
-                previousMax = reprojectedAT;
+                previousMax = reprojectedBT;
             }
 
             //Check if all sections were invalid, and if so just create a facade covering the entire section
@@ -266,18 +266,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
             return externalLines.Any(l =>
             {
-                Geometry2D.Parallelism parallelism;
-                Geometry2D.LineLineIntersection(l.Line(), segment.Line(), out parallelism);
-                if (parallelism == Geometry2D.Parallelism.Collinear)
-                    return true;
-                else if (parallelism == Geometry2D.Parallelism.Parallel)
-                {
-                    return
-                        Geometry2D.DistanceFromPointToLineSegment(segment.Start, l) < 0.05f &&
-                        Geometry2D.DistanceFromPointToLineSegment(segment.End, l) < 0.05f;
-                }
-                else
+                var edgeDirection = l.Line().Direction;
+                var segmentDirection = segment.Line().Direction;
+
+                if (Math.Abs(Vector2.Dot(edgeDirection, segmentDirection)) < 0.99619469809f) //Allow 5 degrees difference
                     return false;
+
+                return
+                    Geometry2D.DistanceFromPointToLineSegment(segment.Start, l) < (WallThickness * 2) &&
+                    Geometry2D.DistanceFromPointToLineSegment(segment.End, l) < (WallThickness * 2);
             });
         }
 

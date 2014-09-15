@@ -194,6 +194,7 @@
     <Compile Include="Root\BaseCityRoot.cs" />
     <Compile Include="Styles\Doors.cs" />
     <Compile Include="Styles\TypedNameDefault.cs" />
+    <Compile Include="Styles\InternalWalls.cs" />
     <Compile Include="TreeSearch.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -8,4 +8,8 @@ syntax: glob
 *.suo
 *.user
 *.cache
+*.ncrunchsolution
+*.ncrunchproject
 _NCrunch_Base-CityGeneration
+Base-CityGeneration.TestHelpers/bin
+Base-CityGeneration.TestHelpers/obj
