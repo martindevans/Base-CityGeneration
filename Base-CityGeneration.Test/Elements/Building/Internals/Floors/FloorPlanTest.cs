@@ -5,11 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
+using Base_CityGeneration.Styles;
 using Base_CityGeneration.TestHelpers;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 using Myre.Extensions;
 using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
@@ -894,6 +896,114 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         //    //solution.
         //    //Assert.AreEqual(1, solution.Count);
         //}
+
+        [TestMethod]
+        public void TrainCarriageTest()
+        {
+            // ReSharper disable InconsistentNaming
+            var HierarchicalParameters = new NamedBoxCollection();
+            var r = new Random();
+            Func<double> Random = r.NextDouble;
+
+            var Length = 60;
+            var Width = 20;
+
+            Func<Vector2, float, float, Vector2> Offset = (start, length, width) => start + new Vector2(Length * length, -Width * width);
+
+            Func<FloorPlan, bool, float, IEnumerable<RoomPlan>> CreateBalcony = (pl, start, bl) =>
+            {
+                var p = pl.ExternalFootprint.First();
+
+                var wt = HierarchicalParameters.InternalWallThickness(Random);
+
+                if (start)
+                {
+                    return pl.AddRoom(new Vector2[]
+                    {
+                        Offset(p, 0, 0.01f),
+                        Offset(p, bl / Length, 0.01f),
+                        Offset(p, bl / Length, 0.99f),
+                        Offset(p, 0, 0.99f),
+                    }, wt, new ScriptReference[0]);
+                }
+                else
+                {
+                    return pl.AddRoom(new Vector2[]
+                    {
+                        Offset(p, 1 - (bl / Length), 0.01f),
+                        Offset(p, 1, 0.01f),
+                        Offset(p, 1, 0.99f),
+                        Offset(p, 1 - bl / Length, 0.99f),
+                    }, wt, new ScriptReference[0]);
+                }
+            };
+
+            var plan = new FloorPlan(new Vector2[]
+            {
+                new Vector2(-Length / 2f, Width / 2f),
+                new Vector2(Length / 2f, Width / 2f),
+                new Vector2(Length / 2f, -Width / 2f),
+                new Vector2(-Length / 2f, -Width / 2f),
+            });
+// ReSharper restore InconsistentNaming
+
+            //Get some style values
+            var wallThickness =  HierarchicalParameters.InternalWallThickness(Random);
+            var doorWidth = HierarchicalParameters.StandardDoorWidth(Random);
+
+            //Create balconies on either end
+            float balconyLength = Math.Min(3, Length / 10f);
+            var _balcony1 = CreateBalcony(plan, true, balconyLength).Single();
+            var _balcony2 = CreateBalcony(plan, false, balconyLength).Single();
+
+            //Reference point to create rooms relative to
+            var point = plan.ExternalFootprint.First();
+
+            //Add toilets at one end of the carriage
+            float toiletLength = balconyLength;
+
+            //Left of the corridor
+            var _toiletLeft = plan.AddRoom(new Vector2[]
+            {
+                Offset(point, balconyLength / Length, 0),
+                Offset(point, (balconyLength + toiletLength) / Length, 0),
+                Offset(point, (balconyLength + toiletLength) / Length, (Width / 2 - doorWidth / 2) / Width),
+                Offset(point, balconyLength / Length, (Width / 2 - doorWidth / 2) / Width),
+            }, wallThickness, new ScriptReference[0]).Single();
+
+            //Right of the corridor
+            var _toiletRight = plan.AddRoom(new Vector2[]
+            {
+                Offset(point, balconyLength / Length, (Width / 2 + doorWidth / 2) / Width),
+                Offset(point, (balconyLength + toiletLength) / Length, (Width / 2 + doorWidth / 2) / Width),
+                Offset(point, (balconyLength + toiletLength) / Length, 1),
+                Offset(point, balconyLength / Length, 1),
+            }, wallThickness, new ScriptReference[0]).Single();
+
+            //Corridor
+            var corridorL = (Width / 2 - doorWidth / 2 + 0.01f) / Width;
+            var corridorR = (Width / 2 + doorWidth / 2 - 0.01f) / Width;
+            var _corridor = plan.AddRoom(new Vector2[]
+            {
+                Offset(point, balconyLength / Length, corridorL),
+                Offset(point, (balconyLength + toiletLength) / Length, corridorL),
+                Offset(point, (balconyLength + toiletLength) / Length, corridorR),
+                Offset(point, balconyLength / Length, corridorR),
+            }, wallThickness, new ScriptReference[0]).Single();
+
+            //Add dining room
+            var _diningRoom = plan.AddRoom(new Vector2[]
+            {
+                Offset(point, (balconyLength + toiletLength + 0.05f) / Length, 0),
+                Offset(point, (Length - balconyLength - 0.05f) / Length, 0),
+                Offset(point, (Length - balconyLength - 0.05f) / Length, 1),
+                Offset(point, (balconyLength + toiletLength + 0.05f) / Length, 1),
+            }, wallThickness, new ScriptReference[0]).Single();
+
+            Assert.IsFalse(plan.GetNeighbours(_balcony2).Any(a => a.Other(_balcony2) != _diningRoom));
+
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(plan).ToString());
+        }
 
         [TestMethod]
         public void FuzzTest()

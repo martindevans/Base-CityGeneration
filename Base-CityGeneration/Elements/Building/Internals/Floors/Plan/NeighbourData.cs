@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
@@ -173,12 +174,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             if (potentialOverlapPoint == a || potentialOverlapPoint == b)
                 return false;
 
-            if (SegmentContains(a, b, x))
-                return x.Distance < Math.Min(a.Distance, b.Distance);
-            if (SegmentContains(a, b, y))
-                return y.Distance < Math.Min(a.Distance, b.Distance);
-
-            return false;
+            return (x.Distance < Math.Min(a.Distance, b.Distance) || y.Distance < Math.Min(a.Distance, b.Distance))
+                && (SegmentContains(x, y, a) || SegmentContains(x, y, b) || SegmentContains(a, b, x) ||SegmentContains(a, b, y));
         }
 
         private static bool SegmentContains(NeighbourInfo a, NeighbourInfo b, NeighbourInfo point)
@@ -425,6 +422,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             }
         }
 
+        [DebuggerDisplay("T={Pt} R={OtherRoom.Id} D={Distance}")]
         private class NeighbourInfo
         {
             /// <summary>

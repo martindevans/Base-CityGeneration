@@ -75,6 +75,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             //Create room scripts
             CreateRoomScripts();
 
+            //Rooms have been created
+            CreatedRooms(Plan);
+
             //Create external facades
             var externalFacades = CreateExternalFacades(bounds, externalWallThickness);
 
@@ -128,6 +131,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                 if (room != null)
                     roomPlan.Node = room;
             }
+        }
+
+        protected virtual void CreatedRooms(FloorPlan plan)
+        {
         }
 
         private List<IConfigurableFacade> CreateExternalFacades(Prism bounds, float externalWallThickness)

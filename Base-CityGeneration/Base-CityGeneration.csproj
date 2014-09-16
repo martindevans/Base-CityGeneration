@@ -145,6 +145,7 @@
     <Compile Include="Elements\Building\Facades\IConfigurableFacade.cs" />
     <Compile Include="Elements\Building\Facades\ReverseFacade.cs" />
     <Compile Include="Elements\Building\Facades\SubsectionFacade.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\IDoorPlacer.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IPlannedRoom.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\FloorPlan.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\NeighbourData.cs" />
