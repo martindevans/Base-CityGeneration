@@ -124,7 +124,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Constants.cs" />
     <Compile Include="Datastructures\Constraints\ConstrainedRectangle.cs" />
     <Compile Include="Datastructures\Constraints\Range.cs" />
     <Compile Include="Datastructures\Extensions\MeshExtensions.cs" />
@@ -146,6 +145,7 @@
     <Compile Include="Elements\Building\Facades\ReverseFacade.cs" />
     <Compile Include="Elements\Building\Facades\SubsectionFacade.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IDoorPlacer.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\IDoorTarget.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IPlannedRoom.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\FloorPlan.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\NeighbourData.cs" />
@@ -194,6 +194,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Root\BaseCityRoot.cs" />
     <Compile Include="Styles\Doors.cs" />
+    <Compile Include="Styles\Ceiling.cs" />
+    <Compile Include="Styles\Materials.cs" />
     <Compile Include="Styles\TypedNameDefault.cs" />
     <Compile Include="Styles\InternalWalls.cs" />
     <Compile Include="TreeSearch.cs" />

@@ -13,7 +13,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Rooms
 {
     [Script("E655C852-8B0E-460B-BD30-35158DA1053C", "Base Room")]
     public class BasePlannedRoom
-        : ProceduralScript, IPlannedRoom, IDoorPlacer
+        : ProceduralScript, IPlannedRoom, IDoorPlacer, IDoorTarget
     {
         private readonly bool _placeRequestedDoorConnections;
 
@@ -35,19 +35,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.Rooms
 
         public Dictionary<RoomPlan.Facade, IConfigurableFacade> Facades { protected get; set; }
 
-        private readonly ISet<RoomPlan> _connectTo = new HashSet<RoomPlan>();
-        protected IEnumerable<RoomPlan> ConnectDoorsTo
+        private readonly ISet<IPlannedRoom> _connectTo = new HashSet<IPlannedRoom>();
+        protected IEnumerable<IPlannedRoom> ConnectDoorsTo
         {
             get { return _connectTo; }
         }
 
-        protected void PlaceConnections(Prism bounds, IEnumerable<RoomPlan> targets)
+        protected void PlaceConnections(Prism bounds, IEnumerable<IPlannedRoom> targets)
         {
             var doorWidth = HierarchicalParameters.StandardDoorWidth(Random);
             var material = HierarchicalParameters.GetValue(new TypedName<string>("material"));
 
             //Doors in walls to neighbours where requested
-            foreach (var facade in Facades.Where(f => f.Key.NeighbouringRoom != null && targets.Contains(f.Key.NeighbouringRoom)))
+            foreach (var facade in Facades.Where(f => f.Key.NeighbouringRoom != null && targets.Contains(f.Key.NeighbouringRoom.Node)))
             {
                 var dw = MathHelper.Min(doorWidth, facade.Key.Section.Width * 0.9f);
 
@@ -60,7 +60,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Rooms
             }
         }
 
-        public bool ConnectTo(RoomPlan otherRoom)
+        public virtual bool ConnectTo(IPlannedRoom otherRoom)
         {
             if (otherRoom != null)
             {
@@ -68,6 +68,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Rooms
                 return true;
             }
             return false;
+        }
+
+        public virtual bool AllowConnectionTo(IPlannedRoom other)
+        {
+            return true;
         }
     }
 }

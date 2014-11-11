@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Styles;
 using Base_CityGeneration.TestHelpers;
+using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -215,6 +215,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             _plan.Freeze();
 
+            Assert.IsNotNull(wide);
+            Assert.IsNotNull(high);
+
             var wideNeighbours = _plan.GetNeighbours(wide).Single();
 
             Assert.IsTrue(new[] { wideNeighbours.A, wideNeighbours.B, wideNeighbours.C, wideNeighbours.D }.Area() < 0);
@@ -306,6 +309,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             ).Single();
 
             _plan.Freeze();
+
+            Assert.IsNotNull(a);
+            Assert.IsNotNull(b);
 
             var aNeighbours = _plan.GetNeighbours(a);
             Assert.AreEqual(0, aNeighbours.Count());
@@ -410,8 +416,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             var facades = room.GetFacades().ToArray();
 
             Assert.AreEqual(8, facades.Count());
-            Assert.AreEqual(4, facades.Where(f => f.Section.IsCorner).Count());
-            Assert.AreEqual(4, facades.Where(f => !f.Section.IsCorner).Count());
+            Assert.AreEqual(4, facades.Count(f => f.Section.IsCorner));
+            Assert.AreEqual(4, facades.Count(f => !f.Section.IsCorner));
             Assert.IsTrue(facades.All(f => f.IsExternal));
         }
 
@@ -424,8 +430,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             var facades = room.GetFacades().ToArray();
 
-            Assert.AreEqual(4, facades.Where(f => f.Section.IsCorner).Count());
-            Assert.AreEqual(7, facades.Where(f => f.IsExternal).Count());
+            Assert.AreEqual(4, facades.Count(f => f.Section.IsCorner));
+            Assert.AreEqual(7, facades.Count(f => f.IsExternal));
         }
 
         [TestMethod]
@@ -437,8 +443,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             var facades = room.GetFacades().ToArray();
 
-            Assert.AreEqual(4, facades.Where(f => !f.Section.IsCorner).Count());
-            Assert.AreEqual(1, facades.Where(f => !f.IsExternal).Count());
+            Assert.AreEqual(4, facades.Count(f => !f.Section.IsCorner));
+            Assert.AreEqual(1, facades.Count(f => !f.IsExternal));
         }
 
         [TestMethod]
@@ -453,25 +459,13 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             var internalFacades = facades.Where(f => !f.IsExternal).ToArray();
 
-            Assert.AreEqual(1, internalFacades.Where(f => f.NeighbouringRoom == roomB).Count());
+            Assert.AreEqual(1, internalFacades.Count(f => f.NeighbouringRoom == roomB));
             Assert.AreEqual(3, internalFacades.Count());
 
             //Check that the neighbour section has points lying on both rooms
-            var n = internalFacades.Where(f => f.NeighbouringRoom == roomB).Single();
-            //Assert.IsTrue(roomB.InnerFootprint.Where(p => Vector2.Distance(p, n.Section.C) < 0.1f).Any());
-            //Assert.IsTrue(roomA.InnerFootprint.Where(p => Vector2.Distance(p, n.Section.A) < 0.1f).Any());
-
-            ////Check that section has points adjacent to right edge of room A
-            //var segment = new LineSegment2D(roomA.OuterFootprint[3], roomA.OuterFootprint[0]);
-            //var line = segment.Line();
-            //var dist = Geometry2D.DistanceFromPointToLine(n.Section.D, line);
-            //Assert.IsTrue(dist < 0.01f);
-
-            ////Check that section has points adjacent to left edge of room B
-            //var segment2 = new LineSegment2D(roomB.OuterFootprint[1], roomB.OuterFootprint[2]);
-            //var line2 = segment2.Line();
-            //var dist2 = Geometry2D.DistanceFromPointToLine(n.Section.C, line2);
-            //Assert.IsTrue(dist2 < 0.01f);
+            var n = internalFacades.Single(f => f.NeighbouringRoom == roomB);
+            Assert.IsTrue(roomB.Edges().Any(e => Geometry2D.DistanceFromPointToLineSegment(n.Section.C, e) <= roomB.WallThickness));
+            Assert.IsTrue(roomA.Edges().Any(e => Geometry2D.DistanceFromPointToLineSegment(n.Section.A, e) <= roomA.WallThickness));
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
@@ -655,7 +649,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             //Check all sections lies on the external footprint of the involved rooms
             AssertAllSections();
 
-            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan, 1).ToString());
         }
 
         [TestMethod]
@@ -720,6 +714,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             _plan.Freeze();
 
+            Assert.IsNotNull(roomLeft);
+            Assert.IsNotNull(roomRight);
+
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
@@ -737,6 +734,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             var roomBig = _plan.AddRoom(new Vector2[] { new Vector2(-50, -50), new Vector2(-50, 50), new Vector2(50, 50), new Vector2(50, -50) }, 5, new ScriptReference[0]).Single();
             var roomNone = _plan.AddRoom(new Vector2[] { new Vector2(0, 0), new Vector2(0, 10), new Vector2(10, 10), new Vector2(10, 0) }, 5, new ScriptReference[0]).Any();
 
+            Assert.IsNotNull(roomBig);
+            Assert.IsNotNull(roomNone);
+
             Assert.IsFalse(roomNone);
         }
 
@@ -746,7 +746,6 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             Random r = new Random(23523);
 
             const int floorCount = 1;
-            const int floorHeight = 20;
             for (int i = 0; i < floorCount; i++)
             {
                 FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) });
@@ -817,6 +816,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 new Vector2(50, -75),
             }, 5, new ScriptReference[0], false).Single();
 
+            Assert.IsNotNull(a);
+            Assert.IsNotNull(b);
+            Assert.IsNotNull(c);
+
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
 
@@ -856,8 +859,6 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             var facadesC = c.GetFacades().ToArray();
             var duplicatesC = facadesC.Where(f => facadesC.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
             Assert.IsFalse(duplicatesC.Any());
-
-            var count = c.GetFacades().Count();
 
             var svg = SvgRoomVisualiser.FloorplanToSvg(_plan);
             for (int i = 0; i < facadesC.Length; i++)
@@ -905,8 +906,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             var r = new Random();
             Func<double> Random = r.NextDouble;
 
-            var Length = 60;
-            var Width = 20;
+            const int Length = 60;
+            const int Width = 20;
 
             Func<Vector2, float, float, Vector2> Offset = (start, length, width) => start + new Vector2(Length * length, -Width * width);
 
@@ -953,8 +954,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Create balconies on either end
             float balconyLength = Math.Min(3, Length / 10f);
-            var _balcony1 = CreateBalcony(plan, true, balconyLength).Single();
-            var _balcony2 = CreateBalcony(plan, false, balconyLength).Single();
+            var balcony1 = CreateBalcony(plan, true, balconyLength).Single();
+            var balcony2 = CreateBalcony(plan, false, balconyLength).Single();
 
             //Reference point to create rooms relative to
             var point = plan.ExternalFootprint.First();
@@ -963,7 +964,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             float toiletLength = balconyLength;
 
             //Left of the corridor
-            var _toiletLeft = plan.AddRoom(new Vector2[]
+            var toiletLeft = plan.AddRoom(new Vector2[]
             {
                 Offset(point, balconyLength / Length, 0),
                 Offset(point, (balconyLength + toiletLength) / Length, 0),
@@ -972,7 +973,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             }, wallThickness, new ScriptReference[0]).Single();
 
             //Right of the corridor
-            var _toiletRight = plan.AddRoom(new Vector2[]
+            var toiletRight = plan.AddRoom(new Vector2[]
             {
                 Offset(point, balconyLength / Length, (Width / 2 + doorWidth / 2) / Width),
                 Offset(point, (balconyLength + toiletLength) / Length, (Width / 2 + doorWidth / 2) / Width),
@@ -983,7 +984,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             //Corridor
             var corridorL = (Width / 2 - doorWidth / 2 + 0.01f) / Width;
             var corridorR = (Width / 2 + doorWidth / 2 - 0.01f) / Width;
-            var _corridor = plan.AddRoom(new Vector2[]
+            var corridor = plan.AddRoom(new Vector2[]
             {
                 Offset(point, balconyLength / Length, corridorL),
                 Offset(point, (balconyLength + toiletLength) / Length, corridorL),
@@ -992,7 +993,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             }, wallThickness, new ScriptReference[0]).Single();
 
             //Add dining room
-            var _diningRoom = plan.AddRoom(new Vector2[]
+            var diningRoom = plan.AddRoom(new Vector2[]
             {
                 Offset(point, (balconyLength + toiletLength + 0.05f) / Length, 0),
                 Offset(point, (Length - balconyLength - 0.05f) / Length, 0),
@@ -1000,9 +1001,108 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 Offset(point, (balconyLength + toiletLength + 0.05f) / Length, 1),
             }, wallThickness, new ScriptReference[0]).Single();
 
-            Assert.IsFalse(plan.GetNeighbours(_balcony2).Any(a => a.Other(_balcony2) != _diningRoom));
+            Assert.IsFalse(plan.GetNeighbours(balcony2).Any(a => a.Other(balcony2) != diningRoom));
+
+            Assert.IsNotNull(balcony1);
+            Assert.IsNotNull(balcony2);
+            Assert.IsNotNull(toiletLeft);
+            Assert.IsNotNull(toiletRight);
+            Assert.IsNotNull(corridor);
+            Assert.IsNotNull(diningRoom);
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(plan).ToString());
+        }
+
+        [TestMethod]
+        public void TrainCarriageTest2()
+        {
+            // ReSharper disable InconsistentNaming
+            var r = new Random();
+            Func<double> Random = r.NextDouble;
+
+            const int Length = 20;
+            const int Width = 10;
+
+            Func<Vector2, float, float, Vector2> Offset = (start, length, width) => start + new Vector2(Length * length, -Width * width);
+
+            Func<FloorPlan, bool, float, IEnumerable<RoomPlan>> CreateBalcony = (pl, start, bl) =>
+            {
+                var p = pl.ExternalFootprint.First();
+
+                const float wt = 0.11f;
+
+                if (start)
+                {
+                    return pl.AddRoom(new Vector2[]
+                    {
+                        Offset(p, 0, 0.01f),
+                        Offset(p, bl / Length, 0.01f),
+                        Offset(p, bl / Length, 0.99f),
+                        Offset(p, 0, 0.99f),
+                    }, wt, new ScriptReference[0]);
+                }
+                else
+                {
+                    return pl.AddRoom(new Vector2[]
+                    {
+                        Offset(p, 1 - (bl / Length), 0.01f),
+                        Offset(p, 1, 0.01f),
+                        Offset(p, 1, 0.99f),
+                        Offset(p, 1 - bl / Length, 0.99f),
+                    }, wt, new ScriptReference[0]);
+                }
+            };
+
+            var plan = new FloorPlan(new Vector2[]
+            {
+                new Vector2(-Length / 2f, Width / 2f),
+                new Vector2(Length / 2f, Width / 2f),
+                new Vector2(Length / 2f, -Width / 2f),
+                new Vector2(-Length / 2f, -Width / 2f),
+            });
+// ReSharper restore InconsistentNaming
+
+            //Create balconies on either end
+            float balconyLength = Math.Min(3, Length / 10f);
+            CreateBalcony(plan, true, balconyLength);
+            CreateBalcony(plan, false, balconyLength);
+
+            //Reference point to create rooms relative to
+            var point = plan.ExternalFootprint.First();
+
+            //Create corridor section along entire train (along one side)
+            const float corridorWidth = 3;
+            plan.AddRoom(new Vector2[]
+            {
+                Offset(point, (balconyLength + 0.05f) / Length, 0),
+                Offset(point, (Length - balconyLength - 0.05f) / Length, 0),
+                Offset(point, (Length - balconyLength - 0.05f) / Length, corridorWidth / Width),
+                Offset(point, (balconyLength + 0.05f) / Length, corridorWidth / Width),
+            }, 0.55f, new ScriptReference[0]);
+
+            //Create compartments
+            var compartmentAreaLength = Length - (balconyLength + 0.05f) * 2;
+            var compartmentCount = RandomUtilities.CompartmentalizeSpace(Random, compartmentAreaLength, 1, int.MaxValue, 6, 10);
+            var compartmentLength = compartmentAreaLength / compartmentCount;
+
+            var compartments = new RoomPlan[compartmentCount];
+            for (int i = 0; i < compartmentCount; i++)
+            {
+                var xStart = balconyLength + 0.05f + i * compartmentLength;
+                var xEnd = xStart + compartmentLength - 0.05f;
+
+                const float yStart = corridorWidth;
+
+                compartments[i] = plan.AddRoom(new Vector2[]
+                {
+                    Offset(point, xStart / Length, yStart / Width),
+                    Offset(point, xEnd / Length, yStart / Width),
+                    Offset(point, xEnd / Length, 1),
+                    Offset(point, xStart / Length, 1),
+                }, 0.55f, new ScriptReference[0]).Single();
+            }
+
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(plan, scalePosition: 10).ToString());
         }
 
         [TestMethod]
@@ -1121,6 +1221,12 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 new Vector2(100, 50),
                 new Vector2(100, -50),
             }, 5, new ScriptReference[0], false).Single();
+
+            Assert.IsNotNull(a);
+            Assert.IsNotNull(b);
+            Assert.IsNotNull(b2);
+            Assert.IsNotNull(c);
+            Assert.IsNotNull(d);
 
             //A neighbours B, C, ~D
             var neighboursA = _plan.GetNeighbours(a);
