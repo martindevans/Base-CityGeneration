@@ -15,12 +15,9 @@ namespace Base_CityGeneration.Parcelling
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
             var nodes = CreateParcelNodes(GenerateParcels(bounds.Footprint).ToArray(), bounds.Height);
-            foreach (var node in nodes)
-            {
-                var grounded = node.Value as IGrounded;
-                if (grounded != null)
-                    grounded.GroundHeight = GroundHeight;
-            }
+
+            foreach (var grounded in nodes.Select(node => node.Value).OfType<IGrounded>())
+                grounded.GroundHeight = GroundHeight;
         }
 
         /// <summary>

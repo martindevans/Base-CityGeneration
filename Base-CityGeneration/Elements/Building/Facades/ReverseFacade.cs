@@ -33,12 +33,12 @@ namespace Base_CityGeneration.Elements.Building.Facades
             ));
         }
 
-        private float ToParentDepth(float depth)
+        private static float ToParentDepth(float depth)
         {
             return 1 - MathHelper.Clamp(depth, 0, 1);
         }
 
-        private Vector2 ToParentXY(Vector2 xy)
+        private static Vector2 ToParentXY(Vector2 xy)
         {
             return new Vector2(-xy.X, xy.Y);
         }

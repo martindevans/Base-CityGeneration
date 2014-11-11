@@ -97,7 +97,7 @@ namespace Base_CityGeneration.Elements.Roads
                     y.RightStart = yr;
                 }
 
-                Vector2[] points = new[]
+                Vector2[] points =
                 {
                     xl, xr, yl, yr, xLeft.Intersection2D(yLeft).Value
                 };

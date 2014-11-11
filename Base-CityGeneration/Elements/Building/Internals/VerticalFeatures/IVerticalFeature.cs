@@ -1,7 +1,5 @@
 ﻿
-using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Scripts;
 
 namespace Base_CityGeneration.Elements.Building.Internals.VerticalFeatures
 {

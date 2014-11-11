@@ -68,6 +68,7 @@ namespace Base_CityGeneration.Parcelling
             var children = Split(parcel, splitLine, oabb.Middle).ToArray();
 
             //If any children are discarded try splitting the other way
+            // ReSharper disable once AccessToModifiedClosure
             if (_terminators.Any(t => children.Any(c => t.Discard(c, _random))))
             {
                 splitLine = splitLine.Perpendicular();

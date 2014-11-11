@@ -31,7 +31,9 @@ namespace Base_CityGeneration
                     return f;
                 }
 
+// ReSharper disable AccessToModifiedClosure
                 if (stopTypes.Any(t => t.IsInstanceOfType(node)))
+// ReSharper restore AccessToModifiedClosure
                     break;
 
                 //Search further up

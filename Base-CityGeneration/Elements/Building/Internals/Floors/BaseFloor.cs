@@ -214,6 +214,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                                 newFacade = FailedToFindInternalNeighbourSection(facade.NeighbouringRoom, roomPlan, facade);
                             else
                             {
+                                // ReSharper disable once AccessToForEachVariableInClosure
                                 var f = fs.SingleOrDefault(a => a.Section.Matches(facade.Section, 0.01f));
                                 if (f == null)
                                     newFacade = FailedToFindInternalNeighbourSection(facade.NeighbouringRoom, roomPlan, facade);

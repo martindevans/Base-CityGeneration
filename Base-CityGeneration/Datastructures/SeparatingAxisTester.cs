@@ -50,12 +50,12 @@ namespace Base_CityGeneration.Datastructures
             }
         }
 
-        private static IEnumerable<Ray2D> Edges(Vector2[] shape)
+        private static IEnumerable<Ray2D> Edges(IList<Vector2> shape)
         {
-            for (int i = 0; i < shape.Length; i++)
+            for (int i = 0; i < shape.Count; i++)
             {
                 var a = shape[i];
-                var b = shape[(i + 1) % shape.Length];
+                var b = shape[(i + 1) % shape.Count];
 
                 yield return new Ray2D(a, Vector2.Normalize(b - a));
             }
