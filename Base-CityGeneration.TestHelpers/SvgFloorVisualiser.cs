@@ -17,13 +17,13 @@ namespace Base_CityGeneration.TestHelpers
             return FloorplanToSvg(plan);
         }
 
-        public static XElement FloorplanToSvg(FloorPlan plan)
+        public static XElement FloorplanToSvg(FloorPlan plan, float scalePosition = 1)
         {
             Random rand = new Random();
 
             List<XObject> paths = new List<XObject>
             {
-                ToSvgPath(plan.ExternalFootprint, "black", fill:"grey", opacity: 0.1f)
+                ToSvgPath(plan.ExternalFootprint.Select(a => a * scalePosition), "black", fill:"grey", opacity: 0.1f)
             };
 
             //Add Rooms
@@ -44,7 +44,7 @@ namespace Base_CityGeneration.TestHelpers
                     else if (facade.NeighbouringRoom != null)
                         c = string.Format("rgb({0},{1},{2})", rand.Next(100, 255), rand.Next(50), rand.Next(50));
 
-                    paths.Add(ToSvgPath(new[] { facade.Section.A, facade.Section.B, facade.Section.C, facade.Section.D }, c, fill: "none"));
+                    paths.Add(ToSvgPath(new[] { facade.Section.A * scalePosition, facade.Section.B * scalePosition, facade.Section.C * scalePosition, facade.Section.D * scalePosition }, c, fill: "none"));
                 }
             }
 
