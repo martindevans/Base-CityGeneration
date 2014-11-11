@@ -1,5 +1,4 @@
-﻿using Base_CityGeneration.Elements.Building.Facades;
-using EpimetheusPlugins.Procedural;
+﻿using EpimetheusPlugins.Procedural;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Rooms
 {

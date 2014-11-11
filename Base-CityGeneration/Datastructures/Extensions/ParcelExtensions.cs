@@ -73,7 +73,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
             return childrenMap;
         }
 
-        private static void SplitFace<TVertexTag, TFaceTag>(Parcel parcel, Face<TVertexTag, string[], TFaceTag> face, Mesh<TVertexTag, string[], TFaceTag> mesh, Dictionary<Parcel, HashSet<Parcel>> childrenMap)
+        private static void SplitFace<TVertexTag, TFaceTag>(Parcel parcel, Face<TVertexTag, string[], TFaceTag> face, Mesh<TVertexTag, string[], TFaceTag> mesh, IDictionary<Parcel, HashSet<Parcel>> childrenMap)
         {
             //We have a face, like:
             //
@@ -150,14 +150,14 @@ namespace Base_CityGeneration.Datastructures.Extensions
             }
         }
 
-        private static IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> TraceEdges<TVertexTag, THalfEdgeTag, TFaceTag>(Face<TVertexTag, THalfEdgeTag, TFaceTag> face, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] include, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] exclude)
+        private static IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> TraceEdges<TVertexTag, THalfEdgeTag, TFaceTag>(Face<TVertexTag, THalfEdgeTag, TFaceTag> face, IList<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> include, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] exclude)
         {
             List<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> output = new List<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>();
 
-            for (int i = 0; i < include.Length; i++)
+            for (int i = 0; i < include.Count; i++)
             {
                 var vertex = include[i];
-                var next = include[(i + 1) % include.Length];
+                var next = include[(i + 1) % include.Count];
                 if (exclude.Contains(vertex) && exclude.Contains(next))
                     output.Add(vertex);
                 else

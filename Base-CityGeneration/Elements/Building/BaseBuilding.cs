@@ -63,12 +63,14 @@ namespace Base_CityGeneration.Elements.Building
                 if (floors[i] != null)
                 {
                     floors[i].FloorIndex = i;
+// ReSharper disable AccessToModifiedClosure
                     floors[i].Overlaps = verticals.Where(a => a.BottomFloorIndex <= i && a.TopFloorIndex >= i).ToArray();
+// ReSharper restore AccessToModifiedClosure
                 }
 
                 //Make floors prerequisite of verticals
-                for (int j = 0; j < verticals.Length; j++)
-                    verticals[j].AddPrerequisite(floors[i]);
+                foreach (IVerticalFeature v in verticals)
+                    v.AddPrerequisite(floors[i]);
             }
         }
 

@@ -119,7 +119,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return shapes;
         }
 
-        private bool HasHole(PolyNode tree)
+        private static bool HasHole(PolyNode tree)
         {
             if (tree.Contour.Count > 0 && tree.IsHole)
                 return true;
@@ -127,7 +127,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return tree.Childs.Any(HasHole);
         }
 
-        private List<List<IntPoint>> ToShapes(PolyTree tree)
+        private static List<List<IntPoint>> ToShapes(PolyTree tree)
         {
             List<List<IntPoint>> solution = new List<List<IntPoint>>();
             Clipper.PolyTreeToPolygons(tree, solution);

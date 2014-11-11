@@ -1,6 +1,4 @@
-﻿using Base_CityGeneration.Datastructures;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Rectangle = Base_CityGeneration.Datastructures.Rectangle;
 
 namespace Base_CityGeneration.Test.Datastructures

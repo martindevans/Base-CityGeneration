@@ -50,7 +50,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <param name="geometry"></param>
         /// <param name="hierarchicalParameters"></param>
         /// <returns></returns>
-        private static ICsgShape ConvertStampToBrush(Walls.Section section, Stamp stamp, ICsgFactory geometry, INamedDataCollection hierarchicalParameters)
+        private static ICsgShape ConvertStampToBrush(Walls.Section section, Stamp stamp, ICsgFactory geometry, INamedDataProvider hierarchicalParameters)
         {
             var material = stamp.Material ?? hierarchicalParameters.GetValue(new TypedName<string>("material"));
 

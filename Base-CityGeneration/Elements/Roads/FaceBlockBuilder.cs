@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Microsoft.Xna.Framework;
+using System.Linq;
 
 namespace Base_CityGeneration.Elements.Roads
 {
@@ -26,15 +27,11 @@ namespace Base_CityGeneration.Elements.Roads
 
         private Vector2[] CalculateShape()
         {
-            List<Vector2> points = new List<Vector2>();
-
-            foreach (var halfEdge in Face.Edges)
-            {
-                var builder = halfEdge.IsPrimaryEdge ? halfEdge.Tag : halfEdge.Pair.Tag;
-                points.Add(halfEdge.IsPrimaryEdge ? builder.RightStart : builder.LeftEnd);
-            }
-
-            return points.ToArray();
+            return (
+                from halfEdge in Face.Edges
+                let builder = halfEdge.IsPrimaryEdge ? halfEdge.Tag : halfEdge.Pair.Tag
+                select halfEdge.IsPrimaryEdge ? builder.RightStart : builder.LeftEnd
+            ).ToArray();
         }
     }
 }

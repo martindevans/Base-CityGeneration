@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using EpimetheusPlugins.Procedural;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Myre;
 using Myre.Collections;
+using System;
 
 namespace Base_CityGeneration.Styles
 {
