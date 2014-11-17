@@ -890,10 +890,18 @@
             <summary>
             Adds the specified value to this container.
             </summary>
-            <typeparam name="T">The type of value to add.</typeparam>
+            <typeparam name="T">c</typeparam>
             <param name="key">The key.</param>
             <param name="value">The value.</param>
             <returns>The box containing the value at the specified key.</returns>
+        </member>
+        <member name="M:Myre.Collections.BoxedValueStore`1.Set(`0,System.Object,System.Type)">
+            <summary>
+            Adds the specified value to this container.
+            </summary>
+            <param name="key">The value.</param>
+            <param name="value">The value.</param>
+            <param name="type">The type of value to add.</param>
         </member>
         <member name="T:Myre.Collections.INamedDataCollection">
             <summary>
@@ -1726,6 +1734,15 @@
             <returns></returns>
         </member>
         <member name="M:Myre.Extensions.QuaternionExtensions.Nlerp(Microsoft.Xna.Framework.Quaternion,Microsoft.Xna.Framework.Quaternion,System.Single)">
+            <summary>
+            Normalizing lerp from a to b, shortest path/non constant velocity
+            </summary>
+            <param name="a"></param>
+            <param name="b"></param>
+            <param name="t"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.QuaternionExtensions.Nlerp(Microsoft.Xna.Framework.Quaternion,Microsoft.Xna.Framework.Quaternion@,System.Single,Microsoft.Xna.Framework.Quaternion@)">
             <summary>
             Normalizing lerp from a to b, shortest path/non constant velocity
             </summary>
