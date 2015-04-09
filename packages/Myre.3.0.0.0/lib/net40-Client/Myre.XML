@@ -825,104 +825,6 @@
             <param name="point"></param>
             <returns></returns>
         </member>
-        <member name="T:Myre.Int4">
-            <summary>
-            An integer location in 4space
-            </summary>
-        </member>
-        <member name="F:Myre.Int4.W">
-            <summary>
-            W Position
-            </summary>
-        </member>
-        <member name="F:Myre.Int4.X">
-            <summary>
-            X Position
-            </summary>
-        </member>
-        <member name="F:Myre.Int4.Y">
-            <summary>
-            Y Positions
-            </summary>
-        </member>
-        <member name="F:Myre.Int4.Z">
-            <summary>
-            Z Position
-            </summary>
-        </member>
-        <member name="M:Myre.Int4.#ctor(System.Int32,System.Int32,System.Int32,System.Int32)">
-            <summary>
-            Constructs a new point in 3D integer space
-            </summary>
-            <param name="x"></param>
-            <param name="y"></param>
-            <param name="z"></param>
-            <param name="w"></param>
-        </member>
-        <member name="M:Myre.Int4.ToVector4">
-            <summary>
-            
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Myre.Int4.GetHashCode">
-            <summary>
-            
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Myre.Int4.Equals(System.Object)">
-            <summary>
-            
-            </summary>
-            <param name="obj"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Myre.Int4.Equals(Myre.Int4)">
-            <summary>
-            
-            </summary>
-            <param name="other"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Myre.Int4.ToString">
-            <summary>
-            
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Myre.Int4.op_Addition(Myre.Int4,Myre.Int4)">
-            <summary>
-            Add together the members of two Int3s
-            </summary>
-            <param name="a"></param>
-            <param name="b"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Myre.Int4.op_Subtraction(Myre.Int4,Myre.Int4)">
-            <summary>
-            Subtract the members of one Int3 off another
-            </summary>
-            <param name="a"></param>
-            <param name="b"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Myre.Int4.op_Equality(Myre.Int4,Myre.Int4)">
-            <summary>
-            
-            </summary>
-            <param name="a"></param>
-            <param name="b"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Myre.Int4.op_Inequality(Myre.Int4,Myre.Int4)">
-            <summary>
-            
-            </summary>
-            <param name="a"></param>
-            <param name="b"></param>
-            <returns></returns>
-        </member>
         <member name="T:Myre.Delayed">
             <summary>
             A static class containing methods for fire-and-forget delayed events and transitions.
@@ -1223,6 +1125,411 @@
             Get a vector 2 with the specified elements
             </summary>
             <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XXX(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XXY(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XXZ(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XYX(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XYY(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XYZ(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XZX(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XZY(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XZZ(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YXX(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YXY(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YXZ(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YYX(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YYY(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YYZ(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YZX(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YZY(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YZZ(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZXX(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZXY(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZXZ(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZYX(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZYY(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZYZ(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZZX(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZZY(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZZZ(Microsoft.Xna.Framework.Vector3)">
+            <summary>
+            Create a new vector 3 with the same elements in a different order
+            </summary>
+            <param name="point"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XX_(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XY_(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.XZ_(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YX_(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YY_(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.YZ_(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZX_(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZY_(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.ZZ_(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.X_X(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.X_Y(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.X_Z(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.Y_X(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.Y_Y(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.Y_Z(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.Z_X(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.Z_Y(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions.Z_Z(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions._XX(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="x"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions._XY(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="x"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions._XZ(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="x"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions._YX(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="x"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions._YY(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="x"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions._YZ(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="x"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions._ZX(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="x"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions._ZY(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="x"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector3Extensions._ZZ(Microsoft.Xna.Framework.Vector3,System.Single)">
+            <summary>
+            Create a vector 3 with 2 elements from this vector, and a third floating point value
+            </summary>
+            <param name="point"></param>
+            <param name="x"></param>
             <returns></returns>
         </member>
         <member name="T:Myre.Extensions.GameTimeExtensions">
@@ -1696,6 +2003,106 @@
             </summary>
             <param name="v"></param>
             <param name="epsilon"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions.XX(Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Rearrange elements in a vector2
+            </summary>
+            <param name="v"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions.XY(Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Rearrange elements in a vector2
+            </summary>
+            <param name="v"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions.YX(Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Rearrange elements in a vector2
+            </summary>
+            <param name="v"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions.YY(Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Rearrange elements in a vector2
+            </summary>
+            <param name="v"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions._XY(Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Create a new vector3
+            </summary>
+            <param name="v"></param>
+            <param name="x"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions.X_Y(Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Create a new vector3
+            </summary>
+            <param name="v"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions.XY_(Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Create a new vector3
+            </summary>
+            <param name="v"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions._XX(Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Create a new vector3
+            </summary>
+            <param name="v"></param>
+            <param name="x"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions.X_X(Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Create a new vector3
+            </summary>
+            <param name="v"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions.XX_(Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Create a new vector3
+            </summary>
+            <param name="v"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions._YY(Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Create a new vector3
+            </summary>
+            <param name="v"></param>
+            <param name="x"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions.Y_Y(Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Create a new vector3
+            </summary>
+            <param name="v"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Myre.Extensions.Vector2Extensions.YY_(Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Create a new vector3
+            </summary>
+            <param name="v"></param>
+            <param name="z"></param>
             <returns></returns>
         </member>
         <member name="T:Myre.ICopyable">
