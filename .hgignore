@@ -13,3 +13,4 @@ syntax: glob
 _NCrunch_Base-CityGeneration
 Base-CityGeneration.TestHelpers/bin
 Base-CityGeneration.TestHelpers/obj
+_ReSharper.Base-CityGeneration
