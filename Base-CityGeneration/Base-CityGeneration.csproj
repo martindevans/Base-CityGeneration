@@ -59,9 +59,9 @@
       <HintPath>..\packages\Cassowary.3.0.0.0\lib\net35-Client\Cassowary.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5578.944, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="EpimetheusPlugins, Version=1.0.5602.3038, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5578.944\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5602.3038\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
     </Reference>
     <Reference Include="HandyCollections, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -77,19 +77,19 @@
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="Myre, Version=4.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Myre.Graphics.5.1.0.0\lib\net40-Client\Myre.dll</HintPath>
+      <HintPath>..\packages\Myre.Graphics.5.2.0.0\lib\net40-Client\Myre.dll</HintPath>
     </Reference>
     <Reference Include="Myre.Debugging, Version=3.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Myre.Debugging.3.0.0.0\lib\net40-Client\Myre.Debugging.dll</HintPath>
     </Reference>
-    <Reference Include="Myre.Entities, Version=6.0.0.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="Myre.Entities, Version=6.0.1.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Myre.Entities.6.0.0.0\lib\net40-Client\Myre.Entities.dll</HintPath>
+      <HintPath>..\packages\Myre.Entities.6.0.1.0\lib\net40-Client\Myre.Entities.dll</HintPath>
     </Reference>
-    <Reference Include="Myre.Graphics, Version=5.1.0.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="Myre.Graphics, Version=5.2.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Myre.Graphics.5.1.0.0\lib\net40-Client\Myre.Graphics.dll</HintPath>
+      <HintPath>..\packages\Myre.Graphics.5.2.0.0\lib\net40-Client\Myre.Graphics.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -99,31 +99,37 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Ninject.3.2.2.0\lib\net40\Ninject.dll</HintPath>
     </Reference>
-    <Reference Include="NLog, Version=3.2.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+    <Reference Include="NLog, Version=3.2.1.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NLog.3.2.0.0\lib\net40\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.3.2.1\lib\net40\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="Placeholder, Version=2.1.2.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="Placeholder, Version=2.2.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Placeholder.2.1.2.0\lib\net40-Client\Placeholder.dll</HintPath>
+      <HintPath>..\packages\Placeholder.2.2.0.0\lib\net40-Client\Placeholder.dll</HintPath>
     </Reference>
     <Reference Include="Placeholder.AI">
       <HintPath>..\packages\Placeholder.AI.1.0.5.0\lib\net40-Client\Placeholder.AI.dll</HintPath>
     </Reference>
-    <Reference Include="Placeholder.AI.Control, Version=8.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Placeholder.AI.Control, Version=13.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Placeholder.AI.Planning.Parsing.4.1.2.0\lib\net40\Placeholder.AI.Control.dll</HintPath>
+      <HintPath>..\packages\Placeholder.AI.Control.13.1.0.0\lib\net40-Client\Placeholder.AI.Control.dll</HintPath>
     </Reference>
-    <Reference Include="Placeholder.AI.Pathfinding, Version=7.2.0.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="Placeholder.AI.Pathfinding, Version=8.2.2.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Placeholder.AI.Pathfinding.7.2.0.0\lib\net40-Client\Placeholder.AI.Pathfinding.dll</HintPath>
+      <HintPath>..\packages\Placeholder.AI.Pathfinding.8.2.2.0\lib\net40-Client\Placeholder.AI.Pathfinding.dll</HintPath>
     </Reference>
     <Reference Include="Placeholder.AI.Planning.Parsing">
       <HintPath>..\packages\Placeholder.AI.Planning.Parsing.4.1.2.0\lib\net40\Placeholder.AI.Planning.Parsing.dll</HintPath>
     </Reference>
+    <Reference Include="Placeholder.Audio2">
+      <HintPath>..\packages\Placeholder.Audio2.4.2.0.0\lib\net40-Client\Placeholder.Audio2.dll</HintPath>
+    </Reference>
     <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=8.2.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.8.2.0.0\lib\net40-Client\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
+    </Reference>
+    <Reference Include="Placeholder.Content">
+      <HintPath>..\packages\Placeholder.Content.1.2.3.0\lib\net40-Client\Placeholder.Content.dll</HintPath>
     </Reference>
     <Reference Include="Placeholder.Entities, Version=1.4.1.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
@@ -140,6 +146,9 @@
     <Reference Include="Poly2Tri, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.8.2.0.0\lib\net40-Client\Poly2Tri.dll</HintPath>
+    </Reference>
+    <Reference Include="SupersonicSound">
+      <HintPath>..\packages\SupersonicSound.1.1.0.0\lib\net40-Client\SupersonicSound.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -251,7 +260,20 @@
     <None Include="Elements\Building\Building Hierarchy.md" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Dependencies\x86\fmod.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dependencies\x86\fmodstudio.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dependencies\x86_64\fmod.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Dependencies\x86_64\fmodstudio.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
