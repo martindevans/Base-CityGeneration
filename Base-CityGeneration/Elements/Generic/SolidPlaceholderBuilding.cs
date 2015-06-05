@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
-using Myre;
 using Myre.Collections;
 using Myre.Extensions;
+using System;
 
 namespace Base_CityGeneration.Elements.Generic
 {
@@ -25,7 +25,7 @@ namespace Base_CityGeneration.Elements.Generic
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
             var height = (float)Math.Min(bounds.Height, Math.Sqrt(bounds.Footprint.Area()) * (Random() + 0.5));
-            var material = hierarchicalParameters.GetValue(new TypedName<string>("material")) ?? "concrete";
+            var material = hierarchicalParameters.DefaultMaterial(Random);
 
             var prism = geometry.CreatePrism(material, bounds.Footprint, height).Transform(Matrix.CreateTranslation(0, height / 2f - bounds.Height / 2f + GroundHeight, 0));
             geometry.Union(prism);

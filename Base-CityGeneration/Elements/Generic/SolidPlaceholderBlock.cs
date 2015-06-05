@@ -1,6 +1,6 @@
-﻿using EpimetheusPlugins.Procedural;
+﻿using Base_CityGeneration.Styles;
+using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
-using Myre;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Generic
@@ -11,7 +11,7 @@ namespace Base_CityGeneration.Elements.Generic
     {
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
-            geometry.Union(geometry.CreatePrism(hierarchicalParameters.GetValue(new TypedName<string>("material")) ?? "concrete", bounds.Footprint, bounds.Height));
+            geometry.Union(geometry.CreatePrism(hierarchicalParameters.DefaultMaterial(Random), bounds.Footprint, bounds.Height));
         }
 
         public override bool Accept(Prism bounds, INamedDataProvider parameters)
