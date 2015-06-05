@@ -115,6 +115,7 @@
     <Compile Include="Elements\Building\Internals\Floors\TestHelperExtensions.cs" />
     <Compile Include="Parcelling\ObbParcellerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UnitTest1.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Base-CityGeneration.TestHelpers\Base-CityGeneration.TestHelpers.csproj">

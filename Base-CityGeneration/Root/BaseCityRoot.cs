@@ -7,6 +7,7 @@ using Base_CityGeneration.Elements.Roads;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Root
 {
@@ -35,7 +36,7 @@ namespace Base_CityGeneration.Root
             _totalHeight = totalHeight;
         }
 
-        public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, Myre.Collections.INamedDataCollection hierarchicalParameters)
+        public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
             //Generate a topological map of city roads
             Mesh<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> m = GenerateBlockMesh();

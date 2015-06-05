@@ -60,9 +60,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Cassowary.4.0.0.0\lib\net35-Client\Cassowary.dll</HintPath>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5632.38764, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="EpimetheusPlugins, Version=1.0.5634.3434, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5632.38764\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5634.3434\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
     </Reference>
     <Reference Include="HandyCollections, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -182,6 +182,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Class1.cs" />
     <Compile Include="Datastructures\Constraints\ConstrainedRectangle.cs" />
     <Compile Include="Datastructures\Constraints\Range.cs" />
     <Compile Include="Datastructures\Extensions\MeshExtensions.cs" />

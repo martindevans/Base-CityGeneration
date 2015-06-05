@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
@@ -27,8 +28,10 @@ namespace Base_CityGeneration.Elements.Building.Facades
 
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
+            //Create a brush which will represent our facade
             var facade = CreateFacade(bounds, geometry, hierarchicalParameters);
 
+            //Convert stamps and apply them to the facade brush
             var stamps = EmbossingStamps(hierarchicalParameters, Section.Width, bounds.Height);
             foreach (var stamp in stamps)
             {
@@ -39,7 +42,10 @@ namespace Base_CityGeneration.Elements.Building.Facades
                 facade = stamp.Additive ? facade.Union(brush) : facade.Subtract(brush);
             }
 
-            geometry.Union(facade);
+            //Place the geometry in the world
+            //Clip:false here allows the facade to overhang the bounds it is contained within (the wall section). Facades almost always do this in practice...
+            //...e.g. fancy window decorations stick out from the wall a little bit
+            geometry.Union(facade, clip: false);
         }
 
         /// <summary>
@@ -71,7 +77,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
                             new Matrix { Forward = new Vector3(vOut.X, 0, vOut.Y), Left = new Vector3(vLeft.X, 0, vLeft.Y), Up = Vector3.Up, M44 = 1 };
 
             //create brush
-            return geometry.CreatePrism(material, stamp.Shape, thickness).Transform(transform);
+            return geometry.CreatePrism(material, stamp.Shape, Math.Abs(thickness)).Transform(transform);
         }
 
         /// <summary>
@@ -83,7 +89,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <returns></returns>
         protected virtual ICsgShape CreateFacade(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
-            return geometry.CreatePrism(hierarchicalParameters.GetValue(new TypedName<string>("material")), bounds.Footprint, bounds.Height);
+            return geometry.CreatePrism(hierarchicalParameters.DefaultMaterial(Random), bounds.Footprint, bounds.Height);
         }
 
         /// <summary>
