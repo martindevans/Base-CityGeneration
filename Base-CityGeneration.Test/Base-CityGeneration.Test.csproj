@@ -35,9 +35,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EpimetheusPlugins, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="EpimetheusPlugins, Version=1.0.5644.2883, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Visual Studio 2010\Projects\HeistCore\EpimetheusPlugins\bin\x86\Release\EpimetheusPlugins.dll</HintPath>
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5644.2898\lib\net40\EpimetheusPlugins.dll</HintPath>
+    </Reference>
+    <Reference Include="EpimetheusPlugins.Testing">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5644.2898\lib\net40\EpimetheusPlugins.Testing.dll</HintPath>
     </Reference>
     <Reference Include="HandyCollections, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -46,15 +49,31 @@
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
+    <Reference Include="Mercurial.Net, Version=1.1.1.607, Culture=neutral, PublicKeyToken=9e2fabf3af85dba9, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Mercurial.Net.1.1.1.607\lib\net35-Client\Mercurial.Net.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="Myre, Version=4.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Myre.4.0.0.0\lib\net40-Client\Myre.dll</HintPath>
+      <HintPath>..\packages\Myre.Graphics.5.2.0.0\lib\net40-Client\Myre.dll</HintPath>
     </Reference>
     <Reference Include="Myre.Debugging, Version=3.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Myre.Debugging.3.0.0.0\lib\net40-Client\Myre.Debugging.dll</HintPath>
+    </Reference>
+    <Reference Include="Myre.Entities, Version=6.0.1.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Myre.Entities.6.0.1.0\lib\net40-Client\Myre.Entities.dll</HintPath>
+    </Reference>
+    <Reference Include="Myre.Graphics, Version=5.2.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Myre.Graphics.5.2.0.0\lib\net40-Client\Myre.Graphics.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Ninject, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -68,9 +87,51 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Placeholder.2.2.0.0\lib\net40-Client\Placeholder.dll</HintPath>
     </Reference>
+    <Reference Include="Placeholder.AI, Version=1.0.5.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Placeholder.AI.1.0.5.0\lib\net40-Client\Placeholder.AI.dll</HintPath>
+    </Reference>
+    <Reference Include="Placeholder.AI.Control, Version=8.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Placeholder.AI.Planning.Parsing.4.1.2.0\lib\net40\Placeholder.AI.Control.dll</HintPath>
+    </Reference>
     <Reference Include="Placeholder.AI.Pathfinding, Version=8.2.2.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Placeholder.AI.Pathfinding.8.2.2.0\lib\net40-Client\Placeholder.AI.Pathfinding.dll</HintPath>
+    </Reference>
+    <Reference Include="Placeholder.AI.Planning.Parsing">
+      <HintPath>..\packages\Placeholder.AI.Planning.Parsing.4.1.2.0\lib\net40\Placeholder.AI.Planning.Parsing.dll</HintPath>
+    </Reference>
+    <Reference Include="Placeholder.Audio2, Version=4.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Placeholder.Audio2.4.4.3.0\lib\net40-Client\Placeholder.Audio2.dll</HintPath>
+    </Reference>
+    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=8.2.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.8.2.0.0\lib\net40-Client\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
+    </Reference>
+    <Reference Include="Placeholder.Content">
+      <HintPath>..\packages\Placeholder.Content.1.2.3.0\lib\net40-Client\Placeholder.Content.dll</HintPath>
+    </Reference>
+    <Reference Include="Placeholder.Entities, Version=1.4.1.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Placeholder.Entities.1.4.1.0\lib\net40-Client\Placeholder.Entities.dll</HintPath>
+    </Reference>
+    <Reference Include="Placeholder.Networking, Version=1.2.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Placeholder.Networking.1.2.0.0\lib\net40-Client\Placeholder.Networking.dll</HintPath>
+    </Reference>
+    <Reference Include="Placeholder.Serialization, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Placeholder.Serialization.2.0.0.0\lib\net40\Placeholder.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="Poly2Tri, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.8.2.0.0\lib\net40-Client\Poly2Tri.dll</HintPath>
+    </Reference>
+    <Reference Include="SupersonicSound, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\SupersonicSound.1.2.0.0\lib\net40-Client\SupersonicSound.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -113,6 +174,7 @@
     <Compile Include="Elements\Building\BaseBuildingTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\FloorPlanTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\FloorSelectorTest.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\Playground.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\Spec\SpecTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\TestHelperExtensions.cs" />
     <Compile Include="Parcelling\ObbParcellerTest.cs" />

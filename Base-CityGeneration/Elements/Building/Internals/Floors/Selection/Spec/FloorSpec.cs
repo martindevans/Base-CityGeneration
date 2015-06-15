@@ -21,13 +21,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        private readonly float _tagProbabilitySum;
-
         public FloorSpec(KeyValuePair<float, string[]>[] tags)
         {
             _tags = tags;
-
-            _tagProbabilitySum = _tags.Select(a => a.Key).Sum();
         }
 
         public IEnumerable<ScriptReference> Select(Func<double> random, ScriptReference[] verticals, Func<string[], ScriptReference> finder)
