@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
+using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 {
@@ -79,14 +80,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         public int AtLeast { get; private set; }
 
         /// <summary>
+        /// The mean number of samples to take from this spec to include in the parent range
+        /// </summary>
+        public float Mean { get; private set; }
+
+        /// <summary>
         /// The maximum number of samples to take from this spec to include in the parent range
         /// </summary>
         public int AtMost { get; private set; }
 
         /// <summary>
-        /// The chance (0-100, percentage) of including this spec in the parent range
+        /// The standard deviation to use when selecting the number of items to take from this spec
         /// </summary>
-        public float Chance { get; private set; }
+        public float Deviation { get; private set; }
 
         /// <summary>
         /// Whether the samples taken from this range should vary (i.e. if false every sample will be the same)
@@ -98,11 +104,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         /// </summary>
         public bool Continuous { get; private set; }
 
-        public FloorRangeIncludeSpec(int atLeast, int atMost, float chance, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags)
+        public FloorRangeIncludeSpec(int atLeast, float mean, int atMost, float stdDeviation, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags)
         {
             AtLeast = atLeast;
+            Mean = mean;
             AtMost = atMost;
-            Chance = chance;
+            Deviation = stdDeviation;
             Vary = vary;
             Continuous = continuous;
 
@@ -111,12 +118,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
         public IEnumerable<IEnumerable<ScriptReference>> Select(Func<double> random, ScriptReference[] verticals, Func<string[], ScriptReference> finder)
         {
-            //Skip this range altogether?
-            if (Chance < random.RandomSingle(0, 100))
-                return new IEnumerable<ScriptReference>[0];
-
             //How many items to emit?
-            var amount = random.RandomInteger(AtLeast, AtMost);
+            int amount = (int)MathHelper.Clamp((float)Math.Round(random.NormallyDistributedSingle(Deviation, Mean), MidpointRounding.AwayFromZero), AtLeast, AtMost);
 
             //Result to emit
             List<List<ScriptReference>> emit = new List<List<ScriptReference>>();
@@ -163,14 +166,20 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             public TagContainer Tags { get; set; }
 
             public int AtLeast { get; set; }
+            public float? Mean { get; set; }
             public int AtMost { get; set; }
-            public float Chance { get; set; }
+
+            public float? Deviation { get; set; }
+
             public bool Vary { get; set; }
             public bool Continuous { get; set; }
 
             internal FloorRangeIncludeSpec Unwrap()
             {
-                return new FloorRangeIncludeSpec(AtLeast, AtMost, Chance, Vary, Continuous, Tags.ToArray());
+                var mean = Mean ?? (AtLeast * 0.5f + AtMost * 0.5f);
+                var deviation = Deviation ?? (AtMost - AtLeast) * 0.2f;
+
+                return new FloorRangeIncludeSpec(AtLeast, mean, AtMost, deviation, Vary, Continuous, Tags.ToArray());
             }
         }
     }

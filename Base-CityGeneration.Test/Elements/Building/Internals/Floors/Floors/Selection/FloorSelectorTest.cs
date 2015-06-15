@@ -62,7 +62,6 @@ Floors:
         - AtLeast: 1
           AtMost: 5
           Vary: true
-          Chance: 100
           Tags:
             1: [a]
             1: [b]

@@ -60,9 +60,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Cassowary.4.0.0.0\lib\net35-Client\Cassowary.dll</HintPath>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5640.28761, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="EpimetheusPlugins, Version=1.0.5644.2883, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5640.28761\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5644.2883\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
     </Reference>
     <Reference Include="HandyCollections, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
