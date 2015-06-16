@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
+﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Markers;
-using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using EpimetheusPlugins.Scripts;
 using Myre.Extensions;
 using SharpYaml.Serialization;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
 {
     public class FloorSelector
+        : IGroupFinder
     {
         private readonly ISelector[] _verticalSelectors;
         public IEnumerable<ISelector> VerticalSelectors
@@ -31,21 +31,31 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             }
         }
 
-        public FloorSelector(ISelector[] floorSelectors, ISelector[] verticalSelectors)
+        private readonly KeyValuePair<string, HeightSpec>[] _heightGroups;
+        public IEnumerable<KeyValuePair<string, HeightSpec>> HeightGroups
+        {
+            get
+            {
+                return _heightGroups;
+            }
+        }
+
+        public FloorSelector(ISelector[] floorSelectors, ISelector[] verticalSelectors, KeyValuePair<string, HeightSpec>[] heightGroups)
         {
             _floorSelectors = floorSelectors;
             _verticalSelectors = verticalSelectors;
+            _heightGroups = heightGroups;
         }
 
         public Selection Select(Func<double> random, Func<string[], ScriptReference> finder)
         {
-            var verticals = SelectVerticals(random, finder, _verticalSelectors).ToArray();
+            var verticals = SelectVerticals(random, finder, _verticalSelectors).ToArray();  
 
             var aboveGround = _floorSelectors.TakeWhile(a => !(a is GroundMarker)).ToArray();
             var belowGround = _floorSelectors.SkipWhile(a => !(a is GroundMarker)).ToArray();
 
-            var above = SelectFloors(random, finder, verticals, aboveGround);
-            var below = SelectFloors(random, finder, verticals, belowGround);
+            var above = SelectFloors(random, finder, verticals, aboveGround, this);
+            var below = SelectFloors(random, finder, verticals, belowGround, this);
 
             return new Selection(
                 above.Append(below).ToArray(),
@@ -53,12 +63,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             );
         }
 
-        private IEnumerable<ScriptReference> SelectFloors(Func<double> random, Func<string[], ScriptReference> finder, ScriptReference[] verticals, IEnumerable<ISelector> selectors)
+        private IEnumerable<FloorSelection> SelectFloors(Func<double> random, Func<string[], ScriptReference> finder, ScriptReference[] verticals, IEnumerable<ISelector> selectors, IGroupFinder groupFinder)
         {
-            List<ScriptReference> floors = new List<ScriptReference>();
+            List<FloorSelection> floors = new List<FloorSelection>();
 
             foreach (var selector in selectors)
-                floors.AddRange(selector.Select(random, verticals, finder));
+                floors.AddRange(selector.Select(random, verticals, finder, groupFinder));
 
             return floors;
         }
@@ -71,11 +81,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
 
         public struct Selection
         {
-            public ScriptReference[] Floors { get; private set; }
+            public FloorSelection[] Floors { get; private set; }
 
             public ScriptReference[] Verticals { get; private set; }
 
-            public Selection(ScriptReference[] floors, ScriptReference[] verticals)
+            public Selection(FloorSelection[] floors, ScriptReference[] verticals)
                 : this()
             {
                 Floors = floors;
@@ -83,6 +93,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             }
         }
 
+        HeightSpec IGroupFinder.Find(string group)
+        {
+            return _heightGroups.Where(a => a.Key.Equals(group, StringComparison.InvariantCultureIgnoreCase)).Select(a => a.Value).SingleOrDefault();
+        }
+
+        #region serialization
         private static Serializer CreateSerializer()
         {
             var serializer = new Serializer(new SerializerSettings
@@ -108,6 +124,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
 
         internal class Container
         {
+            public Dictionary<string, HeightSpec.Container> Groups { get; set; }
+
             // ReSharper disable once MemberCanBePrivate.Local
             public ISelectorContainer[] Verticals { get; set; }
 
@@ -118,9 +136,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             {
                 return new FloorSelector(
                     Floors.Select(a => a.Unwrap()).ToArray(),
-                    Verticals.Select(a => a.Unwrap()).ToArray()
+                    (Verticals ?? new ISelectorContainer[0]).Select(a => a.Unwrap()).ToArray(),
+                    (Groups ?? new Dictionary<string, HeightSpec.Container>()).Select(a => new KeyValuePair<string, HeightSpec>(a.Key, a.Value.Unwrap())).ToArray()
                 );
             }
         }
+        #endregion
     }
 }

@@ -11,7 +11,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
     /// Summary description for SpecTest
     /// </summary>
     [TestClass]
-    public class SpecTest
+    public class SerializationTest
     {
         [TestMethod]
         public void DeserializeBuilding()
@@ -34,6 +34,12 @@ Floors: []
 Verticals: []
 Floors:
     - !Floor
+      Height:
+        Min: 1
+        Mean: 3
+        Max: 5
+        Deviation: 2
+
       Tags:
         1: [a]
         2: [b]
@@ -42,6 +48,12 @@ Floors:
             Assert.IsNotNull(b);
             Assert.AreEqual(1, b.FloorSelectors.Count());
             var spec = (FloorSpec)b.FloorSelectors.Single();
+
+            Assert.AreEqual(1, spec.Height.Min);
+            Assert.AreEqual(5, spec.Height.Max);
+            Assert.AreEqual(3, spec.Height.Mean);
+            Assert.AreEqual(2, spec.Height.Deviation);
+            Assert.IsNull(spec.Height.Group);
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
             Assert.AreEqual("a", spec.Tags.Single(a => a.Key == 1).Value.Single());
