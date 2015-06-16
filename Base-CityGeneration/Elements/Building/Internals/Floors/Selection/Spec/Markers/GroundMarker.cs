@@ -10,7 +10,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.
     public class GroundMarker
         : IMarker
     {
-        public IEnumerable<ScriptReference> Select(Func<double> random, ScriptReference[] verticals, System.Func<string[], ScriptReference> finder)
+        public IEnumerable<FloorSelection> Select(Func<double> random, ScriptReference[] verticals, Func<string[], ScriptReference> finder, IGroupFinder groupFinder)
         {
             yield break;
         }

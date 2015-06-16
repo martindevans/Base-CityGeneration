@@ -21,17 +21,30 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        public FloorSpec(KeyValuePair<float, string[]>[] tags)
+        private readonly HeightSpec _height;
+        public HeightSpec Height
         {
-            _tags = tags;
+            get
+            {
+                return _height;
+            }
         }
 
-        public IEnumerable<ScriptReference> Select(Func<double> random, ScriptReference[] verticals, Func<string[], ScriptReference> finder)
+        public FloorSpec(KeyValuePair<float, string[]>[] tags, HeightSpec height)
+        {
+            _tags = tags;
+
+            _height = height;
+        }
+
+        public IEnumerable<FloorSelection> Select(Func<double> random, ScriptReference[] verticals, Func<string[], ScriptReference> finder, IGroupFinder groupFinder)
         {
             var selected = SelectSingle(random, _tags, verticals, finder);
             if (selected == null)
-                return new ScriptReference[0];
-            return new ScriptReference[] { selected };
+                return new FloorSelection[0];
+
+            var height = _height.SelectHeight(random, groupFinder);
+            return new FloorSelection[] { new FloorSelection(selected, height) };
         }
 
         public static ScriptReference SelectSingle(Func<double> random, IEnumerable<KeyValuePair<float, string[]>> tags, ScriptReference[] verticals, Func<string[], ScriptReference> finder)
@@ -64,9 +77,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public TagContainer Tags { get; set; }
 
+            public HeightSpec.Container Height { get; set; }
+
             public ISelector Unwrap()
             {
-                return new FloorSpec(Tags.ToArray());
+                return new FloorSpec(Tags.ToArray(), Height.Unwrap());
             }
         }
     }

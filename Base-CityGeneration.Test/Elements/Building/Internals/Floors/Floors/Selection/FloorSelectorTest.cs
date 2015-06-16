@@ -18,6 +18,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
 Verticals: []
 Floors:
     - !Floor
+      Height:
+        Min: 1
+        Max: 2
       Tags:
         1: [a]
 "));
@@ -28,6 +31,47 @@ Floors:
             var selection = b.Select(r.NextDouble, (tags) => new ScriptReference(typeof(TestScript)));
 
             Assert.AreEqual(1, selection.Floors.Count());
+
+            var h = selection.Floors.Single().Height;
+            Assert.IsTrue(h >= 1 && h <= 2);
+        }
+
+        [TestMethod]
+        public void AssertThat_TwoFloors_WithHeightGroup_InheritsHeightFromRootGroup()
+        {
+            var b = FloorSelector.Deserialize(new StringReader(@"
+!Building
+Groups:
+    groupname:
+        Vary: false
+        Min: 5
+        Max: 10
+Verticals: []
+Floors:
+    - !Floor
+      Height:
+        Group: groupname
+      Tags:
+        1: [a]
+    - !Floor
+      Height:
+        Group: groupname
+      Tags:
+        1: [a]
+"));
+
+            Assert.IsNotNull(b);
+
+            Random r = new Random();
+            var selection = b.Select(r.NextDouble, (tags) => new ScriptReference(typeof(TestScript)));
+
+            Assert.AreEqual(2, selection.Floors.Count());
+
+            var h = selection.Floors.First().Height;
+            Assert.IsTrue(h >= 5f && h <= 10f);
+
+            var h2 = selection.Floors.Skip(1).First().Height;
+            Assert.AreEqual(h, h2);
         }
 
         [TestMethod]

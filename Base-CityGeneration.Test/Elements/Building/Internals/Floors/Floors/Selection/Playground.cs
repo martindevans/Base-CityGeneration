@@ -15,7 +15,6 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         {
             var b = FloorSelector.Deserialize(new StringReader(@"
 !Building
-Verticals: []
 Floors:
   - !Floor
     Tags:
@@ -25,10 +24,14 @@ Floors:
 
   - !Floor
     Tags:
-      10: [ Penthouse ]
-      90: null
+      50: [ Penthouse ]
+      50: null
 
   - !Range
+    DefaultHeight:
+        Min: 2
+        Max: 3
+        Vary: false
     Includes:
       - AtLeast: 1
         AtMost: 1
@@ -45,7 +48,7 @@ Floors:
         Mean: 5
         AtMost: 10
         Deviation: 2
-        Continuous: true
+        Continuous: false
         Vary: false
         Tags:
           1: [ residential, apartments ]
@@ -70,13 +73,13 @@ Floors:
 
             Assert.IsNotNull(b);
 
-            Func<string[], ScriptReference> finder = (tags) =>
-            {
-                return ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tags));
-            };
+            Func<string[], ScriptReference> finder = (tags) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tags));
 
             Random r = new Random();
             var selection = b.Select(r.NextDouble, finder);
+
+            foreach (var item in selection.Floors)
+                Console.WriteLine("{0} {1:##.##}m", item.Script.Name, item.Height);
         }
     }
 }

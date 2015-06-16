@@ -205,10 +205,12 @@
     <Compile Include="Elements\Building\Facades\IConfigurableFacade.cs" />
     <Compile Include="Elements\Building\Facades\ReverseFacade.cs" />
     <Compile Include="Elements\Building\Facades\SubsectionFacade.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Selection\IGroupFinder.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\SelectionFailedException.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FloorRangeSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\FloorSelector.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\ISelector.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\HeightSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Markers\IMarker.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Markers\GroundMarker.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FloorSpec.cs" />
