@@ -12,7 +12,7 @@ namespace Base_CityGeneration.Styles
         public static string DefaultMaterial(this INamedDataCollection provider, Func<double> random, params string[] possibilities)
         {
             //Select a random value from the possibilities
-            var generated = possibilities.Length == 0 ? null : possibilities[RandomUtilities.RandomInteger(random, 0, possibilities.Length - 1)];
+            var generated = possibilities.Length == 0 ? null : possibilities[random.RandomInteger(0, possibilities.Length - 1)];
 
             return provider.DetermineHierarchicalValue(DefaultMaterialName, oldValue =>
             {

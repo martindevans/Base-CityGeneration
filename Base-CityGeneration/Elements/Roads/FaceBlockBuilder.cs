@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Base_CityGeneration.Datastructures.HalfEdge;
+﻿using Base_CityGeneration.Datastructures.HalfEdge;
 using Microsoft.Xna.Framework;
 using System.Linq;
 

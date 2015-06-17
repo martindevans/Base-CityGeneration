@@ -73,12 +73,12 @@ Floors:
 
             Assert.IsNotNull(b);
 
-            Func<string[], ScriptReference> finder = (tags) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tags));
+            Func<string[], ScriptReference> finder = tags => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tags));
 
             Random r = new Random();
             var selection = b.Select(r.NextDouble, finder);
 
-            foreach (var item in selection.Floors)
+            foreach (var item in selection.AboveGroundFloors)
                 Console.WriteLine("{0} {1:##.##}m", item.Script.Name, item.Height);
         }
     }

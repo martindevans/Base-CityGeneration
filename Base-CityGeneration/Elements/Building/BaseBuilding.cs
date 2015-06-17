@@ -140,15 +140,15 @@ namespace Base_CityGeneration.Elements.Building
             float maxHeight = Math.Min(aboveGroundRange, belowGroundRange);
 
             //Pick a random height in the allowable range
-            floorHeight = RandomUtilities.RandomSingle(random, minFloorHeight, maxHeight);
+            floorHeight = random.RandomSingle(minFloorHeight, maxHeight);
 
             //How many floors of this height can we fit in the building?
             var maxFittingFloors = Math.Min((int)(heightAboveGround / floorHeight), maxFloors);
             var maxFittingBasements = Math.Min((int)(heightBelowGround / floorHeight), maxBasements);
 
             //Ok, so how many floors will we have?
-            floors = RandomUtilities.RandomInteger(random, minFloors, maxFittingFloors);
-            basements = RandomUtilities.RandomInteger(random, minBasements, maxFittingBasements);
+            floors = random.RandomInteger(minFloors, maxFittingFloors);
+            basements = random.RandomInteger(minBasements, maxFittingBasements);
         }
     }
 }

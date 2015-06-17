@@ -1,7 +1,6 @@
 ﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Markers;
 using EpimetheusPlugins.Scripts;
-using Myre.Extensions;
 using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
@@ -54,11 +53,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             var aboveGround = _floorSelectors.TakeWhile(a => !(a is GroundMarker)).ToArray();
             var belowGround = _floorSelectors.SkipWhile(a => !(a is GroundMarker)).ToArray();
 
-            var above = SelectFloors(random, finder, verticals, aboveGround, this);
-            var below = SelectFloors(random, finder, verticals, belowGround, this);
+            var above = SelectFloors(random, finder, verticals, aboveGround, this).ToArray();
+            var below = SelectFloors(random, finder, verticals, belowGround, this).ToArray();
 
             return new Selection(
-                above.Append(below).ToArray(),
+                above,
+                below,
                 verticals
             );
         }
@@ -81,14 +81,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
 
         public struct Selection
         {
-            public FloorSelection[] Floors { get; private set; }
+            public FloorSelection[] AboveGroundFloors { get; private set; }
+            public FloorSelection[] BelowGroundFloors { get; private set; }
 
             public ScriptReference[] Verticals { get; private set; }
 
-            public Selection(FloorSelection[] floors, ScriptReference[] verticals)
+            public Selection(FloorSelection[] aboveGroundFloors, FloorSelection[] belowGroundFloors, ScriptReference[] verticals)
                 : this()
             {
-                Floors = floors;
+                AboveGroundFloors = aboveGroundFloors;
+                BelowGroundFloors = belowGroundFloors;
                 Verticals = verticals;
             }
         }

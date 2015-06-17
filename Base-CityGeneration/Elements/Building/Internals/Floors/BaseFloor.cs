@@ -96,7 +96,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                 Vector2.Transform(points, ref w, points);
 
                 //Create a room using the identity script (todo: change using identity script for vertical features?)
-                var r = Plan.AddRoom(points, 0.1f, new[] { new ScriptReference(typeof(IdentityScript)) }, false).Single();
+                var r = Plan.AddRoom(points, 0.1f, new[] { new ScriptReference(typeof(IdentityScript)) }).Single();
                 return new KeyValuePair<RoomPlan, IVerticalFeature>(r, overlap);
             }).ToDictionary(a => a.Key, a => a.Value);
             return verticalSubsections;
@@ -215,7 +215,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                             else
                             {
                                 // ReSharper disable once AccessToForEachVariableInClosure
-                                var f = fs.SingleOrDefault(a => a.Section.Matches(facade.Section, 0.01f));
+                                var f = fs.SingleOrDefault(a => a.Section.Matches(facade.Section));
                                 if (f == null)
                                     newFacade = FailedToFindInternalNeighbourSection(facade.NeighbouringRoom, roomPlan, facade);
                                 else

@@ -28,11 +28,12 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, (tags) => new ScriptReference(typeof(TestScript)));
+            var selection = b.Select(r.NextDouble, tags => new ScriptReference(typeof(TestScript)));
 
-            Assert.AreEqual(1, selection.Floors.Count());
+            Assert.AreEqual(1, selection.AboveGroundFloors.Count());
+            Assert.AreEqual(0, selection.BelowGroundFloors.Count());
 
-            var h = selection.Floors.Single().Height;
+            var h = selection.AboveGroundFloors.Single().Height;
             Assert.IsTrue(h >= 1 && h <= 2);
         }
 
@@ -63,14 +64,15 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, (tags) => new ScriptReference(typeof(TestScript)));
+            var selection = b.Select(r.NextDouble, tags => new ScriptReference(typeof(TestScript)));
 
-            Assert.AreEqual(2, selection.Floors.Count());
+            Assert.AreEqual(2, selection.AboveGroundFloors.Count());
+            Assert.AreEqual(0, selection.BelowGroundFloors.Count());
 
-            var h = selection.Floors.First().Height;
+            var h = selection.AboveGroundFloors.First().Height;
             Assert.IsTrue(h >= 5f && h <= 10f);
 
-            var h2 = selection.Floors.Skip(1).First().Height;
+            var h2 = selection.AboveGroundFloors.Skip(1).First().Height;
             Assert.AreEqual(h, h2);
         }
 
@@ -89,9 +91,10 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, (tags) => new ScriptReference(typeof(TestScript)));
+            var selection = b.Select(r.NextDouble, tags => new ScriptReference(typeof(TestScript)));
 
-            Assert.AreEqual(0, selection.Floors.Count());
+            Assert.AreEqual(0, selection.AboveGroundFloors.Count());
+            Assert.AreEqual(0, selection.BelowGroundFloors.Count());
         }
 
         [TestMethod]
@@ -114,7 +117,7 @@ Floors:
 
             Assert.IsNotNull(b);
 
-            Func<string[], ScriptReference> finder = (tags) => {
+            Func<string[], ScriptReference> finder = tags => {
                 Assert.IsNotNull(tags);
                 return new ScriptReference(typeof(TestScript));
             };
@@ -122,7 +125,8 @@ Floors:
             Random r = new Random();
             var selection = b.Select(r.NextDouble, finder);
 
-            Assert.IsTrue(selection.Floors.Length >= 1 && selection.Floors.Length <= 5);
+            Assert.IsTrue(selection.AboveGroundFloors.Length >= 1 && selection.AboveGroundFloors.Length <= 5);
+            Assert.AreEqual(0, selection.BelowGroundFloors.Count());
         }
     }
 
