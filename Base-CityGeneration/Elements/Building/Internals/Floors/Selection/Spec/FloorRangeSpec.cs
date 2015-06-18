@@ -1,10 +1,7 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
-using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 {
@@ -23,8 +20,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        private readonly HeightSpec _defaultHeightSpec;
-        public HeightSpec DefaultHeight
+        private readonly NormalValueSpec _defaultHeightSpec;
+        public NormalValueSpec DefaultHeight
         {
             get
             {
@@ -32,7 +29,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        public FloorRangeSpec(FloorRangeIncludeSpec[] includes, HeightSpec defaultHeightSpec)
+        public FloorRangeSpec(FloorRangeIncludeSpec[] includes, NormalValueSpec defaultHeightSpec)
         {
             _includes = includes;
             _defaultHeightSpec = defaultHeightSpec;
@@ -68,11 +65,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public FloorRangeIncludeSpec.Container[] Includes { get; set; }
 
-            public HeightSpec.Container DefaultHeight { get; set; }
+            public NormalValueSpec.Container DefaultHeight { get; set; }
 
             public ISelector Unwrap()
             {
-                var defaultHeight = DefaultHeight.Unwrap();
+                NormalValueSpec defaultHeight;
+                if (DefaultHeight == null)
+                    defaultHeight = new NormalValueSpec(2.5f, 3, 3.5f, 0.2f);
+                else
+                    defaultHeight  = DefaultHeight.Unwrap();
 
                 return new FloorRangeSpec(Includes.Select(a => a.Unwrap(defaultHeight)).ToArray(), defaultHeight);
             }
@@ -94,56 +95,38 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        /// <summary>
-        /// The minimum number of samples to take from this spec to include in the parent range
-        /// </summary>
-        public int AtLeast { get; private set; }
-
-        /// <summary>
-        /// The mean number of samples to take from this spec to include in the parent range
-        /// </summary>
-        public float Mean { get; private set; }
-
-        /// <summary>
-        /// The maximum number of samples to take from this spec to include in the parent range
-        /// </summary>
-        public int AtMost { get; private set; }
-
-        /// <summary>
-        /// The standard deviation to use when selecting the number of items to take from this spec
-        /// </summary>
-        public float Deviation { get; private set; }
-
-        /// <summary>
-        /// Whether the samples taken from this range should vary (i.e. if false every sample will be the same)
-        /// </summary>
-        public bool Vary { get; private set; }
+        private readonly NormalValueSpec _count;
+        public NormalValueSpec Count
+        {
+            get
+            {
+                return _count;
+            }
+        }
 
         /// <summary>
         /// Should the items in this include be one continuous run
         /// </summary>
         public bool Continuous { get; private set; }
 
-        internal HeightSpec Height;
+        public bool Vary { get; private set; }
 
-        public FloorRangeIncludeSpec(int atLeast, float mean, int atMost, float stdDeviation, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags, HeightSpec height)
+        internal NormalValueSpec Height;
+
+        public FloorRangeIncludeSpec(NormalValueSpec count, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags, NormalValueSpec height)
         {
-            AtLeast = atLeast;
-            Mean = mean;
-            AtMost = atMost;
-            Deviation = stdDeviation;
-            Vary = vary;
             Continuous = continuous;
-
             Height = height;
+            Vary = vary;
 
             _tags = tags;
+            _count = count;
         }
 
         public IEnumerable<IEnumerable<FloorSelection>> Select(Func<double> random, ScriptReference[] verticals, Func<string[], ScriptReference> finder, IGroupFinder groupFinder)
         {
             //How many items to emit?
-            int amount = (int)MathHelper.Clamp((float)Math.Round(random.NormallyDistributedSingle(Deviation, Mean), MidpointRounding.AwayFromZero), AtLeast, AtMost);
+            int amount = _count.SelectIntValue(random, groupFinder);
 
             //Result to emit
             List<List<FloorSelection>> emit = new List<List<FloorSelection>>();
@@ -158,7 +141,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
                 selectScript = () => node;
             }
 
-            Func<FloorSelection> selectFloor = () => new FloorSelection(selectScript(), Height.SelectHeight(random, groupFinder));
+            Func<FloorSelection> selectFloor = () => new FloorSelection(selectScript(), Height.SelectFloatValue(random, groupFinder));
 
             if (Continuous)
             {
@@ -180,24 +163,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public TagContainer Tags { get; set; }
 
-            public int? AtLeast { get; set; }
-            public float? Mean { get; set; }
-            public int? AtMost { get; set; }
-
-            public float? Deviation { get; set; }
+            public NormalValueSpec.Container Count { get; set; }
 
             public bool Vary { get; set; }
             public bool Continuous { get; set; }
 
-            internal FloorRangeIncludeSpec Unwrap(HeightSpec defaultHeight)
+            internal FloorRangeIncludeSpec Unwrap(NormalValueSpec defaultHeight)
             {
-                var atLeast = AtLeast ?? 1;
-                var atMost = AtMost ?? 1;
+                var count = Count.Unwrap();
 
-                var mean = Mean ?? (atLeast * 0.5f + atMost * 0.5f);
-                var deviation = Deviation ?? (atMost - atLeast) * 0.2f;
-
-                return new FloorRangeIncludeSpec(atLeast, mean, atMost, deviation, Vary, Continuous, Tags.ToArray(), defaultHeight);
+                return new FloorRangeIncludeSpec(count, Vary, Continuous, Tags.ToArray(), defaultHeight);
             }
         }
     }

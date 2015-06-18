@@ -177,6 +177,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\Playground.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\Spec\FloorSpecTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\Spec\FloorRangeSpecTest.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\Spec\NormalValueSpecTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\Spec\SerializationTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\TestHelperExtensions.cs" />
     <Compile Include="Parcelling\ObbParcellerTest.cs" />

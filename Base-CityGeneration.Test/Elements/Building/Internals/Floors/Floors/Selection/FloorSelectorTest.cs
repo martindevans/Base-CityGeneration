@@ -106,8 +106,9 @@ Verticals: []
 Floors:
     - !Range
       Includes:
-        - AtLeast: 1
-          AtMost: 5
+        - Count:
+            Min: 1
+            Max: 5
           Vary: true
           Tags:
             1: [a]

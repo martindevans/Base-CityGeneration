@@ -60,9 +60,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Cassowary.4.0.0.0\lib\net35-Client\Cassowary.dll</HintPath>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5644.2883, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="EpimetheusPlugins, Version=1.0.5646.32114, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5644.2883\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
+      <HintPath>..\..\HeistTutorial\packages\EpimetheusPlugins.1.0.5646.32114\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
     </Reference>
     <Reference Include="HandyCollections, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -210,7 +210,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FloorRangeSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\FloorSelector.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\ISelector.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\HeightSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\NormalValueSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Markers\IMarker.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Markers\GroundMarker.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FloorSpec.cs" />

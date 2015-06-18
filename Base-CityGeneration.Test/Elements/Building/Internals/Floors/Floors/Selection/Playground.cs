@@ -33,21 +33,24 @@ Floors:
         Max: 3
         Vary: false
     Includes:
-      - AtLeast: 1
-        AtMost: 1
+      - Count:
+            Min: 1
+            Max: 1
         Tags:
           1: [ common floor ]
 
-      - AtLeast: 0
-        AtMost: 1
+      - Count:
+            Min: 0
+            Max: 1
         Tags:
           1: [ secret mafia storage floor ]
           99: [ storage ]
 
-      - AtLeast: 1
-        Mean: 5
-        AtMost: 10
-        Deviation: 2
+      - Count:
+            Min: 1
+            Mean: 5
+            Max: 10
+            Deviation: 2
         Continuous: false
         Vary: false
         Tags:
@@ -61,14 +64,21 @@ Floors:
 
   - !Range
     Includes:
-      - AtMost: 1
+      - Count:
+            Min: 0
+            Max: 1
         Tags:
           1: [ Basement, Bat Cave ]
           1: [ basement, illegal sweatshop ]
           98: null
-      - Tags:
-          1: [ basement, storage ]
-          1: [ basement, workshop ]
+      - Count:
+            Min: 1
+            Mean: 1
+            Deviation: 0.5
+            Max: 2
+        Tags:
+            1: [ basement, storage ]
+            1: [ basement, workshop ]
 "));
 
             Assert.IsNotNull(b);
@@ -79,6 +89,8 @@ Floors:
             var selection = b.Select(r.NextDouble, finder);
 
             foreach (var item in selection.AboveGroundFloors)
+                Console.WriteLine("{0} {1:##.##}m", item.Script.Name, item.Height);
+            foreach (var item in selection.BelowGroundFloors)
                 Console.WriteLine("{0} {1:##.##}m", item.Script.Name, item.Height);
         }
     }

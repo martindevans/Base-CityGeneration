@@ -70,8 +70,9 @@ Verticals: []
 Floors:
     - !Range
       Includes:
-        - AtLeast: 1
-          AtMost: 1
+        - Count:
+            Min: 1
+            Max: 1
           Vary: true
           Continuous: false
           Tags:

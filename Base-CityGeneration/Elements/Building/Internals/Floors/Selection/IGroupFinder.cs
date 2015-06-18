@@ -4,6 +4,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
 {
     public interface IGroupFinder
     {
-        HeightSpec Find(string group);
+        NormalValueSpec Find(string group);
     }
 }
