@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
+﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
 using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Selection.Spec
 {
@@ -15,8 +15,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         public void AssertThat_RangeWithSingleInclude_RepeatsSingleItemInIncludeCorrectNumberOfTimes()
         {
             var range = new FloorRangeSpec(new[] {
-                new FloorRangeIncludeSpec(2, 3, 4, 1, false, true, new[] { new KeyValuePair<float, string[]>(1, new [] { "tag" }) }, null)
-            }, new HeightSpec(1, 2, 3, 1, null, false));
+                new FloorRangeIncludeSpec(new NormalValueSpec(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, string[]>(1, new [] { "tag" }) }, null)
+            }, new NormalValueSpec(1, 2, 3, 1, null, false));
 
             var selected = range.Select(() => 0.5, new ScriptReference[0], a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)), null);
 
@@ -27,8 +27,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         public void AssertThat_RangeWithSingleInclude_OutputsNothing_WhenIncludeIsNull()
         {
             var range = new FloorRangeSpec(new[] {
-                new FloorRangeIncludeSpec(2, 3, 4, 1, false, true, new[] { new KeyValuePair<float, string[]>(1, null) }, null)
-            }, new HeightSpec(1, 2, 3, 1, null, false));
+                new FloorRangeIncludeSpec(new NormalValueSpec(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, string[]>(1, null) }, null)
+            }, new NormalValueSpec(1, 2, 3, 1));
 
             var selected = range.Select(() => 0.5, new ScriptReference[0], a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)), null);
 
@@ -39,9 +39,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         public void AssertThat_RangeWithContinuousInclude_IsNotInterrupted()
         {
             var range = new FloorRangeSpec(new[] {
-                new FloorRangeIncludeSpec(20, 20, 20, 10, false, true, new[] { new KeyValuePair<float, string[]>(1, new [] { "continuous" }) }, null),
-                new FloorRangeIncludeSpec(20, 30, 40, 10, false, false, new[] { new KeyValuePair<float, string[]>(1, new [] { "interrupt" }) }, null)
-            }, new HeightSpec(1, 2, 3, 1, null, false));
+                new FloorRangeIncludeSpec(new NormalValueSpec(20, 20, 20, 10), false, true, new[] { new KeyValuePair<float, string[]>(1, new [] { "continuous" }) }, null),
+                new FloorRangeIncludeSpec(new NormalValueSpec(20, 30, 40, 10), false, false, new[] { new KeyValuePair<float, string[]>(1, new [] { "interrupt" }) }, null)
+            }, new NormalValueSpec(1, 2, 3, 1, null, false));
 
             Random r = new Random();
             var selected = range.Select(r.NextDouble, new ScriptReference[0], a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)), null).ToArray();

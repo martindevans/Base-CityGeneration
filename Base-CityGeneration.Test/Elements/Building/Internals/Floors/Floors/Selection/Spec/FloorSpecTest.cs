@@ -16,7 +16,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         {
             FloorSpec spec = new FloorSpec(new[] {
                 new KeyValuePair<float, string[]>(1, new [] { "tag" })
-            }, new HeightSpec(1, 2, 3, 1, null, false));
+            }, new NormalValueSpec(1, 2, 3, 1, null, false));
 
             var selected = spec.Select(() => 0.5, new ScriptReference[0], a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)), null);
 
@@ -29,7 +29,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         {
             FloorSpec spec = new FloorSpec(new[] {
                 new KeyValuePair<float, string[]>(1, null)
-            }, new HeightSpec(1, 2, 3, 1, null, false));
+            }, new NormalValueSpec(1, 2, 3, 1, null, false));
 
             var selected = spec.Select(() => 0.5, new ScriptReference[0], a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)), null);
 

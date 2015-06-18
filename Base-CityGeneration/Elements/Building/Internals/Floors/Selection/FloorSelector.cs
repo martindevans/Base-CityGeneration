@@ -30,8 +30,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             }
         }
 
-        private readonly KeyValuePair<string, HeightSpec>[] _heightGroups;
-        public IEnumerable<KeyValuePair<string, HeightSpec>> HeightGroups
+        private readonly KeyValuePair<string, NormalValueSpec>[] _heightGroups;
+        public IEnumerable<KeyValuePair<string, NormalValueSpec>> HeightGroups
         {
             get
             {
@@ -39,7 +39,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             }
         }
 
-        public FloorSelector(ISelector[] floorSelectors, ISelector[] verticalSelectors, KeyValuePair<string, HeightSpec>[] heightGroups)
+        public FloorSelector(ISelector[] floorSelectors, ISelector[] verticalSelectors, KeyValuePair<string, NormalValueSpec>[] heightGroups)
         {
             _floorSelectors = floorSelectors;
             _verticalSelectors = verticalSelectors;
@@ -95,7 +95,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             }
         }
 
-        HeightSpec IGroupFinder.Find(string group)
+        NormalValueSpec IGroupFinder.Find(string group)
         {
             return _heightGroups.Where(a => a.Key.Equals(group, StringComparison.InvariantCultureIgnoreCase)).Select(a => a.Value).SingleOrDefault();
         }
@@ -126,7 +126,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
 
         internal class Container
         {
-            public Dictionary<string, HeightSpec.Container> Groups { get; set; }
+            public Dictionary<string, NormalValueSpec.Container> Groups { get; set; }
 
             // ReSharper disable once MemberCanBePrivate.Local
             public ISelectorContainer[] Verticals { get; set; }
@@ -139,7 +139,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
                 return new FloorSelector(
                     Floors.Select(a => a.Unwrap()).ToArray(),
                     (Verticals ?? new ISelectorContainer[0]).Select(a => a.Unwrap()).ToArray(),
-                    (Groups ?? new Dictionary<string, HeightSpec.Container>()).Select(a => new KeyValuePair<string, HeightSpec>(a.Key, a.Value.Unwrap())).ToArray()
+                    (Groups ?? new Dictionary<string, NormalValueSpec.Container>()).Select(a => new KeyValuePair<string, NormalValueSpec>(a.Key, a.Value.Unwrap())).ToArray()
                 );
             }
         }

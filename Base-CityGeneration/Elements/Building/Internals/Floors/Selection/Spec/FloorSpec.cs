@@ -21,8 +21,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        private readonly HeightSpec _height;
-        public HeightSpec Height
+        private readonly NormalValueSpec _height;
+        public NormalValueSpec Height
         {
             get
             {
@@ -30,7 +30,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        public FloorSpec(KeyValuePair<float, string[]>[] tags, HeightSpec height)
+        public FloorSpec(KeyValuePair<float, string[]>[] tags, NormalValueSpec height)
         {
             _tags = tags;
 
@@ -43,7 +43,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             if (selected == null)
                 return new FloorSelection[0];
 
-            var height = _height.SelectHeight(random, groupFinder);
+            var height = _height.SelectFloatValue(random, groupFinder);
             return new FloorSelection[] { new FloorSelection(selected, height) };
         }
 
@@ -77,11 +77,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public TagContainer Tags { get; set; }
 
-            public HeightSpec.Container Height { get; set; }
+            public NormalValueSpec.Container Height { get; set; }
 
             public ISelector Unwrap()
             {
-                return new FloorSpec(Tags.ToArray(), Height.Unwrap());
+                NormalValueSpec height;
+                if (Height == null)
+                    height = new NormalValueSpec(2.5f, 3f, 3.5f, 0.2f);
+                else
+                    height = Height.Unwrap();
+
+                return new FloorSpec(Tags.ToArray(), height);
             }
         }
     }
