@@ -30,10 +30,18 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        public FloorSpec(KeyValuePair<float, string[]>[] tags, NormalValueSpec height)
-        {
-            _tags = tags;
+        private readonly string _id;
+        public string Id { get { return _id; } }
 
+        public FloorSpec(KeyValuePair<float, string[]>[] tags, NormalValueSpec height)
+            : this(Guid.NewGuid().ToString(), tags, height)
+        {
+        }
+
+        public FloorSpec(string id, KeyValuePair<float, string[]>[] tags, NormalValueSpec height)
+        {
+            _id = id;
+            _tags = tags;
             _height = height;
         }
 
@@ -75,6 +83,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         internal class Container
             : ISelectorContainer
         {
+            public string Id { get; set; }
+
             public TagContainer Tags { get; set; }
 
             public NormalValueSpec.Container Height { get; set; }
@@ -87,7 +97,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
                 else
                     height = Height.Unwrap();
 
-                return new FloorSpec(Tags.ToArray(), height);
+                return new FloorSpec(Id ?? Guid.NewGuid().ToString(), Tags.ToArray(), height);
             }
         }
     }

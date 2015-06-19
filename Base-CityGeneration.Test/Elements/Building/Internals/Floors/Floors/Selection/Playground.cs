@@ -15,70 +15,30 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         {
             var b = FloorSelector.Deserialize(new StringReader(@"
 !Building
+Groups:
+  residential_floor_count:
+    Min: 5
+    Max: 10
+Verticals: []
 Floors:
   - !Floor
-    Tags:
-      1:  [Roof Garden, Helipad]
-      99: [Boring Roof, No Helepad]
-      0:  [blank]
-
+    Tags: { 50: [roof, garden], 50: [roof, helipad] }
   - !Floor
-    Tags:
-      50: [ Penthouse ]
-      50: null
-
-  - !Range
-    DefaultHeight:
-        Min: 2
-        Max: 3
-        Vary: false
-    Includes:
-      - Count:
-            Min: 1
-            Max: 1
-        Tags:
-          1: [ common floor ]
-
-      - Count:
-            Min: 0
-            Max: 1
-        Tags:
-          1: [ secret mafia storage floor ]
-          99: [ storage ]
-
-      - Count:
-            Min: 1
-            Mean: 5
-            Max: 10
-            Deviation: 2
-        Continuous: false
-        Vary: false
-        Tags:
-          1: [ residential, apartments ]
-
+    Tags: { 50: [penthouse], 50: null }
+  - !Repeat
+    Count:
+      Min: 1
+      Max: 5
+    Items:
+      - !Floor
+        Tags: { 1: [skylobby] }
+      - !Range
+        Includes:
+          - Count: { Group: residential_floor_count }
+            Tags: { 1: [apartment] }
   - !Floor
-    Tags:
-      100: [ Ground, Shop, Jewellers ]
-
+    Tags: { 1: [ground floor, lobby, shops] }
   - !Ground {}
-
-  - !Range
-    Includes:
-      - Count:
-            Min: 0
-            Max: 1
-        Tags:
-          1: [ Basement, Bat Cave ]
-          1: [ basement, illegal sweatshop ]
-          98: null
-      - Count:
-            Min: 1
-            Mean: 1
-            Deviation: 0.5
-            Max: 2
-        Tags:
-            1: [ basement, storage ]
-            1: [ basement, workshop ]
 "));
 
             Assert.IsNotNull(b);
