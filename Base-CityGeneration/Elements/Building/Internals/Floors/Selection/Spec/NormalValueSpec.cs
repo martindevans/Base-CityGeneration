@@ -25,7 +25,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         private readonly bool _vary;
         public bool Vary { get { return _vary; } }
 
-        private float? _cache;
+        private float? _singleCache;
+        private int? _intCache; 
 
         public NormalValueSpec(float min, float mean, float max, float deviation, string group = null, bool vary = false)
         {
@@ -39,23 +40,38 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
         public float SelectFloatValue(Func<double> random, IGroupFinder groupFinder)
         {
-            //Return value from cache (if there is one)
-            if (_cache.HasValue)
-                return _cache.Value;
+            if (_singleCache.HasValue)
+                return _singleCache.Value;
 
-            //Calculate a height, and cache it if necessary
-            float h = CalculateValue(random, groupFinder);
+            var f = GenerateFloatValue(random, groupFinder);
             if (!Vary)
-                _cache = h;
+                _singleCache = f;
+            return f;
+        }
 
-            //Done!
-            return h;
+        private float GenerateFloatValue(Func<double> random, IGroupFinder groupFinder)
+        {
+            if (!string.IsNullOrWhiteSpace(Group))
+                return groupFinder.Find(Group).SelectFloatValue(random, groupFinder);
+
+            return MathHelper.Clamp(random.NormallyDistributedSingle(Deviation, Mean), Min, Max);
         }
 
         public int SelectIntValue(Func<double> random, IGroupFinder groupFinder)
         {
-            //Select a float value in the normal way
-            var f = SelectFloatValue(random, groupFinder);
+            if (_intCache.HasValue)
+                return _intCache.Value;
+            
+            var i = GenerateIntValue(random, groupFinder);
+            if (!Vary)
+                _intCache = i;
+            return i;
+        }
+
+        private int GenerateIntValue(Func<double> random, IGroupFinder groupFinder)
+        {
+            if (!string.IsNullOrWhiteSpace(Group))
+                return groupFinder.Find(Group).SelectIntValue(random, groupFinder);
 
             //Rearrange the min and max to be integers (in a narrower or equal range)
             var min = (int)Math.Ceiling(Min);
@@ -70,15 +86,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
                 throw new InvalidOperationException(string.Format("Cannot select an integer between {0} and {1}", Min, Max));
 
             //Clamp and round the value
-            return (int)Math.Round(MathHelper.Clamp(f, min, max), MidpointRounding.AwayFromZero);
-        }
-
-        private float CalculateValue(Func<double> random, IGroupFinder groupFinder)
-        {
-            if (string.IsNullOrWhiteSpace(_group))
-                return MathHelper.Clamp(random.NormallyDistributedSingle(Deviation, Mean), Min, Max);
-
-            return groupFinder.Find(_group).SelectFloatValue(random, groupFinder);
+            return (int)Math.Round(MathHelper.Clamp(GenerateFloatValue(random, groupFinder), min, max), MidpointRounding.AwayFromZero);
         }
 
         internal class Container

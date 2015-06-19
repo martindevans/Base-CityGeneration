@@ -210,11 +210,14 @@
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FloorRangeSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\FloorSelector.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\ISelector.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FloorRef.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\NormalValueSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Markers\IMarker.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Markers\GroundMarker.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FloorSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\TagContainer.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\VerticalElementSpec.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IDoorPlacer.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IDoorTarget.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IPlannedRoom.cs" />
@@ -246,7 +249,6 @@
     <Compile Include="Elements\Building\BaseBuilding.cs" />
     <Compile Include="Elements\Building\Facades\BaseFacade.cs" />
     <Compile Include="Elements\Building\Facades\IFacade.cs" />
-    <Compile Include="Elements\Building\Internals\BaseContainedSpace.cs" />
     <Compile Include="Elements\Building\Internals\Floors\BaseFloor.cs" />
     <Compile Include="Elements\Building\Internals\Floors\IFloor.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\BasePlannedRoom.cs" />

@@ -129,6 +129,33 @@ Floors:
             Assert.IsTrue(selection.AboveGroundFloors.Length >= 1 && selection.AboveGroundFloors.Length <= 5);
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
         }
+
+        [TestMethod]
+        public void MethodName()
+        {
+            var b = FloorSelector.Deserialize(new StringReader(@"
+!Building
+Verticals:
+    - Tags: { 1: [lift] }
+      Bottom: { Ref: GroundFloor }
+      Top: { Ref: TopFloor }
+Floors:
+    - !Floor { Id: TopFloor, Tags: { 1: [a] } }
+    - !Floor { Tags: { 1: [a] } }
+    - !Floor { Id: GroundFloor, Tags: { 1: [a] } }
+"));
+
+            Func<string[], ScriptReference> finder = tags => {
+                Assert.IsNotNull(tags);
+                return new ScriptReference(typeof(TestScript));
+            };
+
+            Random r = new Random();
+            var selection = b.Select(r.NextDouble, finder);
+
+            Assert.AreEqual(3, selection.AboveGroundFloors.Count());
+            Assert.AreEqual(1, selection.Verticals.Count());
+        }
     }
 
     [Script("93863CB4-2951-453E-95B8-955077322550", "Test")]

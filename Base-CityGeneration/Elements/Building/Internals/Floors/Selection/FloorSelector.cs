@@ -12,8 +12,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
     public class FloorSelector
         : IGroupFinder
     {
-        private readonly ISelector[] _verticalSelectors;
-        public IEnumerable<ISelector> VerticalSelectors
+        private readonly VerticalElementSpec[] _verticalSelectors;
+        public IEnumerable<VerticalElementSpec> VerticalSelectors
         {
             get
             {
@@ -39,7 +39,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             }
         }
 
-        public FloorSelector(ISelector[] floorSelectors, ISelector[] verticalSelectors, KeyValuePair<string, NormalValueSpec>[] heightGroups)
+        public FloorSelector(ISelector[] floorSelectors, VerticalElementSpec[] verticalSelectors, KeyValuePair<string, NormalValueSpec>[] heightGroups)
         {
             _floorSelectors = floorSelectors;
             _verticalSelectors = verticalSelectors;
@@ -73,7 +73,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             return floors;
         }
 
-        private IEnumerable<ScriptReference> SelectVerticals(Func<double> random, Func<string[], ScriptReference> finder, ISelector[] verticalSelectors)
+        private IEnumerable<ScriptReference> SelectVerticals(Func<double> random, Func<string[], ScriptReference> finder, VerticalElementSpec[] verticalSelectors)
         {
             //throw new NotImplementedException();
             return new ScriptReference[0];
@@ -113,6 +113,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             serializer.Settings.RegisterTagMapping("Floor", typeof(FloorSpec.Container));
             serializer.Settings.RegisterTagMapping("Range", typeof(FloorRangeSpec.Container));
             serializer.Settings.RegisterTagMapping("Include", typeof(FloorRangeIncludeSpec.Container));
+            serializer.Settings.RegisterTagMapping("Repeat", typeof(RepeatSpec.Container));
 
             return serializer;
         }
@@ -129,7 +130,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             public Dictionary<string, NormalValueSpec.Container> Groups { get; set; }
 
             // ReSharper disable once MemberCanBePrivate.Local
-            public ISelectorContainer[] Verticals { get; set; }
+            public VerticalElementSpec.Container[] Verticals { get; set; }
 
             // ReSharper disable once MemberCanBePrivate.Local
             public ISelectorContainer[] Floors { get; set; }
@@ -138,7 +139,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             {
                 return new FloorSelector(
                     Floors.Select(a => a.Unwrap()).ToArray(),
-                    (Verticals ?? new ISelectorContainer[0]).Select(a => a.Unwrap()).ToArray(),
+                    (Verticals ?? new VerticalElementSpec.Container[0]).Select(a => a.Unwrap()).ToArray(),
                     (Groups ?? new Dictionary<string, NormalValueSpec.Container>()).Select(a => new KeyValuePair<string, NormalValueSpec>(a.Key, a.Value.Unwrap())).ToArray()
                 );
             }
