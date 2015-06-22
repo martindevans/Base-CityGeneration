@@ -19,60 +19,50 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         private readonly float _deviation;
         public float Deviation { get { return _deviation; } }
 
-        private readonly string _group;
-        public string Group { get { return _group; } }
-
         private readonly bool _vary;
         public bool Vary { get { return _vary; } }
 
         private float? _singleCache;
         private int? _intCache; 
 
-        public NormalValueSpec(float min, float mean, float max, float deviation, string group = null, bool vary = false)
+        public NormalValueSpec(float min, float mean, float max, float deviation, bool vary = false)
         {
             _min = min;
             _mean = mean;
             _max = max;
             _deviation = deviation;
-            _group = group;
             _vary = vary;
         }
 
-        public float SelectFloatValue(Func<double> random, IGroupFinder groupFinder)
+        public float SelectFloatValue(Func<double> random)
         {
             if (_singleCache.HasValue)
                 return _singleCache.Value;
 
-            var f = GenerateFloatValue(random, groupFinder);
+            var f = GenerateFloatValue(random);
             if (!Vary)
                 _singleCache = f;
             return f;
         }
 
-        private float GenerateFloatValue(Func<double> random, IGroupFinder groupFinder)
+        private float GenerateFloatValue(Func<double> random)
         {
-            if (!string.IsNullOrWhiteSpace(Group))
-                return groupFinder.Find(Group).SelectFloatValue(random, groupFinder);
-
             return MathHelper.Clamp(random.NormallyDistributedSingle(Deviation, Mean), Min, Max);
         }
 
-        public int SelectIntValue(Func<double> random, IGroupFinder groupFinder)
+        public int SelectIntValue(Func<double> random)
         {
             if (_intCache.HasValue)
                 return _intCache.Value;
             
-            var i = GenerateIntValue(random, groupFinder);
+            var i = GenerateIntValue(random);
             if (!Vary)
                 _intCache = i;
             return i;
         }
 
-        private int GenerateIntValue(Func<double> random, IGroupFinder groupFinder)
+        private int GenerateIntValue(Func<double> random)
         {
-            if (!string.IsNullOrWhiteSpace(Group))
-                return groupFinder.Find(Group).SelectIntValue(random, groupFinder);
-
             //Rearrange the min and max to be integers (in a narrower or equal range)
             var min = (int)Math.Ceiling(Min);
             var max = (int)Math.Floor(Max);
@@ -86,7 +76,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
                 throw new InvalidOperationException(string.Format("Cannot select an integer between {0} and {1}", Min, Max));
 
             //Clamp and round the value
-            return (int)Math.Round(MathHelper.Clamp(GenerateFloatValue(random, groupFinder), min, max), MidpointRounding.AwayFromZero);
+            return (int)Math.Round(MathHelper.Clamp(GenerateFloatValue(random), min, max), MidpointRounding.AwayFromZero);
         }
 
         internal class Container
@@ -95,8 +85,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             public float? Mean { get; set; }
             public float Max { get; set; }
             public float? Deviation { get; set; }
-            public string Group { get; set; }
             public bool Vary { get; set; }
+
+            /// <summary>
+            /// Cache unwrapped value, so multiple unwraps all return exactly the same item
+            /// </summary>
+            internal NormalValueSpec Unwrapped { get; set; }
         }
     }
 
@@ -104,15 +98,20 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
     {
         public static NormalValueSpec Unwrap(this NormalValueSpec.Container container, Func<float, float, float> meanCalc = null, Func<float, float, float> deviationCalc = null)
         {
-            meanCalc = meanCalc ?? MeanCalc;
-            deviationCalc = deviationCalc ?? DeviationCalc;
+            if (container.Unwrapped == null)
+            {
+                meanCalc = meanCalc ?? MeanCalc;
+                deviationCalc = deviationCalc ?? DeviationCalc;
 
-            var min = container.Min;
-            var max = container.Max;
-            var mean = container.Mean.HasValue ? container.Mean.Value : meanCalc(min, max);
-            var deviation = container.Deviation.HasValue ? container.Deviation.Value : deviationCalc(min, max);
+                var min = container.Min;
+                var max = container.Max;
+                var mean = container.Mean.HasValue ? container.Mean.Value : meanCalc(min, max);
+                var deviation = container.Deviation.HasValue ? container.Deviation.Value : deviationCalc(min, max);
 
-            return new NormalValueSpec(min, mean, max, deviation, container.Group, container.Vary);
+                container.Unwrapped = new NormalValueSpec(min, mean, max, deviation, container.Vary);
+            }
+
+            return container.Unwrapped;
         }
 
         private static float MeanCalc(float min, float max)

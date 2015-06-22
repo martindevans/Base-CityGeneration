@@ -129,6 +129,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.8.2.0.0\lib\net40-Client\Poly2Tri.dll</HintPath>
     </Reference>
+    <Reference Include="SharpYaml, Version=1.4.0.43042, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\SharpYaml.1.4.0\lib\SharpYaml.dll</HintPath>
+    </Reference>
     <Reference Include="SupersonicSound, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\SupersonicSound.1.2.0.0\lib\net40-Client\SupersonicSound.dll</HintPath>

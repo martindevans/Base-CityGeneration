@@ -1,5 +1,4 @@
 ﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
-using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -15,10 +14,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         public void AssertThat_RangeWithSingleInclude_RepeatsSingleItemInIncludeCorrectNumberOfTimes()
         {
             var range = new FloorRangeSpec(new[] {
-                new FloorRangeIncludeSpec(new NormalValueSpec(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, string[]>(1, new [] { "tag" }) }, null)
-            }, new NormalValueSpec(1, 2, 3, 1, null, false));
+                new FloorRangeIncludeSpec("id", new NormalValueSpec(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, string[]>(1, new [] { "tag" }) }, null)
+            }, new NormalValueSpec(1, 2, 3, 1, false));
 
-            var selected = range.Select(() => 0.5, new ScriptReference[0], a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)), null);
+            var selected = range.Select(() => 0.5, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
             Assert.IsTrue(2 <= selected.Count() && selected.Count() <= 3);
         }
@@ -27,10 +26,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         public void AssertThat_RangeWithSingleInclude_OutputsNothing_WhenIncludeIsNull()
         {
             var range = new FloorRangeSpec(new[] {
-                new FloorRangeIncludeSpec(new NormalValueSpec(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, string[]>(1, null) }, null)
+                new FloorRangeIncludeSpec("id", new NormalValueSpec(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, string[]>(1, null) }, null)
             }, new NormalValueSpec(1, 2, 3, 1));
 
-            var selected = range.Select(() => 0.5, new ScriptReference[0], a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)), null);
+            var selected = range.Select(() => 0.5, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
             Assert.AreEqual(0, selected.Count());
         }
@@ -39,12 +38,12 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         public void AssertThat_RangeWithContinuousInclude_IsNotInterrupted()
         {
             var range = new FloorRangeSpec(new[] {
-                new FloorRangeIncludeSpec(new NormalValueSpec(20, 20, 20, 10), false, true, new[] { new KeyValuePair<float, string[]>(1, new [] { "continuous" }) }, null),
-                new FloorRangeIncludeSpec(new NormalValueSpec(20, 30, 40, 10), false, false, new[] { new KeyValuePair<float, string[]>(1, new [] { "interrupt" }) }, null)
-            }, new NormalValueSpec(1, 2, 3, 1, null, false));
+                new FloorRangeIncludeSpec("id", new NormalValueSpec(20, 20, 20, 10), false, true, new[] { new KeyValuePair<float, string[]>(1, new [] { "continuous" }) }, null),
+                new FloorRangeIncludeSpec("id", new NormalValueSpec(20, 30, 40, 10), false, false, new[] { new KeyValuePair<float, string[]>(1, new [] { "interrupt" }) }, null)
+            }, new NormalValueSpec(1, 2, 3, 1, false));
 
             Random r = new Random();
-            var selected = range.Select(r.NextDouble, new ScriptReference[0], a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)), null).ToArray();
+            var selected = range.Select(r.NextDouble, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a))).ToArray();
 
             //Find the first "continuous" floor, then check that every single one of the next 20 is also "continuous"
             var startCont = selected.Select((a, i) => new {a, i}).Where(a => a.a.Script.Name == "continuous").Select(a => a.i).First();

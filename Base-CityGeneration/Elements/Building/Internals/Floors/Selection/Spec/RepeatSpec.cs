@@ -20,16 +20,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             Vary = vary;
         }
 
-        public IEnumerable<FloorSelection> Select(Func<double> random, ScriptReference[] verticals, Func<string[], ScriptReference> finder, IGroupFinder groupFinder)
+        public IEnumerable<FloorSelection> Select(Func<double> random, Func<string[], ScriptReference> finder)
         {
-            int count = Count.SelectIntValue(random, groupFinder);
+            int count = Count.SelectIntValue(random);
 
             List<FloorSelection> selection = new List<FloorSelection>();
             if (Vary)
             {
                 for (int i = 0; i < count; i++)
                     foreach (var selector in Items)
-                        selection.AddRange(selector.Select(random, verticals, finder, groupFinder));
+                        selection.AddRange(selector.Select(random, finder));
             }
             else
             {
@@ -37,7 +37,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
                 //Generate selections for each item in the repeat (cached)
                 foreach (var selector in Items)
-                    selectionCache.Add(selector.Select(random, verticals, finder, groupFinder).ToArray());
+                    selectionCache.Add(selector.Select(random, finder).ToArray());
 
                 //Now repeat those cached items as many times as we need
                 for (int i = 0; i < count; i++)

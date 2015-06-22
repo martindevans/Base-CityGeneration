@@ -16,9 +16,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         {
             FloorSpec spec = new FloorSpec(new[] {
                 new KeyValuePair<float, string[]>(1, new [] { "tag" })
-            }, new NormalValueSpec(1, 2, 3, 1, null, false));
+            }, new NormalValueSpec(1, 2, 3, 1, false));
 
-            var selected = spec.Select(() => 0.5, new ScriptReference[0], a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)), null);
+            var selected = spec.Select(() => 0.5, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
             Assert.AreEqual(1, selected.Count());
             Assert.AreEqual("tag", selected.Single().Script.Name);
@@ -29,9 +29,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         {
             FloorSpec spec = new FloorSpec(new[] {
                 new KeyValuePair<float, string[]>(1, null)
-            }, new NormalValueSpec(1, 2, 3, 1, null, false));
+            }, new NormalValueSpec(1, 2, 3, 1, false));
 
-            var selected = spec.Select(() => 0.5, new ScriptReference[0], a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)), null);
+            var selected = spec.Select(() => 0.5, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
             Assert.AreEqual(0, selected.Count());
         }

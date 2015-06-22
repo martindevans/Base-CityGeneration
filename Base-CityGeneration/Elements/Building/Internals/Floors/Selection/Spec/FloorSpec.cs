@@ -45,39 +45,51 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             _height = height;
         }
 
-        public IEnumerable<FloorSelection> Select(Func<double> random, ScriptReference[] verticals, Func<string[], ScriptReference> finder, IGroupFinder groupFinder)
+        public IEnumerable<FloorSelection> Select(Func<double> random, Func<string[], ScriptReference> finder)
         {
-            var selected = SelectSingle(random, _tags, verticals, finder);
+            var selected = SelectSingle(random, _tags, finder, _height.SelectFloatValue(random), Id);
             if (selected == null)
                 return new FloorSelection[0];
 
-            var height = _height.SelectFloatValue(random, groupFinder);
-            return new FloorSelection[] { new FloorSelection(selected, height) };
+            return new FloorSelection[] { selected.Value };
         }
 
-        public static ScriptReference SelectSingle(Func<double> random, IEnumerable<KeyValuePair<float, string[]>> tags, ScriptReference[] verticals, Func<string[], ScriptReference> finder)
+        public static FloorSelection? SelectSingle(Func<double> random, IEnumerable<KeyValuePair<float, string[]>> tags, Func<string[], ScriptReference> finder, float height, string id)
         {
-            List<KeyValuePair<float, string[]>> tagSets = new List<KeyValuePair<float, string[]>>(tags);
+            string[] selectedTags;
+            ScriptReference script = FindScript(random, finder, tags, out selectedTags);
+            if (script == null)
+                return null;
 
-            while (tagSets.Count > 0)
+            return new FloorSelection(id, selectedTags, script, height);
+        }
+
+        public static ScriptReference FindScript(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<KeyValuePair<float, string[]>> tagSets, out string[] tags)
+        {
+            var options = tagSets.ToList();
+            while (options.Count > 0)
             {
                 //Select a set
-                var set = tagSets.WeightedRandom(random);
+                tags = tagSets.WeightedRandom(random);
 
                 // Find a script (null tags set means explicitly select no script)
-                if (set == null)
+                if (tags == null)
                     return null;
-                var selected = finder(set);
+
+                //Find a script for this set
+                var script = finder(tags);
 
                 //If we found something we're good to go
-                if (selected != null)
-                    return selected;
+                if (script != null)
+                    return script;
 
                 //Failed to find anything, remove this set and try again
-                tagSets.RemoveAt(tagSets.FindIndex(a => a.Value == set));
+                var t = tags;
+                options.RemoveAll(a => a.Value == t);
             }
 
-            throw new SelectionFailedException("No suitable floors found for any tag set");
+            tags = null;
+            throw new SelectionFailedException("No suitable script found for any tag set");
         }
 
         internal class Container
