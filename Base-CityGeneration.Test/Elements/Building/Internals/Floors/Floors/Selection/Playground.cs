@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection;
 using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Testing.MockScripts;
@@ -15,15 +16,33 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         {
             var b = FloorSelector.Deserialize(new StringReader(@"
 !Building
-Groups:
-  residential_floor_count:
+Aliases:
+  - &residential_floor_count !NormalValue
     Min: 5
     Max: 10
-Verticals: []
+Verticals:
+    # First lift from ground->lowest skylobby
+    - Tags: { 1: [lift] }
+      Bottom: !Num { N: 0 }
+      Top: !Id { Id: Skylobby, Search: Up }
+
+    # Set of lifts from skylobby up to next skylobby
+    - Tags: { 1: [lift] }
+      Bottom: !Id { Id: Skylobby }
+      Top: !Id { Id: Skylobby, Search: Up }
+      # This selector matches many pairs, which ones do we actually create?
+      Create: All
+
+    # Express lift for penthouse
+    - Tags: { 1: [lift] }
+      Bottom: !Num { N: 0 }
+      Top: !Id { Id: Penthouse }
+      Create: SingleOrNone
 Floors:
   - !Floor
     Tags: { 50: [roof, garden], 50: [roof, helipad] }
   - !Floor
+    Id: Penthouse
     Tags: { 50: [penthouse], 50: null }
   - !Repeat
     Count:
@@ -31,14 +50,17 @@ Floors:
       Max: 5
     Items:
       - !Floor
+        Id: Skylobby
         Tags: { 1: [skylobby] }
       - !Range
         Includes:
-          - Count: { Group: residential_floor_count }
+          - Count: *residential_floor_count
             Tags: { 1: [apartment] }
   - !Floor
     Tags: { 1: [ground floor, lobby, shops] }
   - !Ground {}
+  - !Floor
+    Tags: { 1: [parking] }
 "));
 
             Assert.IsNotNull(b);
@@ -48,10 +70,22 @@ Floors:
             Random r = new Random();
             var selection = b.Select(r.NextDouble, finder);
 
-            foreach (var item in selection.AboveGroundFloors)
-                Console.WriteLine("{0} {1:##.##}m", item.Script.Name, item.Height);
-            foreach (var item in selection.BelowGroundFloors)
-                Console.WriteLine("{0} {1:##.##}m", item.Script.Name, item.Height);
+            var v = selection.Verticals;
+            Func<int, string> prefix = (floor) => new string(v.Select(a => a.Bottom <= floor && a.Top >= floor ? '|' : ' ').ToArray());
+
+            for (int i = 0; i < selection.AboveGroundFloors.Length; i++)
+            {
+                var item = selection.AboveGroundFloors[i];
+                var pre = prefix(selection.AboveGroundFloors.Length - i - 1);
+                Console.WriteLine("{0} {1} {2:##.##}m", pre, item.Script.Name, item.Height);
+            }
+
+            for (int i = 0; i < selection.BelowGroundFloors.Length; i++)
+            {
+                var item = selection.BelowGroundFloors[i];
+                var pre = prefix(-(i + 1));
+                Console.WriteLine("{0} {1} {2:##.##}m", pre, item.Script.Name, item.Height);
+            }
         }
     }
 }

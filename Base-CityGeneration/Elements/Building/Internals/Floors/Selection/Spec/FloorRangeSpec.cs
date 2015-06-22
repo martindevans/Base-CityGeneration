@@ -38,7 +38,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
                 include.Height = include.Height ?? defaultHeightSpec;
         }
 
-        public IEnumerable<FloorSelection> Select(Func<double> random, ScriptReference[] verticals, Func<string[], ScriptReference> finder, IGroupFinder groupFinder)
+        public IEnumerable<FloorSelection> Select(Func<double> random, Func<string[], ScriptReference> finder)
         {
             List<FloorSelection[]> selected = new List<FloorSelection[]>();
 
@@ -46,7 +46,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             foreach (var include in _includes)
             {
                 var selection = include
-                    .Select(random, verticals, finder, groupFinder)
+                    .Select(random, finder)
                     .Select(a => a.Where(b => b.Script != null))
                     .ToArray();
 
@@ -111,49 +111,61 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
         public bool Vary { get; private set; }
 
+        private readonly string _id;
+        public string Id { get { return _id; } }
+
         internal NormalValueSpec Height;
 
-        public FloorRangeIncludeSpec(NormalValueSpec count, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags, NormalValueSpec height)
+        public FloorRangeIncludeSpec(string id, NormalValueSpec count, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags, NormalValueSpec height)
         {
             Continuous = continuous;
             Height = height;
             Vary = vary;
 
+            _id = id;
             _tags = tags;
             _count = count;
         }
 
-        public IEnumerable<IEnumerable<FloorSelection>> Select(Func<double> random, ScriptReference[] verticals, Func<string[], ScriptReference> finder, IGroupFinder groupFinder)
+        public IEnumerable<IEnumerable<FloorSelection>> Select(Func<double> random, Func<string[], ScriptReference> finder)
         {
             //How many items to emit?
-            int amount = _count.SelectIntValue(random, groupFinder);
+            int amount = _count.SelectIntValue(random);
 
             //Result to emit
             List<List<FloorSelection>> emit = new List<List<FloorSelection>>();
 
             //Create a selection function which either always returns the same value or doesn't, depending upon Vary
-            Func<ScriptReference> selectScript;
+            Func<FloorSelection?> selectFloor;
             if (Vary)
-                selectScript = () => FloorSpec.SelectSingle(random, _tags, verticals, finder);
+            {
+                selectFloor = () => FloorSpec.SelectSingle(random, _tags, finder, Height.SelectFloatValue(random), Id);
+            }
             else
             {
-                var node = FloorSpec.SelectSingle(random, _tags, verticals, finder);
-                selectScript = () => node;
+                var node = FloorSpec.SelectSingle(random, _tags, finder, Height.SelectFloatValue(random), Id);
+                selectFloor = () => node;
             }
-
-            Func<FloorSelection> selectFloor = () => new FloorSelection(selectScript(), Height.SelectFloatValue(random, groupFinder));
 
             if (Continuous)
             {
                 var l = new List<FloorSelection>();
                 for (int i = 0; i < amount; i++)
-                    l.Add(selectFloor());
+                {
+                    var f = selectFloor();
+                    if (f.HasValue)
+                        l.Add(f.Value);
+                }
                 emit.Add(l);
             }
             else
             {
                 for (int i = 0; i < amount; i++)
-                    emit.Add(new List<FloorSelection> { selectFloor() });
+                {
+                    var f = selectFloor();
+                    if (f.HasValue)
+                        emit.Add(new List<FloorSelection> {f.Value});
+                }
             }
 
             return emit;
@@ -168,11 +180,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             public bool Vary { get; set; }
             public bool Continuous { get; set; }
 
+            public string Id { get; set; }
+
             internal FloorRangeIncludeSpec Unwrap(NormalValueSpec defaultHeight)
             {
                 var count = Count.Unwrap();
 
-                return new FloorRangeIncludeSpec(count, Vary, Continuous, Tags.ToArray(), defaultHeight);
+                return new FloorRangeIncludeSpec(Id ?? Guid.NewGuid().ToString(), count, Vary, Continuous, Tags.ToArray(), defaultHeight);
             }
         }
     }

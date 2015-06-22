@@ -53,7 +53,6 @@ Floors:
             Assert.AreEqual(5, spec.Height.Max);
             Assert.AreEqual(3, spec.Height.Mean);
             Assert.AreEqual(2, spec.Height.Deviation);
-            Assert.IsNull(spec.Height.Group);
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
             Assert.AreEqual("a", spec.Tags.Single(a => a.Key == 1).Value.Single());

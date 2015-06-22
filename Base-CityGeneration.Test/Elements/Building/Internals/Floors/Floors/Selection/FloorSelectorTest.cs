@@ -42,21 +42,19 @@ Floors:
         {
             var b = FloorSelector.Deserialize(new StringReader(@"
 !Building
-Groups:
-    groupname:
-        Vary: false
-        Min: 5
-        Max: 10
+Aliases:
+    - &groupname !NormalValue
+      Vary: false
+      Min: 5
+      Max: 10
 Verticals: []
 Floors:
     - !Floor
-      Height:
-        Group: groupname
+      Height: *groupname
       Tags:
         1: [a]
     - !Floor
-      Height:
-        Group: groupname
+      Height: *groupname
       Tags:
         1: [a]
 "));
@@ -137,8 +135,8 @@ Floors:
 !Building
 Verticals:
     - Tags: { 1: [lift] }
-      Bottom: { Ref: GroundFloor }
-      Top: { Ref: TopFloor }
+      Bottom: !Id { Id: GroundFloor }
+      Top: !Id { Id: TopFloor }
 Floors:
     - !Floor { Id: TopFloor, Tags: { 1: [a] } }
     - !Floor { Tags: { 1: [a] } }

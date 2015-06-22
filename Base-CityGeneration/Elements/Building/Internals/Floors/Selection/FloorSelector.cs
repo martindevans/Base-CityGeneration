@@ -1,6 +1,8 @@
 ﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Markers;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Ref;
 using EpimetheusPlugins.Scripts;
+using HandyCollections.Extensions;
 using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
@@ -10,7 +12,6 @@ using System.Linq;
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
 {
     public class FloorSelector
-        : IGroupFinder
     {
         private readonly VerticalElementSpec[] _verticalSelectors;
         public IEnumerable<VerticalElementSpec> VerticalSelectors
@@ -30,31 +31,21 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             }
         }
 
-        private readonly KeyValuePair<string, NormalValueSpec>[] _heightGroups;
-        public IEnumerable<KeyValuePair<string, NormalValueSpec>> HeightGroups
-        {
-            get
-            {
-                return _heightGroups;
-            }
-        }
-
-        public FloorSelector(ISelector[] floorSelectors, VerticalElementSpec[] verticalSelectors, KeyValuePair<string, NormalValueSpec>[] heightGroups)
+        public FloorSelector(ISelector[] floorSelectors, VerticalElementSpec[] verticalSelectors)
         {
             _floorSelectors = floorSelectors;
             _verticalSelectors = verticalSelectors;
-            _heightGroups = heightGroups;
         }
 
         public Selection Select(Func<double> random, Func<string[], ScriptReference> finder)
         {
-            var verticals = SelectVerticals(random, finder, _verticalSelectors).ToArray();  
-
             var aboveGround = _floorSelectors.TakeWhile(a => !(a is GroundMarker)).ToArray();
             var belowGround = _floorSelectors.SkipWhile(a => !(a is GroundMarker)).ToArray();
 
-            var above = SelectFloors(random, finder, verticals, aboveGround, this).ToArray();
-            var below = SelectFloors(random, finder, verticals, belowGround, this).ToArray();
+            var above = SelectFloors(random, finder, aboveGround).ToArray();
+            var below = SelectFloors(random, finder, belowGround).ToArray();
+
+            var verticals = SelectVerticals(random, finder, _verticalSelectors, above, below).ToArray();
 
             return new Selection(
                 above,
@@ -63,20 +54,26 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             );
         }
 
-        private IEnumerable<FloorSelection> SelectFloors(Func<double> random, Func<string[], ScriptReference> finder, ScriptReference[] verticals, IEnumerable<ISelector> selectors, IGroupFinder groupFinder)
+        private static IEnumerable<FloorSelection> SelectFloors(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<ISelector> selectors)
         {
             List<FloorSelection> floors = new List<FloorSelection>();
 
             foreach (var selector in selectors)
-                floors.AddRange(selector.Select(random, verticals, finder, groupFinder));
+                floors.AddRange(selector.Select(random, finder));
 
             return floors;
         }
 
-        private IEnumerable<ScriptReference> SelectVerticals(Func<double> random, Func<string[], ScriptReference> finder, VerticalElementSpec[] verticalSelectors)
+        private static IEnumerable<VerticalSelection> SelectVerticals(Func<double> random, Func<string[], ScriptReference> finder, VerticalElementSpec[] verticalSelectors, IEnumerable<FloorSelection> above, IEnumerable<FloorSelection> below)
         {
-            //throw new NotImplementedException();
-            return new ScriptReference[0];
+            var floors = above.Append(below).ToArray();
+
+            List<VerticalSelection> verticals = new List<VerticalSelection>();
+
+            foreach (var selector in verticalSelectors)
+                verticals.AddRange(selector.Select(random, finder, below.Count(), floors));
+
+            return verticals;
         }
 
         public struct Selection
@@ -84,20 +81,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             public FloorSelection[] AboveGroundFloors { get; private set; }
             public FloorSelection[] BelowGroundFloors { get; private set; }
 
-            public ScriptReference[] Verticals { get; private set; }
+            public VerticalSelection[] Verticals { get; private set; }
 
-            public Selection(FloorSelection[] aboveGroundFloors, FloorSelection[] belowGroundFloors, ScriptReference[] verticals)
+            public Selection(FloorSelection[] aboveGroundFloors, FloorSelection[] belowGroundFloors, VerticalSelection[] verticals)
                 : this()
             {
                 AboveGroundFloors = aboveGroundFloors;
                 BelowGroundFloors = belowGroundFloors;
                 Verticals = verticals;
             }
-        }
-
-        NormalValueSpec IGroupFinder.Find(string group)
-        {
-            return _heightGroups.Where(a => a.Key.Equals(group, StringComparison.InvariantCultureIgnoreCase)).Select(a => a.Value).SingleOrDefault();
         }
 
         #region serialization
@@ -108,12 +100,21 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
                 EmitTags = true,
             });
 
+            //Floor element types
             serializer.Settings.RegisterTagMapping("Ground", typeof(GroundMarker.Container));
             serializer.Settings.RegisterTagMapping("Building", typeof(Container));
             serializer.Settings.RegisterTagMapping("Floor", typeof(FloorSpec.Container));
             serializer.Settings.RegisterTagMapping("Range", typeof(FloorRangeSpec.Container));
             serializer.Settings.RegisterTagMapping("Include", typeof(FloorRangeIncludeSpec.Container));
             serializer.Settings.RegisterTagMapping("Repeat", typeof(RepeatSpec.Container));
+
+            //Utility types
+            serializer.Settings.RegisterTagMapping("NormalValue", typeof(NormalValueSpec.Container));
+
+            //Ref types
+            serializer.Settings.RegisterTagMapping("Num", typeof(NumRef.Container));
+            serializer.Settings.RegisterTagMapping("Tagged", typeof(TaggedRef.Container));
+            serializer.Settings.RegisterTagMapping("Id", typeof(IdRef.Container));
 
             return serializer;
         }
@@ -127,7 +128,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
 
         internal class Container
         {
-            public Dictionary<string, NormalValueSpec.Container> Groups { get; set; }
+            public List<object> Aliases { get; set; }
 
             // ReSharper disable once MemberCanBePrivate.Local
             public VerticalElementSpec.Container[] Verticals { get; set; }
@@ -139,8 +140,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             {
                 return new FloorSelector(
                     Floors.Select(a => a.Unwrap()).ToArray(),
-                    (Verticals ?? new VerticalElementSpec.Container[0]).Select(a => a.Unwrap()).ToArray(),
-                    (Groups ?? new Dictionary<string, NormalValueSpec.Container>()).Select(a => new KeyValuePair<string, NormalValueSpec>(a.Key, a.Value.Unwrap())).ToArray()
+                    (Verticals ?? new VerticalElementSpec.Container[0]).Select(a => a.Unwrap()).ToArray()
                 );
             }
         }
