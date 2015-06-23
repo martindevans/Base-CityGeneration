@@ -7,13 +7,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.
         : IRef
     {
         public int Number { get; private set; }
+        public VerticalElementCreationOptions Filter { get; private set; }
 
-        public NumRef(int number)
+        public NumRef(int number, VerticalElementCreationOptions filter)
         {
             Number = number;
+            Filter = filter;
         }
 
-        public IEnumerable<FloorSelection> Match(int basements, FloorSelection[] floors)
+        public IEnumerable<FloorSelection> Match(int basements, FloorSelection[] floors, int? startIndex)
         {
             //floors are top to bottom, so we need to convert the floor index
             int index = floors.Length - 1 - basements - Number;
@@ -31,12 +33,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.
         {
             public int N { get; set; }
 
+            public VerticalElementCreationOptions? Filter { get; set; }
+
             private IRef _cached;
 
             public IRef Unwrap()
             {
                 if (_cached == null)
-                    _cached = new NumRef(N);
+                    _cached = new NumRef(N, Filter ?? VerticalElementCreationOptions.All);
                 return _cached;
             }
         }

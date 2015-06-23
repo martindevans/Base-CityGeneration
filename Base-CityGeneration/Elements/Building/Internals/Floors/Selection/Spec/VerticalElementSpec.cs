@@ -20,27 +20,27 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
         public IRef BottomFloor { get; private set; }
         public IRef TopFloor { get; private set; }
-        public VerticalElementCreationOptions Create { get; private set; }
-
-        public VerticalElementSpec(KeyValuePair<float, string[]>[] tags, IRef bottomFloor, IRef topFloor, VerticalElementCreationOptions create)
+        
+        public VerticalElementSpec(KeyValuePair<float, string[]>[] tags, IRef bottomFloor, IRef topFloor)
         {
             _tags = tags;
             TopFloor = topFloor;
-            Create = create;
             BottomFloor = bottomFloor;
         }
 
         public IEnumerable<VerticalSelection> Select(Func<double> random, Func<string[], ScriptReference> finder, int basements, FloorSelection[] floors)
         {
-            var top = TopFloor.Match(basements, floors);
             var bot = BottomFloor.Match(basements, floors);
 
-            var zipped = bot.Zip(top, (a, b) => new KeyValuePair<FloorSelection, FloorSelection>(a, b));
-
-            var selected = KeyValuePairs(zipped);
+            var zipped = FilterByCreationMode(bot.SelectMany(a =>
+                FilterByCreationMode(TopFloor
+                    .Match(basements, floors, Array.IndexOf(floors, a))
+                    .Select(b => new KeyValuePair<FloorSelection, FloorSelection>(a, b))
+                    .Where(b => b.Key.Index != b.Value.Index), TopFloor.Filter)
+            ), BottomFloor.Filter);
 
             List<VerticalSelection> output = new List<VerticalSelection>();
-            foreach (var vertical in selected)
+            foreach (var vertical in zipped)
             {
                 string[] chosenTags;
                 var script = FloorSpec.FindScript(random, finder, _tags, out chosenTags);
@@ -52,9 +52,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             return output;
         }
 
-        private IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> KeyValuePairs(IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> zipped)
+        private IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> FilterByCreationMode(IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> zipped, VerticalElementCreationOptions option)
         {
-            switch (Create)
+            switch (option)
             {
                 case VerticalElementCreationOptions.All:
                     return zipped;
@@ -84,15 +84,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             public IRefContainer Bottom { get; set; }
             public IRefContainer Top { get; set; }
 
-            public VerticalElementCreationOptions? Create { get; set; }
-
             public VerticalElementSpec Unwrap()
             {
                 return new VerticalElementSpec(
                     Tags.ToArray(),
                     Bottom.Unwrap(),
-                    Top.Unwrap(),
-                    Create ?? VerticalElementCreationOptions.All
+                    Top.Unwrap()
                 );
             }
         }

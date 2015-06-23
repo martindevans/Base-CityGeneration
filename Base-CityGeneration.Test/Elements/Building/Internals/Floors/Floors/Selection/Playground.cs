@@ -24,20 +24,17 @@ Verticals:
     # First lift from ground->lowest skylobby
     - Tags: { 1: [lift] }
       Bottom: !Num { N: 0 }
-      Top: !Id { Id: Skylobby, Search: Up }
+      Top: !Id { Id: Skylobby, Search: Up, Filter: First }
 
     # Set of lifts from skylobby up to next skylobby
     - Tags: { 1: [lift] }
       Bottom: !Id { Id: Skylobby }
-      Top: !Id { Id: Skylobby, Search: Up }
-      # This selector matches many pairs, which ones do we actually create?
-      Create: All
+      Top: !Id { Id: Skylobby, Search: Up, Filter: First }
 
     # Express lift for penthouse
     - Tags: { 1: [lift] }
       Bottom: !Num { N: 0 }
       Top: !Id { Id: Penthouse }
-      Create: SingleOrNone
 Floors:
   - !Floor
     Tags: { 50: [roof, garden], 50: [roof, helipad] }

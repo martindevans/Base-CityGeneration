@@ -36,13 +36,33 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             }
         }
 
-        public FloorSelection(string id, string[] tags, ScriptReference script, float height)
+        private readonly int _index;
+        public int Index
+        {
+            get
+            {
+                return _index;
+            }
+        }
+
+        public FloorSelection(string id, string[] tags, ScriptReference script, float height, int index = 0)
             : this()
         {
             _id = id;
             _tags = tags;
             _script = script;
             _height = height;
+            _index = index;
+        }
+
+        public FloorSelection(FloorSelection selection, int index)
+            : this()
+        {
+            _id = selection.Id;
+            _tags = selection.Tags;
+            _script = selection.Script;
+            _height = selection.Height;
+            _index = index;
         }
     }
 

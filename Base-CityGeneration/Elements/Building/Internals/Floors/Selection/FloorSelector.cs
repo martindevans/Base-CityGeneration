@@ -42,8 +42,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             var aboveGround = _floorSelectors.TakeWhile(a => !(a is GroundMarker)).ToArray();
             var belowGround = _floorSelectors.SkipWhile(a => !(a is GroundMarker)).ToArray();
 
+            //Select above ground floors, then assign indices
             var above = SelectFloors(random, finder, aboveGround).ToArray();
+            for (int i = 0; i < above.Length; i++)
+                above[i] = new FloorSelection(above[i], above.Length - i - 1);
+
+            //Select below ground floors, then assign indices
             var below = SelectFloors(random, finder, belowGround).ToArray();
+            for (int i = 0; i < below.Length; i++)
+                below[i] = new FloorSelection(below[i], -(i + 1));
 
             var verticals = SelectVerticals(random, finder, _verticalSelectors, above, below).ToArray();
 
