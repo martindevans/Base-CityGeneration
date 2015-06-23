@@ -5,7 +5,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.
 {
     public interface IRef
     {
-        IEnumerable<FloorSelection> Match(int basements, FloorSelection[] floors);
+        VerticalElementCreationOptions Filter { get; }
+
+        IEnumerable<FloorSelection> Match(int basements, FloorSelection[] floors, int? startIndex = null);
     }
 
     internal interface IRefContainer
