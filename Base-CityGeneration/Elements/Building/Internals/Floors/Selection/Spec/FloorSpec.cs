@@ -103,11 +103,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
             public ISelector Unwrap()
             {
-                NormalValueSpec height;
-                if (Height == null)
-                    height = new NormalValueSpec(2.5f, 3f, 3.5f, 0.2f);
-                else
-                    height = Height.Unwrap();
+                NormalValueSpec height = Height == null ? new NormalValueSpec(2.5f, 3f, 3.5f, 0.2f) : Height.Unwrap();
 
                 return new FloorSpec(Id ?? Guid.NewGuid().ToString(), Tags.ToArray(), height);
             }
