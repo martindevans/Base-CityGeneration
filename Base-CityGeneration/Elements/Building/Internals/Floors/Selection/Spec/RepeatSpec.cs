@@ -33,11 +33,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
             else
             {
-                List<FloorSelection[]> selectionCache = new List<FloorSelection[]>();
-
                 //Generate selections for each item in the repeat (cached)
-                foreach (var selector in Items)
-                    selectionCache.Add(selector.Select(random, finder).ToArray());
+                List<FloorSelection[]> selectionCache = Items.Select(selector => selector.Select(random, finder).ToArray()).ToList();
 
                 //Now repeat those cached items as many times as we need
                 for (int i = 0; i < count; i++)

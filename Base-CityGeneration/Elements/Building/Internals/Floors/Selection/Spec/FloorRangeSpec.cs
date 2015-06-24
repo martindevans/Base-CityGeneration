@@ -43,16 +43,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             List<FloorSelection[]> selected = new List<FloorSelection[]>();
 
             //Includes return an enuemrable of enumerables, inner enumerables are items which must be continuous (i.e. all next to each other)
-            foreach (var include in _includes)
-            {
-                var selection = include
-                    .Select(random, finder)
-                    .Select(a => a.Where(b => b.Script != null))
-                    .ToArray();
-
-                foreach (var floorSelection in selection)
-                    selected.Add(floorSelection.ToArray());
-            }
+            foreach (var selection in _includes.Select(include => include.Select(random, finder).Select(a => a.Where(b => b.Script != null)).ToArray()))
+                selected.AddRange(selection.Select(floorSelection => floorSelection.ToArray()));
 
             //Shuffle the list, then flatten out the sub lists
             return selected
@@ -69,11 +61,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
             public ISelector Unwrap()
             {
-                NormalValueSpec defaultHeight;
-                if (DefaultHeight == null)
-                    defaultHeight = new NormalValueSpec(2.5f, 3, 3.5f, 0.2f);
-                else
-                    defaultHeight  = DefaultHeight.Unwrap();
+                NormalValueSpec defaultHeight = DefaultHeight == null ? new NormalValueSpec(2.5f, 3, 3.5f, 0.2f) : DefaultHeight.Unwrap();
 
                 return new FloorRangeSpec(Includes.Select(a => a.Unwrap(defaultHeight)).ToArray(), defaultHeight);
             }

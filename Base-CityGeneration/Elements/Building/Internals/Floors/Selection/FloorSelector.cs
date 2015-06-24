@@ -71,7 +71,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             return floors;
         }
 
-        private static IEnumerable<VerticalSelection> SelectVerticals(Func<double> random, Func<string[], ScriptReference> finder, VerticalElementSpec[] verticalSelectors, IEnumerable<FloorSelection> above, IEnumerable<FloorSelection> below)
+        private static IEnumerable<VerticalSelection> SelectVerticals(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<VerticalElementSpec> verticalSelectors, IEnumerable<FloorSelection> above, IEnumerable<FloorSelection> below)
         {
             var floors = above.Append(below).ToArray();
 
@@ -117,6 +117,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
 
             //Utility types
             serializer.Settings.RegisterTagMapping("NormalValue", typeof(NormalValueSpec.Container));
+            serializer.Settings.RegisterTagMapping("UniformValue", typeof(UniformValueSpec.Container));
 
             //Ref types
             serializer.Settings.RegisterTagMapping("Num", typeof(NumRef.Container));
@@ -135,6 +136,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
 
         internal class Container
         {
+            public List<string> Tags { get; set; }
+
             public List<object> Aliases { get; set; }
 
             // ReSharper disable once MemberCanBePrivate.Local
