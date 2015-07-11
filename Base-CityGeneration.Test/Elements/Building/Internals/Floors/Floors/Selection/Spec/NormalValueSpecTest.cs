@@ -1,4 +1,6 @@
 ﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
+using Base_CityGeneration.Utilities;
+using Base_CityGeneration.Utilities.Numbers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
@@ -10,7 +12,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         [TestMethod]
         public void AssertThat_SelectFloatValue_IsWithinRange()
         {
-            NormalValueSpec spec = new NormalValueSpec(9.5f, 20, 30.5f, 10, true);
+            NormallyDistributedValue spec = new NormallyDistributedValue(9.5f, 20, 30.5f, 10, true);
 
             Random r = new Random();
             for (int i = 0; i < 1000; i++)
@@ -25,7 +27,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         [TestMethod]
         public void AsserThat_SelectIntValue_IsWithinRange()
         {
-            NormalValueSpec spec = new NormalValueSpec(9.5f, 20, 30.5f, 10, true);
+            NormallyDistributedValue spec = new NormallyDistributedValue(9.5f, 20, 30.5f, 10, true);
 
             Random r = new Random();
             for (int i = 0; i < 1000; i++)

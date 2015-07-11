@@ -1,6 +1,8 @@
 ﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Markers;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Ref;
+using Base_CityGeneration.Utilities;
+using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
 using HandyCollections.Extensions;
 using SharpYaml.Serialization;
@@ -116,8 +118,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             serializer.Settings.RegisterTagMapping("Repeat", typeof(RepeatSpec.Container));
 
             //Utility types
-            serializer.Settings.RegisterTagMapping("NormalValue", typeof(NormalValueSpec.Container));
-            serializer.Settings.RegisterTagMapping("UniformValue", typeof(UniformValueSpec.Container));
+            serializer.Settings.RegisterTagMapping("NormalValue", typeof(NormallyDistributedValue.Container));
+            serializer.Settings.RegisterTagMapping("UniformValue", typeof(UniformlyDistributedValue.Container));
 
             //Ref types
             serializer.Settings.RegisterTagMapping("Num", typeof(NumRef.Container));

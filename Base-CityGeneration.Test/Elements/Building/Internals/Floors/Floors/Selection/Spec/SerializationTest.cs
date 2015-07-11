@@ -2,6 +2,7 @@
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Markers;
+using Base_CityGeneration.Utilities.Numbers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 
@@ -35,6 +36,7 @@ Verticals: []
 Floors:
     - !Floor
       Height:
+        !NormalValue
         Min: 1
         Mean: 3
         Max: 5
@@ -49,10 +51,11 @@ Floors:
             Assert.AreEqual(1, b.FloorSelectors.Count());
             var spec = (FloorSpec)b.FloorSelectors.Single();
 
-            Assert.AreEqual(1, spec.Height.Min);
-            Assert.AreEqual(5, spec.Height.Max);
-            Assert.AreEqual(3, spec.Height.Mean);
-            Assert.AreEqual(2, spec.Height.Deviation);
+            var h = (NormallyDistributedValue) spec.Height;
+            Assert.AreEqual(1, h.Min);
+            Assert.AreEqual(5, h.Max);
+            Assert.AreEqual(3, h.Mean);
+            Assert.AreEqual(2, h.Deviation);
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
             Assert.AreEqual("a", spec.Tags.Single(a => a.Key == 1).Value.Single());
@@ -70,6 +73,7 @@ Floors:
     - !Range
       Includes:
         - Count:
+            !UniformValue
             Min: 1
             Max: 1
           Vary: true
