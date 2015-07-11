@@ -1,4 +1,6 @@
 ﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
+using Base_CityGeneration.Utilities;
+using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,7 +18,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         {
             FloorSpec spec = new FloorSpec(new[] {
                 new KeyValuePair<float, string[]>(1, new [] { "tag" })
-            }, new NormalValueSpec(1, 2, 3, 1, false));
+            }, new NormallyDistributedValue(1, 2, 3, 1, false));
 
             var selected = spec.Select(() => 0.5, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
@@ -29,7 +31,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         {
             FloorSpec spec = new FloorSpec(new[] {
                 new KeyValuePair<float, string[]>(1, null)
-            }, new NormalValueSpec(1, 2, 3, 1, false));
+            }, new NormallyDistributedValue(1, 2, 3, 1, false));
 
             var selected = spec.Select(() => 0.5, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 

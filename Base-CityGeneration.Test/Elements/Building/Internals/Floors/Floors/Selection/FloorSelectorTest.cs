@@ -19,6 +19,7 @@ Verticals: []
 Floors:
     - !Floor
       Height:
+        !UniformValue
         Min: 1
         Max: 2
       Tags:
@@ -105,6 +106,7 @@ Floors:
     - !Range
       Includes:
         - Count:
+            !UniformValue
             Min: 1
             Max: 5
           Vary: true

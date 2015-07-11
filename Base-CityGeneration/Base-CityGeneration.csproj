@@ -209,7 +209,6 @@
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FloorRangeSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\FloorSelector.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\ISelector.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\NormalValueSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Markers\IMarker.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Markers\GroundMarker.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FloorSpec.cs" />
@@ -220,7 +219,8 @@
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\TagContainer.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\UniformValueSpec.cs" />
+    <Compile Include="Utilities\Numbers\IValueGenerator.cs" />
+    <Compile Include="Utilities\Numbers\UniformlyDistributedValue.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\VerticalElementSpec.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IDoorPlacer.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IDoorTarget.cs" />
@@ -276,13 +276,16 @@
     <Compile Include="Styles\TypedNameDefault.cs" />
     <Compile Include="Styles\InternalWalls.cs" />
     <Compile Include="TreeSearch.cs" />
+    <Compile Include="Utilities\Numbers\NormallyDistributedValue.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Elements\Building\Building Hierarchy.md" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Elements\Roads\Hyperstreamline\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

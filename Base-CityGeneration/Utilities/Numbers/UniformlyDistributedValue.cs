@@ -1,11 +1,11 @@
-﻿
-using System;
+﻿using System;
 using EpimetheusPlugins.Procedural;
 using Microsoft.Xna.Framework;
 
-namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
+namespace Base_CityGeneration.Utilities.Numbers
 {
-    public class UniformValueSpec
+    public class UniformlyDistributedValue
+        : IValueGenerator
     {
         private readonly float _min;
         public float Min { get { return _min; } }
@@ -19,7 +19,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         private float? _singleCache;
         private int? _intCache;
 
-        public UniformValueSpec(float min, float max, bool vary = false)
+        public UniformlyDistributedValue(float min, float max, bool vary = false)
         {
             _min = min;
             _max = max;
@@ -72,31 +72,22 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         }
 
         internal class Container
+            : IValueGeneratorContainer
         {
             public float Min { get; set; }
             public float Max { get; set; }
             public bool Vary { get; set; }
 
-            /// <summary>
-            /// Cache unwrapped value, so multiple unwraps all return exactly the same item
-            /// </summary>
-            internal UniformValueSpec Unwrapped { get; set; }
-        }
-    }
+            IValueGenerator IValueGeneratorContainer.Unwrapped { get; set; }
 
-    internal static class UniformValueSpecContainerExtensions
-    {
-        public static UniformValueSpec Unwrap(this UniformValueSpec.Container container)
-        {
-            if (container.Unwrapped == null)
+            IValueGenerator IValueGeneratorContainer.Unwrap()
             {
-                var min = container.Min;
-                var max = container.Max;
+                var self = (IValueGeneratorContainer)this;
+                if (self.Unwrapped == null)
+                    self.Unwrapped = new UniformlyDistributedValue(Min, Max, Vary);
 
-                container.Unwrapped = new UniformValueSpec(min, max, container.Vary);
+                return self.Unwrapped;
             }
-
-            return container.Unwrapped;
         }
     }
 }

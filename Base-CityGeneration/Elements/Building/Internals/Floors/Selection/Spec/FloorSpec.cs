@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 
@@ -21,8 +22,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        private readonly NormalValueSpec _height;
-        public NormalValueSpec Height
+        private readonly IValueGenerator _height;
+        public IValueGenerator Height
         {
             get
             {
@@ -33,12 +34,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         private readonly string _id;
         public string Id { get { return _id; } }
 
-        public FloorSpec(KeyValuePair<float, string[]>[] tags, NormalValueSpec height)
+        public FloorSpec(KeyValuePair<float, string[]>[] tags, IValueGenerator height)
             : this(Guid.NewGuid().ToString(), tags, height)
         {
         }
 
-        public FloorSpec(string id, KeyValuePair<float, string[]>[] tags, NormalValueSpec height)
+        public FloorSpec(string id, KeyValuePair<float, string[]>[] tags, IValueGenerator height)
         {
             _id = id;
             _tags = tags;
@@ -99,11 +100,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
             public TagContainer Tags { get; set; }
 
-            public NormalValueSpec.Container Height { get; set; }
+            public IValueGeneratorContainer Height { get; set; }
 
             public ISelector Unwrap()
             {
-                NormalValueSpec height = Height == null ? new NormalValueSpec(2.5f, 3f, 3.5f, 0.2f) : Height.Unwrap();
+                IValueGenerator height = Height == null ? new NormallyDistributedValue(2.5f, 3f, 3.5f, 0.2f) : Height.Unwrap();
 
                 return new FloorSpec(Id ?? Guid.NewGuid().ToString(), Tags.ToArray(), height);
             }

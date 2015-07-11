@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Base_CityGeneration.Utilities;
+using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
@@ -20,8 +22,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        private readonly NormalValueSpec _defaultHeightSpec;
-        public NormalValueSpec DefaultHeight
+        private readonly IValueGenerator _defaultHeightSpec;
+        public IValueGenerator DefaultHeight
         {
             get
             {
@@ -29,7 +31,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        public FloorRangeSpec(FloorRangeIncludeSpec[] includes, NormalValueSpec defaultHeightSpec)
+        public FloorRangeSpec(FloorRangeIncludeSpec[] includes, IValueGenerator defaultHeightSpec)
         {
             _includes = includes;
             _defaultHeightSpec = defaultHeightSpec;
@@ -57,11 +59,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public FloorRangeIncludeSpec.Container[] Includes { get; set; }
 
-            public NormalValueSpec.Container DefaultHeight { get; set; }
+            public IValueGeneratorContainer DefaultHeight { get; set; }
 
             public ISelector Unwrap()
             {
-                NormalValueSpec defaultHeight = DefaultHeight == null ? new NormalValueSpec(2.5f, 3, 3.5f, 0.2f) : DefaultHeight.Unwrap();
+                IValueGenerator defaultHeight = DefaultHeight == null ? new NormallyDistributedValue(2.5f, 3, 3.5f, 0.2f) : DefaultHeight.Unwrap();
 
                 return new FloorRangeSpec(Includes.Select(a => a.Unwrap(defaultHeight)).ToArray(), defaultHeight);
             }
@@ -83,8 +85,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        private readonly NormalValueSpec _count;
-        public NormalValueSpec Count
+        private readonly IValueGenerator _count;
+        public IValueGenerator Count
         {
             get
             {
@@ -102,9 +104,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         private readonly string _id;
         public string Id { get { return _id; } }
 
-        internal NormalValueSpec Height;
+        internal IValueGenerator Height;
 
-        public FloorRangeIncludeSpec(string id, NormalValueSpec count, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags, NormalValueSpec height)
+        public FloorRangeIncludeSpec(string id, IValueGenerator count, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags, IValueGenerator height)
         {
             Continuous = continuous;
             Height = height;
@@ -163,14 +165,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public TagContainer Tags { get; set; }
 
-            public NormalValueSpec.Container Count { get; set; }
+            public IValueGeneratorContainer Count { get; set; }
 
             public bool Vary { get; set; }
             public bool Continuous { get; set; }
 
             public string Id { get; set; }
 
-            internal FloorRangeIncludeSpec Unwrap(NormalValueSpec defaultHeight)
+            internal FloorRangeIncludeSpec Unwrap(IValueGenerator defaultHeight)
             {
                 var count = Count.Unwrap();
 

@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Base_CityGeneration.Utilities.Numbers;
+using EpimetheusPlugins.Scripts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using EpimetheusPlugins.Scripts;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 {
@@ -9,11 +10,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         : ISelector
     {
         public ISelector[] Items { get; private set; }
-        public NormalValueSpec Count { get; private set; }
+        public IValueGenerator Count { get; private set; }
 
         public bool Vary { get; private set; }
 
-        private RepeatSpec(ISelector[] items, NormalValueSpec count, bool vary)
+        private RepeatSpec(ISelector[] items, IValueGenerator count, bool vary)
         {
             Items = items;
             Count = count;
@@ -49,7 +50,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public ISelectorContainer[] Items { get; set; }
 
-            public NormalValueSpec.Container Count { get; set; }
+            public IValueGeneratorContainer Count { get; set; }
 
             public bool Vary { get; set; }
 

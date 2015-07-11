@@ -43,6 +43,7 @@ Floors:
     Tags: { 50: [penthouse], 50: null }
   - !Repeat
     Count:
+      !NormalValue
       Min: 1
       Max: 5
     Items:
