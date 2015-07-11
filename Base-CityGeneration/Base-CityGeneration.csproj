@@ -64,9 +64,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeistTutorial\packages\EpimetheusPlugins.1.0.5646.32114\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
     </Reference>
-    <Reference Include="HandyCollections, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="HandyCollections, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\HandyCollections.1.1.0.0\lib\net40\HandyCollections.dll</HintPath>
+      <HintPath>..\packages\HandyCollections.2.0.0.0\lib\net40\HandyCollections.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
@@ -92,9 +92,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Myre.Graphics.5.2.0.0\lib\net40-Client\Myre.Graphics.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+    <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Ninject, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -102,7 +102,7 @@
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NLog.4.0.0\lib\net40\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.0.1\lib\net40\NLog.dll</HintPath>
     </Reference>
     <Reference Include="Placeholder, Version=2.2.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
@@ -219,6 +219,33 @@
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\TagContainer.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\Constant.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\IEigenField.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Scalars\BaseScalarField.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Scalars\Constant.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Scalars\Multiply.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tensor.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\Addition.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\Gridline.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\Heightmap.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\ITensorField.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\PointDistanceDecay.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\Polyline.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\Radial.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\WeightedAverage.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Vectors\Gradient.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Vectors\Inverse.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Vectors\IVector2Field.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Edge.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\KeyComparer.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Network.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\NetworkBuilder.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\NetworkConfiguration.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Region.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\RegionBuilder.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Seed.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Streamline.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Vertex.cs" />
     <Compile Include="Utilities\Numbers\IValueGenerator.cs" />
     <Compile Include="Utilities\Numbers\UniformlyDistributedValue.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\VerticalElementSpec.cs" />
@@ -283,9 +310,7 @@
     <None Include="Elements\Building\Building Hierarchy.md" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Elements\Roads\Hyperstreamline\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

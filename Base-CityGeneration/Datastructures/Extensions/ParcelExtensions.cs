@@ -117,8 +117,10 @@ namespace Base_CityGeneration.Datastructures.Extensions
             var bv = b.Select(mesh.GetOrConstructVertex).ToArray();
 
             //Make sure that new points for both shapes are the same
+// ReSharper disable HeapView.SlowDelegateCreation
             var newA = new HashSet<Vertex<TVertexTag, string[], TFaceTag>>(av.Where(v => !v.Edges.Any()).OrderBy(v => a.GetHashCode()));
             var newB = new HashSet<Vertex<TVertexTag, string[], TFaceTag>>(bv.Where(v => !v.Edges.Any()).OrderBy(v => a.GetHashCode()));
+// ReSharper restore HeapView.SlowDelegateCreation
             if (!newA.IsSubsetOf(newB) && newB.IsSubsetOf(newA))
                 throw new InvalidOperationException("Generated vertices for paired parcels did not match up");
 
