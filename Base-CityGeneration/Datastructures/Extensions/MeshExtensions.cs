@@ -24,6 +24,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
             Pathfinder p = Pathfinder.Get();
             try
             {
+                // ReSharper disable once HeapView.SlowDelegateCreation
                 var edges = p.FindPath(start, end, (a, b) => (((Vertex<TVertexTag, THalfEdgeTag, TFaceTag>)a).Position - ((Vertex<TVertexTag, THalfEdgeTag, TFaceTag>)b).Position).Length());
 
                 return edges.Cast<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>();
