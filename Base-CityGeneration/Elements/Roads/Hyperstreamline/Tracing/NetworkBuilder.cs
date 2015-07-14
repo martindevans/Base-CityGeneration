@@ -1,37 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Management.Instrumentation;
-using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens;
-using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
+﻿using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
+using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors;
 using EpimetheusPlugins.Procedural.Utilities;
 using HandyCollections.Geometry;
 using HandyCollections.Heap;
-using Vector2 = Microsoft.Xna.Framework.Vector2;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Management.Instrumentation;
 using HGVector2 = HandyCollections.Geometry.Vector2;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 {
     public class NetworkBuilder
     {
-        private readonly NetworkConfiguration _config;
-        private readonly Vector2 _min;
-        private readonly Vector2 _max;
+        private Quadtree<Vertex> _vertices;
+        private Quadtree<Edge> _edges;
 
-        private readonly Quadtree<Vertex> _vertices;
-        private readonly Quadtree<Edge> _edges;
+        private readonly HashSet<Streamline> _streams;
 
-        private readonly HashSet<Streamline> _streams; 
+        private bool _begun;
 
-        public NetworkBuilder(NetworkConfiguration config, Vector2 min, Vector2 max)
+        public NetworkBuilder()
         {
-            _config = config;
-            _min = min;
-            _max = max;
-
-            _vertices = new Quadtree<Vertex>(new BoundingRectangle(new HGVector2(min.X, min.Y), new HGVector2(max.X, max.Y)), 63);
-            _edges = new Quadtree<Edge>(new BoundingRectangle(new HGVector2(min.X, min.Y), new HGVector2(max.X, max.Y)), 31);
             _streams = new HashSet<Streamline>();
         }
 
@@ -54,43 +46,64 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         #endregion
 
         #region building
-        public void Build(Random random, IEigenField field)
+        public void Begin(Vector2 min, Vector2 max)
         {
-            AddBoundary();
+            _vertices = new Quadtree<Vertex>(new BoundingRectangle(new HGVector2(min.X, min.Y), new HGVector2(max.X, max.Y)), 63);
+            _edges = new Quadtree<Edge>(new BoundingRectangle(new HGVector2(min.X, min.Y), new HGVector2(max.X, max.Y)), 31);
 
-            var extent = _max - _min;
-            var count = (int)((extent.X * extent.Y) / 2500);
-            var seeds = RandomSeedsInBounds(random, count, field.MajorEigenVectors, field.MinorEigenVectors, _min, _max, IsOutOfBounds);
+            _begun = true;
+        }
 
-            Build(seeds, _min, _max, _config.SeparationField, true, true, _config.SegmentLength, _config.MergeDistance, IsOutOfBounds, null, s =>
+        public void Build(NetworkConfiguration config, Random random, Vector2 min, Vector2 max)
+        {
+            if (!_begun)
             {
-                s.Width = random.Next(_config.MajorRoadMinWidth, _config.MajorRoadMaxWidth);
+                Begin(min, max);
+                AddBoundary(min, max);
+            }
+
+            var extent = max - min;
+            var eigens = config.TensorField.Presample(min, max, (int)Math.Max(extent.X, extent.Y));
+
+            var count = (int)((extent.X * extent.Y) / 2500);
+
+            Func<Vector2, bool> isOutOfBounds = v => v.X > max.X || v.X < min.X || v.Y > max.Y || v.Y < min.Y;
+
+            var seeds = RandomSeedsInBounds(random, count, eigens.MajorEigenVectors, eigens.MinorEigenVectors, min, max, isOutOfBounds);
+
+            Build(seeds, min, max, config.SeparationField, true, true, config.SegmentLength, config.MergeDistance, config.CosineSearchConeAngle, isOutOfBounds, null, s =>
+            {
+                s.Width = config.RoadWidth.SelectIntValue(random.NextDouble);
 
                 LinearReduction(s);
             });
         }
 
-        public void Build(Random random, IEigenField field, Region region)
+        public void Build(NetworkConfiguration config, Random random, Region region)
         {
             const float REGION_PARAM_SCALE = 0.1f;
 
-            var seeds = SeedsAlongEdge(region, _config.SeparationField * (float)Math.Pow(REGION_PARAM_SCALE, 0.25f), field.MajorEigenVectors, field.MinorEigenVectors);
+            var extent = region.Max - region.Min;
+            var eigens = config.TensorField.Presample(new Vector2(region.Min.X, region.Min.Y), new Vector2(region.Max.X, region.Max.Y), (int)Math.Max(extent.X, extent.Y));
+
+            var seeds = SeedsAlongEdge(region, config.SeparationField * (float)Math.Pow(REGION_PARAM_SCALE, 0.25f), eigens.MajorEigenVectors, eigens.MinorEigenVectors);
 
             Build(seeds, region.Min, region.Max,
-                _config.SeparationField * REGION_PARAM_SCALE,
+                config.SeparationField * REGION_PARAM_SCALE,
                 true, true,
-                _config.MergeDistance * REGION_PARAM_SCALE,
-                _config.SegmentLength * REGION_PARAM_SCALE,
+                config.MergeDistance * REGION_PARAM_SCALE,
+                config.SegmentLength * REGION_PARAM_SCALE,
+                config.CosineSearchConeAngle,
                 p => !region.PointInPolygon(p), e => e.Streamline.Region == region,
                 s => {
-                    s.Width = random.Next(_config.MinorRoadMinWidth, _config.MinorRoadMaxWidth);
+                    s.Width = config.RoadWidth.SelectIntValue(random.NextDouble);
                     s.Region = region;
 
                     LinearReduction(s);
                 });
         }
 
-        private void Build(IEnumerable<Seed> initialSeeds, Vector2 min, Vector2 max, BaseScalarField separation, bool forward, bool backward, float maxSegmentLength, float mergeDistance, Func<Vector2, bool> isOutOfBounds, Func<Edge, bool> edgeFilter, Action<Streamline> streamCreated)
+        private void Build(IEnumerable<Seed> initialSeeds, Vector2 min, Vector2 max, BaseScalarField separation, bool forward, bool backward, float maxSegmentLength, float mergeDistance, float cosineSearchAngle, Func<Vector2, bool> isOutOfBounds, Func<Edge, bool> edgeFilter, Action<Streamline> streamCreated)
         {
             var seeds = new MinHeap<KeyValuePair<float, Seed>>(1024, new KeyComparer<float, Seed>());
             foreach (var initialSeed in initialSeeds)
@@ -99,13 +112,13 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             //Trace out roads for every single seed
             while (seeds.Count > 0)
             {
-                var s = RemoveSeed(seeds, separation, edgeFilter);
+                var s = RemoveSeed(seeds, separation, cosineSearchAngle, edgeFilter);
                 if (!s.HasValue)
                     continue;
 
                 if (forward)
                 {
-                    var stream = CheckStream(Trace(s.Value, false, seeds, isOutOfBounds, maxSegmentLength, mergeDistance, separation));
+                    var stream = CheckStream(Trace(s.Value, false, seeds, isOutOfBounds, maxSegmentLength, mergeDistance, cosineSearchAngle, separation));
                     if (stream != null)
                     {
                         _streams.Add(stream);
@@ -115,7 +128,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
                 if (backward)
                 {
-                    var stream = CheckStream(Trace(s.Value, true, seeds, isOutOfBounds, maxSegmentLength, mergeDistance, separation));
+                    var stream = CheckStream(Trace(s.Value, true, seeds, isOutOfBounds, maxSegmentLength, mergeDistance, cosineSearchAngle, separation));
                     if (stream != null)
                     {
                         _streams.Add(stream);
@@ -125,15 +138,15 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             }
         }
 
-        private void AddBoundary()
+        private void AddBoundary(Vector2 min, Vector2 max)
         {
             //Start boundary
-            Streamline boundary = new Streamline(CreateVertex(_min));
+            Streamline boundary = new Streamline(CreateVertex(min));
 
             //Loop around 3 sides
-            InsertEdge(boundary.Extend(CreateVertex(new Vector2(_max.X, _min.Y))));
-            InsertEdge(boundary.Extend(CreateVertex(new Vector2(_max.X, _max.Y))));
-            InsertEdge(boundary.Extend(CreateVertex(new Vector2(_min.X, _max.Y))));
+            InsertEdge(boundary.Extend(CreateVertex(new Vector2(max.X, min.Y))));
+            InsertEdge(boundary.Extend(CreateVertex(new Vector2(max.X, max.Y))));
+            InsertEdge(boundary.Extend(CreateVertex(new Vector2(min.X, max.Y))));
 
             //Close loop
             InsertEdge(boundary.Extend(boundary.First));
@@ -241,14 +254,14 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             _streams.Remove(stream);
         }
 
-        private Streamline Trace(Seed seed, bool reverse, MinHeap<KeyValuePair<float, Seed>> seeds, Func<Vector2, bool> isOutOfBounds, float maxSegmentLength, float mergeDistance, BaseScalarField separation)
+        private Streamline Trace(Seed seed, bool reverse, MinHeap<KeyValuePair<float, Seed>> seeds, Func<Vector2, bool> isOutOfBounds, float maxSegmentLength, float mergeDistance, float cosineSearchAngle, BaseScalarField separation)
         {
             var maxSegmentLengthSquared = maxSegmentLength * maxSegmentLength;
 
             var seedingDistance = float.MaxValue;
             var direction = Vector2.Zero;
             var position = seed.Point;
-            var stream = new Streamline(FindOrCreateVertex(position, mergeDistance));
+            var stream = new Streamline(FindOrCreateVertex(position, mergeDistance, cosineSearchAngle));
             for (var i = 0; i < 10000; i++)
             {
                 direction = seed.Field.TraceVectorField(position, direction, maxSegmentLength);
@@ -274,12 +287,12 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                 //Bounds check
                 if (isOutOfBounds(position))
                 {
-                    CreateEdge(stream, position, Vector2.Normalize(direction), maxSegmentLength, maxSegmentLengthSquared, mergeDistance, skipDistanceCheck: true);
+                    CreateEdge(stream, position, Vector2.Normalize(direction), maxSegmentLength, maxSegmentLengthSquared, mergeDistance, cosineSearchAngle, skipDistanceCheck: true);
                     break;
                 }
 
                 //Create the segment and break if it says so
-                if (CreateEdge(stream, position, Vector2.Normalize(direction), maxSegmentLength, maxSegmentLengthSquared, mergeDistance))
+                if (CreateEdge(stream, position, Vector2.Normalize(direction), maxSegmentLength, maxSegmentLengthSquared, mergeDistance, cosineSearchAngle))
                     break;
 
                 //Accumulate seeds to trace into the alternative field
@@ -295,14 +308,6 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         }
         #endregion
 
-        private bool IsOutOfBounds(Vector2 position)
-        {
-            return position.X > _max.X
-                || position.X < _min.X
-                || position.Y > _max.Y
-                || position.Y < _min.Y;
-        }
-
         public IEnumerable<Region> Regions()
         {
             var r = new RegionBuilder(Vertices());
@@ -310,14 +315,14 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         }
 
         #region edges
-        private bool CreateEdge(Streamline streamline, Vector2 endPosition, Vector2 direction, float segmentLength, float segmentLengthSquared, float mergeDistance, bool skipDistanceCheck = false)
+        private bool CreateEdge(Streamline streamline, Vector2 endPosition, Vector2 direction, float segmentLength, float segmentLengthSquared, float mergeDistance, float cosineSearchAngle, bool skipDistanceCheck = false)
         {
             //Do not create an edge if this distance is too short
             if (!skipDistanceCheck && Vector2.DistanceSquared(streamline.Last.PositionField, endPosition) < segmentLengthSquared)
                 return false;
 
             //Check if the position of the line has wandered close to an already existing vertex
-            Vertex endVertex = FindVertex(endPosition, direction, mergeDistance, streamline.Last);
+            Vertex endVertex = FindVertex(endPosition, direction, mergeDistance, cosineSearchAngle, streamline.Last);
 
             //Check if this proposed new edge intersects another already existing edge
             Vector2 intersectPosition;
@@ -451,13 +456,13 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         #endregion
 
         #region vertices
-        private Vertex FindOrCreateVertex(Vector2 position, float mergeDistance)
+        private Vertex FindOrCreateVertex(Vector2 position, float mergeDistance, float cosineSearchAngle)
         {
-            return FindVertex(position, Vector2.Zero, mergeDistance, null)
+            return FindVertex(position, Vector2.Zero, mergeDistance, cosineSearchAngle, null)
                 ?? CreateVertex(position);
         }
 
-        private Vertex FindVertex(Vector2 position, Vector2 direction, float radius, Vertex skip)
+        private Vertex FindVertex(Vector2 position, Vector2 direction, float radius, float cosineSearchAngle, Vertex skip)
         {
             var candidates = _vertices.Intersects(new BoundingRectangle(new HandyCollections.Geometry.Vector2(position.X - radius, position.Y - radius), new HandyCollections.Geometry.Vector2(position.X + radius, position.Y + radius)));
 
@@ -479,7 +484,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                 if (direction != Vector2.Zero)
                 {
                     var dot = Vector2.Dot(v/(float) Math.Sqrt(dSqr), direction);
-                    if (dot < _config.CosineSearchConeAngle)
+                    if (dot < cosineSearchAngle)
                         continue;
                 }
 
@@ -562,7 +567,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             }
         }
 
-        private Seed? RemoveSeed(MinHeap<KeyValuePair<float, Seed>> seeds, BaseScalarField separation, Func<Edge, bool> edgeFilter = null)
+        private Seed? RemoveSeed(MinHeap<KeyValuePair<float, Seed>> seeds, BaseScalarField separation, float cosineSearchAngle, Func<Edge, bool> edgeFilter = null)
         {
             while (seeds.Count > 0)
             {
@@ -583,7 +588,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                 d /= l;
 
                 //Get edges near this point and check if there is a parallel edge
-                if (FindEdges(s.Point, sep).Where(e => edgeFilter == null || edgeFilter(e)).Any(e => Math.Abs(Vector2.Dot(e.Direction, d)) > _config.CosineSearchConeAngle))
+                if (FindEdges(s.Point, sep).Where(e => edgeFilter == null || edgeFilter(e)).Any(e => Math.Abs(Vector2.Dot(e.Direction, d)) > cosineSearchAngle))
                     continue;
 
                 return s;
@@ -593,10 +598,10 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             return null;
         }
 
-        private void AddSeed(MinHeap<KeyValuePair<float, Seed>> seeds, Seed seed)
+        private void AddSeed(MinHeap<KeyValuePair<float, Seed>> seeds, Seed seed, BaseScalarField priority = null, BaseScalarField separation = null)
         {
-            var prio = _config.PriorityField.SafeSample(seed.Point)
-                     + 1 / _config.SeparationField.SafeSample(seed.Point);
+            var prio = priority.SafeSample(seed.Point)
+                     + 1 / separation.SafeSample(seed.Point);
 
             seeds.Add(new KeyValuePair<float, Seed>(-prio, seed));
         }

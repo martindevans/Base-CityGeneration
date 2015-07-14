@@ -7,6 +7,11 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors
         Vector2 Sample(Vector2 position);
     }
 
+    internal interface IVector2FieldContainer
+    {
+        IVector2Field Unwrap();
+    }
+
     internal static class InternalIVector2FieldExtensions
     {
         public static Vector2 TraceVectorField(this IVector2Field field, Vector2 position, Vector2 previous, float maxSegmentLength)

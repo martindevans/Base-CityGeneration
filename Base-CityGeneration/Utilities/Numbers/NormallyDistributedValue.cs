@@ -110,7 +110,7 @@ namespace Base_CityGeneration.Utilities.Numbers
         }
 
         internal class Container
-            : IValueGeneratorContainer
+            : BaseValueGeneratorContainer
         {
             public float Min { get; set; }
             public float? Mean { get; set; }
@@ -118,19 +118,13 @@ namespace Base_CityGeneration.Utilities.Numbers
             public float? Deviation { get; set; }
             public bool Vary { get; set; }
 
-            IValueGenerator IValueGeneratorContainer.Unwrapped { get; set; }
-
-            IValueGenerator IValueGeneratorContainer.Unwrap()
+            protected override IValueGenerator UnwrapImpl()
             {
-                var self = (IValueGeneratorContainer)this;
-                if (self.Unwrapped == null)
-                {
-                    var mean = Mean.HasValue ? Mean.Value : MeanCalc(Min, Max);
-                    var deviation = Deviation.HasValue ? Deviation.Value : DeviationCalc(Min, Max);
 
-                    self.Unwrapped = new NormallyDistributedValue(Min, mean, Max, deviation, Vary);
-                }
-                return self.Unwrapped;
+                var mean = Mean.HasValue ? Mean.Value : MeanCalc(Min, Max);
+                var deviation = Deviation.HasValue ? Deviation.Value : DeviationCalc(Min, Max);
+
+                return new NormallyDistributedValue(Min, mean, Max, deviation, Vary);
             }
 
             private static float MeanCalc(float min, float max)

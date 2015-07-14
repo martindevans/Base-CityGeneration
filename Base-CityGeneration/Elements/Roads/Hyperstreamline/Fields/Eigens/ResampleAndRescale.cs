@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens
 {
-    class Constant
+    class ResampleAndRescale
         : IEigenField
     {
         private readonly IVector2Field _major;
@@ -24,7 +24,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens
 
         private readonly bool _zeroSize;
 
-        private Constant(Vector2[,] major, Vector2 min, Vector2 max)
+        private ResampleAndRescale(Vector2[,] major, Vector2 min, Vector2 max)
         {
             _min = min;
             _size = max - min;
@@ -68,14 +68,11 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens
 
         public static IEigenField Create(ITensorField baseField, Vector2 min, Vector2 max, int resolution)
         {
-            var size = max - min;
-            var step = size / resolution;
-
             Vector2[,] major = new Vector2[resolution + 1, resolution + 1];
 
             Parallel.For(0, resolution + 1, i =>
                 Parallel.For(0, resolution + 1, j => {
-                    var p = new Vector2(i * step.X, j * step.Y) + min;
+                    var p = new Vector2(i / (float)resolution, j / (float)resolution) + (min / new Vector2(resolution, resolution));
 
                     Tensor t;
                     baseField.Sample(ref p, out t);
@@ -87,16 +84,16 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens
                 })
             );
 
-            return new Constant(major, min, max);
+            return new ResampleAndRescale(major, min, max);
         }
 
         private class EigenAccessor
             : IVector2Field
         {
             private readonly bool _major;
-            private readonly Constant _field;
+            private readonly ResampleAndRescale _field;
 
-            public EigenAccessor(bool major, Constant field)
+            public EigenAccessor(bool major, ResampleAndRescale field)
             {
                 _major = major;
                 _field = field;

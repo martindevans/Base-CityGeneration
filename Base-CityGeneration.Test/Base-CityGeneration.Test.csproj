@@ -171,7 +171,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Datastructures\PathTest.cs" />
-    <Compile Include="Datastructures\QuadtreeTest.cs" />
     <Compile Include="Datastructures\Ray2DTest.cs" />
     <Compile Include="Datastructures\RectangleTest.cs" />
     <Compile Include="Datastructures\SeparatingAxisTesterTest.cs" />
@@ -186,6 +185,8 @@
     <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\Spec\SerializationTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\Spec\VerticalElementSpecTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\TestHelperExtensions.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\NetworkBuilderTest.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\NetworkConfigurationTest.cs" />
     <Compile Include="Parcelling\ObbParcellerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

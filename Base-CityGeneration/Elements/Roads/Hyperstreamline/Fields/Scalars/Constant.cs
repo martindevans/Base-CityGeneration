@@ -16,5 +16,16 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars
         {
             return _constant;
         }
+
+        internal class Container
+            : IScalarFieldContainer
+        {
+            public float Value { get; set; }
+
+            public BaseScalarField Unwrap()
+            {
+                return new Constant(Value);
+            }
+        }
     }
 }

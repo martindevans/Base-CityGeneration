@@ -72,21 +72,15 @@ namespace Base_CityGeneration.Utilities.Numbers
         }
 
         internal class Container
-            : IValueGeneratorContainer
+            : BaseValueGeneratorContainer
         {
             public float Min { get; set; }
             public float Max { get; set; }
             public bool Vary { get; set; }
 
-            IValueGenerator IValueGeneratorContainer.Unwrapped { get; set; }
-
-            IValueGenerator IValueGeneratorContainer.Unwrap()
+            protected override IValueGenerator UnwrapImpl()
             {
-                var self = (IValueGeneratorContainer)this;
-                if (self.Unwrapped == null)
-                    self.Unwrapped = new UniformlyDistributedValue(Min, Max, Vary);
-
-                return self.Unwrapped;
+                return new UniformlyDistributedValue(Min, Max, Vary);
             }
         }
     }

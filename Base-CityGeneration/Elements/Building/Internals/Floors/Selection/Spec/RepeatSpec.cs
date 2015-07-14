@@ -50,7 +50,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public ISelectorContainer[] Items { get; set; }
 
-            public IValueGeneratorContainer Count { get; set; }
+            public BaseValueGeneratorContainer Count { get; set; }
 
             public bool Vary { get; set; }
 

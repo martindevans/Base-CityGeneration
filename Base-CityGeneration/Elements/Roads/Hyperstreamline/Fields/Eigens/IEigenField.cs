@@ -8,4 +8,9 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens
 
         IVector2Field MinorEigenVectors { get; }
     }
+
+    internal interface IEigenFieldContainer
+    {
+        IEigenField Unwrap();
+    }
 }

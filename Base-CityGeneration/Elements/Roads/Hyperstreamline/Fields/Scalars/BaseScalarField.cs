@@ -18,7 +18,12 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars
         }
     }
 
-    internal static class IScalarFieldExtensions
+    internal interface IScalarFieldContainer
+    {
+        BaseScalarField Unwrap();
+    }
+
+    internal static class BaseScalarFieldExtensions
     {
         public static float SafeSample(this BaseScalarField field, Vector2 position)
         {
