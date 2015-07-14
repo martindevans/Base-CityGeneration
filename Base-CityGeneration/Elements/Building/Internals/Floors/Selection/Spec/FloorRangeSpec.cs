@@ -58,7 +58,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public FloorRangeIncludeSpec.Container[] Includes { get; set; }
 
-            public IValueGeneratorContainer DefaultHeight { get; set; }
+            public BaseValueGeneratorContainer DefaultHeight { get; set; }
 
             public ISelector Unwrap()
             {
@@ -164,7 +164,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public TagContainer Tags { get; set; }
 
-            public IValueGeneratorContainer Count { get; set; }
+            public BaseValueGeneratorContainer Count { get; set; }
 
             public bool Vary { get; set; }
             public bool Continuous { get; set; }

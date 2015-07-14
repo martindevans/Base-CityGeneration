@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -189,7 +190,6 @@
     <Compile Include="Datastructures\Constraints\Range.cs" />
     <Compile Include="Datastructures\Extensions\MeshExtensions.cs" />
     <Compile Include="Datastructures\Extensions\ParcelExtensions.cs" />
-    <Compile Include="Datastructures\Extensions\QuadtreeExtensions.cs" />
     <Compile Include="Datastructures\Extensions\Vector2EnumerableExtensions.cs" />
     <Compile Include="Datastructures\HalfEdge\Face.cs" />
     <Compile Include="Datastructures\HalfEdge\HalfEdge.cs" />
@@ -197,7 +197,6 @@
     <Compile Include="Datastructures\HalfEdge\Vertex.cs" />
     <Compile Include="Datastructures\OABB.cs" />
     <Compile Include="Datastructures\Path.cs" />
-    <Compile Include="Datastructures\Quadtree.cs" />
     <Compile Include="Datastructures\Ray2D.cs" />
     <Compile Include="Datastructures\Rectangle.cs" />
     <Compile Include="Datastructures\SeparatingAxisTester.cs" />
@@ -219,11 +218,13 @@
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\TagContainer.cs" />
-    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\Constant.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\ResampleAndRescale.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\IEigenField.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Scalars\BaseScalarField.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Scalars\Constant.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Scalars\Multiply.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\Constant.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Fields\Vectors\Constant.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tensor.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\Addition.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\Gridline.cs" />
@@ -246,6 +247,7 @@
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Seed.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Streamline.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Vertex.cs" />
+    <Compile Include="Utilities\Numbers\ConstantValue.cs" />
     <Compile Include="Utilities\Numbers\IValueGenerator.cs" />
     <Compile Include="Utilities\Numbers\UniformlyDistributedValue.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\VerticalElementSpec.cs" />

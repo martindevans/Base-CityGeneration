@@ -35,5 +35,18 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
                 result += decay * tensor;
             }
         }
+
+        internal class Container
+            : ITensorFieldContainer
+        {
+            public float Decay { get; set; }
+
+            public Vector2[] Points { get; set; }
+
+            public ITensorField Unwrap()
+            {
+                return new Polyline(Points, Decay);
+            }
+        }
     }
 }

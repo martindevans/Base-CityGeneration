@@ -1,37 +1,30 @@
 ﻿using System;
-using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
+using System.Collections.Generic;
+using System.IO;
+using Base_CityGeneration.Utilities.Numbers;
+using Microsoft.Xna.Framework;
+using SharpYaml.Serialization;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 {
     public class NetworkConfiguration
     {
         /// <summary>
-        /// Rotation field which perturbs major and minor eigen vectors in equal and opposite amounts
-        /// </summary>
-        public BaseScalarField RotationField { get; set; }
-
-        /// <summary>
-        /// Rotation field which only perturbs major eigen vectors
-        /// </summary>
-        public BaseScalarField MajorRotationField { get; set; }
-
-        /// <summary>
-        /// Rotation field which only perturbs minor eigen vectors
-        /// </summary>
-        public BaseScalarField MinorRotationField { get; set; }
-
-        /// <summary>
         /// Field which specifies the priority of a given point as a seed. Recommended that this contains normalized distance from nearest coastline
         /// </summary>
-        public BaseScalarField PriorityField { get; set; }
+        public Fields.Scalars.BaseScalarField PriorityField { get; set; }
 
         /// <summary>
         /// Separation between roads
         /// </summary>
-        public BaseScalarField SeparationField { get; set; }
+        public Fields.Scalars.BaseScalarField SeparationField { get; set; }
+
+        /// <summary>
+        /// Eigen vectors to trace streamlines along
+        /// </summary>
+        public Fields.Tensors.ITensorField TensorField { get; set; }
 
         internal float CosineSearchConeAngle { get; private set; }
-
         public float SearchConeAngle
         {
             get
@@ -45,7 +38,6 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         }
 
         internal float SegmentLengthSquared { get; private set; }
-
         private float _segmentLength;
         /// <summary>
         /// The approximate length of a segment of road
@@ -65,23 +57,82 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public float MergeDistance { get; set; }
 
-        public int MajorRoadMinWidth { get; set; }
-        public int MajorRoadMaxWidth { get; set; }
+        public IValueGenerator RoadWidth { get; set; }
 
-        public int MinorRoadMinWidth { get; set; }
-        public int MinorRoadMaxWidth { get; set; }
-
-        public NetworkConfiguration(float mergeDistance, float searchConeAngle, float segmentLength)
+        public NetworkConfiguration()
         {
-            MergeDistance = mergeDistance;
-            SearchConeAngle = searchConeAngle;
-            SegmentLength = segmentLength;
+            MergeDistance = 25;
+            SearchConeAngle = MathHelper.ToRadians(22.5f);
+            SegmentLength = 10;
 
-            MajorRoadMaxWidth = 6;
-            MajorRoadMinWidth = 4;
-
-            MinorRoadMaxWidth = 2;
-            MinorRoadMinWidth = 2;
+            RoadWidth = new UniformlyDistributedValue(1, 3);
         }
+
+        #region serialization
+        private static Serializer CreateSerializer()
+        {
+            var serializer = new Serializer(new SerializerSettings
+            {
+                EmitTags = true,
+            });
+
+            //Fields Types
+            serializer.Settings.RegisterTagMapping("ConstantScalars", typeof(Fields.Scalars.Constant.Container));
+            //serializer.Settings.RegisterTagMapping("ConstantTensors", typeof(Fields.Tensors.Constant.Container));
+            //serializer.Settings.RegisterTagMapping("ConstantVectors", typeof(Fields.Vectors.Constant.Container));
+            serializer.Settings.RegisterTagMapping("AddTensors", typeof(Fields.Tensors.Addition.Container));
+            serializer.Settings.RegisterTagMapping("PointDistanceDecayTensors", typeof(Fields.Tensors.PointDistanceDecayField.Container));
+            serializer.Settings.RegisterTagMapping("Radial", typeof(Fields.Tensors.Radial.Container));
+            serializer.Settings.RegisterTagMapping("Grid", typeof(Fields.Tensors.Gridline.Container));
+            serializer.Settings.RegisterTagMapping("Polyline", typeof(Fields.Tensors.Polyline.Container));
+
+            //Network Types
+            serializer.Settings.RegisterTagMapping("Network", typeof(Container));
+
+            //Utility types
+            serializer.Settings.RegisterTagMapping("NormalValue", typeof(NormallyDistributedValue.Container));
+            serializer.Settings.RegisterTagMapping("UniformValue", typeof(UniformlyDistributedValue.Container));
+            serializer.Settings.RegisterTagMapping("ConstantValue", typeof(UniformlyDistributedValue.Container));
+
+            return serializer;
+        }
+
+        public static NetworkConfiguration Deserialize(TextReader reader)
+        {
+            var s = CreateSerializer();
+
+            return s.Deserialize<Container>(reader).Unwrap();
+        }
+
+        internal class Container
+        {
+            public List<string> Tags { get; set; }
+
+            public List<object> Aliases { get; set; }
+
+            public float MergeSearchAngle { get; set; }
+            public float MergeDistance { get; set; }
+            public float SegmentLength { get; set; }
+            public BaseValueGeneratorContainer RoadWidth { get; set; }
+            public Fields.Scalars.IScalarFieldContainer PriorityField { get; set; }
+            public Fields.Scalars.IScalarFieldContainer SeparationField { get; set; }
+
+            public Fields.Tensors.ITensorFieldContainer TensorField { get; set; }
+
+            public NetworkConfiguration Unwrap()
+            {
+                return new NetworkConfiguration {
+                    SearchConeAngle = MathHelper.ToRadians(MergeSearchAngle),
+                    MergeDistance = MergeDistance,
+                    SegmentLength = SegmentLength,
+                    RoadWidth = RoadWidth.Unwrap(),
+                    PriorityField = PriorityField.Unwrap(),
+                    SeparationField = SeparationField.Unwrap(),
+                    TensorField = TensorField.Unwrap()
+                };
+            }
+        }
+        #endregion
     }
 }
+

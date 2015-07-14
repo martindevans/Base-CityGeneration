@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
@@ -7,6 +9,12 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         : ITensorField
     {
         private readonly List<ITensorField> _fields = new List<ITensorField>();
+
+        public Addition(params ITensorField[] fields)
+        {
+            foreach (var tensorField in fields)
+                Add(tensorField);
+        }
 
         public void Add(ITensorField field)
         {
@@ -19,6 +27,17 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
             foreach (var b in _fields)
                 result += b.Sample(position);
+        }
+
+        internal class Container
+            : ITensorFieldContainer
+        {
+            public ITensorFieldContainer[] Tensors { get; set; }
+
+            public ITensorField Unwrap()
+            {
+                return new Addition(Tensors.Select(a => a.Unwrap()).ToArray());
+            }
         }
     }
 }

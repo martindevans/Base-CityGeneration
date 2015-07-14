@@ -100,7 +100,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
             public TagContainer Tags { get; set; }
 
-            public IValueGeneratorContainer Height { get; set; }
+            public BaseValueGeneratorContainer Height { get; set; }
 
             public ISelector Unwrap()
             {

@@ -1,30 +1,31 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 {
-    public class Radial
+    public class Constant
         : ITensorField
     {
-        private readonly Vector2 _center;
+        private readonly Tensor _value;
 
-        public Radial(Vector2 center)
+        public Constant(Tensor value)
         {
-            _center = center;
+            _value = value;
         }
 
         public void Sample(ref Vector2 position, out Tensor result)
         {
-            result = Tensor.FromXY(position - _center);
+            result = _value;
         }
 
         internal class Container
             : ITensorFieldContainer
         {
-            public Vector2 Center { get; set; }
+            public Tensor Value { get; set; }
 
             public ITensorField Unwrap()
             {
-                return new Radial(Center);
+                return new Constant(Value);
             }
         }
     }

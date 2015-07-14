@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Base_CityGeneration.Utilities.Numbers;
+using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 {
@@ -15,6 +17,18 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         public void Sample(ref Vector2 position, out Tensor result)
         {
             result = _basis;
+        }
+
+        internal class Container
+            : ITensorFieldContainer
+        {
+            public float Angle { get; set; }
+            public float? Length { get; set; }
+
+            public ITensorField Unwrap()
+            {
+                return new Gridline(MathHelper.ToRadians(Angle), Length ?? 1);
+            }
         }
     }
 }

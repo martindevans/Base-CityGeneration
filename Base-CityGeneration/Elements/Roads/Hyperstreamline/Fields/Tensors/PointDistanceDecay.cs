@@ -31,5 +31,24 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         {
             return (float)Math.Exp(-decay * distanceSqr);
         }
+
+        internal class Container
+            : ITensorFieldContainer
+        {
+            public ITensorFieldContainer Tensors { get; set; }
+
+            public Vector2 Center { get; set; }
+
+            public float Decay { get; set; }
+
+            public ITensorField Unwrap()
+            {
+                return new PointDistanceDecayField(
+                    Tensors.Unwrap(),
+                    Center,
+                    Decay
+                );
+            }
+        }
     }
 }
