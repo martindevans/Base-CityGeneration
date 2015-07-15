@@ -21,6 +21,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         private readonly HashSet<Streamline> _streams;
 
         private bool _begun;
+        private Vector2 _min;
+        private Vector2 _max;
 
         public NetworkBuilder()
         {
@@ -48,6 +50,12 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         #region building
         public void Begin(Vector2 min, Vector2 max)
         {
+            if (_begun)
+                throw new InvalidOperationException("Cannot call Begin twice");
+
+            _min = min;
+            _max = max;
+
             _vertices = new Quadtree<Vertex>(new BoundingRectangle(new HGVector2(min.X, min.Y), new HGVector2(max.X, max.Y)), 63);
             _edges = new Quadtree<Edge>(new BoundingRectangle(new HGVector2(min.X, min.Y), new HGVector2(max.X, max.Y)), 31);
 
@@ -82,7 +90,10 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         public void Build(TracingConfiguration config, Random random, Region region)
         {
             var extent = region.Max - region.Min;
-            var eigens = config.TensorField.Presample(new Vector2(region.Min.X, region.Min.Y), new Vector2(region.Max.X, region.Max.Y), (int)Math.Max(extent.X, extent.Y));
+            //var eigens = config.TensorField.Presample(new Vector2(region.Min.X, region.Min.Y), new Vector2(region.Max.X, region.Max.Y), (int)Math.Max(extent.X, extent.Y));
+
+            var ex = _max - _min;
+            var eigens = config.TensorField.Presample(_min, _max, (int)Math.Max(ex.X, ex.Y));
 
             var seeds = SeedsAlongEdge(region, config.SeparationField, eigens.MajorEigenVectors, eigens.MinorEigenVectors);
 
