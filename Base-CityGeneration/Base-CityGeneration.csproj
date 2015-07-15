@@ -250,7 +250,7 @@
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Vertex.cs" />
     <Compile Include="Utilities\Numbers\ConstantValue.cs" />
     <Compile Include="Utilities\Numbers\BaseValueGenerator.cs" />
-    <Compile Include="Utilities\Numbers\UniformlyDistributedBaseValue.cs" />
+    <Compile Include="Utilities\Numbers\UniformlyDistributedValue.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\VerticalElementSpec.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IDoorPlacer.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IDoorTarget.cs" />
@@ -306,7 +306,7 @@
     <Compile Include="Styles\TypedNameDefault.cs" />
     <Compile Include="Styles\InternalWalls.cs" />
     <Compile Include="TreeSearch.cs" />
-    <Compile Include="Utilities\Numbers\NormallyDistributedBaseValue.cs" />
+    <Compile Include="Utilities\Numbers\NormallyDistributedValue.cs" />
     <Compile Include="Utilities\Numbers\WrapperBaseValue.cs" />
     <Compile Include="Utilities\Vector2Container.cs" />
   </ItemGroup>
