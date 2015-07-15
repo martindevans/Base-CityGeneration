@@ -10,11 +10,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         : ISelector
     {
         public ISelector[] Items { get; private set; }
-        public IValueGenerator Count { get; private set; }
+        public BaseValueGenerator Count { get; private set; }
 
         public bool Vary { get; private set; }
 
-        private RepeatSpec(ISelector[] items, IValueGenerator count, bool vary)
+        private RepeatSpec(ISelector[] items, BaseValueGenerator count, bool vary)
         {
             Items = items;
             Count = count;

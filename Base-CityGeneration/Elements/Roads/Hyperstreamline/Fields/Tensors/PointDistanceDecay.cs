@@ -1,4 +1,6 @@
 ﻿using System;
+using Base_CityGeneration.Utilities;
+using Base_CityGeneration.Utilities.Numbers;
 using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
@@ -37,16 +39,16 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         {
             public ITensorFieldContainer Tensors { get; set; }
 
-            public Vector2 Center { get; set; }
+            public Vector2Container Center { get; set; }
 
-            public float Decay { get; set; }
+            public object Decay { get; set; }
 
-            public ITensorField Unwrap()
+            public ITensorField Unwrap(Func<double> random)
             {
                 return new PointDistanceDecayField(
-                    Tensors.Unwrap(),
-                    Center,
-                    Decay
+                    Tensors.Unwrap(random),
+                    Center.Unwrap(random),
+                    BaseValueGeneratorContainer.FromObject(Decay).SelectFloatValue(random)
                 );
             }
         }

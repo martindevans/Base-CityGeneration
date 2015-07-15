@@ -23,7 +23,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         {
             public Tensor Value { get; set; }
 
-            public ITensorField Unwrap()
+            public ITensorField Unwrap(Func<double> random)
             {
                 return new Constant(Value);
             }

@@ -1,4 +1,5 @@
-﻿using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens;
+﻿using System;
+using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens;
 using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
@@ -10,7 +11,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
     internal interface ITensorFieldContainer
     {
-        ITensorField Unwrap();
+        ITensorField Unwrap(Func<double> random);
     }
 
     public static class ITensorFieldExtensions

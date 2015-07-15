@@ -53,11 +53,11 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                         .Select(a => string.Format("{0},{1}", a.X, a.Y));
                     var path = string.Join(" ", points);
 
-                    float saturation = ((0.618033988749895f * i) % 1) * 360;
+                    float hue = ((0.618033988749895f * i) % 1) * 360;
 
                     g.Add(new XElement("polygon", 
                         new XAttribute("points", path),
-                        new XAttribute("style", string.Format("fill:hsla({0},100%,50%,0.1);", saturation))
+                        new XAttribute("style", string.Format("fill:hsla({0},100%,50%,0.1);", hue))
                     ));
 
                     i++;

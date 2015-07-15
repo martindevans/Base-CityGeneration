@@ -225,6 +225,7 @@
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Scalars\Multiply.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\Constant.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Vectors\Constant.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\NetworkDescriptor.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tensor.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\Addition.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Tensors\Gridline.cs" />
@@ -241,15 +242,15 @@
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\KeyComparer.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Network.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\NetworkBuilder.cs" />
-    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\NetworkConfiguration.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\Tracing\TracingConfiguration.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Region.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\RegionBuilder.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Seed.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Streamline.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Vertex.cs" />
     <Compile Include="Utilities\Numbers\ConstantValue.cs" />
-    <Compile Include="Utilities\Numbers\IValueGenerator.cs" />
-    <Compile Include="Utilities\Numbers\UniformlyDistributedValue.cs" />
+    <Compile Include="Utilities\Numbers\BaseValueGenerator.cs" />
+    <Compile Include="Utilities\Numbers\UniformlyDistributedBaseValue.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\VerticalElementSpec.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IDoorPlacer.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\IDoorTarget.cs" />
@@ -305,11 +306,14 @@
     <Compile Include="Styles\TypedNameDefault.cs" />
     <Compile Include="Styles\InternalWalls.cs" />
     <Compile Include="TreeSearch.cs" />
-    <Compile Include="Utilities\Numbers\NormallyDistributedValue.cs" />
+    <Compile Include="Utilities\Numbers\NormallyDistributedBaseValue.cs" />
+    <Compile Include="Utilities\Numbers\WrapperBaseValue.cs" />
+    <Compile Include="Utilities\Vector2Container.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Elements\Building\Building Hierarchy.md" />
+    <None Include="Elements\Roads\Hyperstreamline\Hyperstreamline.md" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />

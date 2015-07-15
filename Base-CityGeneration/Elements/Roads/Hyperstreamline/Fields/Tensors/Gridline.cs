@@ -22,12 +22,14 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         internal class Container
             : ITensorFieldContainer
         {
-            public float Angle { get; set; }
+            public object Angle { get; set; }
             public float? Length { get; set; }
 
-            public ITensorField Unwrap()
+            public ITensorField Unwrap(Func<double> random)
             {
-                return new Gridline(MathHelper.ToRadians(Angle), Length ?? 1);
+                var angle = BaseValueGeneratorContainer.FromObject(Angle).SelectFloatValue(random);
+
+                return new Gridline(MathHelper.ToRadians(angle), Length ?? 1);
             }
         }
     }

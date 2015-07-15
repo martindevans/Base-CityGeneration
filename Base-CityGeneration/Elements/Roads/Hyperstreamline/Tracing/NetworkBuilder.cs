@@ -54,7 +54,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             _begun = true;
         }
 
-        public void Build(NetworkConfiguration config, Random random, Vector2 min, Vector2 max)
+        public void Build(TracingConfiguration config, Random random, Vector2 min, Vector2 max)
         {
             if (!_begun)
             {
@@ -79,20 +79,18 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             });
         }
 
-        public void Build(NetworkConfiguration config, Random random, Region region)
+        public void Build(TracingConfiguration config, Random random, Region region)
         {
-            const float REGION_PARAM_SCALE = 0.1f;
-
             var extent = region.Max - region.Min;
             var eigens = config.TensorField.Presample(new Vector2(region.Min.X, region.Min.Y), new Vector2(region.Max.X, region.Max.Y), (int)Math.Max(extent.X, extent.Y));
 
-            var seeds = SeedsAlongEdge(region, config.SeparationField * (float)Math.Pow(REGION_PARAM_SCALE, 0.25f), eigens.MajorEigenVectors, eigens.MinorEigenVectors);
+            var seeds = SeedsAlongEdge(region, config.SeparationField, eigens.MajorEigenVectors, eigens.MinorEigenVectors);
 
             Build(seeds, region.Min, region.Max,
-                config.SeparationField * REGION_PARAM_SCALE,
+                config.SeparationField,
                 true, true,
-                config.MergeDistance * REGION_PARAM_SCALE,
-                config.SegmentLength * REGION_PARAM_SCALE,
+                config.MergeDistance,
+                config.SegmentLength,
                 config.CosineSearchConeAngle,
                 p => !region.PointInPolygon(p), e => e.Streamline.Region == region,
                 s => {

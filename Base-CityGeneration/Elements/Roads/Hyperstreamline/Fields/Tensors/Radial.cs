@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 {
@@ -22,7 +23,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         {
             public Vector2 Center { get; set; }
 
-            public ITensorField Unwrap()
+            public ITensorField Unwrap(Func<double> random)
             {
                 return new Radial(Center);
             }

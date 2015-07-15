@@ -34,9 +34,9 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         {
             public ITensorFieldContainer[] Tensors { get; set; }
 
-            public ITensorField Unwrap()
+            public ITensorField Unwrap(Func<double> random)
             {
-                return new Addition(Tensors.Select(a => a.Unwrap()).ToArray());
+                return new Addition(Tensors.Select(a => a.Unwrap(random)).ToArray());
             }
         }
     }

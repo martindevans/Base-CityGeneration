@@ -22,8 +22,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        private readonly IValueGenerator _height;
-        public IValueGenerator Height
+        private readonly BaseValueGenerator _height;
+        public BaseValueGenerator Height
         {
             get
             {
@@ -34,12 +34,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         private readonly string _id;
         public string Id { get { return _id; } }
 
-        public FloorSpec(KeyValuePair<float, string[]>[] tags, IValueGenerator height)
+        public FloorSpec(KeyValuePair<float, string[]>[] tags, BaseValueGenerator height)
             : this(Guid.NewGuid().ToString(), tags, height)
         {
         }
 
-        public FloorSpec(string id, KeyValuePair<float, string[]>[] tags, IValueGenerator height)
+        public FloorSpec(string id, KeyValuePair<float, string[]>[] tags, BaseValueGenerator height)
         {
             _id = id;
             _tags = tags;
@@ -104,7 +104,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
             public ISelector Unwrap()
             {
-                IValueGenerator height = Height == null ? new NormallyDistributedValue(2.5f, 3f, 3.5f, 0.2f) : Height.Unwrap();
+                BaseValueGenerator height = Height == null ? new NormallyDistributedValue(2.5f, 3f, 3.5f, 0.2f) : Height.Unwrap();
 
                 return new FloorSpec(Id ?? Guid.NewGuid().ToString(), Tags.ToArray(), height);
             }
