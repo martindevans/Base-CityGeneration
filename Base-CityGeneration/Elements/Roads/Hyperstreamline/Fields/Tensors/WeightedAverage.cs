@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
@@ -21,6 +22,20 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
             foreach (var b in _blends)
                 result += (b.Value / _totalWeight) * b.Key.Sample(position);
+        }
+
+        internal class Container
+            : ITensorFieldContainer
+        {
+            public Dictionary<float, ITensorFieldContainer> Tensors { get; set; }
+
+            public ITensorField Unwrap(Func<double> random)
+            {
+                var wa = new WeightedAverage();
+                foreach (var tensorFieldContainer in Tensors)
+                    wa.Blend(tensorFieldContainer.Value.Unwrap(random), tensorFieldContainer.Key);
+                return wa;
+            }
         }
     }
 }

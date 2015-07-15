@@ -3,23 +3,19 @@
 namespace Base_CityGeneration.Utilities.Numbers
 {
     public class ConstantValue
-        : IValueGenerator
+        : BaseValueGenerator
     {
         private readonly float _value;
 
         public ConstantValue(float value)
+            : base(float.MinValue, float.MaxValue, false)
         {
             _value = value;
         }
 
-        public float SelectFloatValue(Func<double> random)
+        protected override float GenerateFloatValue(Func<double> random)
         {
             return _value;
-        }
-
-        public int SelectIntValue(Func<double> random)
-        {
-            return (int)_value;
         }
 
         internal class Container
@@ -27,7 +23,7 @@ namespace Base_CityGeneration.Utilities.Numbers
         {
             public float Value { get; set; }
 
-            protected override IValueGenerator UnwrapImpl()
+            protected override BaseValueGenerator UnwrapImpl()
             {
                 return new ConstantValue(Value);
             }

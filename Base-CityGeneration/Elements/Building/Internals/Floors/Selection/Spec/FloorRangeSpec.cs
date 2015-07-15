@@ -21,8 +21,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        private readonly IValueGenerator _defaultHeightSpec;
-        public IValueGenerator DefaultHeight
+        private readonly BaseValueGenerator _defaultHeightSpec;
+        public BaseValueGenerator DefaultHeight
         {
             get
             {
@@ -30,7 +30,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        public FloorRangeSpec(FloorRangeIncludeSpec[] includes, IValueGenerator defaultHeightSpec)
+        public FloorRangeSpec(FloorRangeIncludeSpec[] includes, BaseValueGenerator defaultHeightSpec)
         {
             _includes = includes;
             _defaultHeightSpec = defaultHeightSpec;
@@ -62,7 +62,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
             public ISelector Unwrap()
             {
-                IValueGenerator defaultHeight = DefaultHeight == null ? new NormallyDistributedValue(2.5f, 3, 3.5f, 0.2f) : DefaultHeight.Unwrap();
+                BaseValueGenerator defaultHeight = DefaultHeight == null ? new NormallyDistributedValue(2.5f, 3, 3.5f, 0.2f) : DefaultHeight.Unwrap();
 
                 return new FloorRangeSpec(Includes.Select(a => a.Unwrap(defaultHeight)).ToArray(), defaultHeight);
             }
@@ -84,8 +84,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        private readonly IValueGenerator _count;
-        public IValueGenerator Count
+        private readonly BaseValueGenerator _count;
+        public BaseValueGenerator Count
         {
             get
             {
@@ -103,9 +103,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         private readonly string _id;
         public string Id { get { return _id; } }
 
-        internal IValueGenerator Height;
+        internal BaseValueGenerator Height;
 
-        public FloorRangeIncludeSpec(string id, IValueGenerator count, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags, IValueGenerator height)
+        public FloorRangeIncludeSpec(string id, BaseValueGenerator count, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags, BaseValueGenerator height)
         {
             Continuous = continuous;
             Height = height;
@@ -171,7 +171,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
             public string Id { get; set; }
 
-            internal FloorRangeIncludeSpec Unwrap(IValueGenerator defaultHeight)
+            internal FloorRangeIncludeSpec Unwrap(BaseValueGenerator defaultHeight)
             {
                 var count = Count.Unwrap();
 
