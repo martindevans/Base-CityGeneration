@@ -9,15 +9,15 @@ using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
 using Myre.Collections;
 
-namespace Base_CityGeneration.Root
+namespace Base_CityGeneration.Elements.City
 {
     /// <summary>
     /// A base class for cities, handles creating appropriate roads and junctions.
     /// 
     /// First Generates a mesh of edges (roads), vertices (junctions) and faces (city blocks).
     /// </summary>
-    public abstract class BaseCityRoot
-        :ProceduralRoot
+    public abstract class BaseCity
+        :ProceduralScript
     {
         private readonly float _laneWidth;
         private readonly float _sidewalkWidth;
@@ -29,7 +29,7 @@ namespace Base_CityGeneration.Root
         /// <param name="laneWidth">The wide of a road lane (see: https://en.wikipedia.org/wiki/Lane#Lane_width) </param>
         /// <param name="sidewalkWidth">The width of the sidewalk on a normal road</param>
         /// <param name="totalHeight">The total height of the city, half above ground and half below ground</param>
-        protected BaseCityRoot(float laneWidth = 3.7f, float sidewalkWidth = 2, float totalHeight = 1000)
+        protected BaseCity(float laneWidth = 3.7f, float sidewalkWidth = 2, float totalHeight = 1000)
         {
             _laneWidth = laneWidth;
             _sidewalkWidth = sidewalkWidth;
