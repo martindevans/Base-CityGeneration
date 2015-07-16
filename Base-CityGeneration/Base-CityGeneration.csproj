@@ -299,7 +299,7 @@
     <Compile Include="Datastructures\HalfEdge\IVertexBuilder.cs" />
     <Compile Include="Elements\Roads\VertexJunctionBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Root\BaseCityRoot.cs" />
+    <Compile Include="Elements\City\BaseCity.cs" />
     <Compile Include="Styles\Doors.cs" />
     <Compile Include="Styles\Ceiling.cs" />
     <Compile Include="Styles\Materials.cs" />
