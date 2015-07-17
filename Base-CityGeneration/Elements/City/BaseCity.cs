@@ -4,6 +4,7 @@ using System.Linq;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Generic;
 using Base_CityGeneration.Elements.Roads;
+using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
@@ -19,23 +20,6 @@ namespace Base_CityGeneration.Elements.City
     public abstract class BaseCity
         :ProceduralScript
     {
-        private readonly float _laneWidth;
-        private readonly float _sidewalkWidth;
-        private readonly float _totalHeight;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="laneWidth">The wide of a road lane (see: https://en.wikipedia.org/wiki/Lane#Lane_width) </param>
-        /// <param name="sidewalkWidth">The width of the sidewalk on a normal road</param>
-        /// <param name="totalHeight">The total height of the city, half above ground and half below ground</param>
-        protected BaseCity(float laneWidth = 3.7f, float sidewalkWidth = 2, float totalHeight = 1000)
-        {
-            _laneWidth = laneWidth;
-            _sidewalkWidth = sidewalkWidth;
-            _totalHeight = totalHeight;
-        }
-
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
             //Generate a topological map of city roads
@@ -102,7 +86,10 @@ namespace Base_CityGeneration.Elements.City
         /// <returns></returns>
         protected virtual IHalfEdgeBuilder CreateHalfEdgeBuilder(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> edge, int roadLanes)
         {
-            return new HalfEdgeRoadBuilder(edge, _laneWidth, _sidewalkWidth, roadLanes);
+            var road = HierarchicalParameters.RoadLaneWidth(Random);
+            var path = HierarchicalParameters.RoadSidewalkWidth(Random);
+
+            return new HalfEdgeRoadBuilder(edge, road, path, roadLanes);
         }
 
         /// <summary>
@@ -127,18 +114,18 @@ namespace Base_CityGeneration.Elements.City
 
             //Create junctions (appropriate shape for different widths of road)
             foreach (var vertex in mesh.Vertices)
-                CreateJunction(_totalHeight, vertex);
+                CreateJunction(Bounds.Height, vertex);
 
             //Create roads (with appropriate widths)
             foreach (var edge in mesh.HalfEdges.Where(e => e.IsPrimaryEdge))
-                CreateRoad(_totalHeight, edge);
+                CreateRoad(Bounds.Height, edge);
 
             //Create blocks (with appropriate shapes for different road widths)
             foreach (var face in mesh.Faces)
-                CreateBlock(_totalHeight, face);
+                CreateBlock(Bounds.Height, face);
         }
 
-        private void Create<TTopology, TFallback>(float height, TTopology topology, Vector2[] shape, Func<TTopology, Prism, IEnumerable<ScriptReference>> choose)
+        private IGrounded Create<TTopology, TFallback>(float height, TTopology topology, Vector2[] shape, Func<TTopology, Prism, IEnumerable<ScriptReference>> choose)
         {
             var topography = new Prism(height, shape);
 
@@ -151,21 +138,23 @@ namespace Base_CityGeneration.Elements.City
             var c = CreateChild(topography, Quaternion.Identity, new Vector3(0, 0, 0), scripts) as IGrounded;
             if (c != null)
                 c.GroundHeight = height / 2;
+
+            return c;
         }
 
-        private void CreateJunction(float height, Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
+        private IGrounded CreateJunction(float height, Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
-            Create<Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, BasicJunction>(height, topology, topology.Builder.Shape, ChooseJunctionScript);
+            return Create<Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, BasicJunction>(height, topology, topology.Builder.Shape, ChooseJunctionScript);
         }
 
-        private void CreateRoad(float height, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
+        private IGrounded CreateRoad(float height, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
-            Create<HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, BasicRoad>(height, topology, topology.Tag.Shape, ChooseRoadScript);
+            return Create<HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, BasicRoad>(height, topology, topology.Tag.Shape, ChooseRoadScript);
         }
 
-        private void CreateBlock(float height, Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
+        private IGrounded CreateBlock(float height, Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
-            Create<Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, SolidPlaceholderBuilding>(height, topology, topology.Tag.Shape, ChooseBlockScript);
+            return Create<Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, SolidPlaceholderBuilding>(height, topology, topology.Tag.Shape, ChooseBlockScript);
         }
     }
 }

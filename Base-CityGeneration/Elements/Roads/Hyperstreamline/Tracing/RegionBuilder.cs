@@ -17,6 +17,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public IEnumerable<Region> Regions()
         {
+            List<Region> regions = new List<Region>();
+
             //Empty out these two collections (it's larger, let's keep it as small as possible)
             while (_unprocessed.Count > 0 || _halfProcessed.Count > 0)
             {
@@ -26,7 +28,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                     var e = _halfProcessed.First();
                     var boundary = WalkRegionBoundary(e.Value, e.Key, _unprocessed, _halfProcessed);
                     if (boundary != null)
-                        yield return boundary;
+                        regions.Add(boundary);
 
                     continue;
                 }
@@ -37,9 +39,16 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                     var e = _unprocessed.First();
                     var boundary = WalkRegionBoundary(e, true, _unprocessed, _halfProcessed);
                     if (boundary != null)
-                        yield return boundary;
+                        regions.Add(boundary);
                 }
             }
+
+            //Sort the regions into a consistent order
+            //Even small variations in min and max should result in exactly the same order each time
+            return regions.OrderBy(a => Math.Round(a.Min.X))
+                          .ThenBy(a => Math.Round(a.Min.Y))
+                          .ThenBy(a => Math.Round(a.Max.X))
+                          .ThenBy(a => Math.Round(a.Max.Y));
         }
 
         private static Region WalkRegionBoundary(Edge start, bool direction, ISet<Edge> unprocessed, ISet<KeyValuePair<bool, Edge>> halfProcessed)
