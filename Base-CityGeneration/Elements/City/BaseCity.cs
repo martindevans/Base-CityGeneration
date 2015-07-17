@@ -63,16 +63,16 @@ namespace Base_CityGeneration.Elements.City
         /// <summary>
         /// Choose the set of possible scripts to place along the given road
         /// </summary>
-        /// <param name="topology">The topology of this block. Information such as neighbouring blocks and junctions</param>
-        /// <param name="topography">The topography of this block. It's exact shape and size</param>
+        /// <param name="topology">The topology of this road. Information such as neighbouring blocks and junctions</param>
+        /// <param name="topography">The topography of this road. It's exact shape and size</param>
         /// <returns></returns>
         protected abstract IEnumerable<ScriptReference> ChooseRoadScript(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology, Prism topography);
 
         /// <summary>
         /// Choose a set of possible scripts to place at the given junction
         /// </summary>
-        /// <param name="topology">The topology of this block. Information such as what roads are around this junction</param>
-        /// <param name="topography">The topography of this block. It's exact shape and size</param>
+        /// <param name="topology">The topology of this junction. Information such as what roads are around this junction</param>
+        /// <param name="topography">The topography of this junction. It's exact shape and size</param>
         /// <returns></returns>
         protected abstract IEnumerable<ScriptReference> ChooseJunctionScript(Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology, Prism topography);
 

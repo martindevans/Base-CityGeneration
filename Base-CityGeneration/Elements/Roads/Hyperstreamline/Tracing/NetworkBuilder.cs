@@ -62,7 +62,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             _begun = true;
         }
 
-        public void Build(TracingConfiguration config, Random random, Vector2 min, Vector2 max)
+        public void Build(TracingConfiguration config, Func<double> random, Vector2 min, Vector2 max)
         {
             if (!_begun)
             {
@@ -81,13 +81,13 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
             Build(seeds, min, max, config.SeparationField, true, true, config.SegmentLength, config.MergeDistance, config.CosineSearchConeAngle, isOutOfBounds, null, s =>
             {
-                s.Width = config.RoadWidth.SelectIntValue(random.NextDouble);
+                s.Width = config.RoadWidth.SelectIntValue(random);
 
                 LinearReduction(s);
             });
         }
 
-        public void Build(TracingConfiguration config, Random random, Region region)
+        public void Build(TracingConfiguration config, Func<double> random, Region region)
         {
             var extent = region.Max - region.Min;
             //var eigens = config.TensorField.Presample(new Vector2(region.Min.X, region.Min.Y), new Vector2(region.Max.X, region.Max.Y), (int)Math.Max(extent.X, extent.Y));
@@ -105,7 +105,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                 config.CosineSearchConeAngle,
                 p => !region.PointInPolygon(p), e => e.Streamline.Region == region,
                 s => {
-                    s.Width = config.RoadWidth.SelectIntValue(random.NextDouble);
+                    s.Width = config.RoadWidth.SelectIntValue(random);
                     s.Region = region;
 
                     LinearReduction(s);
@@ -562,13 +562,13 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             }
         }
 
-        private static IEnumerable<Seed> RandomSeedsInBounds(Random random, int count, IVector2Field major, IVector2Field minor, Vector2 min, Vector2 max, Func<Vector2, bool> isOutOfBounds)
+        private static IEnumerable<Seed> RandomSeedsInBounds(Func<double> random, int count, IVector2Field major, IVector2Field minor, Vector2 min, Vector2 max, Func<Vector2, bool> isOutOfBounds)
         {
             var extent = (max - min);
 
             for (int i = 0; i < count; i++)
             {
-                var p = new Vector2((float)random.NextDouble() * extent.X, (float)random.NextDouble() * extent.Y) + min;
+                var p = new Vector2((float)random() * extent.X, (float)random() * extent.Y) + min;
                 if (isOutOfBounds(p))
                     i--;
                 else

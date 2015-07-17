@@ -35,7 +35,7 @@ Major:
             NetworkBuilder b = new NetworkBuilder();
 
             Random r = new Random(10);
-            b.Build(c.Major(r.NextDouble), r, new Vector2(0, 0), new Vector2(500, 500));
+            b.Build(c.Major(r.NextDouble), r.NextDouble, new Vector2(0, 0), new Vector2(500, 500));
             b.Reduce();
 
             Console.WriteLine(b.Result.ToSvg());
@@ -65,7 +65,7 @@ Major:
             NetworkBuilder b = new NetworkBuilder();
 
             Random r = new Random(10);
-            b.Build(c.Major(r.NextDouble), r, new Vector2(0, 0), new Vector2(500, 500));
+            b.Build(c.Major(r.NextDouble), r.NextDouble, new Vector2(0, 0), new Vector2(500, 500));
             b.Reduce();
 
             var regions = b.Regions();
@@ -112,12 +112,12 @@ Minor:
             Random r = new Random(10);
             NetworkBuilder b = new NetworkBuilder();
 
-            b.Build(c.Major(r.NextDouble), r, new Vector2(0, 0), new Vector2(500, 500));
+            b.Build(c.Major(r.NextDouble), r.NextDouble, new Vector2(0, 0), new Vector2(500, 500));
             b.Reduce();
 
             var regions = b.Regions();
 
-            b.Build(c.Minor(r.NextDouble), r, regions.Skip(3).First());
+            b.Build(c.Minor(r.NextDouble), r.NextDouble, regions.Skip(3).First());
 
             Console.WriteLine(b.Result.ToSvg());
         }
