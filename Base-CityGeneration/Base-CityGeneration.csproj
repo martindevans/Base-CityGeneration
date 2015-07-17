@@ -248,6 +248,7 @@
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Seed.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Streamline.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Vertex.cs" />
+    <Compile Include="Styles\Roads.cs" />
     <Compile Include="Utilities\Numbers\ConstantValue.cs" />
     <Compile Include="Utilities\Numbers\BaseValueGenerator.cs" />
     <Compile Include="Utilities\Numbers\UniformlyDistributedValue.cs" />
