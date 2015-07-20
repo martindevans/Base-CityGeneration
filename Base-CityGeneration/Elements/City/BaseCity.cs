@@ -105,11 +105,11 @@ namespace Base_CityGeneration.Elements.City
         private void MaterializeMesh(Mesh<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> mesh)
         {
             //Attach builders to each part of the topological mesh
-            foreach (var vertex in mesh.Vertices)
+            foreach (var vertex in mesh.Vertices.Where(v => v.Builder == null))
                 vertex.Builder = CreateVertexBuilder(vertex);
-            foreach (var halfEdge in mesh.HalfEdges.Where(e => e.IsPrimaryEdge))
+            foreach (var halfEdge in mesh.HalfEdges.Where(e => e.IsPrimaryEdge && e.Tag == null))
                 halfEdge.Tag = CreateHalfEdgeBuilder(halfEdge, RoadLanes(halfEdge));
-            foreach (var face in mesh.Faces)
+            foreach (var face in mesh.Faces.Where(f => f.Tag == null))
                 face.Tag = CreateFaceBuilder(face);
 
             //Create junctions (appropriate shape for different widths of road)
@@ -127,6 +127,9 @@ namespace Base_CityGeneration.Elements.City
 
         private IGrounded Create<TTopology, TFallback>(float height, TTopology topology, Vector2[] shape, Func<TTopology, Prism, IEnumerable<ScriptReference>> choose)
         {
+            if (shape == null)
+                return null;
+
             var topography = new Prism(height, shape);
 
             //Choose a script for this junction (fallback to BasicJunction)
@@ -135,7 +138,7 @@ namespace Base_CityGeneration.Elements.City
                 scripts = ScriptReference.Find<TFallback>();
 
             //Create the block
-            var c = CreateChild(topography, Quaternion.Identity, new Vector3(0, 0, 0), scripts) as IGrounded;
+            var c = CreateChild(topography, Quaternion.Identity, new Vector3(0, 0, 0), scripts, false) as IGrounded;
             if (c != null)
                 c.GroundHeight = height / 2;
 

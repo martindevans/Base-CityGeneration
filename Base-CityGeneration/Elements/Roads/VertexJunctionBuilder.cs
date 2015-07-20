@@ -3,6 +3,7 @@ using System.Linq;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
+using Myre.Extensions;
 
 namespace Base_CityGeneration.Elements.Roads
 {
@@ -35,18 +36,39 @@ namespace Base_CityGeneration.Elements.Roads
                     return GenerateDeadEnd(_vertex.Edges.Single());
                 case 2:
                     return GenerateRoadJoin(_vertex.Edges.First(), _vertex.Edges.Skip(1).First());
-                case 3:
-                    return GenerateTJunction(_vertex.Edges.First(), _vertex.Edges.Skip(2).First(), _vertex.Edges.Skip(3).First());
-                case 4:
-                    return GenerateCrossroads(_vertex.Edges.First(), _vertex.Edges.Skip(2).First(), _vertex.Edges.Skip(3).First(), _vertex.Edges.Skip(4).First());
+                //case 3:
+                //    return GenerateTJunction(_vertex.Edges.First(), _vertex.Edges.Skip(2).First(), _vertex.Edges.Skip(3).First());
+                //case 4:
+                //    return GenerateCrossroads(_vertex.Edges.First(), _vertex.Edges.Skip(2).First(), _vertex.Edges.Skip(3).First(), _vertex.Edges.Skip(4).First());
                 default:
                     return GenerateNWayJunction();
             }
         }
 
-        private Vector2[] GenerateDeadEnd(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a)
+        private static Vector2[] GenerateDeadEnd(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a)
         {
-            throw new NotImplementedException();
+            //Get the builder tag we're working with (only on primary edge)
+            var t = a.IsPrimaryEdge ? a.Tag : a.Pair.Tag;
+
+            //Calculate locations (to the left and right of vertex)
+            var d = Vector2.Normalize(a.EndVertex.Position - a.Pair.EndVertex.Position).Perpendicular();
+            var s1 = a.EndVertex.Position - d * t.Width * 0.5f;
+            var s2 = a.EndVertex.Position + d * t.Width * 0.5f;
+
+            //Assign side positions to builder (on correct end)
+            if (a.IsPrimaryEdge)
+            {
+                t.LeftEnd = s1;
+                t.RightEnd = s2;
+            }
+            else
+            {
+                t.RightStart = s1;
+                t.LeftStart = s2;
+            }
+
+            //Dead ends do not create *any* junction, so return null for the junction shape
+            return null;
         }
 
         private Vector2[] GenerateRoadJoin(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> b)
