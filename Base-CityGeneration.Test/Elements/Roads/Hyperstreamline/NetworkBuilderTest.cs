@@ -109,17 +109,20 @@ Minor:
             0.9: !Grid { Angle: !UniformValue { Min: 1, Max: 360, Vary: true } }
 "));
 
-            Random r = new Random(10);
+            Random r = new Random(12);
             NetworkBuilder b = new NetworkBuilder();
 
-            b.Build(c.Major(r.NextDouble), r.NextDouble, new Vector2(0, 0), new Vector2(500, 500));
+            b.Build(c.Major(r.NextDouble), r.NextDouble, new Vector2(0, 0), new Vector2(100, 100));
             b.Reduce();
 
             var regions = b.Regions();
-
-            b.Build(c.Minor(r.NextDouble), r.NextDouble, regions.Skip(3).First());
+            foreach (var region in regions)
+                b.Build(c.Minor(r.NextDouble), r.NextDouble, region);
 
             Console.WriteLine(b.Result.ToSvg());
+
+            Assert.IsFalse(b.Result.Vertices.GroupBy(a => a.Position).Any(a => a.Count() > 1));
+
         }
 
         [TestMethod]

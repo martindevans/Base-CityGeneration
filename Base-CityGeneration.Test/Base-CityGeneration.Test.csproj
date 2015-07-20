@@ -185,6 +185,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\Spec\SerializationTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Floors\Selection\Spec\VerticalElementSpecTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\TestHelperExtensions.cs" />
+    <Compile Include="Elements\Roads\Hyperstreamline\ConvertToMesh.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\NetworkBuilderTest.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\NetworkConfigurationTest.cs" />
     <Compile Include="Parcelling\ObbParcellerTest.cs" />

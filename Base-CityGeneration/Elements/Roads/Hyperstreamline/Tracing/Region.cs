@@ -40,6 +40,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             }
         }
 
+        #region winding
         public bool IsClockwise()
         {
             //http://stackoverflow.com/a/1165943/108234
@@ -59,6 +60,14 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             return sum > 0;
         }
 
+        public Region Flip()
+        {
+            Array.Reverse(_vertices);
+            return this;
+        }
+        #endregion
+
+        #region point in polygon
         /// <summary>
         /// Determine whether given 2D point lies within 
         /// the polygon.
@@ -153,11 +162,6 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                  ? ((vertex.Y > p.Y) ? 0 : 3)
                  : ((vertex.Y > p.Y) ? 1 : 2));
         }
-
-        public Region Flip()
-        {
-            Array.Reverse(_vertices);
-            return this;
-        }
+        #endregion
     }
 }

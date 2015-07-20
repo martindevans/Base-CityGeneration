@@ -348,7 +348,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                 {
                     //Nope, we've gotta split the edge
                     Edge aMid, midB;
-                    endVertex = intersect.Split(CreateVertex(intersectPosition), out aMid, out midB);
+                    endVertex = intersect.Split(FindOrCreateVertex(intersectPosition, dist, 0), out aMid, out midB);
                     DeleteEdge(intersect);
                     InsertEdge(aMid);
                     InsertEdge(midB);
@@ -510,6 +510,13 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         private Vertex CreateVertex(Vector2 position)
         {
+            var overlaps = _vertices.ContainedBy(new BoundingRectangle(
+                new HandyCollections.Geometry.Vector2(position.X - 1, position.Y - 1),
+                new HandyCollections.Geometry.Vector2(position.X + 1, position.Y + 1)
+            ));
+            if (overlaps.Any(a => a.Position == position))
+                throw new InvalidOperationException();
+
             var vertex = new Vertex(position);
 
             _vertices.Insert(
