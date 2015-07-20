@@ -51,7 +51,7 @@ namespace Base_CityGeneration.Elements.Roads
 
         public float Width
         {
-            get { return _laneWidth * Lanes + _sidewalkWidth * 2; }
+            get { return _laneWidth * Lanes * 2 + _sidewalkWidth * 2; }
         }
 
         private Vector2[] _footprint = null;

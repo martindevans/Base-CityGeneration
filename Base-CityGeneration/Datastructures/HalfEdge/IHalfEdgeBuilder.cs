@@ -12,6 +12,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         Ray2D Right { get; }
 
         /// <summary>
+        /// Get the total width of this road (with lane count, lane width, sidewalk width all taken into account)
+        /// </summary>
+        float Width { get; }
+
+        /// <summary>
         /// Set by the junction builder at the end of this edge, this is the left hand point at the start of the road
         /// </summary>
         Vector2 LeftStart { set; get; }

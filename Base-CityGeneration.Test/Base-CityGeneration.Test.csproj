@@ -35,12 +35,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5644.2883, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="EpimetheusPlugins, Version=1.0.5679.30766, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5644.2898\lib\net40\EpimetheusPlugins.dll</HintPath>
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5679.30767\lib\net40\EpimetheusPlugins.dll</HintPath>
     </Reference>
-    <Reference Include="EpimetheusPlugins.Testing">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5644.2898\lib\net40\EpimetheusPlugins.Testing.dll</HintPath>
+    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5679.30767, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5679.30767\lib\net40\EpimetheusPlugins.Testing.dll</HintPath>
     </Reference>
     <Reference Include="HandyCollections, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -106,9 +107,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Placeholder.Audio2.4.4.3.0\lib\net40-Client\Placeholder.Audio2.dll</HintPath>
     </Reference>
-    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=8.2.0.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=8.2.1.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.8.2.0.0\lib\net40-Client\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
+      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.8.2.1.0\lib\net40-Client\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
     </Reference>
     <Reference Include="Placeholder.Content">
       <HintPath>..\packages\Placeholder.Content.1.2.3.0\lib\net40-Client\Placeholder.Content.dll</HintPath>
@@ -125,9 +126,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Placeholder.Serialization.2.0.0.0\lib\net40\Placeholder.Serialization.dll</HintPath>
     </Reference>
-    <Reference Include="Poly2Tri, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Poly2Tri, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.8.2.0.0\lib\net40-Client\Poly2Tri.dll</HintPath>
+      <HintPath>..\packages\Poly2Tri.1.0.1.0\lib\net35-Client\Poly2Tri.dll</HintPath>
     </Reference>
     <Reference Include="SharpYaml, Version=1.4.0.43042, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -141,9 +142,9 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.IO.Abstractions, Version=2.0.0.115, Culture=neutral, PublicKeyToken=d480b5b72fb413da, processorArchitecture=MSIL">
+    <Reference Include="System.IO.Abstractions, Version=2.0.0.116, Culture=neutral, PublicKeyToken=d480b5b72fb413da, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.IO.Abstractions.2.0.0.115\lib\net40\System.IO.Abstractions.dll</HintPath>
+      <HintPath>..\packages\System.IO.Abstractions.2.0.0.116\lib\net40\System.IO.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Core, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
