@@ -22,25 +22,25 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             //Empty out these two collections (it's larger, let's keep it as small as possible)
             while (_unprocessed.Count > 0 || _halfProcessed.Count > 0)
             {
-                //Empty out the half processed collection first
+                Edge edge;
+                bool direction;
                 if (_halfProcessed.Count > 0)
                 {
                     var e = _halfProcessed.First();
-                    var boundary = WalkRegionBoundary(e.Value, e.Key, _unprocessed, _halfProcessed);
-                    if (boundary != null)
-                        regions.Add(boundary);
-
-                    continue;
+                    edge = e.Value;
+                    direction = e.Key;
                 }
-
-                //If we have no half processed edges process a totally untouched edge (probably generating a bunch of half processed edges at the same time)
-                if (_unprocessed.Count > 0)
+                else if (_unprocessed.Count > 0)
                 {
-                    var e = _unprocessed.First();
-                    var boundary = WalkRegionBoundary(e, true, _unprocessed, _halfProcessed);
-                    if (boundary != null)
-                        regions.Add(boundary);
+                    edge = _unprocessed.First();
+                    direction = true;
                 }
+                else
+                    break;
+
+                var boundary = WalkRegionBoundary(edge, direction, _unprocessed, _halfProcessed);
+                if (boundary != null)
+                    regions.Add(boundary);
             }
 
             //Sort the regions into a consistent order
@@ -55,15 +55,15 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         {
             //We only want to trace boundary streamlines (width zero) on the inside, not the outside
             //Skip this streamline if it is a clockwise boundary streamline (and update collections)
-            if (start.Streamline.Width == 0 && direction)
+            if (start.Streamline.Width == 0)
             {
                 halfProcessed.Remove(new KeyValuePair<bool, Edge>(true, start));
-                if (unprocessed.Remove(start))
-                    halfProcessed.Add(new KeyValuePair<bool, Edge>(false, start));
+                halfProcessed.Remove(new KeyValuePair<bool, Edge>(false, start));
+                unprocessed.Remove(start);
                 return null;
             }
 
-            var points = new List<Vector2>();
+            var points = new List<Vertex>();
 
             var e = start;
             do
@@ -75,7 +75,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                     return null;
 
                 //Accumulate edges
-                var p = (direction ? e.B : e.A).Position;
+                var p = (direction ? e.B : e.A);
                 points.Add(p);
 
                 //Step to next edge
@@ -86,10 +86,51 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
             } while (e != start);
 
+            RemoveDeadEnds(points);
+
             if (points.Count >= 3)
-                return new Region(points);
+                return new Region(points.Select(a => a.Position).ToList());
 
             return null;
+        }
+
+        private static void RemoveDeadEnds(List<Vertex> points)
+        {
+            //it's possible for a region to follow up a dead end road
+            //This will manifest as a point both preceded and followed by the same vertex
+            //We want to remove the vertex, and one of the two neighbours and keep doing this until no more are left
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                //If we have too few points, clear the collection and give up
+                if (points.Count <= 3)
+                {
+                    points.Clear();
+                    return;
+                }
+
+                //Get the two points we're interested in (next and previous)
+                var iPrev = (i + points.Count - 1) % points.Count;
+                var prev = points[iPrev];
+
+                var iVert = (i + points.Count) % points.Count;
+                var vert = points[iVert];
+
+                var iNext = (i + 1) % points.Count;
+                var next = points[iNext];
+
+                if (prev.Equals(next))
+                {
+                    points.RemoveAt(i);
+                    points.RemoveAt(iPrev);
+                    i -= 2;
+                }
+                else if (vert.Equals(next))
+                {
+                    points.RemoveAt(iVert);
+                    i -= 1;
+                }
+            }
         }
 
         private static Edge WalkNextEdge(Edge edge, ref bool direction)
