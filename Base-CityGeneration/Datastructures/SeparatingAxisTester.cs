@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
 using Myre.Extensions;
 
@@ -38,7 +39,7 @@ namespace Base_CityGeneration.Datastructures
             return Intersects(convex1, convex2);
         }
 
-        private static void Project(Ray2D r, IEnumerable<Vector2> shape, out float min, out float max)
+        private static void Project(Line2D r, IEnumerable<Vector2> shape, out float min, out float max)
         {
             min = float.MaxValue;
             max = float.MinValue;
@@ -50,14 +51,14 @@ namespace Base_CityGeneration.Datastructures
             }
         }
 
-        private static IEnumerable<Ray2D> Edges(IList<Vector2> shape)
+        private static IEnumerable<Line2D> Edges(IList<Vector2> shape)
         {
             for (int i = 0; i < shape.Count; i++)
             {
                 var a = shape[i];
                 var b = shape[(i + 1) % shape.Count];
 
-                yield return new Ray2D(a, Vector2.Normalize(b - a));
+                yield return new Line2D(a, Vector2.Normalize(b - a));
             }
         }
     }

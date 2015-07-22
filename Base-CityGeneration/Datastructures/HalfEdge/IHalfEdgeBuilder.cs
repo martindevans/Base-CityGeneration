@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using EpimetheusPlugins.Procedural.Utilities;
+using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
@@ -8,8 +9,10 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         Vector2[] Shape { get; }
 
-        Ray2D Left { get; }
-        Ray2D Right { get; }
+        Line2D Left { get; }
+        Line2D Right { get; }
+
+        Vector2 Direction { get; }
 
         /// <summary>
         /// Get the total width of this road (with lane count, lane width, sidewalk width all taken into account)
@@ -35,19 +38,5 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// Set by the junction builder at the end of this edge, this is the right hand point at the end of the road
         /// </summary>
         Vector2 RightEnd { set; get; }
-
-        /// <summary>
-        /// Get the left side of either this egde, or the left side of it's pair
-        /// </summary>
-        /// <param name="primary"></param>
-        /// <returns></returns>
-        Ray2D GetLeftSide(bool primary);
-
-        /// <summary>
-        /// Get the right side of either this egde, or the right side of it's pair
-        /// </summary>
-        /// <param name="primary"></param>
-        /// <returns></returns>
-        Ray2D GetRightSide(bool primary);
     }
 }

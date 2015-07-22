@@ -197,7 +197,6 @@
     <Compile Include="Datastructures\HalfEdge\Vertex.cs" />
     <Compile Include="Datastructures\OABB.cs" />
     <Compile Include="Datastructures\Path.cs" />
-    <Compile Include="Datastructures\Ray2D.cs" />
     <Compile Include="Datastructures\Rectangle.cs" />
     <Compile Include="Datastructures\SeparatingAxisTester.cs" />
     <Compile Include="Elements\Building\Facades\ConfigurableFacade.cs" />

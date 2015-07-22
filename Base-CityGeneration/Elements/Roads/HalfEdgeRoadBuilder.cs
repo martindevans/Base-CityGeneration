@@ -15,33 +15,11 @@ namespace Base_CityGeneration.Elements.Roads
 
         public int Lanes { get; private set; }
 
-        private Ray2D? _left;
-        public Ray2D Left
-        {
-            get
-            {
-                if (!_left.HasValue)
-                {
-                    var rNormal = Direction.Perpendicular() * Width * 0.5f;
-                    _left = new Ray2D(HalfEdge.EndVertex.Position - rNormal, Direction);
-                }
-                return _left.Value;
-            }
-        }
+        private readonly Line2D _left;
+        public Line2D Left { get { return _left; } }
 
-        private Ray2D? _right;
-        public Ray2D Right
-        {
-            get
-            {
-                if (!_right.HasValue)
-                {
-                    var rNormal = Direction.Perpendicular() * Width;
-                    _right = new Ray2D(HalfEdge.EndVertex.Position + rNormal, Direction);
-                }
-                return _right.Value;
-            }
-        }
+        private readonly Line2D _right;
+        public Line2D Right { get { return _right; } }
 
         public Vector2 LeftStart { get; set; }
         public Vector2 RightStart { get; set; }
@@ -79,22 +57,16 @@ namespace Base_CityGeneration.Elements.Roads
             _laneWidth = laneWidth;
             _sidewalkWidth = sidewalkWidth;
             Lanes = roadLanes;
+
+            var n = Direction.Perpendicular() * Width * 0.5f;
+            _right = new Line2D(HalfEdge.EndVertex.Position - n, Direction);
+            _left = new Line2D(HalfEdge.EndVertex.Position + n, Direction);
         }
 
         private Vector2[] CalculateShape()
         {
             var s = new Vector2[] { LeftStart, LeftEnd, RightEnd, RightStart };
             return s.Quickhull2D().ToArray();
-        }
-
-        public Ray2D GetLeftSide(bool primary)
-        {
-            return primary ? Left : Right;
-        }
-
-        public Ray2D GetRightSide(bool primary)
-        {
-            return primary ? Right : Left;
         }
     }
 }
