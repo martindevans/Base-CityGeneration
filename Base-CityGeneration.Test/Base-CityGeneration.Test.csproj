@@ -191,6 +191,7 @@
     <Compile Include="Elements\Roads\Hyperstreamline\NetworkConfigurationTest.cs" />
     <Compile Include="Parcelling\ObbParcellerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Playground.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Base-CityGeneration.TestHelpers\Base-CityGeneration.TestHelpers.csproj">
