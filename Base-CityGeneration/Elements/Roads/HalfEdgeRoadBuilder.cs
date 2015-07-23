@@ -1,9 +1,8 @@
-﻿using System.Linq;
-using Base_CityGeneration.Datastructures;
-using Base_CityGeneration.Datastructures.HalfEdge;
+﻿using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
 using Myre.Extensions;
+using System.Linq;
 
 namespace Base_CityGeneration.Elements.Roads
 {
@@ -59,8 +58,8 @@ namespace Base_CityGeneration.Elements.Roads
             Lanes = roadLanes;
 
             var n = Direction.Perpendicular() * Width * 0.5f;
-            _right = new Line2D(HalfEdge.EndVertex.Position - n, Direction);
-            _left = new Line2D(HalfEdge.EndVertex.Position + n, Direction);
+            _left = new Line2D(HalfEdge.EndVertex.Position - n, Direction);
+            _right = new Line2D(HalfEdge.EndVertex.Position + n, Direction);
         }
 
         private Vector2[] CalculateShape()
