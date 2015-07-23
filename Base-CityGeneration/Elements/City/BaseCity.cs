@@ -127,7 +127,7 @@ namespace Base_CityGeneration.Elements.City
 
         private IGrounded Create<TTopology, TFallback>(float height, TTopology topology, Vector2[] shape, Func<TTopology, Prism, IEnumerable<ScriptReference>> choose)
         {
-            if (shape == null)
+            if (shape == null || shape.Length < 3)
                 return null;
 
             var topography = new Prism(height, shape);

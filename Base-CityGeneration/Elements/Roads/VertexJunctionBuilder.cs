@@ -1,4 +1,5 @@
-﻿using Base_CityGeneration.Datastructures.HalfEdge;
+﻿using System.Collections.Generic;
+using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
@@ -36,7 +37,6 @@ namespace Base_CityGeneration.Elements.Roads
                 case 1:
                     return GenerateDeadEnd(_vertex.Edges.Single());
                 case 2:
-                    //return GenerateRoadJoin(_vertex.Edges.First(), _vertex.Edges.Skip(1).First());
                     return Generate2Way(_vertex.Edges.First(), _vertex.Edges.Skip(1).First());
                 default:
                     return GenerateNWayJunction();
@@ -60,27 +60,69 @@ namespace Base_CityGeneration.Elements.Roads
 
         private Vector2[] Generate2Way(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> b)
         {
-            var at = BuilderFor(a);
-            var bt = BuilderFor(b);
+            var att = new NWayJunctionEdgeData(BuilderFor(a));
+            var btt = new NWayJunctionEdgeData(BuilderFor(b));
 
-            if (!Geometry2D.LineLineIntersection(at.Left, bt.Right).HasValue)
+            ExtractPoints(att, btt);
+            ExtractPoints(btt, att);
+
+            return att.AllPoints.Append(btt.AllPoints)
+               .Quickhull2D()
+               .ToArray();
+        }
+
+        private Vector2[] GenerateNWayJunction()
+        {
+            //Order the edges by their angle around the vertex
+            var orderedEdges = (from edge in _vertex.Edges
+                                let b = BuilderFor(edge)
+                                let angle = (float)Math.Atan2(b.Direction.Y, b.Direction.X)
+                                orderby angle descending
+                                select new NWayJunctionEdgeData(b)).ToArray();
+
+            //Extract points for pairs of edges (edge and previous, edge and next)
+            for (int i = 0; i < orderedEdges.Length; i++)
+            {
+                var prev = orderedEdges[(i + orderedEdges.Length - 1) % orderedEdges.Length];
+                var edge = orderedEdges[i];
+                //var next = orderedEdges[(i + 1) % orderedEdges.Length];
+
+                ExtractPoints(prev, edge);
+                //ExtractPoints(edge, next);
+            }
+
+            //Extract junction shape (convex hull of all points generated above)
+            return orderedEdges
+                .SelectMany(e => e.AllPoints).ToArray()
+                .Quickhull2D().ToArray();
+        }
+
+        private void ExtractPoints(NWayJunctionEdgeData right, NWayJunctionEdgeData left)
+        {
+            var at = right.Builder;
+            var bt = left.Builder;
+
+            //Find intersection points between both sides of both roads
+            var lrIntersect = Geometry2D.LineLineIntersection(at.Left, bt.Right);
+            var rlIntersect = Geometry2D.LineLineIntersection(at.Right, bt.Left);
+            var rrIntersect = Geometry2D.LineLineIntersection(at.Right, bt.Right);
+            var llIntersect = Geometry2D.LineLineIntersection(at.Left, bt.Left);
+
+            if (!lrIntersect.HasValue || !rlIntersect.HasValue || !rrIntersect.HasValue || !llIntersect.HasValue)
             {
                 //Roads are totally parallel
                 if (at.Width.TolerantEquals(bt.Width, 0.01f))
                 {
                     //Roads are totally parallel, have the same width, and join to the same vertex... a.k.a: a straight line
                     var w = at.Width * 0.5f;
-                    var d = Vector2.Normalize(_vertex.Position - at.HalfEdge.Pair.EndVertex.Position).Perpendicular();
+                    var d = at.Direction.Perpendicular();
                     var side = d * w;
 
                     at.LeftEnd = _vertex.Position - side;
-                    at.RightEnd = _vertex.Position + side;
+                    //at.RightEnd = _vertex.Position + side;
 
-                    bt.LeftEnd = at.LeftEnd;
-                    bt.RightEnd = at.RightEnd;
-
-                    //No junction required
-                    return null;
+                    //bt.LeftEnd = at.RightEnd;
+                    bt.RightEnd = at.LeftEnd;
                 }
                 else
                 {
@@ -100,31 +142,17 @@ namespace Base_CityGeneration.Elements.Roads
                     var aAlong = adn * (al - Math.Min(0.9f * al, widthDif * 1.5f));
                     var aSide = adn.Perpendicular() * at.Width * 0.5f;
                     at.LeftEnd = at.HalfEdge.Pair.EndVertex.Position + aAlong - aSide;
-                    at.RightEnd = at.HalfEdge.Pair.EndVertex.Position + aAlong + aSide;
+                    //at.RightEnd = at.HalfEdge.Pair.EndVertex.Position + aAlong + aSide;
 
                     var bAlong = bdn * (bl - Math.Min(0.9f * bl, widthDif * 1.5f));
                     var bSide = bdn.Perpendicular() * bt.Width * 0.5f;
-                    bt.LeftEnd = bt.HalfEdge.Pair.EndVertex.Position + bAlong - bSide;
+                    //bt.LeftEnd = bt.HalfEdge.Pair.EndVertex.Position + bAlong - bSide;
                     bt.RightEnd = bt.HalfEdge.Pair.EndVertex.Position + bAlong + bSide;
-
-                    //Junction shape fits around these 4 points
-                    Vector2[] points = { at.LeftEnd, at.RightEnd, bt.LeftEnd, bt.RightEnd };
-                    return points.Quickhull2D().ToArray();
                 }
             }
             else
             {
                 //Roads are not parallel
-
-                //Find intersection points between both sides of both roads
-                var lrIntersect = Geometry2D.LineLineIntersection(at.Left, bt.Right);
-                var rlIntersect = Geometry2D.LineLineIntersection(at.Right, bt.Left);
-                var rrIntersect = Geometry2D.LineLineIntersection(at.Right, bt.Right);
-                var llIntersect = Geometry2D.LineLineIntersection(at.Left, bt.Left);
-
-                //Sanity check
-                if (!lrIntersect.HasValue || !rlIntersect.HasValue || !rrIntersect.HasValue || !llIntersect.HasValue)
-                    throw new InvalidOperationException("Failed to find interesection for non parallel road segments");
 
                 //there are two configurations for which sides are matched, depending on the directions the roads meet
                 //
@@ -142,22 +170,24 @@ namespace Base_CityGeneration.Elements.Roads
                 if (llIntersect.Value.DistanceAlongLineA > lrIntersect.Value.DistanceAlongLineA)
                 {
                     at.LeftEnd = lrIntersect.Value.Position;
-                    at.RightEnd = rrIntersect.Value.Position;
-                    bt.LeftEnd = llIntersect.Value.Position;
+                    //at.RightEnd = rrIntersect.Value.Position;
+                    //bt.LeftEnd = llIntersect.Value.Position;
                     bt.RightEnd = lrIntersect.Value.Position;
 
                     //point is the point of the junction
                     //xSide is the point on road x nearest the point
-                    aPoint = rlIntersect.Value.Position;
-                    aSide = at.RightEnd;
-                    bPoint = rlIntersect.Value.Position;
-                    bSide = bt.LeftEnd;
+                    //aPoint = rlIntersect.Value.Position;
+                    //aSide = at.RightEnd;
+                    //bPoint = rlIntersect.Value.Position;
+                    //bSide = bt.LeftEnd;
+
+                    return;
                 }
                 else
                 {
                     at.LeftEnd = llIntersect.Value.Position;
-                    at.RightEnd = rlIntersect.Value.Position;
-                    bt.LeftEnd = rlIntersect.Value.Position;
+                    //at.RightEnd = rlIntersect.Value.Position;
+                    //bt.LeftEnd = rlIntersect.Value.Position;
                     bt.RightEnd = rrIntersect.Value.Position;
 
                     aPoint = lrIntersect.Value.Position;
@@ -176,20 +206,19 @@ namespace Base_CityGeneration.Elements.Roads
                 if (aEndToPointDist > maxWidth)
                     aPoint = aSide + (aEndToPoint / aEndToPointDist * maxWidth);
 
+                right.Point = aPoint;
+
                 var bEndToPoint = bPoint - bSide;
                 var bEndToPointDist = bEndToPoint.Length();
                 if (bEndToPointDist > maxWidth)
                     bPoint = bSide + (bEndToPoint / bEndToPointDist * maxWidth);
 
-                //Junction surrounds all these points
-                Vector2[] points = { at.LeftEnd, at.RightEnd, bt.LeftEnd, bt.RightEnd, aPoint, bPoint };
-                return points.Quickhull2D().ToArray();
-            }
-        }
+                left.Point = bPoint;
 
-        private Vector2[] GenerateNWayJunction()
-        {
-            throw new NotImplementedException();
+                ////Junction surrounds all these points
+                //Vector2[] points = { at.LeftEnd, at.RightEnd, bt.LeftEnd, bt.RightEnd, aPoint, bPoint };
+                //return points.Quickhull2D().ToArray();
+            }
         }
 
         /// <summary>
@@ -228,8 +257,8 @@ namespace Base_CityGeneration.Elements.Roads
                 _tag = tag;
 
                 var n = Direction.Perpendicular() * Width * 0.5f;
-                _right = new Line2D(HalfEdge.EndVertex.Position - n, Direction);
-                _left = new Line2D(HalfEdge.EndVertex.Position + n, Direction);
+                _left = new Line2D(HalfEdge.EndVertex.Position - n, Direction);
+                _right = new Line2D(HalfEdge.EndVertex.Position + n, Direction);
             }
 
             public HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> HalfEdge
@@ -307,6 +336,29 @@ namespace Base_CityGeneration.Elements.Roads
                 {
                     return -_tag.Direction;
                 }
+            }
+        }
+
+        private class NWayJunctionEdgeData
+        {
+            public readonly IHalfEdgeBuilder Builder;
+
+            public Vector2? Point;
+
+            public IEnumerable<Vector2> AllPoints
+            {
+                get
+                {
+                    yield return Builder.LeftEnd;
+                    yield return Builder.RightEnd;
+                    if (Point.HasValue)
+                        yield return Point.Value;
+                }
+            }
+
+            public NWayJunctionEdgeData(IHalfEdgeBuilder builder)
+            {
+                Builder = builder;
             }
         }
     }
