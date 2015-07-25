@@ -61,9 +61,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Cassowary.4.0.0.0\lib\net35-Client\Cassowary.dll</HintPath>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5679.30766, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5679.30766\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5682.40865, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5682.40865\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -217,6 +217,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\TagContainer.cs" />
+    <Compile Include="Elements\Roads\HalfEdgeExtensions.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\ResampleAndRescale.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\IEigenField.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Scalars\BaseScalarField.cs" />

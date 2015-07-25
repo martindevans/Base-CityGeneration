@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Generic;
@@ -125,9 +126,9 @@ namespace Base_CityGeneration.Elements.City
                 CreateBlock(Bounds.Height, face);
         }
 
-        private IGrounded Create<TTopology, TFallback>(float height, TTopology topology, Vector2[] shape, Func<TTopology, Prism, IEnumerable<ScriptReference>> choose)
+        private IGrounded Create<TTopology, TFallback>(float height, TTopology topology, ReadOnlyCollection<Vector2> shape, Func<TTopology, Prism, IEnumerable<ScriptReference>> choose)
         {
-            if (shape == null || shape.Length < 3)
+            if (shape == null || shape.Count < 3)
                 return null;
 
             var topography = new Prism(height, shape);
@@ -147,17 +148,35 @@ namespace Base_CityGeneration.Elements.City
 
         private IGrounded CreateJunction(float height, Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
-            return Create<Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, BasicJunction>(height, topology, topology.Builder.Shape, ChooseJunctionScript);
+            var result = Create<Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, BasicJunction>(height, topology, topology.Builder.Shape, ChooseJunctionScript);
+
+            var junction = result as IJunction;
+            if (junction != null)
+                junction.Vertex = topology;
+
+            return result;
         }
 
         private IGrounded CreateRoad(float height, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
-            return Create<HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, BasicRoad>(height, topology, topology.Tag.Shape, ChooseRoadScript);
+            var result = Create<HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, BasicRoad>(height, topology, topology.Tag.Shape, ChooseRoadScript);
+
+            var road = result as IRoad;
+            if (road != null)
+                road.HalfEdge = topology;
+
+            return result;
         }
 
         private IGrounded CreateBlock(float height, Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
-            return Create<Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, SolidPlaceholderBuilding>(height, topology, topology.Tag.Shape, ChooseBlockScript);
+            var result = Create<Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, SolidPlaceholderBlock>(height, topology, topology.Tag.Shape, ChooseBlockScript);
+
+            //var block = result as IBlock;
+            //if (block != null)
+            //    block.Face = topology;
+
+            return result;
         }
     }
 }

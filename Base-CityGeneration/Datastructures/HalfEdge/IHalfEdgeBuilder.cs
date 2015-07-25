@@ -1,4 +1,5 @@
-﻿using EpimetheusPlugins.Procedural.Utilities;
+﻿using System.Collections.ObjectModel;
+using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
@@ -7,7 +8,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
     {
         HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> HalfEdge { get; }
 
-        Vector2[] Shape { get; }
+        ReadOnlyCollection<Vector2> Shape { get; }
 
         Line2D Left { get; }
         Line2D Right { get; }
@@ -18,6 +19,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// Get the total width of this road (with lane count, lane width, sidewalk width all taken into account)
         /// </summary>
         float Width { get; }
+
+        /// <summary>
+        /// Width of the sidewalks along this road
+        /// </summary>
+        float SidewalkWidth { get; }
 
         /// <summary>
         /// Set by the junction builder at the end of this edge, this is the left hand point at the start of the road

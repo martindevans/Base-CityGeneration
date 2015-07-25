@@ -1,9 +1,10 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.ObjectModel;
+using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
     public interface IVertexBuilder
     {
-        Vector2[] Shape { get; }
+        ReadOnlyCollection<Vector2> Shape { get; }
     }
 }

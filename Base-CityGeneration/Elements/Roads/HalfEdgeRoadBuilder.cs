@@ -1,4 +1,5 @@
-﻿using Base_CityGeneration.Datastructures.HalfEdge;
+﻿using System.Collections.ObjectModel;
+using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
 using Myre.Extensions;
@@ -10,7 +11,6 @@ namespace Base_CityGeneration.Elements.Roads
     {
         public HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> HalfEdge { get; private set; }
         private readonly float _laneWidth;
-        private readonly float _sidewalkWidth;
 
         public int Lanes { get; private set; }
 
@@ -28,11 +28,13 @@ namespace Base_CityGeneration.Elements.Roads
 
         public float Width
         {
-            get { return _laneWidth * Lanes * 2 + _sidewalkWidth * 2; }
+            get { return _laneWidth * Lanes * 2 + SidewalkWidth * 2; }
         }
 
-        private Vector2[] _footprint = null;
-        public Vector2[] Shape
+        public float SidewalkWidth { get; private set; }
+
+        private ReadOnlyCollection<Vector2> _footprint = null;
+        public ReadOnlyCollection<Vector2>  Shape
         {
             get
             {
@@ -54,7 +56,7 @@ namespace Base_CityGeneration.Elements.Roads
         {
             HalfEdge = halfEdge;
             _laneWidth = laneWidth;
-            _sidewalkWidth = sidewalkWidth;
+            SidewalkWidth = sidewalkWidth;
             Lanes = roadLanes;
 
             var n = Direction.Perpendicular() * Width * 0.5f;
@@ -62,10 +64,10 @@ namespace Base_CityGeneration.Elements.Roads
             _right = new Line2D(HalfEdge.EndVertex.Position + n, Direction);
         }
 
-        private Vector2[] CalculateShape()
+        private ReadOnlyCollection<Vector2> CalculateShape()
         {
             var s = new Vector2[] { LeftStart, LeftEnd, RightEnd, RightStart };
-            return s.Quickhull2D().ToArray();
+            return new ReadOnlyCollection<Vector2>(s.Quickhull2D().ToArray());
         }
     }
 }
