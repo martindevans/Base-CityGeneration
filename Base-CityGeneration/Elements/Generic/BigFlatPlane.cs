@@ -1,6 +1,5 @@
 ﻿using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
-using Microsoft.Xna.Framework;
 using Myre;
 using Myre.Collections;
 using Myre.Extensions;
@@ -27,11 +26,14 @@ namespace Base_CityGeneration.Elements.Generic
 
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
-            var material = hierarchicalParameters.GetValue(new TypedName<string>("material")) ?? "grass";
             var height = hierarchicalParameters.GetMaybeValue(new TypedName<float>("height")) ?? 1;
 
-            var prism = geometry.CreatePrism(material, bounds.Footprint, height).Transform(Matrix.CreateTranslation(0, GroundHeight - bounds.Height / 2f - height / 2f, 0));
-            geometry.Union(prism);
+            this.CreateFlatPlane(geometry,
+                hierarchicalParameters.GetValue(new TypedName<string>("material")) ?? "grass",
+                bounds.Footprint,
+                height,
+                -height
+            );
         }
     }
 }

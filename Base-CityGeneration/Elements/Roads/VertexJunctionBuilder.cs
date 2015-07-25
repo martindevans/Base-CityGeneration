@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural.Utilities;
@@ -14,8 +15,8 @@ namespace Base_CityGeneration.Elements.Roads
     {
         private readonly Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> _vertex;
 
-        private Vector2[] _footprint = null;
-        public Vector2[] Shape
+        private ReadOnlyCollection<Vector2> _footprint = null;
+        public ReadOnlyCollection<Vector2> Shape
         {
             get
             {
@@ -30,7 +31,7 @@ namespace Base_CityGeneration.Elements.Roads
             _vertex = vertex;
         }
 
-        private Vector2[] CalculateShape()
+        private ReadOnlyCollection<Vector2> CalculateShape()
         {
             switch (_vertex.Edges.Count())
             {
@@ -43,10 +44,10 @@ namespace Base_CityGeneration.Elements.Roads
             }
         }
 
-        private Vector2[] GenerateDeadEnd(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a)
+        private ReadOnlyCollection<Vector2> GenerateDeadEnd(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a)
         {
             //Get the builder for the edge ending at _vertex
-            var b = BuilderFor(a);
+            var b = a.BuilderEndingWith(_vertex);
 
             var ld = Geometry2D.ClosestPointDistanceAlongLine(b.Left, _vertex.Position);
             b.LeftEnd = b.Left.Point + b.Left.Direction * ld;
@@ -58,24 +59,26 @@ namespace Base_CityGeneration.Elements.Roads
             return null;
         }
 
-        private Vector2[] Generate2Way(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> b)
+        private ReadOnlyCollection<Vector2> Generate2Way(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> b)
         {
-            var att = new NWayJunctionEdgeData(BuilderFor(a));
-            var btt = new NWayJunctionEdgeData(BuilderFor(b));
+            var att = new NWayJunctionEdgeData(a.BuilderEndingWith(_vertex));
+            var btt = new NWayJunctionEdgeData(b.BuilderEndingWith(_vertex));
 
             ExtractPoints(att, btt);
             ExtractPoints(btt, att);
 
-            return att.AllPoints.Append(btt.AllPoints)
-               .Quickhull2D()
-               .ToArray();
+            return new ReadOnlyCollection<Vector2>(
+                att.AllPoints.Append(btt.AllPoints)
+                   .Quickhull2D()
+                   .ToArray()
+            );
         }
 
-        private Vector2[] GenerateNWayJunction()
+        private ReadOnlyCollection<Vector2> GenerateNWayJunction()
         {
             //Order the edges by their angle around the vertex
             var orderedEdges = (from edge in _vertex.Edges
-                                let b = BuilderFor(edge)
+                                let b = edge.BuilderEndingWith(_vertex)
                                 let angle = (float)Math.Atan2(b.Direction.Y, b.Direction.X)
                                 orderby angle descending
                                 select new NWayJunctionEdgeData(b)).ToArray();
@@ -92,9 +95,10 @@ namespace Base_CityGeneration.Elements.Roads
             }
 
             //Extract junction shape (convex hull of all points generated above)
-            return orderedEdges
+            return new ReadOnlyCollection<Vector2>(orderedEdges
                 .SelectMany(e => e.AllPoints).ToArray()
-                .Quickhull2D().ToArray();
+                .Quickhull2D().ToArray()
+            );
         }
 
         private void ExtractPoints(NWayJunctionEdgeData right, NWayJunctionEdgeData left)
@@ -218,124 +222,6 @@ namespace Base_CityGeneration.Elements.Roads
                 ////Junction surrounds all these points
                 //Vector2[] points = { at.LeftEnd, at.RightEnd, bt.LeftEnd, bt.RightEnd, aPoint, bPoint };
                 //return points.Quickhull2D().ToArray();
-            }
-        }
-
-        /// <summary>
-        /// Get the builder for the edge which *ends* with this vertex
-        /// </summary>
-        /// <param name="edge"></param>
-        /// <returns></returns>
-        private IHalfEdgeBuilder BuilderFor(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> edge)
-        {
-            if (edge.IsPrimaryEdge)
-            {
-                if (edge.EndVertex.Equals(_vertex))
-                    return edge.Tag;
-                else
-                    return new Switcharoo(edge.Tag);
-            }
-            else
-            {
-                if (edge.EndVertex.Equals(_vertex))
-                    return new Switcharoo(edge.Pair.Tag);
-                else
-                    return edge.Pair.Tag;
-            }
-        }
-
-        /// <summary>
-        /// Given a tag for a half edge, switch around and masquerade as the tag for the paired half edge
-        /// </summary>
-        private class Switcharoo
-            : IHalfEdgeBuilder
-        {
-            private readonly IHalfEdgeBuilder _tag;
-
-            public Switcharoo(IHalfEdgeBuilder tag)
-            {
-                _tag = tag;
-
-                var n = Direction.Perpendicular() * Width * 0.5f;
-                _left = new Line2D(HalfEdge.EndVertex.Position - n, Direction);
-                _right = new Line2D(HalfEdge.EndVertex.Position + n, Direction);
-            }
-
-            public HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> HalfEdge
-            {
-                get { return _tag.HalfEdge.Pair; }
-            }
-
-            public Vector2[] Shape
-            {
-                get { return _tag.Shape; }
-            }
-
-            private readonly Line2D _left;
-            public Line2D Left { get { return _left; } }
-
-            private readonly Line2D _right;
-            public Line2D Right { get { return _right; } }
-
-            public float Width
-            {
-                get { return _tag.Width; }
-            }
-
-            public Vector2 LeftStart
-            {
-                get
-                {
-                    return _tag.RightEnd;
-                }
-                set
-                {
-                    _tag.RightEnd = value;
-                }
-            }
-
-            public Vector2 RightStart
-            {
-                get
-                {
-                    return _tag.LeftEnd;
-                }
-                set
-                {
-                    _tag.LeftEnd = value;
-                }
-            }
-
-            public Vector2 LeftEnd
-            {
-                get
-                {
-                    return _tag.RightStart;
-                }
-                set
-                {
-                    _tag.RightStart = value;
-                }
-            }
-
-            public Vector2 RightEnd
-            {
-                get
-                {
-                    return _tag.LeftStart;
-                }
-                set
-                {
-                    _tag.LeftStart = value;
-                }
-            }
-
-            public Vector2 Direction
-            {
-                get
-                {
-                    return -_tag.Direction;
-                }
             }
         }
 

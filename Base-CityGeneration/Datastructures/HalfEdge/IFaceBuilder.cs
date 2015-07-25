@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.ObjectModel;
+using Microsoft.Xna.Framework;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
@@ -6,6 +7,6 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
     {
         Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> Face { get; }
 
-        Vector2[] Shape { get; }
+        ReadOnlyCollection<Vector2> Shape { get; }
     }
 }
