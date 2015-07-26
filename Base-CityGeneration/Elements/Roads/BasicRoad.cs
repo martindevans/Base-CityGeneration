@@ -52,7 +52,7 @@ namespace Base_CityGeneration.Elements.Roads
             var rightStart = Vector3.Transform(builder.RightStart.X_Y(0), InverseWorldTransformation).XZ();
 
             //Create geometry for edge sections
-            MaterializeEdgeSections(geometry, material, height, sections, builder, leftEnd, rightEnd, leftStart, rightStart);
+            //MaterializeEdgeSections(geometry, material, height, sections, builder, leftEnd, rightEnd, leftStart, rightStart);
 
             //Create geometry for corner sections
             MaterializeCornerSections(geometry, material, height, sections, builder, rightEnd, leftEnd, leftStart, rightStart);
@@ -64,9 +64,7 @@ namespace Base_CityGeneration.Elements.Roads
             {
                 //Skip non corner sections
                 if (!section.IsCorner)
-                {
                     continue;
-                }
 
                 //which vertex is this corner bordering onto?
                 Vector2 endPointA;
@@ -97,21 +95,19 @@ namespace Base_CityGeneration.Elements.Roads
                         var aDist = Geometry2D.DistanceFromPointToLine(section.A, lAcross);
                         Vector2 alongFootpath = aDist < cDist ? Vector2.Normalize(section.B - section.C) : Vector2.Normalize(section.B - section.A);
 
-                        //Inner line of footpath
+                        //side lines of footpath
                         var lInner = new Line2D(section.D, alongFootpath);
+                        var lOuter = new Line2D(section.B, alongFootpath);
 
-                        //Intersection point of the two
-                        var point = Geometry2D.LineLineIntersection(lInner, lAcross);
-
-                        //Sanity check
-                        if (!point.HasValue)
-                            continue;
+                        //Extreme point of road projected onto inner line of footpath gets us the *overhanging* corner
+                        var pointInner = Geometry2D.ClosestPointDistanceAlongLine(lInner, section.B) * lInner.Direction + lInner.Point;
+                        var pointOuter = Geometry2D.ClosestPointDistanceAlongLine(lOuter, section.D) * lOuter.Direction + lOuter.Point;
 
                         Vector2[] shape = new Vector2[4] {
                             section.B,
+                            pointInner,
                             section.D,
-                            point.Value.Position,
-                            aDist < cDist ? section.C : section.A
+                            pointOuter
                         };
                         MaterializeSection(geometry, material, shape, height);
                         break;
