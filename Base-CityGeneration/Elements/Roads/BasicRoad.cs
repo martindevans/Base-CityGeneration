@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Generic;
+using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
@@ -33,7 +34,7 @@ namespace Base_CityGeneration.Elements.Roads
             this.CreateFlatPlane(geometry, "tarmac", bounds.Footprint, 1, -1);
 
             //Add in footpaths
-            CreateFootpaths(bounds, geometry, hierarchicalParameters, "concrete", 0.15f);
+            CreateFootpaths(bounds, geometry, hierarchicalParameters, hierarchicalParameters.RoadSidewalkMaterial(Random), HierarchicalParameters.RoadSidewalkHeight(Random));
         }
 
         private void CreateFootpaths(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters, string material, float height)
@@ -52,7 +53,7 @@ namespace Base_CityGeneration.Elements.Roads
             var rightStart = Vector3.Transform(builder.RightStart.X_Y(0), InverseWorldTransformation).XZ();
 
             //Create geometry for edge sections
-            //MaterializeEdgeSections(geometry, material, height, sections, builder, leftEnd, rightEnd, leftStart, rightStart);
+            MaterializeEdgeSections(geometry, material, height, sections, builder, leftEnd, rightEnd, leftStart, rightStart);
 
             //Create geometry for corner sections
             MaterializeCornerSections(geometry, material, height, sections, builder, rightEnd, leftEnd, leftStart, rightStart);
@@ -97,18 +98,19 @@ namespace Base_CityGeneration.Elements.Roads
 
                         //side lines of footpath
                         var lInner = new Line2D(section.D, alongFootpath);
-                        var lOuter = new Line2D(section.B, alongFootpath);
 
-                        //Extreme point of road projected onto inner line of footpath gets us the *overhanging* corner
-                        var pointInner = Geometry2D.ClosestPointDistanceAlongLine(lInner, section.B) * lInner.Direction + lInner.Point;
-                        var pointOuter = Geometry2D.ClosestPointDistanceAlongLine(lOuter, section.D) * lOuter.Direction + lOuter.Point;
+                        //end point of path on end of road
+                        var intersect = Geometry2D.LineLineIntersection(lInner, lAcross);
+                        if (!intersect.HasValue)
+                            break;
 
                         Vector2[] shape = new Vector2[4] {
                             section.B,
-                            pointInner,
                             section.D,
-                            pointOuter
+                            intersect.Value.Position,
+                            cDist > aDist ? section.C : section.A
                         };
+
                         MaterializeSection(geometry, material, shape, height);
                         break;
                     }

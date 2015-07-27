@@ -105,6 +105,12 @@ namespace Base_CityGeneration.Elements.City
 
         private void MaterializeMesh(Mesh<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> mesh)
         {
+            //Generate default footpath data
+            HierarchicalParameters.RoadSidewalkHeight(Random);
+            HierarchicalParameters.RoadSidewalkWidth(Random);
+            HierarchicalParameters.RoadLaneWidth(Random);
+            HierarchicalParameters.RoadSidewalkMaterial(Random);
+
             //Attach builders to each part of the topological mesh
             foreach (var vertex in mesh.Vertices.Where(v => v.Builder == null))
                 vertex.Builder = CreateVertexBuilder(vertex);
