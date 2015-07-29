@@ -88,16 +88,13 @@ namespace Base_CityGeneration.Elements.Roads
             {
                 var prev = orderedEdges[(i + orderedEdges.Length - 1) % orderedEdges.Length];
                 var edge = orderedEdges[i];
-                //var next = orderedEdges[(i + 1) % orderedEdges.Length];
 
                 ExtractPoints(prev, edge);
-                //ExtractPoints(edge, next);
             }
 
-            //Extract junction shape (convex hull of all points generated above)
+            //Extract junction shape
             return new ReadOnlyCollection<Vector2>(orderedEdges
                 .SelectMany(e => e.AllPoints).ToArray()
-                .Quickhull2D().ToArray()
             );
         }
 
@@ -115,44 +112,7 @@ namespace Base_CityGeneration.Elements.Roads
             if (!lrIntersect.HasValue || !rlIntersect.HasValue || !rrIntersect.HasValue || !llIntersect.HasValue)
             {
                 //Roads are totally parallel
-                if (at.Width.TolerantEquals(bt.Width, 0.01f))
-                {
-                    //Roads are totally parallel, have the same width, and join to the same vertex... a.k.a: a straight line
-                    var w = at.Width * 0.5f;
-                    var d = at.Direction.Perpendicular();
-                    var side = d * w;
-
-                    at.LeftEnd = _vertex.Position - side;
-                    //at.RightEnd = _vertex.Position + side;
-
-                    //bt.LeftEnd = at.RightEnd;
-                    bt.RightEnd = at.LeftEnd;
-                }
-                else
-                {
-                    //Roads are totally parallel, but have different widths
-                    var ad = _vertex.Position - at.HalfEdge.Pair.EndVertex.Position;
-                    var al = ad.Length();
-                    var adn = ad / al;
-
-                    var bd = _vertex.Position - bt.HalfEdge.Pair.EndVertex.Position;
-                    var bl = bd.Length();
-                    var bdn = bd / bl;
-
-                    //What's the difference in widths?
-                    var widthDif = Math.Abs(at.Width - bt.Width);
-
-                    //Calculate a ramped junction shape from some distance along this roads segment (dependent upon width delta)
-                    var aAlong = adn * (al - Math.Min(0.9f * al, widthDif * 1.5f));
-                    var aSide = adn.Perpendicular() * at.Width * 0.5f;
-                    at.LeftEnd = at.HalfEdge.Pair.EndVertex.Position + aAlong - aSide;
-                    //at.RightEnd = at.HalfEdge.Pair.EndVertex.Position + aAlong + aSide;
-
-                    var bAlong = bdn * (bl - Math.Min(0.9f * bl, widthDif * 1.5f));
-                    var bSide = bdn.Perpendicular() * bt.Width * 0.5f;
-                    //bt.LeftEnd = bt.HalfEdge.Pair.EndVertex.Position + bAlong - bSide;
-                    bt.RightEnd = bt.HalfEdge.Pair.EndVertex.Position + bAlong + bSide;
-                }
+                ExtractPointsFromParallelRoads(at, bt);
             }
             else
             {
@@ -170,58 +130,109 @@ namespace Base_CityGeneration.Elements.Roads
                 // Right config: llt < lrt
 
                 //Assign road positions, and pass out data about the point of the junction in these variables
-                Vector2 aPoint, aSide, bPoint, bSide;
                 if (llIntersect.Value.DistanceAlongLineA > lrIntersect.Value.DistanceAlongLineA)
                 {
                     at.LeftEnd = lrIntersect.Value.Position;
-                    //at.RightEnd = rrIntersect.Value.Position;
-                    //bt.LeftEnd = llIntersect.Value.Position;
                     bt.RightEnd = lrIntersect.Value.Position;
-
-                    //point is the point of the junction
-                    //xSide is the point on road x nearest the point
-                    //aPoint = rlIntersect.Value.Position;
-                    //aSide = at.RightEnd;
-                    //bPoint = rlIntersect.Value.Position;
-                    //bSide = bt.LeftEnd;
 
                     return;
                 }
-                else
-                {
-                    at.LeftEnd = llIntersect.Value.Position;
-                    //at.RightEnd = rlIntersect.Value.Position;
-                    //bt.LeftEnd = rlIntersect.Value.Position;
-                    bt.RightEnd = rrIntersect.Value.Position;
 
-                    aPoint = lrIntersect.Value.Position;
-                    aSide = at.LeftEnd;
-                    bPoint = lrIntersect.Value.Position;
-                    bSide = bt.RightEnd;
-                }
+                at.LeftEnd = llIntersect.Value.Position;
+                bt.RightEnd = rrIntersect.Value.Position;
 
-                //The length of the junction is dependent on the road widths
-                var maxWidth = Math.Max(at.Width, bt.Width);
+                //Center of the curve
+                var circleCenter = Geometry2D.LineLineIntersection(at.Left.Perpendicular(), bt.Right.Perpendicular());
 
-                //The "point" of the junction is located at the final intersection
-                //However near parallel roads would results in a absurdly long point, limit the distance
-                var aEndToPoint = aPoint - aSide;
-                var aEndToPointDist = aEndToPoint.Length();
-                if (aEndToPointDist > maxWidth)
-                    aPoint = aSide + (aEndToPoint / aEndToPointDist * maxWidth);
+                //Sanity check!
+                if (!circleCenter.HasValue)
+                    throw new InvalidOperationException("Junction curve perpendicular vectors do not intersect");
 
-                right.Point = aPoint;
+                left.Curve = new CircleSegment {
+                    CenterPoint = circleCenter.Value.Position,
+                    StartPoint = at.LeftEnd,
+                    EndPoint = bt.RightEnd
+                };
 
-                var bEndToPoint = bPoint - bSide;
-                var bEndToPointDist = bEndToPoint.Length();
-                if (bEndToPointDist > maxWidth)
-                    bPoint = bSide + (bEndToPoint / bEndToPointDist * maxWidth);
+                //var aPoint = lrIntersect.Value.Position;
+                //var aSide = at.LeftEnd;
+                //var bPoint = lrIntersect.Value.Position;
+                //var bSide = bt.RightEnd;
 
-                left.Point = bPoint;
+                ////The length of the junction is dependent on the road widths
+                //var maxWidth = Math.Max(at.Width, bt.Width) / 2;
 
-                ////Junction surrounds all these points
-                //Vector2[] points = { at.LeftEnd, at.RightEnd, bt.LeftEnd, bt.RightEnd, aPoint, bPoint };
-                //return points.Quickhull2D().ToArray();
+                ////The "point" of the junction is located at the final intersection
+                ////However near parallel roads would results in a absurdly long point, limit the distance
+                //var aEndToPoint = aPoint - aSide;
+                //var aEndToPointDist = aEndToPoint.Length();
+                //if (aEndToPointDist > maxWidth)
+                //    aPoint = aSide + (aEndToPoint / aEndToPointDist * maxWidth);
+
+                //var bEndToPoint = bPoint - bSide;
+                //var bEndToPointDist = bEndToPoint.Length();
+                //if (bEndToPointDist > maxWidth)
+                //    bPoint = bSide + (bEndToPoint / bEndToPointDist * maxWidth);
+
+                //if (aPoint.TolerantEquals(bPoint, 0.1f))
+                //{
+                //    //todo: use circle curve
+                //    left.Curve = new QuadraticBezier {
+                //        Start = aSide,
+                //        Mid = aPoint,
+                //        End = bSide
+                //    };
+                //}
+                //else
+                //{
+                //    //todo: use circle curve
+                //    left.Curve = new CubicBezier
+                //    {
+                //        StartPoint = aSide,
+                //        Control1 = aPoint,
+                //        Control2 = bPoint,
+                //        EndPoint = bSide
+                //    };
+                //}
+            }
+        }
+
+        private void ExtractPointsFromParallelRoads(IHalfEdgeBuilder at, IHalfEdgeBuilder bt)
+        {
+            if (at.Width.TolerantEquals(bt.Width, 0.01f)) {
+                //Roads are totally parallel, have the same width, and join to the same vertex... a.k.a: a straight line
+                var w = at.Width * 0.5f;
+                var d = at.Direction.Perpendicular();
+                var side = d * w;
+
+                at.LeftEnd = _vertex.Position - side;
+                //at.RightEnd = _vertex.Position + side;
+
+                //bt.LeftEnd = at.RightEnd;
+                bt.RightEnd = at.LeftEnd;
+            } else {
+                //Roads are totally parallel, but have different widths
+                var ad = _vertex.Position - at.HalfEdge.Pair.EndVertex.Position;
+                var al = ad.Length();
+                var adn = ad / al;
+
+                var bd = _vertex.Position - bt.HalfEdge.Pair.EndVertex.Position;
+                var bl = bd.Length();
+                var bdn = bd / bl;
+
+                //What's the difference in widths?
+                var widthDif = Math.Abs(at.Width - bt.Width);
+
+                //Calculate a ramped junction shape from some distance along this roads segment (dependent upon width delta)
+                var aAlong = adn * (al - Math.Min(0.9f * al, widthDif * 1.5f));
+                var aSide = adn.Perpendicular() * at.Width * 0.5f;
+                at.LeftEnd = at.HalfEdge.Pair.EndVertex.Position + aAlong - aSide;
+                //at.RightEnd = at.HalfEdge.Pair.EndVertex.Position + aAlong + aSide;
+
+                var bAlong = bdn * (bl - Math.Min(0.9f * bl, widthDif * 1.5f));
+                var bSide = bdn.Perpendicular() * bt.Width * 0.5f;
+                //bt.LeftEnd = bt.HalfEdge.Pair.EndVertex.Position + bAlong - bSide;
+                bt.RightEnd = bt.HalfEdge.Pair.EndVertex.Position + bAlong + bSide;
             }
         }
 
@@ -229,7 +240,7 @@ namespace Base_CityGeneration.Elements.Roads
         {
             public readonly IHalfEdgeBuilder Builder;
 
-            public Vector2? Point;
+            public ICurve Curve;
 
             public IEnumerable<Vector2> AllPoints
             {
@@ -237,8 +248,11 @@ namespace Base_CityGeneration.Elements.Roads
                 {
                     yield return Builder.LeftEnd;
                     yield return Builder.RightEnd;
-                    if (Point.HasValue)
-                        yield return Point.Value;
+                    if (Curve != null) {
+                        foreach (var point in  Curve.Evaluate(0.25f)) {
+                            yield return point;
+                        }
+                    }
                 }
             }
 
