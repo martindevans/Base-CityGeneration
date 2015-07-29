@@ -424,6 +424,11 @@
             Skips the current event and any "child" event.
             </summary>
         </member>
+        <member name="M:SharpYaml.EventReader.Skip(System.Int32)">
+            <summary>
+            Skips until we reach the appropriate depth again
+            </summary>
+        </member>
         <member name="M:SharpYaml.EventReader.EnsureNotAtEndOfStream">
             <summary>
             Throws an exception if Ensures the not at end of stream.
@@ -1036,6 +1041,22 @@
             </summary>
             <value>The style.</value>
         </member>
+        <member name="T:SharpYaml.IParser">
+            <summary>
+            Represents a YAML stream paser.
+            </summary>
+        </member>
+        <member name="M:SharpYaml.IParser.MoveNext">
+            <summary>
+            Moves to the next event.
+            </summary>
+            <returns>Returns true if there are more events available, otherwise returns false.</returns>
+        </member>
+        <member name="P:SharpYaml.IParser.Current">
+            <summary>
+            Gets the current event.
+            </summary>
+        </member>
         <member name="T:SharpYaml.Serialization.ChainedEventEmitter">
             <summary>
             Provided the base implementation for an IEventEmitter that is a
@@ -1116,6 +1137,16 @@
             <param name="typeName">Name of the type.</param>
             <returns>Type found for this typeName</returns>
         </member>
+        <member name="T:SharpYaml.Serialization.Logging.ILogger">
+            <summary>
+            Logger interface.
+            </summary>
+        </member>
+        <member name="T:SharpYaml.Serialization.Logging.LogLevel">
+            <summary>
+            Severity log level.
+            </summary>
+        </member>
         <member name="T:SharpYaml.Serialization.ObjectContext">
             <summary>
             The object context used when serializing/deserializing an object instance. See remarks.
@@ -1189,6 +1220,19 @@
             The style used when serializing.
             </summary>
         </member>
+        <member name="T:SharpYaml.Serialization.SerializerContextSettings">
+            <summary>
+            Some parameters that can be transmitted from caller
+            </summary>
+        </member>
+        <member name="P:SharpYaml.Serialization.SerializerContextSettings.Logger">
+            <summary>
+            Gets the logger.
+            </summary>
+            <value>
+            The logger.
+            </value>
+        </member>
         <member name="T:SharpYaml.Serialization.Serializers.DefaultObjectSerializerBackend">
             <summary>
             Default implementation for <see cref="T:SharpYaml.Serialization.IObjectSerializerBackend"/>
@@ -1232,11 +1276,12 @@
             TODO: Explain memberValue when can be not null
             </remarks>
         </member>
-        <member name="M:SharpYaml.Serialization.IObjectSerializerBackend.ReadCollectionItem(SharpYaml.Serialization.ObjectContext@,System.Type)">
+        <member name="M:SharpYaml.Serialization.IObjectSerializerBackend.ReadCollectionItem(SharpYaml.Serialization.ObjectContext@,System.Object,System.Type)">
             <summary>
             Reads the collection item from the current YAML stream.
             </summary>
             <param name="objectContext">The object context.</param>
+            <param name="value">The value.</param>
             <param name="itemType">Type of the item.</param>
             <returns>The collection item read from YAML stream.</returns>
         </member>
@@ -1444,22 +1489,6 @@
         <member name="P:SharpYaml.InsertionQueue`1.Count">
             <summary>
             Gets the number of items that are contained by the queue.
-            </summary>
-        </member>
-        <member name="T:SharpYaml.IParser">
-            <summary>
-            Represents a YAML stream paser.
-            </summary>
-        </member>
-        <member name="M:SharpYaml.IParser.MoveNext">
-            <summary>
-            Moves to the next event.
-            </summary>
-            <returns>Returns true if there are more events available, otherwise returns false.</returns>
-        </member>
-        <member name="P:SharpYaml.IParser.Current">
-            <summary>
-            Gets the current event.
             </summary>
         </member>
         <member name="T:SharpYaml.LookAheadBuffer">
@@ -3325,12 +3354,13 @@
         </member>
         <member name="M:SharpYaml.Serialization.Serializers.ObjectSerializer.TryReadMember(SharpYaml.Serialization.ObjectContext@,SharpYaml.Events.Scalar@,System.String@)">
             <summary>
-            Tries to read a member.
+            Tries to read an item of the object from the YAML flow (either a sequence item or mapping key/value item).
             </summary>
             <param name="objectContext">The object context.</param>
             <param name="memberScalar">The member scalar.</param>
             <param name="memberName">Name of the member.</param>
-            <returns><c>true</c> if the member was successfully read, <c>false</c> otherwise.</returns>
+            <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
+            <exception cref="T:SharpYaml.YamlException">Unable to deserialize property [{0}] not found in type [{1}].DoFormat(propertyName, typeDescriptor)</exception>
         </member>
         <member name="M:SharpYaml.Serialization.Serializers.ObjectSerializer.WriteYaml(SharpYaml.Serialization.ObjectContext@)">
             <inheritdoc/>
@@ -3363,11 +3393,22 @@
             or
             Cannot deserialize list to readonly collection type [{0}]..DoFormat(thisObject.GetType())</exception>
         </member>
-        <member name="M:SharpYaml.Serialization.Serializers.CollectionSerializer.ReadCollectionItem(SharpYaml.Serialization.ObjectContext@,System.Type)">
+        <member name="M:SharpYaml.Serialization.Serializers.CollectionSerializer.ReadAddCollectionItem(SharpYaml.Serialization.ObjectContext@,System.Type,SharpYaml.Serialization.Descriptors.CollectionDescriptor,System.Object,System.Int32)">
+            <summary>
+            Reads and adds item to the collection.
+            </summary>
+            <param name="objectContext">The object context.</param>
+            <param name="elementType">Type of the element.</param>
+            <param name="collectionDescriptor">The collection descriptor.</param>
+            <param name="thisObject">The this object.</param>
+            <param name="index">The index.</param>
+        </member>
+        <member name="M:SharpYaml.Serialization.Serializers.CollectionSerializer.ReadCollectionItem(SharpYaml.Serialization.ObjectContext@,System.Object,System.Type)">
             <summary>
             Reads a collection item.
             </summary>
             <param name="objectContext">The object context.</param>
+            <param name="value">The value.</param>
             <param name="itemType">Type of the item.</param>
             <returns>The item to add to the current collection.</returns>
         </member>
@@ -3451,11 +3492,12 @@
             A context used while deserializing.
             </summary>
         </member>
-        <member name="M:SharpYaml.Serialization.SerializerContext.#ctor(SharpYaml.Serialization.Serializer)">
+        <member name="M:SharpYaml.Serialization.SerializerContext.#ctor(SharpYaml.Serialization.Serializer,SharpYaml.Serialization.SerializerContextSettings)">
             <summary>
             Initializes a new instance of the <see cref="T:SharpYaml.Serialization.SerializerContext"/> class.
             </summary>
             <param name="serializer">The serializer.</param>
+            <param name="serializerContextSettings">The serializer context settings.</param>
         </member>
         <member name="M:SharpYaml.Serialization.SerializerContext.ReadYaml(System.Object,System.Type)">
             <summary>
@@ -3513,6 +3555,14 @@
             </summary>
             <value><c>true</c> if we are in the context of serializing; otherwise, <c>false</c>.</value>
         </member>
+        <member name="P:SharpYaml.Serialization.SerializerContext.ContextSettings">
+            <summary>
+            Gets the context settings.
+            </summary>
+            <value>
+            The context settings.
+            </value>
+        </member>
         <member name="P:SharpYaml.Serialization.SerializerContext.Settings">
             <summary>
             Gets the settings.
@@ -3533,7 +3583,7 @@
         </member>
         <member name="P:SharpYaml.Serialization.SerializerContext.Reader">
             <summary>
-            Gets the reader used while deserializing.
+            Gets or sets the reader used while deserializing.
             </summary>
             <value>The reader.</value>
         </member>
@@ -3543,6 +3593,14 @@
             </summary>
             <value>The object serializer backend.</value>
         </member>
+        <member name="P:SharpYaml.Serialization.SerializerContext.AllowErrors">
+            <summary>
+            Gets or sets a value indicating whether errors are allowed.
+            </summary>
+            <value>
+              <c>true</c> if errors are allowed; otherwise, <c>false</c>.
+            </value>
+        </member>
         <member name="P:SharpYaml.Serialization.SerializerContext.ObjectFactory">
             <summary>
             Gets or sets the type of the create.
@@ -3551,7 +3609,7 @@
         </member>
         <member name="P:SharpYaml.Serialization.SerializerContext.Writer">
             <summary>
-            Gets the writer used while deserializing.
+            Gets or sets the writer used while deserializing.
             </summary>
             <value>The writer.</value>
         </member>
@@ -4378,12 +4436,13 @@
             <param name="graph">The graph.</param>
             <returns>A YAML string of the object.</returns>
         </member>
-        <member name="M:SharpYaml.Serialization.Serializer.Serialize(System.Object,System.Type)">
+        <member name="M:SharpYaml.Serialization.Serializer.Serialize(System.Object,System.Type,SharpYaml.Serialization.SerializerContextSettings)">
             <summary>
             Serializes the specified object to a string.
             </summary>
             <param name="graph">The graph.</param>
             <param name="expectedType">The expected type.</param>
+            <param name="contextSettings">The context settings.</param>
             <returns>A YAML string of the object.</returns>
         </member>
         <member name="M:SharpYaml.Serialization.Serializer.Serialize(System.IO.Stream,System.Object)">
@@ -4393,12 +4452,13 @@
             <param name="stream">The stream.</param>
             <param name="graph">The object to serialize.</param>
         </member>
-        <member name="M:SharpYaml.Serialization.Serializer.Serialize(System.IO.Stream,System.Object,System.Type)">
+        <member name="M:SharpYaml.Serialization.Serializer.Serialize(System.IO.Stream,System.Object,System.Type,SharpYaml.Serialization.SerializerContextSettings)">
             <summary>
             Serializes the specified object.
             </summary>
             <param name="stream">The stream.</param>
             <param name="graph">The object to serialize.</param>
+            <param name="contextSettings">The context settings.</param>
         </member>
         <member name="M:SharpYaml.Serialization.Serializer.Serialize(System.IO.TextWriter,System.Object)">
             <summary>
@@ -4407,13 +4467,14 @@
             <param name="writer">The <see cref="T:System.IO.TextWriter"/> where to serialize the object.</param>
             <param name="graph">The object to serialize.</param>
         </member>
-        <member name="M:SharpYaml.Serialization.Serializer.Serialize(System.IO.TextWriter,System.Object,System.Type)">
+        <member name="M:SharpYaml.Serialization.Serializer.Serialize(System.IO.TextWriter,System.Object,System.Type,SharpYaml.Serialization.SerializerContextSettings)">
             <summary>
             Serializes the specified object.
             </summary>
             <param name="writer">The <see cref="T:System.IO.TextWriter"/> where to serialize the object.</param>
             <param name="graph">The object to serialize.</param>
             <param name="type">The static type of the object to serialize.</param>
+            <param name="contextSettings">The context settings.</param>
         </member>
         <member name="M:SharpYaml.Serialization.Serializer.Serialize(SharpYaml.IEmitter,System.Object)">
             <summary>
@@ -4422,13 +4483,14 @@
             <param name="emitter">The <see cref="T:SharpYaml.IEmitter"/> where to serialize the object.</param>
             <param name="graph">The object to serialize.</param>
         </member>
-        <member name="M:SharpYaml.Serialization.Serializer.Serialize(SharpYaml.IEmitter,System.Object,System.Type)">
+        <member name="M:SharpYaml.Serialization.Serializer.Serialize(SharpYaml.IEmitter,System.Object,System.Type,SharpYaml.Serialization.SerializerContextSettings)">
             <summary>
             Serializes the specified object.
             </summary>
             <param name="emitter">The <see cref="T:SharpYaml.IEmitter"/> where to serialize the object.</param>
             <param name="graph">The object to serialize.</param>
             <param name="type">The static type of the object to serialize.</param>
+            <param name="contextSettings">The context settings.</param>
         </member>
         <member name="M:SharpYaml.Serialization.Serializer.Deserialize(System.IO.Stream)">
             <summary>
@@ -4444,12 +4506,13 @@
             <param name="reader">The reader.</param>
             <returns>A deserialized object.</returns>
         </member>
-        <member name="M:SharpYaml.Serialization.Serializer.Deserialize(System.IO.Stream,System.Type)">
+        <member name="M:SharpYaml.Serialization.Serializer.Deserialize(System.IO.Stream,System.Type,SharpYaml.Serialization.SerializerContextSettings)">
             <summary>
             Deserializes an object from the specified <see cref="T:System.IO.Stream"/> with an expected specific type.
             </summary>
             <param name="stream">The stream.</param>
             <param name="expectedType">The expected type.</param>
+            <param name="contextSettings">The context settings.</param>
             <returns>A deserialized object.</returns>
             <exception cref="T:System.ArgumentNullException">stream</exception>
         </member>
@@ -4462,13 +4525,14 @@
             <returns>A deserialized object.</returns>
             <exception cref="T:System.ArgumentNullException">stream</exception>
         </member>
-        <member name="M:SharpYaml.Serialization.Serializer.Deserialize(System.IO.TextReader,System.Type,System.Object)">
+        <member name="M:SharpYaml.Serialization.Serializer.Deserialize(System.IO.TextReader,System.Type,System.Object,SharpYaml.Serialization.SerializerContextSettings)">
             <summary>
             Deserializes an object from the specified <see cref="T:System.IO.TextReader"/> with an expected specific type.
             </summary>
             <param name="reader">The reader.</param>
             <param name="expectedType">The expected type.</param>
             <param name="existingObject">The object to deserialize into. If null (the default) then a new object will be created</param>
+            <param name="contextSettings">The context settings.</param>
             <returns>A deserialized object.</returns>
             <exception cref="T:System.ArgumentNullException">reader</exception>
         </member>
@@ -4506,7 +4570,6 @@
             </summary>
             <typeparam name="T">The expected type</typeparam>
             <param name="fromText">From text.</param>
-            <param name="existingObject">The object to deserialize into. If null (the default) then a new object will be created</param>
             <returns>A deserialized object.</returns>
             <exception cref="T:System.ArgumentNullException">stream</exception>
         </member>
@@ -4541,13 +4604,14 @@
             <returns>A deserialized object.</returns>
             <exception cref="T:System.ArgumentNullException">reader</exception>
         </member>
-        <member name="M:SharpYaml.Serialization.Serializer.Deserialize(SharpYaml.EventReader,System.Type,System.Object)">
+        <member name="M:SharpYaml.Serialization.Serializer.Deserialize(SharpYaml.EventReader,System.Type,System.Object,SharpYaml.Serialization.SerializerContextSettings)">
             <summary>
             Deserializes an object from the specified <see cref="T:SharpYaml.EventReader"/> with an expected specific type.
             </summary>
             <param name="reader">The reader.</param>
-            <param name="expectedType">The expected type.</param>
-            <param name="existingObject">An object to deserialize into. By default a new object will be created</param>
+            <param name="expectedType">The expected type, maybe null.</param>
+            <param name="existingObject">An existing object, may be null.</param>
+            <param name="contextSettings">The context settings.</param>
             <returns>A deserialized object.</returns>
             <exception cref="T:System.ArgumentNullException">reader</exception>
         </member>
