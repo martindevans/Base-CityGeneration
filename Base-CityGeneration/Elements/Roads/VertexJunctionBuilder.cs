@@ -96,7 +96,7 @@ namespace Base_CityGeneration.Elements.Roads
 
             //Extract junction shape
             return new ReadOnlyCollection<Vector2>(orderedEdges
-                .SelectMany(e => e.AllPoints).ToArray()
+                .SelectMany(e => e.AllPoints).Quickhull2D().ToArray()
             );
         }
 
@@ -197,13 +197,16 @@ namespace Base_CityGeneration.Elements.Roads
             {
                 get
                 {
-                    yield return Builder.LeftEnd;
-                    yield return Builder.RightEnd;
-                    if (Curve != null) {
-                        foreach (var point in  Curve.Evaluate(0.25f)) {
+                    if (Curve != null)
+                    {
+                        foreach (var point in Curve.Evaluate(0.25f))
+                        {
                             yield return point;
                         }
                     }
+                    yield return Builder.RightEnd;
+                    yield return Builder.LeftEnd;
+                    
                 }
             }
 
