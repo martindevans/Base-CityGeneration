@@ -86,8 +86,7 @@ namespace Base_CityGeneration.Elements.Roads
                         break;
                     }
 
-                    //2-way junction (connect)
-                    case 2: {
+                    default: {
                         //End line of road segment
                         var lAcross = new Line2D(endPointA, Vector2.Normalize(endPointB - endPointA));
 
@@ -112,11 +111,6 @@ namespace Base_CityGeneration.Elements.Roads
                         };
 
                         MaterializeSection(geometry, material, shape, height);
-                        break;
-                    }
-
-                    //N-Way junction (connect)
-                    default: {
                         break;
                     }
                 }

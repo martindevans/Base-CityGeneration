@@ -18,7 +18,7 @@ namespace Base_CityGeneration.Elements.Generic
         public SolidPlaceholderBlock()
         {
             _parceller = new ObbParceller(Random);
-            _parceller.AddTerminationRule(new AreaRule(100, 500, 0.25f));
+            _parceller.AddTerminationRule(new AreaRule(100, 300, 0.25f));
             _parceller.AddTerminationRule(new FrontageRule(25, 50, 0.45f, "road"));
             _parceller.AddTerminationRule(new AccessRule("road", 0.75f));
         }

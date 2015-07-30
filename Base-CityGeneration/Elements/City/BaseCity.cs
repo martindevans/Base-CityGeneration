@@ -43,7 +43,10 @@ namespace Base_CityGeneration.Elements.City
         /// <param name="topology">The topology of this block. Information such as what blocks/roads are around this block</param>
         /// <param name="topography">The topography of this block. It's exact shape and size</param>
         /// <returns></returns>
-        protected abstract IEnumerable<ScriptReference> ChooseBlockScript(Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology, Prism topography);
+        protected virtual IEnumerable<ScriptReference> ChooseBlockScript(Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology, Prism topography)
+        {
+            return ScriptReference.Find<SolidPlaceholderBlock>();
+        }
 
         /// <summary>
         /// Choose the set of possible scripts to place along the given road
@@ -51,7 +54,10 @@ namespace Base_CityGeneration.Elements.City
         /// <param name="topology">The topology of this road. Information such as neighbouring blocks and junctions</param>
         /// <param name="topography">The topography of this road. It's exact shape and size</param>
         /// <returns></returns>
-        protected abstract IEnumerable<ScriptReference> ChooseRoadScript(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology, Prism topography);
+        protected virtual IEnumerable<ScriptReference> ChooseRoadScript(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology, Prism topography)
+        {
+            return ScriptReference.Find<BasicRoad>();
+        }
 
         /// <summary>
         /// Choose a set of possible scripts to place at the given junction
@@ -59,7 +65,10 @@ namespace Base_CityGeneration.Elements.City
         /// <param name="topology">The topology of this junction. Information such as what roads are around this junction</param>
         /// <param name="topography">The topography of this junction. It's exact shape and size</param>
         /// <returns></returns>
-        protected abstract IEnumerable<ScriptReference> ChooseJunctionScript(Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology, Prism topography);
+        protected virtual IEnumerable<ScriptReference> ChooseJunctionScript(Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology, Prism topography)
+        {
+            return ScriptReference.Find<BasicJunction>();
+        }
 
         /// <summary>
         /// Calculate how many lanes the given road should have
@@ -132,7 +141,7 @@ namespace Base_CityGeneration.Elements.City
                 CreateBlock(Bounds.Height, face);
         }
 
-        private IGrounded Create<TTopology, TFallback>(float height, TTopology topology, ReadOnlyCollection<Vector2> shape, Func<TTopology, Prism, IEnumerable<ScriptReference>> choose)
+        private IGrounded Create<TTopology>(float height, TTopology topology, ReadOnlyCollection<Vector2> shape, Func<TTopology, Prism, IEnumerable<ScriptReference>> choose)
         {
             if (shape == null || shape.Count < 3)
                 return null;
@@ -142,7 +151,7 @@ namespace Base_CityGeneration.Elements.City
             //Choose a script for this junction (fallback to BasicJunction)
             var scripts = choose(topology, topography);
             if (!scripts.Any())
-                scripts = ScriptReference.Find<TFallback>();
+                return null;
 
             //Create the block
             var c = CreateChild(topography, Quaternion.Identity, new Vector3(0, 0, 0), scripts, false) as IGrounded;
@@ -154,7 +163,7 @@ namespace Base_CityGeneration.Elements.City
 
         private IGrounded CreateJunction(float height, Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
-            var result = Create<Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, BasicJunction>(height, topology, topology.Builder.Shape, ChooseJunctionScript);
+            var result = Create<Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>>(height, topology, topology.Builder.Shape, ChooseJunctionScript);
 
             var junction = result as IJunction;
             if (junction != null)
@@ -165,7 +174,7 @@ namespace Base_CityGeneration.Elements.City
 
         private IGrounded CreateRoad(float height, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
-            var result = Create<HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, BasicRoad>(height, topology, topology.Tag.Shape, ChooseRoadScript);
+            var result = Create<HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>>(height, topology, topology.Tag.Shape, ChooseRoadScript);
 
             var road = result as IRoad;
             if (road != null)
@@ -176,7 +185,7 @@ namespace Base_CityGeneration.Elements.City
 
         private IGrounded CreateBlock(float height, Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
-            var result = Create<Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>, SolidPlaceholderBlock>(height, topology, topology.Tag.Shape, ChooseBlockScript);
+            var result = Create<Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>>(height, topology, topology.Tag.Shape, ChooseBlockScript);
 
             //var block = result as IBlock;
             //if (block != null)

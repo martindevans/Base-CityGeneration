@@ -1,8 +1,10 @@
-﻿using Base_CityGeneration.Datastructures.HalfEdge;
+﻿using System.Collections.Generic;
+using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Generic;
 using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural;
+using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
 using Myre.Collections;
@@ -72,65 +74,103 @@ namespace Base_CityGeneration.Elements.Roads
 
             //Determine the inner point we're curving around
             bool r1LeftInner = r1.LeftEnd.TolerantEquals(r2.RightEnd, 0.01f);
-            var innerPoint = r1LeftInner ? r1.LeftEnd : r1.RightEnd;
 
             //If the other points are *also* equal then this is a zero length junction (as mentioned above, straight on) and we have no work to do
             if (r1LeftInner && r1.RightEnd.Equals(r2.LeftEnd))
                 return;
 
-            //Place curve around "innerPoint"
-            //Calculate a matrix to transform a cylinder into a skewed cylinder connecting both footpaths
-            var f = (Vector2.Normalize(r1LeftInner ? (r2.LeftEnd - innerPoint) : (r2.RightEnd - innerPoint))).X_Y(0);
-            var r = (Vector2.Normalize(r1LeftInner ? (r1.RightEnd - innerPoint) : (r1.LeftEnd - innerPoint))).X_Y(0);
-            var roadInnerAngle = Math.Acos(Vector3.Dot(r, f));
-            var footpathRoadEndAngle = MathHelper.PiOver2 - roadInnerAngle;
-            var t = 1f / (float)Math.Cos(footpathRoadEndAngle);
-            r *= -Math.Sign(Vector3.Cross(f, r).Y);
-
-            CreateFootpath2Inner(geometry, material, height, r, t, r2, f, r1, innerPoint);
-
-            CreateFootpath2Outer(geometry, material, height, r, t, r2, f, r1, innerPoint);
+            //Create 2 paths (inner and outer)
+            CreateFootpath2Inner(geometry, material, height, r1LeftInner, r1, r2);
+            CreateFootpath2Outer(geometry, material, height, r1LeftInner, r1, r2);
         }
 
-        private void CreateFootpath2Outer(ISubdivisionGeometry geometry, string material, float height, Vector3 r, float t, IHalfEdgeBuilder r2, Vector3 f, IHalfEdgeBuilder r1, Vector2 innerPoint)
+        private void CreateFootpath2Outer(ISubdivisionGeometry geometry, string material, float height, bool r1LeftInner, IHalfEdgeBuilder r1, IHalfEdgeBuilder r2)
         {
-            var outerMatrix = Matrix.Identity;
-            outerMatrix.Right = r * t * r2.Width;
-            outerMatrix.Forward = f * t * r1.Width;
-            outerMatrix.Up = new Vector3(0, height, 0);
+            var points = new List<Vector2>();
 
-            var outerShape = geometry
-                .CreateCylinder(material, 80)
-                .Transform(outerMatrix)
-                .Translate(Vector3.Transform(innerPoint.X_Y(this.GroundOffset(height)), InverseWorldTransformation));
+            var r1Outer = r1LeftInner ? r1.RightEnd : r1.LeftEnd;
+            var r2Outer = r1LeftInner ? r2.LeftEnd : r2.RightEnd;
 
-            var innerMatrix = Matrix.Identity;
-            innerMatrix.Right = r * t * (r2.Width - r2.SidewalkWidth);
-            innerMatrix.Forward = f * t * (r1.Width - r1.SidewalkWidth);
-            innerMatrix.Up = new Vector3(0, height, 0);
+            //Center of the curve
+            var circleCenter = Geometry2D.LineLineIntersection(
+                new Line2D(r1Outer, r1.Direction.Perpendicular()),
+                new Line2D(r2Outer, r2.Direction.Perpendicular())
+            );
 
-            var inner = geometry
-                .CreateCylinder(material, 60)
-                .Transform(innerMatrix)
-                .Translate(Vector3.Transform(innerPoint.X_Y(this.GroundOffset(height)), InverseWorldTransformation));
+            //Sanity check!
+            if (!circleCenter.HasValue)
+                return;
 
-            geometry.Union(
-                outerShape.Subtract(inner)
+            //Walk along the outside
+            points.AddRange(new CircleSegment {
+                CenterPoint = circleCenter.Value.Position,
+                StartPoint = r1Outer,
+                EndPoint = r2Outer
+            }.Evaluate(0.05f));
+            points.Add(circleCenter.Value.Position);
+
+            //Create shape covering entire segment
+            var shape = geometry.CreatePrism(material, points.Quickhull2D().ToArray(), height);
+
+            //walk backwards along inside (outside offset inwards by pavement width)
+            points.Clear();
+            points.AddRange(new CircleSegment
+            {
+                CenterPoint = circleCenter.Value.Position,
+                StartPoint = r1Outer + Vector2.Normalize(circleCenter.Value.Position - r1Outer) * r1.SidewalkWidth,
+                EndPoint = r2Outer + Vector2.Normalize(circleCenter.Value.Position - r2Outer) * r2.SidewalkWidth
+            }.Evaluate(0.05f));
+            points.Add(circleCenter.Value.Position);
+
+            var innerShape = geometry.CreatePrism(material, points.Quickhull2D().ToArray(), height);
+
+            //Subtract off inner part
+            shape = shape.Subtract(innerShape);
+
+            //Materialize result
+            geometry.Union(shape
+                .Translate(new Vector3(0, this.GroundOffset(height), 0))
+                .Transform(InverseWorldTransformation)
             );
         }
 
-        private void CreateFootpath2Inner(ISubdivisionGeometry geometry, string material, float height, Vector3 r, float t, IHalfEdgeBuilder r2, Vector3 f, IHalfEdgeBuilder r1, Vector2 innerPoint)
+        private void CreateFootpath2Inner(ISubdivisionGeometry geometry, string material, float height, bool r1LeftInner, IHalfEdgeBuilder r1, IHalfEdgeBuilder r2)
         {
-            //Skew matrix to transform a unit cylinder into a sidewalk sized and road angle aligned ellipse
-            var matrix = Matrix.Identity;
-            matrix.Right = r * t * r2.SidewalkWidth;
-            matrix.Forward = f * t * r1.SidewalkWidth;
-            matrix.Up = new Vector3(0, height, 0);
+            var innerPoint = r1LeftInner ? r1.LeftEnd : r1.RightEnd;
+            var r1Outer = r1LeftInner ? r1.RightEnd : r1.LeftEnd;
+            var r2Outer = r1LeftInner ? r2.LeftEnd : r2.RightEnd;
 
+            var points = new List<Vector2> {
+                innerPoint
+            };
+
+            //Points where the footpath terminates at the end of the road
+            var r1Point = innerPoint + Vector2.Normalize(r1Outer - innerPoint) * r1.SidewalkWidth;
+            var r2Point = innerPoint + Vector2.Normalize(r2Outer - innerPoint) * r2.SidewalkWidth;
+            
+            //Point to turn the connect around
+            var centerPoint = Geometry2D.LineLineIntersection(
+                new Line2D(r1Point, r1.Direction.Perpendicular()),
+                new Line2D(r2Point, r2.Direction.Perpendicular())
+            );
+
+            //Sanity check!
+            if (!centerPoint.HasValue)
+                return;
+
+            //Evaluate segment
+            var curve = new CircleSegment {
+                CenterPoint = centerPoint.Value.Position,
+                StartPoint = innerPoint + Vector2.Normalize(r1Outer - innerPoint) * r1.SidewalkWidth,
+                EndPoint = innerPoint + Vector2.Normalize(r2Outer - innerPoint) * r2.SidewalkWidth,
+            };
+            points.AddRange(curve.Evaluate(0.05f));
+
+            //Materialize result
             geometry.Union(geometry
-                .CreateCylinder(material, 40)
-                .Transform(matrix)
-                .Translate(Vector3.Transform(innerPoint.X_Y(this.GroundOffset(height)), InverseWorldTransformation))
+                .CreatePrism(material, points.Quickhull2D().ToArray(), height)
+                .Translate(new Vector3(0, this.GroundOffset(height), 0))
+                .Transform(InverseWorldTransformation)
             );
         }
     }
