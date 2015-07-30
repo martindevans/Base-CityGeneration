@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Base_CityGeneration.Datastructures.HalfEdge;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Selection;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural.Utilities;
+using FMOD;
 using Microsoft.Xna.Framework;
 using Myre.Extensions;
 using System;
@@ -109,91 +111,40 @@ namespace Base_CityGeneration.Elements.Roads
             var rrIntersect = Geometry2D.LineLineIntersection(at.Right, bt.Right);
             var llIntersect = Geometry2D.LineLineIntersection(at.Left, bt.Left);
 
+            //Check if roads are totally parallel
             if (!lrIntersect.HasValue || !rlIntersect.HasValue || !rrIntersect.HasValue || !llIntersect.HasValue)
             {
-                //Roads are totally parallel
                 ExtractPointsFromParallelRoads(at, bt);
+                return;
             }
-            else
-            {
-                //Roads are not parallel
 
-                //there are two configurations for which sides are matched, depending on the directions the roads meet
-                //
-                // ---x---x    x---x---
-                // B  |   |    |   |  B
-                // ---x---x    x---x---
-                //    | A |    | A |
-                //
-                // We can determine which configuration we're in by the distance along the edges the intersections lie at
-                // Left config: llt > lrt
-                // Right config: llt < lrt
+            //there are two configurations for which sides are matched, depending on the directions the roads meet
+            //
+            // ---x---x    x---x---
+            // B  |   |    |   |  B
+            // ---x---x    x---x---
+            //    | A |    | A |
+            //
+            // We can determine which configuration we're in by the distance along the edges the intersections lie at
+            // Left config: llt > lrt
+            // Right config: llt < lrt
 
-                //Assign road positions, and pass out data about the point of the junction in these variables
-                if (llIntersect.Value.DistanceAlongLineA > lrIntersect.Value.DistanceAlongLineA)
+            //Assign road positions, and pass out data about the point of the junction in these variables
+            if (llIntersect.Value.DistanceAlongLineA > lrIntersect.Value.DistanceAlongLineA) {
+                at.LeftEnd = lrIntersect.Value.Position;
+                bt.RightEnd = lrIntersect.Value.Position;
+
+            } else {
+
+                at.LeftEnd = rlIntersect.Value.Position + new Vector2(-at.Direction.Y, at.Direction.X) * at.Width;
+                bt.RightEnd = rlIntersect.Value.Position + new Vector2(bt.Direction.Y, -bt.Direction.X) * bt.Width;
+
+                left.Curve = new CircleSegment
                 {
-                    at.LeftEnd = lrIntersect.Value.Position;
-                    bt.RightEnd = lrIntersect.Value.Position;
-
-                    return;
-                }
-
-                at.LeftEnd = llIntersect.Value.Position;
-                bt.RightEnd = rrIntersect.Value.Position;
-
-                //Center of the curve
-                var circleCenter = Geometry2D.LineLineIntersection(at.Left.Perpendicular(), bt.Right.Perpendicular());
-
-                //Sanity check!
-                if (!circleCenter.HasValue)
-                    throw new InvalidOperationException("Junction curve perpendicular vectors do not intersect");
-
-                left.Curve = new CircleSegment {
-                    CenterPoint = circleCenter.Value.Position,
+                    CenterPoint = rlIntersect.Value.Position,
                     StartPoint = at.LeftEnd,
                     EndPoint = bt.RightEnd
                 };
-
-                //var aPoint = lrIntersect.Value.Position;
-                //var aSide = at.LeftEnd;
-                //var bPoint = lrIntersect.Value.Position;
-                //var bSide = bt.RightEnd;
-
-                ////The length of the junction is dependent on the road widths
-                //var maxWidth = Math.Max(at.Width, bt.Width) / 2;
-
-                ////The "point" of the junction is located at the final intersection
-                ////However near parallel roads would results in a absurdly long point, limit the distance
-                //var aEndToPoint = aPoint - aSide;
-                //var aEndToPointDist = aEndToPoint.Length();
-                //if (aEndToPointDist > maxWidth)
-                //    aPoint = aSide + (aEndToPoint / aEndToPointDist * maxWidth);
-
-                //var bEndToPoint = bPoint - bSide;
-                //var bEndToPointDist = bEndToPoint.Length();
-                //if (bEndToPointDist > maxWidth)
-                //    bPoint = bSide + (bEndToPoint / bEndToPointDist * maxWidth);
-
-                //if (aPoint.TolerantEquals(bPoint, 0.1f))
-                //{
-                //    //todo: use circle curve
-                //    left.Curve = new QuadraticBezier {
-                //        Start = aSide,
-                //        Mid = aPoint,
-                //        End = bSide
-                //    };
-                //}
-                //else
-                //{
-                //    //todo: use circle curve
-                //    left.Curve = new CubicBezier
-                //    {
-                //        StartPoint = aSide,
-                //        Control1 = aPoint,
-                //        Control2 = bPoint,
-                //        EndPoint = bSide
-                //    };
-                //}
             }
         }
 
