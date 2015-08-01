@@ -79,11 +79,8 @@ namespace Base_CityGeneration.Elements.Roads
         private ReadOnlyCollection<Vector2> GenerateNWayJunction()
         {
             //Order the edges by their angle around the vertex
-            var orderedEdges = (from edge in _vertex.Edges
-                                let b = edge.BuilderEndingWith(_vertex)
-                                let angle = (float)Math.Atan2(b.Direction.Y, b.Direction.X)
-                                orderby angle descending
-                                select new NWayJunctionEdgeData(b)).ToArray();
+            var orderedEdges = (from edge in _vertex.OrderedEdges()
+                                select new NWayJunctionEdgeData(edge)).ToArray();
 
             //Extract points for pairs of edges (edge and previous, edge and next)
             for (int i = 0; i < orderedEdges.Length; i++)
