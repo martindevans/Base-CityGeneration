@@ -88,18 +88,18 @@ namespace Base_CityGeneration.Elements.Roads
 
                     default: {
                         //End line of road segment
-                        var lAcross = new Line2D(endPointA, Vector2.Normalize(endPointB - endPointA));
+                        var lEnd = new Line2D(endPointA, Vector2.Normalize(endPointB - endPointA));
 
                         //Direction along footpath
-                        var cDist = Geometry2D.DistanceFromPointToLine(section.C, lAcross);
-                        var aDist = Geometry2D.DistanceFromPointToLine(section.A, lAcross);
-                        Vector2 alongFootpath = aDist < cDist ? Vector2.Normalize(section.B - section.C) : Vector2.Normalize(section.B - section.A);
+                        var cDist = Geometry2D.DistanceFromPointToLine(section.C, lEnd);
+                        var aDist = Geometry2D.DistanceFromPointToLine(section.A, lEnd);
+                        Vector2 alongFootpath = builder.Direction;
 
                         //side lines of footpath
                         var lInner = new Line2D(section.D, alongFootpath);
 
-                        //end point of path on end of road
-                        var intersect = Geometry2D.LineLineIntersection(lInner, lAcross);
+                        //end point of path (projected out from corner point, perpenducular to direction - this ensures path end is square)
+                        var intersect = Geometry2D.LineLineIntersection(lInner, new Line2D(section.B, builder.Direction.Perpendicular()));
                         if (!intersect.HasValue)
                             break;
 
@@ -107,7 +107,7 @@ namespace Base_CityGeneration.Elements.Roads
                             section.B,
                             section.D,
                             intersect.Value.Position,
-                            cDist > aDist ? section.C : section.A
+                            aDist < cDist ? section.C : section.A
                         };
 
                         MaterializeSection(geometry, material, shape, height);
