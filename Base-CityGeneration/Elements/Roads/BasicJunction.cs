@@ -78,87 +78,77 @@ namespace Base_CityGeneration.Elements.Roads
             if (r1LeftInner && r1RightInner)
                 return;
 
-            if (r1LeftInner ^ r1RightInner) {
+            if (r1LeftInner) {
                 //One side is an inner side, create a footpath around that point
-                CreateFootpath2Inner(geometry, material, height, r1LeftInner, a, b);
+                CreateFootpath2Inner(geometry, material, height, true, a, b);
             } else {
-                //todo: No point is an inner point, follow around the outer edge connecting these two roads
-
-                //CreateFootpath2Outer(geometry, "grass", height, r1LeftInner, a, b);
+                //No point is an inner point, follow around the outer edge connecting these two roads
+                CreateFootpath2Outer(geometry, material, height, a, b);
 
             }
         }
 
-        private void CreateFootpath2(ISubdivisionGeometry geometry, string material, float height)
+        private void CreateFootpath2Outer(ISubdivisionGeometry geometry, string material, float height, IHalfEdgeBuilder r1, IHalfEdgeBuilder r2)
         {
-            //A 2 way junction has two parts:
-            // - the inner point which we need to place a smooth curve around
-            // - the outer part, which we need to lay footpath all the way around
+            //r1.LeftEnd and r2.RightEnd are the outsides of the roads
+            //Trace a path along the boundary between these points, use the path which does *not* include the other points
+            Vector2[] cwp, ccwp;
+            bool cw, ccw;
+            Bounds.Footprint.TraceConnectingPath(
+                Vector3.Transform(r1.LeftEnd.X_Y(0), InverseWorldTransformation).XZ(),
+                Vector3.Transform(r2.RightEnd.X_Y(0), InverseWorldTransformation).XZ(),
+                0.01f, out cwp, out cw, out ccwp, out ccw,
+                new[] {
+                    Vector3.Transform(r1.RightEnd.X_Y(0), InverseWorldTransformation).XZ(),
+                    Vector3.Transform(r2.LeftEnd.X_Y(0), InverseWorldTransformation).XZ()
+                }
+            );
 
-            //Get the roads around this junction
-            var r1 = Vertex.Edges.First().BuilderEndingWith(Vertex);
-            var r2 = Vertex.Edges.Skip(1).First().BuilderEndingWith(Vertex);
-
-            //Determine the inner point we're curving around
-            bool r1LeftInner = r1.LeftEnd.TolerantEquals(r2.RightEnd, 0.01f);
-
-            //If the other points are *also* equal then this is a zero length junction (as mentioned above, straight on) and we have no work to do
-            if (r1LeftInner && r1.RightEnd.Equals(r2.LeftEnd))
+            //Sanity check (only 1 direction should be acceptable)
+            if (!(cw ^ ccw))
                 return;
 
-            //Create 2 paths (inner and outer)
-            CreateFootpath2Inner(geometry, material, height, r1LeftInner, r1, r2);
-            CreateFootpath2Outer(geometry, material, height, r1LeftInner, r1, r2);
+            //Follow along edge, then back along edge (pushed inwards by footpath width)
+            //todo: Offset width by angle at end of road
+            var outerPoints = cw ? cwp : ccwp;
+            var innerPoints = new Vector2[cw ? cwp.Length : ccwp.Length];
+
+            float widthStart = cw ? r1.SidewalkWidth : r2.SidewalkWidth;
+            float widthEnd = cw ? r2.SidewalkWidth : r1.SidewalkWidth;
+
+            for (int i = 0; i < outerPoints.Length && outerPoints.Length > 1; i++) {
+                Vector2 dir;
+                float w;
+                if (i == 0) {
+                    dir = Vector2.Normalize(cw ? r1.RightEnd - r1.LeftEnd : r2.LeftEnd - r2.RightEnd);
+                    w = CalculateFootpathAngleScale(cw ? r1.Direction : r2.Direction, dir, widthStart);
+                }
+                else if (i == outerPoints.Length - 1)
+                {
+                    dir = Vector2.Normalize(cw ? r2.LeftEnd - r2.RightEnd : r1.RightEnd - r1.LeftEnd);
+                    w = CalculateFootpathAngleScale(cw ? r2.Direction : r1.Direction, -dir, widthEnd);
+                } else {
+                    //perpendicular to path direction
+                    dir = Vector2.Normalize(outerPoints[i] - outerPoints[i - 1]).Perpendicular() * (cw ? 1 : -1);
+                    //Interpolate widths along path
+                    var t = i / (float)(outerPoints.Length - 1);
+                    w = MathHelper.Lerp(widthStart, widthEnd, t);
+                }
+
+                innerPoints[i] = outerPoints[i] + dir * w;
+            }
+
+            //Create footprint from 2 halves
+            var footprint = cw ? outerPoints.Append(innerPoints.Reverse()) : outerPoints.Reverse().Append(innerPoints);
+            geometry.Union(geometry
+                .CreatePrism(material, footprint.ToArray(), height)
+                .Translate(new Vector3(0, this.GroundOffset(height), 0))
+            );
         }
 
-        private void CreateFootpath2Outer(ISubdivisionGeometry geometry, string material, float height, bool r1LeftInner, IHalfEdgeBuilder r1, IHalfEdgeBuilder r2)
+        private float CalculateFootpathAngleScale(Vector2 along, Vector2 across, float w)
         {
-            var points = new List<Vector2>();
-
-            var r1Outer = r1LeftInner ? r1.RightEnd : r1.LeftEnd;
-            var r2Outer = r1LeftInner ? r2.LeftEnd : r2.RightEnd;
-
-            //Center of the curve
-            var circleCenter = Geometry2D.LineLineIntersection(
-                new Line2D(r1Outer, r1.Direction.Perpendicular()),
-                new Line2D(r2Outer, r2.Direction.Perpendicular())
-            );
-
-            //Sanity check!
-            if (!circleCenter.HasValue)
-                return;
-
-            //Walk along the outside
-            points.AddRange(new CircleSegment {
-                CenterPoint = circleCenter.Value.Position,
-                StartPoint = r1Outer,
-                EndPoint = r2Outer
-            }.Evaluate(0.05f));
-            points.Add(circleCenter.Value.Position);
-
-            //Create shape covering entire segment
-            var shape = geometry.CreatePrism(material, points.Quickhull2D().ToArray(), height);
-
-            //walk backwards along inside (outside offset inwards by pavement width)
-            points.Clear();
-            points.AddRange(new CircleSegment
-            {
-                CenterPoint = circleCenter.Value.Position,
-                StartPoint = r1Outer + Vector2.Normalize(circleCenter.Value.Position - r1Outer) * r1.SidewalkWidth,
-                EndPoint = r2Outer + Vector2.Normalize(circleCenter.Value.Position - r2Outer) * r2.SidewalkWidth
-            }.Evaluate(0.05f));
-            points.Add(circleCenter.Value.Position);
-
-            var innerShape = geometry.CreatePrism(material, points.Quickhull2D().ToArray(), height);
-
-            //Subtract off inner part
-            shape = shape.Subtract(innerShape);
-
-            //Materialize result
-            geometry.Union(shape
-                .Translate(new Vector3(0, this.GroundOffset(height), 0))
-                .Transform(InverseWorldTransformation)
-            );
+            return w / Vector2.Dot(along.Perpendicular(), across);
         }
 
         private void CreateFootpath2Inner(ISubdivisionGeometry geometry, string material, float height, bool r1LeftInner, IHalfEdgeBuilder r1, IHalfEdgeBuilder r2)

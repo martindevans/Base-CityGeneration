@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using Myre.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Myre.Extensions;
 
 namespace Base_CityGeneration.Parcelling
 {
@@ -60,16 +60,18 @@ namespace Base_CityGeneration.Parcelling
         /// </summary>
         /// <param name="footprint"></param>
         /// <param name="edgeResources"></param>
-        public Parcel(Vector2[] footprint, string[] edgeResources)
+        public Parcel(IEnumerable<Vector2> footprint, string[] edgeResources)
         {
             Parent = null;
 
-            if (footprint.Area() < 0)
-                Array.Reverse(footprint);
+            var footprintArr = footprint.ToArray();
 
-            Edges = new Edge[footprint.Length];
-            for (int i = 0; i < footprint.Length; i++)
-                Edges[i] = new Edge { Start = footprint[i], End = footprint[(i + 1) % footprint.Length], Resources = edgeResources };
+            if (footprintArr.Area() < 0)
+                Array.Reverse(footprintArr);
+
+            Edges = new Edge[footprintArr.Length];
+            for (int i = 0; i < footprintArr.Length; i++)
+                Edges[i] = new Edge { Start = footprintArr[i], End = footprintArr[(i + 1) % footprintArr.Length], Resources = edgeResources };
         }
 
         public struct Edge

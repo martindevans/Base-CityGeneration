@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
@@ -25,7 +26,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestInitialize]
         public void Initialize()
         {
-            _plan = new FloorPlan(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(100, 100), new Vector2(100, -100) });
+            _plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(100, 100), new Vector2(100, -100) }));
         }
 
         [TestMethod]
@@ -748,7 +749,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             const int floorCount = 1;
             for (int i = 0; i < floorCount; i++)
             {
-                FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) });
+                FloorPlan plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
 
                 for (int j = 0; j < 3; j++)
                 {
@@ -939,13 +940,13 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 }
             };
 
-            var plan = new FloorPlan(new Vector2[]
+            var plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new Vector2[]
             {
                 new Vector2(-Length / 2f, Width / 2f),
                 new Vector2(Length / 2f, Width / 2f),
                 new Vector2(Length / 2f, -Width / 2f),
                 new Vector2(-Length / 2f, -Width / 2f),
-            });
+            }));
 // ReSharper restore InconsistentNaming
 
             //Get some style values
@@ -1053,13 +1054,13 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 }
             };
 
-            var plan = new FloorPlan(new Vector2[]
+            var plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new Vector2[]
             {
                 new Vector2(-Length / 2f, Width / 2f),
                 new Vector2(Length / 2f, Width / 2f),
                 new Vector2(Length / 2f, -Width / 2f),
                 new Vector2(-Length / 2f, -Width / 2f),
-            });
+            }));
 // ReSharper restore InconsistentNaming
 
             //Create balconies on either end
@@ -1082,7 +1083,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Create compartments
             var compartmentAreaLength = Length - (balconyLength + 0.05f) * 2;
-            var compartmentCount = RandomUtilities.CompartmentalizeSpace(Random, compartmentAreaLength, 1, int.MaxValue, 6, 10);
+            var compartmentCount = Random.CompartmentalizeSpace(compartmentAreaLength, 1, int.MaxValue, 6, 10);
             var compartmentLength = compartmentAreaLength / compartmentCount;
 
             var compartments = new RoomPlan[compartmentCount];
@@ -1114,7 +1115,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
                 try
                 {
-                    FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) });
+                    FloorPlan plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
 
                     for (int j = 0; j < 3; j++)
                     {
@@ -1156,7 +1157,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             Random r = new Random(738);
 
-            FloorPlan plan = new FloorPlan(new[] {new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25)});
+            FloorPlan plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new[] {new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25)}));
 
             for (int j = 0; j < 3; j++)
             {
@@ -1298,7 +1299,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             Random r = new Random(189);
 
-            FloorPlan plan = new FloorPlan(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) });
+            FloorPlan plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
 
             for (int j = 0; j < 3; j++)
             {

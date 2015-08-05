@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Generic;
@@ -201,7 +202,7 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void MaterializeSection(ISubdivisionGeometry geometry, string material, IEnumerable<Vector2> shape, float height)
         {
-            this.CreateFlatPlane(geometry, material, shape.Quickhull2D().ToArray(), height);
+            this.CreateFlatPlane(geometry, material, new ReadOnlyCollection<Vector2>(shape.Quickhull2D().ToArray()), height);
         }
     }
 }

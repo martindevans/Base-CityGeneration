@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using Base_CityGeneration.Datastructures.HalfEdge;
-using Base_CityGeneration.Elements.Building.Internals.Floors.Selection;
+﻿using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural.Utilities;
-using FMOD;
 using Microsoft.Xna.Framework;
 using Myre.Extensions;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Base_CityGeneration.Elements.Roads
@@ -39,8 +37,6 @@ namespace Base_CityGeneration.Elements.Roads
             {
                 case 1:
                     return GenerateDeadEnd(_vertex.Edges.Single());
-                case 2:
-                    return Generate2Way(_vertex.Edges.First(), _vertex.Edges.Skip(1).First());
                 default:
                     return GenerateNWayJunction();
             }
@@ -59,21 +55,6 @@ namespace Base_CityGeneration.Elements.Roads
 
             //Dead ends do not create *any* junction, so return null for the junction shape
             return null;
-        }
-
-        private ReadOnlyCollection<Vector2> Generate2Way(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> b)
-        {
-            var att = new NWayJunctionEdgeData(a.BuilderEndingWith(_vertex));
-            var btt = new NWayJunctionEdgeData(b.BuilderEndingWith(_vertex));
-
-            ExtractPoints(att, btt);
-            ExtractPoints(btt, att);
-
-            return new ReadOnlyCollection<Vector2>(
-                att.AllPoints.Append(btt.AllPoints)
-                   .Quickhull2D()
-                   .ToArray()
-            );
         }
 
         private ReadOnlyCollection<Vector2> GenerateNWayJunction()
@@ -195,12 +176,9 @@ namespace Base_CityGeneration.Elements.Roads
                 get
                 {
                     if (Curve != null)
-                    {
-                        foreach (var point in Curve.Evaluate(0.25f))
-                        {
+                        foreach (var point in Curve.Evaluate(0.125f))
                             yield return point;
-                        }
-                    }
+
                     yield return Builder.RightEnd;
                     yield return Builder.LeftEnd;
                     

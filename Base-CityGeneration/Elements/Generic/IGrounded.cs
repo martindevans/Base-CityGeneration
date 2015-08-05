@@ -1,5 +1,6 @@
 ﻿using EpimetheusPlugins.Procedural;
 using Microsoft.Xna.Framework;
+using System.Collections.ObjectModel;
 
 namespace Base_CityGeneration.Elements.Generic
 {
@@ -28,7 +29,7 @@ namespace Base_CityGeneration.Elements.Generic
             return grounded.GroundHeight - grounded.Bounds.Height / 2f + itemHeight / 2f;
         }
 
-        public static void CreateFlatPlane(this IGrounded grounded, ISubdivisionGeometry geometry, string material, Vector2[] footprint, float height, float yOffset = 0)
+        public static void CreateFlatPlane(this IGrounded grounded, ISubdivisionGeometry geometry, string material, ReadOnlyCollection<Vector2> footprint, float height, float yOffset = 0)
         {
             var offset = GroundOffset(grounded, height) + yOffset;
 
