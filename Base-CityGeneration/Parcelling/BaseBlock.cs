@@ -25,7 +25,7 @@ namespace Base_CityGeneration.Parcelling
         /// </summary>
         /// <param name="footprint"></param>
         /// <returns></returns>
-        protected abstract IEnumerable<Parcel> GenerateParcels(Vector2[] footprint);
+        protected abstract IEnumerable<Parcel> GenerateParcels(IEnumerable<Vector2> footprint);
 
         /// <summary>
         /// Create nodes filling the given parcels

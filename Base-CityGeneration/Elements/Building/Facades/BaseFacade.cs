@@ -23,7 +23,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
 
         public override bool Accept(Prism bounds, INamedDataProvider parameters)
         {
-            return bounds.Footprint.Length == 4;
+            return bounds.Footprint.Count == 4;
         }
 
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)

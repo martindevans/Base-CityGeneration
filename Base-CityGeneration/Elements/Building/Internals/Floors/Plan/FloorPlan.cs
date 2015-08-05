@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
@@ -17,7 +18,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         private bool _isFrozen = false;
         private readonly Clipper _clipper = new Clipper();
 
-        private readonly Vector2[] _externalFootprint;
+        private readonly ReadOnlyCollection<Vector2> _externalFootprint;
         public IEnumerable<Vector2> ExternalFootprint
         {
             get { return _externalFootprint; }
@@ -32,7 +33,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         private readonly NeighbourData _neighbourhood;
         #endregion
 
-        public FloorPlan(Vector2[] footprint)
+        public FloorPlan(ReadOnlyCollection<Vector2> footprint)
         {
             _externalFootprint = footprint;
 

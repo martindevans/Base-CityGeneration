@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Xml.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
@@ -11,7 +12,7 @@ namespace Base_CityGeneration.TestHelpers
     {
         public static XElement FloorNodeToSvg(IFloorTester tester, params Vector2[] footprint)
         {
-            FloorPlan plan = new FloorPlan(footprint);
+            FloorPlan plan = new FloorPlan(new ReadOnlyCollection<Vector2>(footprint));
             tester.CreateRooms(plan);
 
             return FloorplanToSvg(plan);

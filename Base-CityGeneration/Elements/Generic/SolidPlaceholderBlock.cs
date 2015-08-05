@@ -28,7 +28,7 @@ namespace Base_CityGeneration.Elements.Generic
             return true;
         }
 
-        protected override IEnumerable<Parcel> GenerateParcels(Vector2[] footprint)
+        protected override IEnumerable<Parcel> GenerateParcels(IEnumerable<Vector2> footprint)
         {
             return _parceller.GenerateParcels(new Parcel(footprint, new[] { "road" }));
         }

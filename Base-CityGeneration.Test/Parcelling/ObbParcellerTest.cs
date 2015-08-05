@@ -57,5 +57,17 @@ namespace Base_CityGeneration.Test.Parcelling
             Assert.IsTrue(parcels.All(p => p.Points().ToArray().IsConvex(0.001f)));
             Assert.IsTrue(mesh.Faces.All(p => p.Vertices.Select(v => v.Position).ToArray().IsConvex(0.001f)));
         }
+
+        [TestMethod]
+        public void ParcellerCCW()
+        {
+            _parceller.AddTerminationRule(new AreaRule(15, 50, 0.5f));
+            _parceller.AddTerminationRule(new AccessRule("edge", 0.5f));
+            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] { new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10) }.Reverse(), new string[] { "edge" })).ToArray();
+
+            Assert.IsTrue(parcels.All(a => a.Area() <= 50));
+
+            AssertParcel(new[] { new Vector2(5, 0), new Vector2(5, 5), new Vector2(0, 5), new Vector2(0, 0) }, parcels[1].Points());
+        }
     }
 }
