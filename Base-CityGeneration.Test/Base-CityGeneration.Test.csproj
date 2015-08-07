@@ -107,8 +107,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Placeholder.Audio2.4.4.3.0\lib\net40-Client\Placeholder.Audio2.dll</HintPath>
     </Reference>
-    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=8.4.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.8.4.0.0\lib\net40-Client\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
+    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=8.4.5.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.8.4.5.0\lib\net40-Client\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Content">
