@@ -211,6 +211,7 @@
     <Compile Include="Elements\Blocks\Spec\Subdivision\ObbParcellerSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\AccessRuleSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\AreaRuleSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\AspectRatioRuleSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\BaseSubdividerRule.cs" />
     <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\FrontageRuleSpec.cs" />
     <Compile Include="Elements\Building\Facades\ConfigurableFacade.cs" />
@@ -230,6 +231,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\SearchDirection.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\RepeatSpec.cs" />
+    <Compile Include="Parcels\Parcelling\Rules\AspectRatioRule.cs" />
     <Compile Include="Utilities\TagContainer.cs" />
     <Compile Include="Elements\Roads\HalfEdgeExtensions.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\ResampleAndRescale.cs" />
