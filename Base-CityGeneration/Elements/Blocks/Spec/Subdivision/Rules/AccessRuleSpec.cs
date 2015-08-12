@@ -8,12 +8,11 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
     public class AccessRuleSpec
         : BaseSubdividerRule
     {
-        private readonly BaseValueGenerator _terminationChance;
         private readonly string _resource;
 
         private AccessRuleSpec(BaseValueGenerator terminationChance, string resource)
+            : base(terminationChance)
         {
-            _terminationChance = terminationChance;
             _resource = resource;
         }
 
@@ -21,14 +20,13 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
         {
             return new AccessRule(
                 _resource,
-                _terminationChance.SelectFloatValue(random)
+                TerminationChance.SelectFloatValue(random)
             );
         }
 
         internal class Container
             : BaseContainer
         {
-            public object TerminationChance { get; set; }
             public string Type { get; set; }
 
             public override BaseSubdividerRule Unwrap()

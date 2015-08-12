@@ -120,7 +120,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
             return new Parcel(edges, parent);
         }
 
-        private static OABB FitOabb(Parcel parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)
+        internal static OABB FitOabb(Parcel parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)
         {
             //Finding the OABB of the hull is the same as finding the OABB of the parcel, but is quicker
             var hull = parcel.Points().Quickhull2D().ToArray();
@@ -189,7 +189,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
         }
         #endregion
 
-        struct OABB
+        internal struct OABB
         {
             public Vector2 Middle;
             public float Rotation;

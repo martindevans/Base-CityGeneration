@@ -92,6 +92,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
             serializer.Settings.RegisterTagMapping("Area", typeof(AreaRuleSpec.Container));
             serializer.Settings.RegisterTagMapping("Frontage", typeof(FrontageRuleSpec.Container));
             serializer.Settings.RegisterTagMapping("Access", typeof(AccessRuleSpec.Container));
+            serializer.Settings.RegisterTagMapping("AspectRatio", typeof(AspectRatioRuleSpec.Container));
 
             //Parcelling adjusters
             serializer.Settings.RegisterTagMapping("MergeAdjacent", typeof(MergeAdjacentSpec.Container));

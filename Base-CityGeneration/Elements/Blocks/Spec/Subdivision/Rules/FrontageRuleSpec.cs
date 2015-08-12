@@ -10,14 +10,13 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
     {
         private readonly BaseValueGenerator _min;
         private readonly BaseValueGenerator _max;
-        private readonly BaseValueGenerator _terminationChance;
         private readonly string _resource;
 
         private FrontageRuleSpec(BaseValueGenerator min, BaseValueGenerator max, BaseValueGenerator terminationChance, string resource)
+            : base(terminationChance)
         {
             _min = min;
             _max = max;
-            _terminationChance = terminationChance;
             _resource = resource;
         }
 
@@ -26,7 +25,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
             return new FrontageRule(
                 _min.SelectFloatValue(random),
                 _max.SelectFloatValue(random),
-                _terminationChance.SelectFloatValue(random),
+                TerminationChance.SelectFloatValue(random),
                 _resource
             );
         }
@@ -36,7 +35,6 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
         {
             public object Min { get; set; }
             public object Max { get; set; }
-            public object TerminationChance { get; set; }
             public string Type { get; set; }
 
             public override BaseSubdividerRule Unwrap()

@@ -5,24 +5,24 @@ using System;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
 {
-    public class AreaRuleSpec
+    public class AspectRatioRuleSpec
         : BaseSubdividerRule
     {
-        private readonly BaseValueGenerator _min;
-        private readonly BaseValueGenerator _max;
+        private readonly BaseValueGenerator _maxRatio;
+        private readonly BaseValueGenerator _minRatio;
 
-        private AreaRuleSpec(BaseValueGenerator min, BaseValueGenerator max, BaseValueGenerator terminationChance)
+        private AspectRatioRuleSpec(BaseValueGenerator terminationChance, BaseValueGenerator minRatio, BaseValueGenerator maxRatio)
             : base(terminationChance)
         {
-            _min = min;
-            _max = max;
+            _maxRatio = maxRatio;
+            _minRatio = minRatio;
         }
 
         public override ITerminationRule Rule(Func<double> random)
         {
-            return new AreaRule(
-                _min.SelectFloatValue(random),
-                _max.SelectFloatValue(random),
+            return new AspectRatioRule(
+                _minRatio.SelectFloatValue(random),
+                _maxRatio.SelectFloatValue(random),
                 TerminationChance.SelectFloatValue(random)
             );
         }
@@ -35,10 +35,10 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
 
             public override BaseSubdividerRule Unwrap()
             {
-                return new AreaRuleSpec(
+                return new AspectRatioRuleSpec(
+                    BaseValueGeneratorContainer.FromObject(TerminationChance ?? 0),
                     BaseValueGeneratorContainer.FromObject(Min ?? 0),
-                    BaseValueGeneratorContainer.FromObject(Max ?? float.PositiveInfinity),
-                    BaseValueGeneratorContainer.FromObject(TerminationChance ?? 0)
+                    BaseValueGeneratorContainer.FromObject(Max ?? float.PositiveInfinity)
                 );
             }
         }
