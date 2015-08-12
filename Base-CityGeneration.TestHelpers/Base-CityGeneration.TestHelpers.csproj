@@ -35,8 +35,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5695.32442, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5695.32442\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5701.43099, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5701.43099\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -101,8 +101,8 @@
       <HintPath>..\packages\Placeholder.AI.Planning.Parsing.4.1.2.0\lib\net40\Placeholder.AI.Planning.Parsing.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.Audio2, Version=4.4.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Placeholder.Audio2.4.4.3.0\lib\net40-Client\Placeholder.Audio2.dll</HintPath>
+    <Reference Include="Placeholder.Audio2, Version=4.4.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Placeholder.Audio2.4.4.4.0\lib\net40-Client\Placeholder.Audio2.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=8.4.5.0, Culture=neutral, processorArchitecture=x86">

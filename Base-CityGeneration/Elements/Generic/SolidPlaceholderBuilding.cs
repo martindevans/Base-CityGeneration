@@ -4,7 +4,6 @@ using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
 using Myre.Collections;
-using Myre.Extensions;
 using System;
 
 namespace Base_CityGeneration.Elements.Generic

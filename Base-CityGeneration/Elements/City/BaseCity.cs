@@ -120,6 +120,9 @@ namespace Base_CityGeneration.Elements.City
             HierarchicalParameters.RoadLaneWidth(Random);
             HierarchicalParameters.RoadSidewalkMaterial(Random);
 
+            //Generate default building data
+            HierarchicalParameters.MaximumBuildingHeight(Random);
+
             //Attach builders to each part of the topological mesh
             foreach (var vertex in mesh.Vertices.Where(v => v.Builder == null))
                 vertex.Builder = CreateVertexBuilder(vertex);

@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Base_CityGeneration.Datastructures.HalfEdge;
-using Base_CityGeneration.Parcelling;
+﻿using Base_CityGeneration.Datastructures.HalfEdge;
+using Base_CityGeneration.Parcels.Parcelling;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Base_CityGeneration.Datastructures.Extensions
 {

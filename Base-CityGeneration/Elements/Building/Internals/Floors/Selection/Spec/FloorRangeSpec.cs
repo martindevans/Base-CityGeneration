@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
 
@@ -58,11 +59,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public FloorRangeIncludeSpec.Container[] Includes { get; set; }
 
-            public BaseValueGeneratorContainer DefaultHeight { get; set; }
+            public object DefaultHeight { get; set; }
 
             public ISelector Unwrap()
             {
-                BaseValueGenerator defaultHeight = DefaultHeight == null ? new NormallyDistributedValue(2.5f, 3, 3.5f, 0.2f) : DefaultHeight.Unwrap();
+                BaseValueGenerator defaultHeight = DefaultHeight == null ? new NormallyDistributedValue(2.5f, 3, 3.5f, 0.2f) : BaseValueGeneratorContainer.FromObject(DefaultHeight);
 
                 return new FloorRangeSpec(Includes.Select(a => a.Unwrap(defaultHeight)).ToArray(), defaultHeight);
             }
@@ -164,7 +165,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public TagContainer Tags { get; set; }
 
-            public BaseValueGeneratorContainer Count { get; set; }
+            public object Count { get; set; }
 
             public bool Vary { get; set; }
             public bool Continuous { get; set; }
@@ -173,7 +174,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
             internal FloorRangeIncludeSpec Unwrap(BaseValueGenerator defaultHeight)
             {
-                var count = Count.Unwrap();
+                var count = BaseValueGeneratorContainer.FromObject(Count);
 
                 return new FloorRangeIncludeSpec(Id ?? Guid.NewGuid().ToString(), count, Vary, Continuous, Tags.ToArray(), defaultHeight);
             }

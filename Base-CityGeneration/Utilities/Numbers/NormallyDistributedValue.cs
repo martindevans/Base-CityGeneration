@@ -1,6 +1,5 @@
-﻿using System;
-using EpimetheusPlugins.Procedural;
-using Microsoft.Xna.Framework;
+﻿using EpimetheusPlugins.Procedural;
+using System;
 
 namespace Base_CityGeneration.Utilities.Numbers
 {
@@ -25,8 +24,6 @@ namespace Base_CityGeneration.Utilities.Numbers
             }
         }
 
-        private float? _singleCache;
-
         public NormallyDistributedValue(float min, float mean, float max, float deviation, bool vary = false)
             : base(min, max, vary)
         {
@@ -36,7 +33,7 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         protected override float GenerateFloatValue(Func<double> random)
         {
-            return MathHelper.Clamp(random.NormallyDistributedSingle(Deviation, Mean), Min, Max);
+            return random.NormallyDistributedSingle(Deviation, Mean, Min, Max);
         }
 
         internal class Container

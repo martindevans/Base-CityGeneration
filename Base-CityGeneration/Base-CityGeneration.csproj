@@ -61,8 +61,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Cassowary.4.0.0.0\lib\net35-Client\Cassowary.dll</HintPath>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5695.32442, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5695.32442\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5701.43099, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5701.43099\lib\net40-Client\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -123,9 +123,9 @@
     <Reference Include="Placeholder.AI.Planning.Parsing">
       <HintPath>..\packages\Placeholder.AI.Planning.Parsing.4.1.2.0\lib\net40\Placeholder.AI.Planning.Parsing.dll</HintPath>
     </Reference>
-    <Reference Include="Placeholder.Audio2, Version=4.4.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Placeholder.Audio2.4.4.3.0\lib\net40-Client\Placeholder.Audio2.dll</HintPath>
+    <Reference Include="Placeholder.Audio2, Version=4.4.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Placeholder.Audio2.4.4.4.0\lib\net40-Client\Placeholder.Audio2.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=8.4.5.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.8.4.5.0\lib\net40-Client\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
@@ -200,6 +200,19 @@
     <Compile Include="Datastructures\Path.cs" />
     <Compile Include="Datastructures\Rectangle.cs" />
     <Compile Include="Datastructures\SeparatingAxisTester.cs" />
+    <Compile Include="Elements\Blocks\Spec\Adjustment\BaseAdjustmentSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\Adjustment\MergeAdjacentSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\BlockSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\Lots\LotSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\Lots\Constraints\BaseLotConstraint.cs" />
+    <Compile Include="Elements\Blocks\Spec\Lots\Constraints\RequireAccessSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\Lots\Constraints\RequireAreaSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\Subdivision\BaseSubdivideSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\Subdivision\ObbParcellerSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\AccessRuleSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\AreaRuleSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\BaseSubdividerRule.cs" />
+    <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\FrontageRuleSpec.cs" />
     <Compile Include="Elements\Building\Facades\ConfigurableFacade.cs" />
     <Compile Include="Elements\Building\Facades\IConfigurableFacade.cs" />
     <Compile Include="Elements\Building\Facades\ReverseFacade.cs" />
@@ -217,7 +230,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\SearchDirection.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\RepeatSpec.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\TagContainer.cs" />
+    <Compile Include="Utilities\TagContainer.cs" />
     <Compile Include="Elements\Roads\HalfEdgeExtensions.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\ResampleAndRescale.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\IEigenField.cs" />
@@ -250,6 +263,9 @@
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Streamline.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Vertex.cs" />
     <Compile Include="Elements\Roads\VertexExtensions.cs" />
+    <Compile Include="Parcels\Adjusting\IParcelAdjuster.cs" />
+    <Compile Include="Parcels\Adjusting\MergeAdjacentLots.cs" />
+    <Compile Include="Styles\Building.cs" />
     <Compile Include="Styles\Roads.cs" />
     <Compile Include="Utilities\Numbers\ConstantValue.cs" />
     <Compile Include="Utilities\Numbers\BaseValueGenerator.cs" />
@@ -277,12 +293,12 @@
     </Compile>
     <Compile Include="Elements\Roads\IJunction.cs" />
     <Compile Include="Elements\Roads\IRoad.cs" />
-    <Compile Include="Parcelling\BaseBlock.cs" />
-    <Compile Include="Parcelling\IParceller.cs" />
-    <Compile Include="Parcelling\ObbParceller.cs" />
-    <Compile Include="Parcelling\Rules\AccessRule.cs" />
-    <Compile Include="Parcelling\Rules\AreaRule.cs" />
-    <Compile Include="Parcelling\Rules\FrontageRule.cs" />
+    <Compile Include="Elements\Blocks\BaseBlock.cs" />
+    <Compile Include="Parcels\Parcelling\IParceller.cs" />
+    <Compile Include="Parcels\Parcelling\ObbParceller.cs" />
+    <Compile Include="Parcels\Parcelling\Rules\AccessRule.cs" />
+    <Compile Include="Parcels\Parcelling\Rules\AreaRule.cs" />
+    <Compile Include="Parcels\Parcelling\Rules\FrontageRule.cs" />
     <Compile Include="Elements\Building\BaseBuilding.cs" />
     <Compile Include="Elements\Building\Facades\BaseFacade.cs" />
     <Compile Include="Elements\Building\Facades\IFacade.cs" />
@@ -319,6 +335,7 @@
     <None Include="Elements\Roads\Hyperstreamline\Hyperstreamline.md" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

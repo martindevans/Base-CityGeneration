@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Ref;
+using Base_CityGeneration.Utilities;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 
@@ -43,7 +44,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             foreach (var vertical in zipped)
             {
                 string[] chosenTags;
-                var script = FloorSpec.FindScript(random, finder, _tags, out chosenTags);
+                var script = _tags.SelectScript(random, finder, out chosenTags);
                 if (script == null)
                     continue;
 
