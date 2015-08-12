@@ -1,5 +1,6 @@
-﻿using Base_CityGeneration.Parcelling;
-using Base_CityGeneration.Parcelling.Rules;
+﻿using Base_CityGeneration.Elements.Blocks;
+using Base_CityGeneration.Parcels.Parcelling;
+using Base_CityGeneration.Parcels.Parcelling.Rules;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 using Microsoft.Xna.Framework;
@@ -17,9 +18,10 @@ namespace Base_CityGeneration.Elements.Generic
 
         public SolidPlaceholderBlock()
         {
-            _parceller = new ObbParceller(Random);
-            _parceller.AddTerminationRule(new AreaRule(100, 300, 0.25f));
+            _parceller = new ObbParceller();
+            _parceller.AddTerminationRule(new AreaRule(250, 400, 0.25f));
             _parceller.AddTerminationRule(new FrontageRule(25, 50, 0.45f, "road"));
+            _parceller.AddTerminationRule(new AccessRule("road", 0.15f));
         }
 
         public override bool Accept(Prism bounds, INamedDataProvider parameters)
@@ -29,7 +31,9 @@ namespace Base_CityGeneration.Elements.Generic
 
         protected override IEnumerable<Parcel> GenerateParcels(IEnumerable<Vector2> footprint)
         {
-            return _parceller.GenerateParcels(new Parcel(footprint, new[] { "road" }));
+            return _parceller.GenerateParcels(new Parcel(footprint, new[] {
+                "road"
+            }), Random).ToArray();
         }
 
         protected override IEnumerable<KeyValuePair<Parcel, ISubdivisionContext>> CreateParcelNodes(Parcel[] parcels, float height)

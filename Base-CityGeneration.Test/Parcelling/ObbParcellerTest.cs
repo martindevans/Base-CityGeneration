@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using Base_CityGeneration.Datastructures.Extensions;
-using Base_CityGeneration.Parcelling;
-using Base_CityGeneration.Parcelling.Rules;
+using Base_CityGeneration.Parcels.Parcelling;
+using Base_CityGeneration.Parcels.Parcelling.Rules;
+using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
@@ -14,12 +15,16 @@ namespace Base_CityGeneration.Test.Parcelling
     public class ObbParcellerTest
     {
         private ObbParceller _parceller;
+        private readonly Random _random = new Random(10);
         
         [TestInitialize]
         public void TestInitialize()
         {
-            Random r = new Random(13);
-            _parceller = new ObbParceller(r.NextDouble, 0.5f, 1.25f);
+            _parceller = new ObbParceller() {
+                NonOptimalOabbChance = 0.5f,
+                NonOptimalOabbMaxRatio = 1.25f,
+                SplitPointGenerator = new ConstantValue(0)
+            };
         }
 
         [TestMethod]
@@ -27,7 +32,7 @@ namespace Base_CityGeneration.Test.Parcelling
         {
             _parceller.AddTerminationRule(new AreaRule(15, 50, 0.5f));
             _parceller.AddTerminationRule(new AccessRule("edge", 0.5f));
-            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] {new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10)}, new string[] {"edge"})).ToArray();
+            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] {new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10)}, new string[] {"edge"}), _random.NextDouble).ToArray();
 
             Assert.IsTrue(parcels.All(a => a.Area() <= 50));
 
@@ -49,7 +54,7 @@ namespace Base_CityGeneration.Test.Parcelling
         public void ParcelToMesh()
         {
             _parceller.AddTerminationRule(new AreaRule(50, 150, 0.5f));
-            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] {new Vector2(0, 0), new Vector2(90, 0), new Vector2(107, 93), new Vector2(0, 132)}, new string[] {"edge"})).ToArray();
+            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] { new Vector2(0, 0), new Vector2(90, 0), new Vector2(107, 93), new Vector2(0, 132) }, new string[] { "edge" }), _random.NextDouble).ToArray();
 
             var mesh = parcels.ToMeshFromBinaryTree<int, int>();
 
@@ -63,7 +68,7 @@ namespace Base_CityGeneration.Test.Parcelling
         {
             _parceller.AddTerminationRule(new AreaRule(15, 50, 0.5f));
             _parceller.AddTerminationRule(new AccessRule("edge", 0.5f));
-            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] { new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10) }.Reverse(), new string[] { "edge" })).ToArray();
+            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] { new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10) }.Reverse(), new string[] { "edge" }), _random.NextDouble).ToArray();
 
             Assert.IsTrue(parcels.All(a => a.Area() <= 50));
 

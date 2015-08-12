@@ -50,7 +50,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public ISelectorContainer[] Items { get; set; }
 
-            public BaseValueGeneratorContainer Count { get; set; }
+            public object Count { get; set; }
 
             public bool Vary { get; set; }
 
@@ -58,7 +58,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             {
                 return new RepeatSpec(
                     Items.Select(a => a.Unwrap()).ToArray(),
-                    Count.Unwrap(),
+                    BaseValueGeneratorContainer.FromObject(Count),
                     Vary
                 );
             }
