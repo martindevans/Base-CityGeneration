@@ -38,9 +38,6 @@ Subdivide: !ObbParceller
           Type: road
           TerminationChance: 0.15
 
-Adjustments:
-    - !MergeAdjacent { Chance: 0.05 }
-
 # Tags for what lots will be placed into parcels
 Lots:
     # What constraints must be met to use this set of tags?

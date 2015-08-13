@@ -201,8 +201,8 @@
     <Compile Include="Datastructures\Rectangle.cs" />
     <Compile Include="Datastructures\SeparatingAxisTester.cs" />
     <Compile Include="Elements\Blocks\Spec\Adjustment\BaseAdjustmentSpec.cs" />
-    <Compile Include="Elements\Blocks\Spec\Adjustment\MergeAdjacentSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\BlockSpec.cs" />
+    <Compile Include="Elements\Blocks\Spec\Lots\Constraints\Invert.cs" />
     <Compile Include="Elements\Blocks\Spec\Lots\LotSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\Lots\Constraints\BaseLotConstraint.cs" />
     <Compile Include="Elements\Blocks\Spec\Lots\Constraints\RequireAccessSpec.cs" />
@@ -266,7 +266,6 @@
     <Compile Include="Elements\Roads\Hyperstreamline\Tracing\Vertex.cs" />
     <Compile Include="Elements\Roads\VertexExtensions.cs" />
     <Compile Include="Parcels\Adjusting\IParcelAdjuster.cs" />
-    <Compile Include="Parcels\Adjusting\MergeAdjacentLots.cs" />
     <Compile Include="Styles\Building.cs" />
     <Compile Include="Styles\Roads.cs" />
     <Compile Include="Utilities\Numbers\ConstantValue.cs" />
@@ -333,6 +332,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="Elements\Blocks\Spec\BlockSpec.md" />
     <None Include="Elements\Building\Building Hierarchy.md" />
     <None Include="Elements\Roads\Hyperstreamline\Hyperstreamline.md" />
     <None Include="packages.config" />

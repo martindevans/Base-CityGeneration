@@ -20,8 +20,8 @@ namespace Base_CityGeneration.Parcels.Parcelling.Rules
         {
             var ratio = Ratio(parcel);
 
-            //If the ratio does not exceed max, there's a chance we'll terminate
-            return ratio > _max
+            //If the ratio does not exceed min, there's a chance we'll terminate
+            return ratio < _min
                 ? (float?)null
                 : _terminationChance;
         }
@@ -30,8 +30,8 @@ namespace Base_CityGeneration.Parcels.Parcelling.Rules
         {
             var ratio = Ratio(parcel);
 
-            //If the ratio exceeds the min, discard this parcel
-            return ratio < _min;
+            //If the ratio exceeds the max, discard this parcel
+            return ratio > _max;
         }
 
         private float Ratio(Parcel parcel)
