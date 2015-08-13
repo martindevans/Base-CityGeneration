@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Base_CityGeneration.Datastructures;
+using Myre.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Myre.Extensions;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace Base_CityGeneration.Parcels.Parcelling
 {
@@ -37,18 +38,15 @@ namespace Base_CityGeneration.Parcels.Parcelling
 
     public class Parcel
     {
+        public readonly Rectangle Bounds;
+
         public readonly Edge[] Edges;
 
-        public Parcel Parent { get; private set; }
-
-        public Parcel(Edge[] edges) : this(edges, null)
+        public Parcel(Edge[] edges)
         {
-        }
-
-        internal Parcel(Edge[] edges, Parcel parent)
-        {
-            Parent = parent;
             Edges = edges;
+
+            Bounds = Rectangle.FromPoints(Points());
         }
 
         /// <summary>
@@ -58,8 +56,6 @@ namespace Base_CityGeneration.Parcels.Parcelling
         /// <param name="edgeResources"></param>
         public Parcel(IEnumerable<Vector2> footprint, string[] edgeResources)
         {
-            Parent = null;
-
             var footprintArr = footprint.ToArray();
 
             if (footprintArr.Area() < 0)

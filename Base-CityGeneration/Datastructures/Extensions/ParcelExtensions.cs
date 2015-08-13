@@ -10,69 +10,6 @@ namespace Base_CityGeneration.Datastructures.Extensions
 {
     public static class ParcelExtensions
     {
-        /// <summary>
-        /// Given the leaves of a binary tree of parcels, generate a halfedge mesh
-        /// </summary>
-        /// <typeparam name="TVertexTag"></typeparam>
-        /// <typeparam name="TFaceTag"></typeparam>
-        /// <param name="leaves"></param>
-        /// <returns></returns>
-        public static Mesh<TVertexTag, string[], TFaceTag> ToMeshFromBinaryTree<TVertexTag, TFaceTag>(this IEnumerable<Parcel> leaves)
-        {
-            Parcel root;
-            var childrenMap = MapChildren(leaves, out root);
-
-            //We know this is a binary tree - this means every node was created by splitting a parent node in two
-            //Create the mesh by creating the root face, and then splitting it in line with the data set we just built up.
-
-            Mesh<TVertexTag, string[], TFaceTag> mesh = new Mesh<TVertexTag, string[], TFaceTag>();
-            var rootFace = mesh.GetOrConstructFace(root.Points().Select(mesh.GetOrConstructVertex).ToArray());
-
-            SplitFace(root, rootFace, mesh, childrenMap);
-
-            return mesh;
-        }
-
-        private static Dictionary<Parcel, HashSet<Parcel>> MapChildren(IEnumerable<Parcel> leaves, out Parcel root)
-        {
-            Dictionary<Parcel, HashSet<Parcel>> childrenMap = new Dictionary<Parcel, HashSet<Parcel>>();
-
-            root = null;
-
-            Queue<Parcel> todo = new Queue<Parcel>(leaves);
-            while (todo.Count > 0)
-            {
-                var p = todo.Dequeue();
-
-                if (p.Edges.Length != 4)
-                    throw new InvalidOperationException("Parcels must have 4 sides");
-
-                if (p.Parent == null)
-                {
-                    if (root != null && root != p)
-                        throw new InvalidOperationException("Found two roots, but tree is meant to be binary");
-
-                    root = p;
-                }
-                else
-                {
-                    todo.Enqueue(p.Parent);
-
-                    HashSet<Parcel> children;
-                    if (!childrenMap.TryGetValue(p.Parent, out children))
-                    {
-                        children = new HashSet<Parcel>();
-                        childrenMap.Add(p.Parent, children);
-                    }
-
-                    children.Add(p);
-                    if (children.Count > 2)
-                        throw new InvalidOperationException("Found more than 2 children for a node, but tree is meant to be binary");
-                }
-            }
-            return childrenMap;
-        }
-
         private static void SplitFace<TVertexTag, TFaceTag>(Parcel parcel, Face<TVertexTag, string[], TFaceTag> face, Mesh<TVertexTag, string[], TFaceTag> mesh, IDictionary<Parcel, HashSet<Parcel>> childrenMap)
         {
             //We have a face, like:

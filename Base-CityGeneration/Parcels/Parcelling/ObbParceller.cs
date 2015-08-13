@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Base_CityGeneration.Utilities.Numbers;
+﻿using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
 using Myre.Extensions;
-using Poly2Tri.Triangulation.Sets;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Base_CityGeneration.Parcels.Parcelling
 {
@@ -117,7 +116,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
                 }
             }
 
-            return new Parcel(edges, parent);
+            return new Parcel(edges);
         }
 
         internal static OABB FitOabb(Parcel parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)

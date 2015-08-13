@@ -51,19 +51,6 @@ namespace Base_CityGeneration.Test.Parcelling
         }
 
         [TestMethod]
-        public void ParcelToMesh()
-        {
-            _parceller.AddTerminationRule(new AreaRule(50, 150, 0.5f));
-            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] { new Vector2(0, 0), new Vector2(90, 0), new Vector2(107, 93), new Vector2(0, 132) }, new string[] { "edge" }), _random.NextDouble).ToArray();
-
-            var mesh = parcels.ToMeshFromBinaryTree<int, int>();
-
-            Assert.AreEqual(parcels.Length, mesh.Faces.Count());
-            Assert.IsTrue(parcels.All(p => p.Points().ToArray().IsConvex(0.001f)));
-            Assert.IsTrue(mesh.Faces.All(p => p.Vertices.Select(v => v.Position).ToArray().IsConvex(0.001f)));
-        }
-
-        [TestMethod]
         public void ParcellerCCW()
         {
             _parceller.AddTerminationRule(new AreaRule(15, 50, 0.5f));

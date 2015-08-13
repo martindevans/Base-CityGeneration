@@ -95,9 +95,10 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
             serializer.Settings.RegisterTagMapping("AspectRatio", typeof(AspectRatioRuleSpec.Container));
 
             //Parcelling adjusters
-            serializer.Settings.RegisterTagMapping("MergeAdjacent", typeof(MergeAdjacentSpec.Container));
+            // None!
 
             //Lot constraints
+            serializer.Settings.RegisterTagMapping("InvertRequire", typeof(Invert.Container));
             serializer.Settings.RegisterTagMapping("RequireArea", typeof(RequireAreaSpec.Container));
             serializer.Settings.RegisterTagMapping("RequireAccess", typeof(RequireAccessSpec.Container));
 
