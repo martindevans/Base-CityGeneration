@@ -82,6 +82,14 @@ namespace Base_CityGeneration.Parcels.Parcelling
             return Math.Abs(Points().Area());
         }
 
+        public float AspectRatio()
+        {
+            var oabb = ObbParceller.FitOabb(this, 0, 0, null);
+            var ratio = Math.Max(oabb.Extents.X, oabb.Extents.Y) / Math.Min(oabb.Extents.X, oabb.Extents.Y);
+
+            return ratio;
+        }
+
         /// <summary>
         /// The points which define the boundary of this parcel
         /// </summary>

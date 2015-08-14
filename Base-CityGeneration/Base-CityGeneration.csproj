@@ -203,6 +203,7 @@
     <Compile Include="Elements\Blocks\Spec\Adjustment\BaseAdjustmentSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\BlockSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\Lots\Constraints\Invert.cs" />
+    <Compile Include="Elements\Blocks\Spec\Lots\Constraints\RequireAspectRatioSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\Lots\LotSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\Lots\Constraints\BaseLotConstraint.cs" />
     <Compile Include="Elements\Blocks\Spec\Lots\Constraints\RequireAccessSpec.cs" />
@@ -232,6 +233,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\RepeatSpec.cs" />
     <Compile Include="Parcels\Parcelling\Rules\AspectRatioRule.cs" />
+    <Compile Include="Utilities\MetadataContainer.cs" />
     <Compile Include="Utilities\TagContainer.cs" />
     <Compile Include="Elements\Roads\HalfEdgeExtensions.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\ResampleAndRescale.cs" />
