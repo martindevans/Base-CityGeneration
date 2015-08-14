@@ -18,7 +18,7 @@ namespace Base_CityGeneration.Parcels.Parcelling.Rules
 
         public float? TerminationChance(Parcel parcel)
         {
-            var ratio = Ratio(parcel);
+            var ratio = parcel.AspectRatio();
 
             //If the ratio does not exceed min, there's a chance we'll terminate
             return ratio < _min
@@ -28,18 +28,10 @@ namespace Base_CityGeneration.Parcels.Parcelling.Rules
 
         public bool Discard(Parcel parcel, Func<double> random)
         {
-            var ratio = Ratio(parcel);
+            var ratio = parcel.AspectRatio();
 
             //If the ratio exceeds the max, discard this parcel
             return ratio > _max;
-        }
-
-        private float Ratio(Parcel parcel)
-        {
-            var oabb = ObbParceller.FitOabb(parcel, 0, 0, null);
-            var ratio = Math.Max(oabb.Extents.X, oabb.Extents.Y) / Math.Min(oabb.Extents.X, oabb.Extents.Y);
-
-            return ratio;
         }
     }
 }
