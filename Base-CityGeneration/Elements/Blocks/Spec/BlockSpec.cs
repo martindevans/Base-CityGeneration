@@ -4,11 +4,11 @@ using Base_CityGeneration.Elements.Blocks.Spec.Lots;
 using Base_CityGeneration.Elements.Blocks.Spec.Lots.Constraints;
 using Base_CityGeneration.Elements.Blocks.Spec.Subdivision;
 using Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules;
-using Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing;
 using Base_CityGeneration.Parcels.Parcelling;
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
+using Myre.Collections;
 using SharpYaml.Serialization;
 using System.Collections.Generic;
 using System.IO;
@@ -43,10 +43,10 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
             _lots = lots.ToArray();
         }
 
-        public IEnumerable<Parcel> CreateParcels(Parcel shape, Func<double> random)
+        public IEnumerable<Parcel> CreateParcels(Parcel shape, Func<double> random, INamedDataCollection metadata)
         {
             //Generate parcels from shape
-            var parcels = Subdivider.GenerateParcels(shape, random);
+            var parcels = Subdivider.GenerateParcels(shape, random, metadata);
 
             //Adjust parcels
             foreach (var adjustment in _adjustments)
@@ -55,11 +55,11 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
             return parcels;
         }
 
-        public ScriptReference SelectLot(Parcel parcel, Func<double> random, Func<string[], ScriptReference> scriptFinder)
+        public ScriptReference SelectLot(Parcel parcel, Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> scriptFinder)
         {
             foreach (var lotSpec in _lots)
             {
-                if (lotSpec.Check(parcel, random))
+                if (lotSpec.Check(parcel, random, metadata))
                 {
                     string[] selected;
                     return lotSpec.Tags.SelectScript(random, scriptFinder, out selected);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using EpimetheusPlugins.Scripts;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Markers
 {
@@ -10,7 +11,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.
     public class GroundMarker
         : IMarker
     {
-        public IEnumerable<FloorSelection> Select(Func<double> random, Func<string[], ScriptReference> finder)
+        public IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
         {
             yield break;
         }

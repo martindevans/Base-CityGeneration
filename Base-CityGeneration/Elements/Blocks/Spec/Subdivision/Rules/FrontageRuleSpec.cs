@@ -2,17 +2,18 @@
 using Base_CityGeneration.Parcels.Parcelling.Rules;
 using Base_CityGeneration.Utilities.Numbers;
 using System;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
 {
     class FrontageRuleSpec
         : BaseSubdividerRule
     {
-        private readonly BaseValueGenerator _min;
-        private readonly BaseValueGenerator _max;
+        private readonly IValueGenerator _min;
+        private readonly IValueGenerator _max;
         private readonly string _resource;
 
-        private FrontageRuleSpec(BaseValueGenerator min, BaseValueGenerator max, BaseValueGenerator terminationChance, string resource)
+        private FrontageRuleSpec(IValueGenerator min, IValueGenerator max, IValueGenerator terminationChance, string resource)
             : base(terminationChance)
         {
             _min = min;
@@ -20,12 +21,12 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
             _resource = resource;
         }
 
-        public override ITerminationRule Rule(Func<double> random)
+        public override ITerminationRule Rule(Func<double> random, INamedDataCollection metadata)
         {
             return new FrontageRule(
-                _min.SelectFloatValue(random),
-                _max.SelectFloatValue(random),
-                TerminationChance.SelectFloatValue(random),
+                _min.SelectFloatValue(random, metadata),
+                _max.SelectFloatValue(random, metadata),
+                TerminationChance.SelectFloatValue(random, metadata),
                 _resource
             );
         }

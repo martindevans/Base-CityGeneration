@@ -2,6 +2,7 @@
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 {
@@ -43,12 +44,12 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
             public object Decay { get; set; }
 
-            public ITensorField Unwrap(Func<double> random)
+            public ITensorField Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 return new PointDistanceDecayField(
-                    Tensors.Unwrap(random),
-                    Center.Unwrap(random),
-                    BaseValueGeneratorContainer.FromObject(Decay).SelectFloatValue(random)
+                    Tensors.Unwrap(random, metadata),
+                    Center.Unwrap(random, metadata),
+                    BaseValueGeneratorContainer.FromObject(Decay).SelectFloatValue(random, metadata)
                 );
             }
         }

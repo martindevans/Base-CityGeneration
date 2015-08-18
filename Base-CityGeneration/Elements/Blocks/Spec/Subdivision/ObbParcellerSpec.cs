@@ -4,16 +4,17 @@ using System.Linq;
 using Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules;
 using Base_CityGeneration.Parcels.Parcelling;
 using Base_CityGeneration.Utilities.Numbers;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision
 {
     public class ObbParcellerSpec
         : BaseSubdivideSpec
     {
-        private readonly BaseValueGenerator _nonOptimalOabbChance;
-        private readonly BaseValueGenerator _nonOptimalOabbMaxRatio;
+        private readonly IValueGenerator _nonOptimalOabbChance;
+        private readonly IValueGenerator _nonOptimalOabbMaxRatio;
 
-        private readonly BaseValueGenerator _splitPointSelection;
+        private readonly IValueGenerator _splitPointSelection;
 
         private readonly BaseSubdividerRule[] _rules;
         public override IEnumerable<BaseSubdividerRule> Rules
@@ -21,7 +22,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision
             get { return _rules; }
         }
 
-        public ObbParcellerSpec(BaseValueGenerator nonOptimalOabbChance, BaseValueGenerator nonOptimalOabbMaxRatio, BaseValueGenerator splitPointGenerator, BaseSubdividerRule[] rules)
+        public ObbParcellerSpec(IValueGenerator nonOptimalOabbChance, IValueGenerator nonOptimalOabbMaxRatio, IValueGenerator splitPointGenerator, BaseSubdividerRule[] rules)
         {
             _nonOptimalOabbChance = nonOptimalOabbChance;
             _nonOptimalOabbMaxRatio = nonOptimalOabbMaxRatio;
@@ -30,20 +31,20 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision
             _rules = rules;
         }
 
-        public override IEnumerable<Parcel> GenerateParcels(Parcel root, Func<double> random)
+        public override IEnumerable<Parcel> GenerateParcels(Parcel root, Func<double> random, INamedDataCollection metadata)
         {
             ObbParceller p = new ObbParceller();
             if (_nonOptimalOabbChance != null)
-                p.NonOptimalOabbChance = _nonOptimalOabbChance.SelectFloatValue(random);
+                p.NonOptimalOabbChance = _nonOptimalOabbChance.SelectFloatValue(random, metadata);
             if (_nonOptimalOabbMaxRatio != null)
-                p.NonOptimalOabbMaxRatio = _nonOptimalOabbMaxRatio.SelectFloatValue(random);
+                p.NonOptimalOabbMaxRatio = _nonOptimalOabbMaxRatio.SelectFloatValue(random, metadata);
             if (_splitPointSelection != null)
                 p.SplitPointGenerator = _splitPointSelection;
 
             foreach (var rule in _rules)
-                p.AddTerminationRule(rule.Rule(random));
+                p.AddTerminationRule(rule.Rule(random, metadata));
 
-            return p.GenerateParcels(root, random);
+            return p.GenerateParcels(root, random, metadata);
         }
 
         internal class Container

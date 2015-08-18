@@ -66,7 +66,7 @@ Floors:
             Func<string[], ScriptReference> finder = tags => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tags));
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, finder);
+            var selection = b.Select(r.NextDouble, null, finder);
 
             var v = selection.Verticals;
             Func<int, string> prefix = (floor) => new string(v.Select(a => a.Bottom <= floor && a.Top >= floor ? '|' : ' ').ToArray());

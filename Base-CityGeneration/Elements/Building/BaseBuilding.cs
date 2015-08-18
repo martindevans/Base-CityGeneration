@@ -1,154 +1,138 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
+using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Selection;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
-using Base_CityGeneration.Elements.Generic;
 using EpimetheusPlugins.Procedural;
 using Myre.Collections;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Base_CityGeneration.Elements.Building
 {
     public abstract class BaseBuilding
-        :ProceduralScript, IGrounded
+        :ProceduralScript, IBuilding
     {
         public float GroundHeight { get; set; }
 
-        private readonly int _minFloors;
-        private readonly int _maxFloors;
-        private readonly int _minBasementFloors;
-        private readonly int _maxBasementFloors;
-        private readonly float _minFloorHeight;
-        private readonly float _maxFloorHeight;
-
-        protected BaseBuilding(int minFloors, int maxFloors, int minBasementFloors, int maxBasementFloors, float minFloorHeight, float maxFloorHeight)
+        #region floor data
+        public int AboveGroundFloors
         {
-            _minFloors = minFloors;
-            _maxFloors = maxFloors;
-            _minBasementFloors = minBasementFloors;
-            _maxBasementFloors = maxBasementFloors;
-            _minFloorHeight = minFloorHeight;
-            _maxFloorHeight = maxFloorHeight;
-        }
-
-        public override bool Accept(Prism bounds, INamedDataProvider parameters)
-        {
-            return
-                bounds.Height / _minFloorHeight >= _minFloors;  //Can we fit the min required number of floors at the minimum allowed height into this space?
-        }
-
-        public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
-        {
-            //Caculate how much of the available height we want to use
-            int count;
-            int basementCount;
-            float floorHeight;
-            CalculateFloorHeight(Random, _minFloors, _maxFloors, _minBasementFloors, _maxBasementFloors, _minFloorHeight, _maxFloorHeight, bounds.Height - GroundHeight, GroundHeight, out count, out basementCount, out floorHeight);
-
-            ////Make the building space a solid block
-            //var totalHeight = floorHeight * (count + basementCount);
-            //var brush = geometry.CreatePrism(hierarchicalParameters.GetValue(new TypedName<string>("material")), bounds.Footprint, totalHeight)
-            //                    .Transform(Matrix.CreateTranslation(0, basementCount * floorHeight - bounds.Height / 2 + GroundHeight, 0));
-            //geometry.Union(brush);
-
-            //Construct vertical features (lifts, stairs, utility shafts etc)
-            var verticals = CreateCrossFloorFeatures(bounds, count, basementCount, floorHeight).ToArray();
-
-            //Create floors
-            var floors = CreateFloors(bounds, count, basementCount, floorHeight, verticals).ToArray();
-
-            //Associate data with floors
-            for (int i = 0; i < floors.Length; i++)
+            get
             {
-                if (floors[i] != null)
-                {
-                    floors[i].FloorIndex = i;
-// ReSharper disable AccessToModifiedClosure
-                    floors[i].Overlaps = verticals.Where(a => a.BottomFloorIndex <= i && a.TopFloorIndex >= i).ToArray();
-// ReSharper restore AccessToModifiedClosure
-                }
-
-                //Make floors prerequisite of verticals
-                foreach (IVerticalFeature v in verticals)
-                    v.AddPrerequisite(floors[i]);
+                CheckSubdivided();
+                return _floors.Count - _belowGroundFloors;
             }
         }
 
-        /// <summary>
-        /// Create features which cross several floors (e.g. stairwells, lift shafts, utility shafts)
-        /// </summary>
-        /// <param name="bounds">The bounds of the entire building</param>
-        /// <param name="floors">The number of above ground floors</param>
-        /// <param name="basements">The number of below ground basements</param>
-        /// <param name="floorHeight">The height of each floor</param>
-        protected abstract IEnumerable<IVerticalFeature> CreateCrossFloorFeatures(Prism bounds, int floors, int basements, float floorHeight);
-
-        /// <summary>
-        /// Create nodes for all the floors of this building
-        /// </summary>
-        /// <param name="bounds">The bounds of the entire building</param>
-        /// <param name="floors">The number of above ground floors</param>
-        /// <param name="basements">The number of below ground basements</param>
-        /// <param name="floorHeight">The height of each floor</param>
-        /// <param name="verticals">Vertical features which have been established in this building</param>
-        protected abstract IEnumerable<IFloor> CreateFloors(Prism bounds, int floors, int basements, float floorHeight, IVerticalFeature[] verticals);
-
-        /// <summary>
-        /// Calculate the vertical offset for a floor child node to be created at
-        /// </summary>
-        /// <param name="buildingBounds">The bounds of the building</param>
-        /// <param name="floor">The index of the floor (starting at zero)</param>
-        /// <param name="floorHeight">The height of floors in this building</param>
-        /// <param name="basementCount">The number of basements (floors below the value of the 'GroundHeight' property)</param>
-        /// <returns></returns>
-        protected float FloorVerticalOffset(Prism buildingBounds, int floor, float floorHeight, int basementCount)
+        private int _belowGroundFloors;
+        public int BelowGroundFloors
         {
-            return floorHeight / 2 + floorHeight * (floor - basementCount) + buildingBounds.Height / 2 - GroundHeight;
+            get
+            {
+                CheckSubdivided();
+                return _belowGroundFloors;
+            }
         }
 
-        /// <summary>
-        /// Calculate the offset and height of a vertical offset which starts and ends at the specified floors
-        /// </summary>
-        /// <param name="buildingBounds">The bounds of the building</param>
-        /// <param name="startFloor">The index of the lowest floor this element overlaps</param>
-        /// <param name="endFloor">The index of the highest floor this element overlaps</param>
-        /// <param name="floorHeight">The height of floors in this building</param>
-        /// <param name="basementCount">The number of basements (floors below the value of the 'GroundHeight' property)</param>
-        /// <param name="height">The height of the vertical element</param>
-        /// <param name="offset">The vertical offset of this element</param>
-        /// <returns></returns>
-        protected void VerticalElementVerticalOffset(Prism buildingBounds, int startFloor, int endFloor, float floorHeight, int basementCount, out float height, out float offset)
+        public int TotalFloors
         {
-            var bottom = FloorVerticalOffset(buildingBounds, startFloor, floorHeight, basementCount) - floorHeight / 2f;
-            var top = FloorVerticalOffset(buildingBounds, endFloor, floorHeight, basementCount) + floorHeight / 2f;
-
-            height = top - bottom;
-            offset = top * 0.5f + bottom * 0.5f;
+            get
+            {
+                CheckSubdivided();
+                return _floors.Count;
+            }
         }
 
-        public static void CalculateFloorHeight(Func<double> random, int minFloors, int maxFloors, int minBasements, int maxBasements, float minFloorHeight, float maxFloorHeight, float heightAboveGround, float heightBelowGround, out int floors, out int basements, out float floorHeight)
+        private ReadOnlyCollection<IFloor> _floors; 
+        public IFloor Floor(int index)
         {
-            var aboveGroundRange = Math.Min(heightAboveGround / minFloors, maxFloorHeight);
-            if (float.IsNaN(aboveGroundRange))
-                aboveGroundRange = maxFloorHeight;
-
-            var belowGroundRange = Math.Min(heightBelowGround / minBasements, maxFloorHeight);
-            if (float.IsNaN(belowGroundRange))
-                belowGroundRange = maxFloorHeight;
-
-            //what's max floor height whilst still fitting all the floors in the available space?
-            float maxHeight = Math.Min(aboveGroundRange, belowGroundRange);
-
-            //Pick a random height in the allowable range
-            floorHeight = random.RandomSingle(minFloorHeight, maxHeight);
-
-            //How many floors of this height can we fit in the building?
-            var maxFittingFloors = Math.Min((int)(heightAboveGround / floorHeight), maxFloors);
-            var maxFittingBasements = Math.Min((int)(heightBelowGround / floorHeight), maxBasements);
-
-            //Ok, so how many floors will we have?
-            floors = random.RandomInteger(minFloors, maxFittingFloors);
-            basements = random.RandomInteger(minBasements, maxFittingBasements);
+            CheckSubdivided();
+            return _floors[index + BelowGroundFloors];
         }
+        #endregion
+
+        #region vertical data
+        private ReadOnlyCollection<IVerticalFeature> _verticals;
+
+        public IEnumerable<IVerticalFeature> Verticals(int lowest, int highest)
+        {
+            CheckSubdivided();
+            return _verticals.Where(a => a.BottomFloorIndex <= lowest && a.TopFloorIndex >= highest);
+        }
+        #endregion
+
+        #region facade data
+        private ReadOnlyCollection<IBuildingFacade> _facades;
+
+        public IEnumerable<IFacade> Facades(int floor)
+        {
+            CheckSubdivided();
+            return _facades.Where(f => f.BottomFloorIndex <= floor && f.TopFloorIndex >= floor);
+        }
+        #endregion
+
+        public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
+        {
+            //create thigns
+            //_facades = CreateFacades(SelectFacades());
+            _floors = CreateFloors(SelectFloors());
+            _verticals = CreateVerticals(SelectVerticals());
+
+            //Set up relationship between floor and facade (facades PrerequisiteOf floor)
+            foreach (var facade in _facades)
+            {
+                for (int i = facade.BottomFloorIndex; i < facade.TopFloorIndex; i++)
+                    _floors[i + _belowGroundFloors].AddPrerequisite(facade, true);
+            }
+
+            //Set up relationship between floor and verticals (floor PrerequisiteOf vertical)
+            foreach (var vertical in _verticals)
+            {
+                for (int i = vertical.BottomFloorIndex; i < vertical.TopFloorIndex; i++)
+                    vertical.AddPrerequisite(_floors[i + _belowGroundFloors], false);
+            }
+        }
+
+        private ReadOnlyCollection<IFloor> CreateFloors(IEnumerable<FloorSelection> floors)
+        {
+            //Sanity check selection does not have two floors in the same place
+            if (floors.GroupBy(a => a.Index).Any(g => g.Count() > 1))
+                throw new InvalidOperationException("Attempted to create two floors with the same index");
+
+            //Count up the number of floors below ground
+            _belowGroundFloors = floors.Count(a => a.Index < 0);
+
+            //Materialize selection into child nodes
+            throw new NotImplementedException("Turn selection into actual nodes");
+        }
+
+        protected abstract IEnumerable<FloorSelection> SelectFloors();
+
+        private ReadOnlyCollection<IVerticalFeature> CreateVerticals(IEnumerable<VerticalSelection> verticals)
+        {
+            if (verticals.Any(a => a.Bottom > a.Top))
+                throw new InvalidOperationException("Attempted to crete a vertical element where bottom > top");
+
+            throw new NotImplementedException("Turn selection into actual nodes");
+        }
+
+        protected abstract IEnumerable<VerticalSelection> SelectVerticals();
+
+        //private ReadOnlyCollection<IBuildingFacade> CreateFacades(IEnumerable<FacadeSelection> selectFacades)
+        //{
+        //    throw new NotImplementedException("Turn selection into actual nodes");
+        //}
+
+        //protected abstract IEnumerable<FacadeSelection> SelectFacades();
+
+        #region helpers
+        private void CheckSubdivided()
+        {
+            if (State == SubdivisionStates.NotSubdivided)
+                throw new InvalidOperationException("Cannot query BaseBuilding before it is subdivided");
+        }
+        #endregion
     }
 }

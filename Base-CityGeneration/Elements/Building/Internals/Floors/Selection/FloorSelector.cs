@@ -4,6 +4,7 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Ref;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
 using HandyCollections.Extensions;
+using Myre.Collections;
 using SharpYaml.Serialization;
 using System;
 using System.Collections.Generic;
@@ -38,18 +39,18 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             _verticalSelectors = verticalSelectors;
         }
 
-        public Selection Select(Func<double> random, Func<string[], ScriptReference> finder)
+        public Selection Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
         {
             var aboveGround = _floorSelectors.TakeWhile(a => !(a is GroundMarker)).ToArray();
             var belowGround = _floorSelectors.SkipWhile(a => !(a is GroundMarker)).ToArray();
 
             //Select above ground floors, then assign indices
-            var above = SelectFloors(random, finder, aboveGround).ToArray();
+            var above = SelectFloors(random, metadata, finder, aboveGround).ToArray();
             for (int i = 0; i < above.Length; i++)
                 above[i] = new FloorSelection(above[i], above.Length - i - 1);
 
             //Select below ground floors, then assign indices
-            var below = SelectFloors(random, finder, belowGround).ToArray();
+            var below = SelectFloors(random, metadata, finder, belowGround).ToArray();
             for (int i = 0; i < below.Length; i++)
                 below[i] = new FloorSelection(below[i], -(i + 1));
 
@@ -62,12 +63,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
             );
         }
 
-        private static IEnumerable<FloorSelection> SelectFloors(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<ISelector> selectors)
+        private static IEnumerable<FloorSelection> SelectFloors(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, IEnumerable<ISelector> selectors)
         {
             List<FloorSelection> floors = new List<FloorSelection>();
 
             foreach (var selector in selectors)
-                floors.AddRange(selector.Select(random, finder));
+                floors.AddRange(selector.Select(random, metadata, finder));
 
             return floors;
         }

@@ -1,5 +1,4 @@
 ﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
-using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -19,7 +18,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
                 new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, string[]>(1, new [] { "tag" }) }, null)
             }, new NormallyDistributedValue(1, 2, 3, 1, false));
 
-            var selected = range.Select(() => 0.5, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
+            var selected = range.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
             Assert.IsTrue(2 <= selected.Count() && selected.Count() <= 3);
         }
@@ -31,7 +30,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
                 new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, string[]>(1, null) }, null)
             }, new NormallyDistributedValue(1, 2, 3, 1));
 
-            var selected = range.Select(() => 0.5, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
+            var selected = range.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
             Assert.AreEqual(0, selected.Count());
         }
@@ -45,7 +44,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
             }, new NormallyDistributedValue(1, 2, 3, 1, false));
 
             Random r = new Random();
-            var selected = range.Select(r.NextDouble, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a))).ToArray();
+            var selected = range.Select(r.NextDouble, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a))).ToArray();
 
             //Find the first "continuous" floor, then check that every single one of the next 20 is also "continuous"
             var startCont = selected.Select((a, i) => new {a, i}).Where(a => a.a.Script.Name == "continuous").Select(a => a.i).First();

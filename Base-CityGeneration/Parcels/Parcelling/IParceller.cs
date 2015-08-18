@@ -1,4 +1,5 @@
 ﻿using Base_CityGeneration.Datastructures;
+using Myre.Collections;
 using Myre.Extensions;
 using System;
 using System.Collections.Generic;
@@ -14,8 +15,9 @@ namespace Base_CityGeneration.Parcels.Parcelling
         /// </summary>
         /// <param name="root"></param>
         /// <param name="random"></param>
+        /// <param name="metadata"></param>
         /// <returns></returns>
-        IEnumerable<Parcel> GenerateParcels(Parcel root, Func<double> random);
+        IEnumerable<Parcel> GenerateParcels(Parcel root, Func<double> random, INamedDataCollection metadata);
     }
 
     public interface ITerminationRule

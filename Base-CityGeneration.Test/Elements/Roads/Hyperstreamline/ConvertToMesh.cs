@@ -2,20 +2,20 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Roads;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Test.Elements.Roads.Hyperstreamline
 {
     [TestClass]
     public class ConvertToMesh
     {
-        private string _script = @"!Network
+        private const string SCRIPT = @"!Network
 Aliases:
     - &base-field !AddTensors
       Tensors:
@@ -60,13 +60,14 @@ Minor:
         {
             var r = new Random();
             Func<double> random = r.NextDouble;
+            var m = new NamedBoxCollection();
 
             //Deserialize config
-            var config = NetworkDescriptor.Deserialize(new StringReader(_script));
+            var config = NetworkDescriptor.Deserialize(new StringReader(SCRIPT));
 
             //Build main roads
             var builder = new NetworkBuilder();
-            builder.Build(config.Major(random), random, new Vector2(0, 0), new Vector2(100, 100));
+            builder.Build(config.Major(random, m), random, m, new Vector2(0, 0), new Vector2(100, 100));
             builder.Reduce();
 
             //extract regions
@@ -74,7 +75,7 @@ Minor:
 
             //Build minor roads
             foreach (var region in regions)
-                builder.Build(config.Minor(random), random, region);
+                builder.Build(config.Minor(random, m), random, m, region);
             builder.Reduce();
 
             //Build graph

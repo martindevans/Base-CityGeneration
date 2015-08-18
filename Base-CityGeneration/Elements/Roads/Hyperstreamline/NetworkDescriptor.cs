@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing;
 using Base_CityGeneration.Utilities.Numbers;
+using Myre.Collections;
 using SharpYaml.Serialization;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline
@@ -18,14 +19,14 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline
             _minor = minor;
         }
 
-        public TracingConfiguration Major(Func<double> random)
+        public TracingConfiguration Major(Func<double> random, INamedDataCollection metadata)
         {
-            return _major.Unwrap(random);
+            return _major.Unwrap(random, metadata);
         }
 
-        public TracingConfiguration Minor(Func<double> random)
+        public TracingConfiguration Minor(Func<double> random, INamedDataCollection metadata)
         {
-            return _minor.Unwrap(random);
+            return _minor.Unwrap(random, metadata);
         }
 
         #region serialization

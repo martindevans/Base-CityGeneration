@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using System;
 using System.IO;
 using System.Linq;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Test.Elements.Roads.Hyperstreamline
 {
@@ -35,7 +36,9 @@ Major:
             NetworkBuilder b = new NetworkBuilder();
 
             Random r = new Random(10);
-            b.Build(c.Major(r.NextDouble), r.NextDouble, new Vector2(0, 0), new Vector2(500, 500));
+            var m = new NamedBoxCollection();
+
+            b.Build(c.Major(r.NextDouble, m), r.NextDouble, m, new Vector2(0, 0), new Vector2(500, 500));
             b.Reduce();
 
             Console.WriteLine(b.Result.ToSvg());
@@ -65,7 +68,9 @@ Major:
             NetworkBuilder b = new NetworkBuilder();
 
             Random r = new Random(10);
-            b.Build(c.Major(r.NextDouble), r.NextDouble, new Vector2(0, 0), new Vector2(500, 500));
+            var m = new NamedBoxCollection();
+
+            b.Build(c.Major(r.NextDouble, m), r.NextDouble, m, new Vector2(0, 0), new Vector2(500, 500));
             b.Reduce();
 
             var regions = b.Regions();
@@ -111,13 +116,14 @@ Minor:
 
             Random r = new Random(12);
             NetworkBuilder b = new NetworkBuilder();
+            var m = new NamedBoxCollection();
 
-            b.Build(c.Major(r.NextDouble), r.NextDouble, new Vector2(0, 0), new Vector2(100, 100));
+            b.Build(c.Major(r.NextDouble, m), r.NextDouble, m, new Vector2(0, 0), new Vector2(100, 100));
             b.Reduce();
 
             var regions = b.Regions();
             foreach (var region in regions)
-                b.Build(c.Minor(r.NextDouble), r.NextDouble, region);
+                b.Build(c.Minor(r.NextDouble, m), r.NextDouble, m, region);
 
             Console.WriteLine(b.Result.ToSvg());
 
@@ -151,8 +157,9 @@ Major:
 
             Random r = new Random(10);
             NetworkBuilder b = new NetworkBuilder();
+            var m = new NamedBoxCollection();
 
-            var maj = c.Major(r.NextDouble);
+            var maj = c.Major(r.NextDouble, m);
         }
     }
 }

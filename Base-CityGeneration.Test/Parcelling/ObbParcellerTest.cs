@@ -1,13 +1,11 @@
-﻿using System;
-using System.Linq;
-using Base_CityGeneration.Datastructures.Extensions;
-using Base_CityGeneration.Parcels.Parcelling;
+﻿using Base_CityGeneration.Parcels.Parcelling;
 using Base_CityGeneration.Parcels.Parcelling.Rules;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
-using Myre.Extensions;
+using System;
+using System.Linq;
 
 namespace Base_CityGeneration.Test.Parcelling
 {
@@ -32,7 +30,7 @@ namespace Base_CityGeneration.Test.Parcelling
         {
             _parceller.AddTerminationRule(new AreaRule(15, 50, 0.5f));
             _parceller.AddTerminationRule(new AccessRule("edge", 0.5f));
-            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] {new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10)}, new string[] {"edge"}), _random.NextDouble).ToArray();
+            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] {new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10)}, new string[] {"edge"}), _random.NextDouble, null).ToArray();
 
             Assert.IsTrue(parcels.All(a => a.Area() <= 50));
 
@@ -55,7 +53,7 @@ namespace Base_CityGeneration.Test.Parcelling
         {
             _parceller.AddTerminationRule(new AreaRule(15, 50, 0.5f));
             _parceller.AddTerminationRule(new AccessRule("edge", 0.5f));
-            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] { new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10) }.Reverse(), new string[] { "edge" }), _random.NextDouble).ToArray();
+            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] { new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10) }.Reverse(), new string[] { "edge" }), _random.NextDouble, null).ToArray();
 
             Assert.IsTrue(parcels.All(a => a.Area() <= 50));
 

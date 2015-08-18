@@ -1,12 +1,14 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Utilities.Numbers
 {
     public abstract class BaseValueGenerator
+        : IValueGenerator
     {
-        private readonly float _min;
-        public float Min
+        private readonly IValueGenerator _min;
+        public IValueGenerator Min
         {
             get
             {
@@ -14,8 +16,8 @@ namespace Base_CityGeneration.Utilities.Numbers
             }
         }
 
-        private readonly float _max;
-        public float Max
+        private readonly IValueGenerator _max;
+        public IValueGenerator Max
         {
             get
             {
@@ -35,59 +37,62 @@ namespace Base_CityGeneration.Utilities.Numbers
         private int? _intCache;
         private float? _singleCache;
 
-        protected BaseValueGenerator(float min, float max, bool vary)
+        protected BaseValueGenerator(IValueGenerator min, IValueGenerator max, bool vary)
         {
             _min = min;
             _max = max;
             _vary = vary;
         }
 
-        public float SelectFloatValue(Func<double> random)
+        public float SelectFloatValue(Func<double> random, INamedDataCollection data)
         {
             if (_singleCache.HasValue)
                 return _singleCache.Value;
 
-            var f = GenerateFloatValue(random);
+            var f = GenerateFloatValue(random, data);
             if (!Vary)
                 _singleCache = f;
             return f;
         }
 
-        protected abstract float GenerateFloatValue(Func<double> random); 
+        protected abstract float GenerateFloatValue(Func<double> random, INamedDataCollection data);
 
-        public int SelectIntValue(Func<double> random)
+        public int SelectIntValue(Func<double> random, INamedDataCollection data)
         {
             if (_intCache.HasValue)
                 return _intCache.Value;
 
-            var i = GenerateIntValue(random);
+            var i = GenerateIntValue(random, data);
             if (!Vary)
                 _intCache = i;
             return i;
         }
 
-        private int GenerateIntValue(Func<double> random)
+        private int GenerateIntValue(Func<double> random, INamedDataCollection data)
         {
-            //Rearrange the min and max to be integers (in a narrower or equal range)
-            var min = (int)Math.Ceiling(Min);
-            var max = (int)Math.Floor(Max);
+            checked
+            {
+                //Rearrange the min and max to be integers (in a narrower or equal range)
+                var min = (long)Math.Ceiling(Min.SelectFloatValue(random, data));
+                var max = (long)Math.Floor(Max.SelectFloatValue(random, data));
 
-            //If they're the same we don't have a whole lot of choice!
-            if (min == max)
-                return min;
+                //If they're the same we don't have a whole lot of choice!
+                if (min == max)
+                    return (int)min;
 
-            //If they're inverted the range is too narrow (e.g. Min:0.1 Max:0.9 we can't select any integers in that range)
-            if (min > max)
-                throw new InvalidOperationException(string.Format("Cannot select an integer between {0} and {1}", Min, Max));
+                //If they're inverted the range is too narrow (e.g. Min:0.1 Max:0.9 we can't select any integers in that range)
+                if (min > max)
+                    throw new InvalidOperationException(string.Format("Cannot select an integer between {0} and {1}", Min, Max));
 
-            //Clamp and round the value
-            return (int)Math.Round(MathHelper.Clamp(GenerateFloatValue(random), min, max), MidpointRounding.AwayFromZero);
+                //Clamp and round the value
+                return (int)Math.Round(MathHelper.Clamp(GenerateFloatValue(random, data), min, max), MidpointRounding.AwayFromZero);
+            }
         }
     }
 
     public static class IValueGeneratorExtensions
     {
-        public static BaseValueGenerator Transform(this BaseValueGenerator gen, Func<float, float> func)
+        public static IValueGenerator Transform(this IValueGenerator gen, Func<float, float> func)
         {
             return new WrapperBaseValue(gen, func);
         }
@@ -95,16 +100,16 @@ namespace Base_CityGeneration.Utilities.Numbers
 
     internal abstract class BaseValueGeneratorContainer
     {
-        BaseValueGenerator Unwrapped { get; set; }
+        IValueGenerator Unwrapped { get; set; }
 
-        public BaseValueGenerator Unwrap()
+        public IValueGenerator Unwrap()
         {
             if (Unwrapped == null)
                 Unwrapped = UnwrapImpl();
             return Unwrapped;
         }
 
-        protected abstract BaseValueGenerator UnwrapImpl();
+        protected abstract IValueGenerator UnwrapImpl();
 
         public static explicit operator BaseValueGeneratorContainer(float v)
         {
@@ -121,7 +126,7 @@ namespace Base_CityGeneration.Utilities.Numbers
             return new ConstantValue.Container { Value = v };
         }
 
-        public static BaseValueGenerator FromObject(object v)
+        public static IValueGenerator FromObject(object v)
         {
             var @explicit = v as BaseValueGeneratorContainer;
             if (@explicit != null)

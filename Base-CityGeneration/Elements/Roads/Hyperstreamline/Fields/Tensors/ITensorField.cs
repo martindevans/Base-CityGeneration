@@ -1,6 +1,7 @@
 ﻿using System;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 {
@@ -11,14 +12,14 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
     internal interface ITensorFieldContainer
     {
-        ITensorField Unwrap(Func<double> random);
+        ITensorField Unwrap(Func<double> random, INamedDataCollection metadata);
     }
 
     public static class ITensorFieldExtensions
     {
         public static IEigenField Presample(this ITensorField field, Vector2 min, Vector2 max, int resolution)
         {
-            return Eigens.ResampleAndRescale.Create(field, min, max, resolution);
+            return ResampleAndRescale.Create(field, min, max, resolution);
         }
 
         public static Tensor Sample(this ITensorField field, Vector2 position)

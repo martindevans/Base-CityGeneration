@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 {
@@ -34,9 +35,9 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         {
             public ITensorFieldContainer[] Tensors { get; set; }
 
-            public ITensorField Unwrap(Func<double> random)
+            public ITensorField Unwrap(Func<double> random, INamedDataCollection metadata)
             {
-                return new Addition(Tensors.Select(a => a.Unwrap(random)).ToArray());
+                return new Addition(Tensors.Select(a => a.Unwrap(random, metadata)).ToArray());
             }
         }
     }

@@ -6,8 +6,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
     public interface IFloor
         : ISubdivisionContext
     {
-        int FloorIndex { get; set; }
+        int FloorIndex { get; }
 
-        IVerticalFeature[] Overlaps { get; set; }
+        IVerticalFeature[] Overlaps { set; }
     }
 }

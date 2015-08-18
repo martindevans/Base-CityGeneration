@@ -4,6 +4,7 @@ using Base_CityGeneration.Parcels.Parcelling;
 using Base_CityGeneration.Utilities;
 using System.Collections.Generic;
 using System.Linq;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Lots
 {
@@ -42,10 +43,10 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Lots
             }
         }
 
-        public bool Check(Parcel parcel, Func<double> random)
+        public bool Check(Parcel parcel, Func<double> random, INamedDataCollection metadata)
         {
             foreach (var constraint in _constraints)
-                if (!constraint.Check(parcel, random))
+                if (!constraint.Check(parcel, random, metadata))
                     return false;
 
             return true;

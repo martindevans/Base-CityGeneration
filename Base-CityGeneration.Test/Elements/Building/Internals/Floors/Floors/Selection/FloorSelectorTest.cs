@@ -29,7 +29,7 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, tags => new ScriptReference(typeof(TestScript)));
+            var selection = b.Select(r.NextDouble, null, tags => new ScriptReference(typeof(TestScript)));
 
             Assert.AreEqual(1, selection.AboveGroundFloors.Count());
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
@@ -63,7 +63,7 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, tags => new ScriptReference(typeof(TestScript)));
+            var selection = b.Select(r.NextDouble, null, tags => new ScriptReference(typeof(TestScript)));
 
             Assert.AreEqual(2, selection.AboveGroundFloors.Count());
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
@@ -90,7 +90,7 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, tags => new ScriptReference(typeof(TestScript)));
+            var selection = b.Select(r.NextDouble, null, tags => new ScriptReference(typeof(TestScript)));
 
             Assert.AreEqual(0, selection.AboveGroundFloors.Count());
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
@@ -124,7 +124,7 @@ Floors:
             };
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, finder);
+            var selection = b.Select(r.NextDouble, null, finder);
 
             Assert.IsTrue(selection.AboveGroundFloors.Length >= 1 && selection.AboveGroundFloors.Length <= 5);
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
@@ -151,7 +151,7 @@ Floors:
             };
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, finder);
+            var selection = b.Select(r.NextDouble, null, finder);
 
             Assert.AreEqual(3, selection.AboveGroundFloors.Count());
             Assert.AreEqual(1, selection.Verticals.Count());

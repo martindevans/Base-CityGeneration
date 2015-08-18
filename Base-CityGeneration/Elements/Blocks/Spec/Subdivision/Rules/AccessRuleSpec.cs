@@ -2,6 +2,7 @@
 using Base_CityGeneration.Parcels.Parcelling.Rules;
 using Base_CityGeneration.Utilities.Numbers;
 using System;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
 {
@@ -10,17 +11,17 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
     {
         private readonly string _resource;
 
-        private AccessRuleSpec(BaseValueGenerator terminationChance, string resource)
+        private AccessRuleSpec(IValueGenerator terminationChance, string resource)
             : base(terminationChance)
         {
             _resource = resource;
         }
 
-        public override ITerminationRule Rule(Func<double> random)
+        public override ITerminationRule Rule(Func<double> random, INamedDataCollection metadata)
         {
             return new AccessRule(
                 _resource,
-                TerminationChance.SelectFloatValue(random)
+                TerminationChance.SelectFloatValue(random, metadata)
             );
         }
 
