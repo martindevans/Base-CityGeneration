@@ -2,28 +2,29 @@
 using Base_CityGeneration.Parcels.Parcelling.Rules;
 using Base_CityGeneration.Utilities.Numbers;
 using System;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
 {
     public class AspectRatioRuleSpec
         : BaseSubdividerRule
     {
-        private readonly BaseValueGenerator _maxRatio;
-        private readonly BaseValueGenerator _minRatio;
+        private readonly IValueGenerator _maxRatio;
+        private readonly IValueGenerator _minRatio;
 
-        private AspectRatioRuleSpec(BaseValueGenerator terminationChance, BaseValueGenerator minRatio, BaseValueGenerator maxRatio)
+        private AspectRatioRuleSpec(IValueGenerator terminationChance, IValueGenerator minRatio, IValueGenerator maxRatio)
             : base(terminationChance)
         {
             _maxRatio = maxRatio;
             _minRatio = minRatio;
         }
 
-        public override ITerminationRule Rule(Func<double> random)
+        public override ITerminationRule Rule(Func<double> random, INamedDataCollection metadata)
         {
             return new AspectRatioRule(
-                _minRatio.SelectFloatValue(random),
-                _maxRatio.SelectFloatValue(random),
-                TerminationChance.SelectFloatValue(random)
+                _minRatio.SelectFloatValue(random, metadata),
+                _maxRatio.SelectFloatValue(random, metadata),
+                TerminationChance.SelectFloatValue(random, metadata)
             );
         }
 

@@ -1,23 +1,21 @@
-﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
-using Base_CityGeneration.Utilities;
+﻿using System;
 using Base_CityGeneration.Utilities.Numbers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
-namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Selection.Spec
+namespace Base_CityGeneration.Test.Utilities.Numbers
 {
     [TestClass]
-    public class NormalValueSpecTest
+    public class UniformlyDistributedValueTest
     {
         [TestMethod]
         public void AssertThat_SelectFloatValue_IsWithinRange()
         {
-            NormallyDistributedValue spec = new NormallyDistributedValue(9.5f, 20, 30.5f, 10, true);
+            UniformlyDistributedValue spec = new UniformlyDistributedValue(9.5f, 30.5f, true);
 
             Random r = new Random();
             for (int i = 0; i < 1000; i++)
             {
-                var v = spec.SelectFloatValue(r.NextDouble);
+                var v = spec.SelectFloatValue(r.NextDouble, null);
 
                 Assert.IsTrue(v >= 9.5);
                 Assert.IsTrue(v <= 30.5);
@@ -25,14 +23,14 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         }
 
         [TestMethod]
-        public void AsserThat_SelectIntValue_IsWithinRange()
+        public void AssertThat_SelectIntValue_IsWithinRange()
         {
-            NormallyDistributedValue spec = new NormallyDistributedValue(9.5f, 20, 30.5f, 10, true);
+            UniformlyDistributedValue spec = new UniformlyDistributedValue(9.5f, 30.5f, true);
 
             Random r = new Random();
             for (int i = 0; i < 1000; i++)
             {
-                var v = spec.SelectIntValue(r.NextDouble);
+                var v = spec.SelectIntValue(r.NextDouble, null);
 
                 Assert.IsTrue(v >= 9.5);
                 Assert.IsTrue(v <= 30.5);

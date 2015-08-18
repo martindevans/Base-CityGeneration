@@ -38,7 +38,7 @@ Major:
                     - { X: 0.3, Y: 1 }
 "));
 
-            var c = d.Major(() => 1);
+            var c = d.Major(() => 1, null);
 
             Assert.AreEqual(22.5f, MathHelper.ToDegrees(c.SearchConeAngle), 0.001f);
             Assert.AreEqual(25f, c.MergeDistance);
@@ -75,7 +75,7 @@ Major:
                     - { X: 0.1, Y: 0.45 }
                     - { X: 0.3, Y: 1 }
 "));
-            var c = d.Major(() => 1);
+            var c = d.Major(() => 1, null);
 
             Assert.AreEqual(22.5f, MathHelper.ToDegrees(c.SearchConeAngle), 0.001f);
             Assert.AreEqual(25f, c.MergeDistance);

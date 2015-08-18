@@ -2,12 +2,13 @@
 using System;
 using System.Collections.Generic;
 using EpimetheusPlugins.Scripts;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection
 {
     public interface ISelector
     {
-        IEnumerable<FloorSelection> Select(Func<double> random, Func<string[], ScriptReference> finder);
+        IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder);
     }
 
     public struct FloorSelection

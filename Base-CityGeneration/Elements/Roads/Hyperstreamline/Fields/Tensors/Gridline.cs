@@ -1,6 +1,7 @@
 ﻿using System;
 using Base_CityGeneration.Utilities.Numbers;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 {
@@ -25,9 +26,9 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
             public object Angle { get; set; }
             public float? Length { get; set; }
 
-            public ITensorField Unwrap(Func<double> random)
+            public ITensorField Unwrap(Func<double> random, INamedDataCollection metadata)
             {
-                var angle = BaseValueGeneratorContainer.FromObject(Angle).SelectFloatValue(random);
+                var angle = BaseValueGeneratorContainer.FromObject(Angle).SelectFloatValue(random, metadata);
 
                 return new Gridline(MathHelper.ToRadians(angle), Length ?? 1);
             }

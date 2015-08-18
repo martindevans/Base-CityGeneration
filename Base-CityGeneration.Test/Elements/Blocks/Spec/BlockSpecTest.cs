@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework;
 using System;
 using System.IO;
 using System.Linq;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Test.Elements.Blocks.Spec
 {
@@ -53,7 +54,7 @@ Lots:
         1: [Selection1]
 
     # No constraints. Selection proceeds from top to bottom, so in this case that means no road access
-    - Scripts:
+    - Tags:
         1: [Selection2]
 "));
 
@@ -82,7 +83,7 @@ Lots:
                 new Parcel.Edge { Start = new Vector2(0, -100), End = new Vector2(0, 0), Resources = new [] { "road" } },
             });
 
-            var selected = _spec.SelectLot(p, () => 1, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
+            var selected = _spec.SelectLot(p, () => 1, new NamedBoxCollection(), a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
             Assert.AreEqual("Selection1", selected.Name);
         }
@@ -98,7 +99,7 @@ Lots:
             });
 
             Random r = new Random(1);
-            var parcels = _spec.CreateParcels(root, r.NextDouble);
+            var parcels = _spec.CreateParcels(root, r.NextDouble, new NamedBoxCollection());
 
             //Check that the minimum area spec has not been violated
             Assert.IsTrue(parcels.All(a => a.Area() >= 250));

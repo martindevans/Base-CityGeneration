@@ -33,7 +33,7 @@ namespace Base_CityGeneration.Elements.Generic
         {
             return _parceller.GenerateParcels(new Parcel(footprint, new[] {
                 "road"
-            }), Random).ToArray();
+            }), Random, HierarchicalParameters).ToArray();
         }
 
         protected override IEnumerable<KeyValuePair<Parcel, ISubdivisionContext>> CreateParcelNodes(Parcel[] parcels, float height)

@@ -1,6 +1,7 @@
 ﻿using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 using Myre.Extensions;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
         public float NonOptimalOabbChance { get; set; }
         public float NonOptimalOabbMaxRatio { get; set; }
 
-        public BaseValueGenerator SplitPointGenerator { get; set; }
+        public IValueGenerator SplitPointGenerator { get; set; }
 
         private readonly List<ITerminationRule> _terminators = new List<ITerminationRule>();
 
@@ -31,12 +32,12 @@ namespace Base_CityGeneration.Parcels.Parcelling
             _terminators.Add(rule);
         }
 
-        public IEnumerable<Parcel> GenerateParcels(Parcel root, Func<double> random)
+        public IEnumerable<Parcel> GenerateParcels(Parcel root, Func<double> random, INamedDataCollection metadata)
         {
-            return RecursiveSplit(root, random);
+            return RecursiveSplit(root, random, metadata);
         }
 
-        private IEnumerable<Parcel> RecursiveSplit(Parcel parcel, Func<double> random)
+        private IEnumerable<Parcel> RecursiveSplit(Parcel parcel, Func<double> random, INamedDataCollection metadata)
         {
             //Accumulate chance of termination, checking for any rule which forbods it (i.e. probability zero)
             float accumulator = 0;
@@ -58,27 +59,27 @@ namespace Base_CityGeneration.Parcels.Parcelling
             OABB oabb = FitOabb(parcel, NonOptimalOabbChance, NonOptimalOabbMaxRatio, random);
 
             var splitLine = oabb.SplitDirection();
-            var children = Split(parcel, oabb, splitLine, random).ToArray();
+            var children = Split(parcel, oabb, splitLine, random, metadata).ToArray();
 
             //If any children are discarded try splitting the other way
             // ReSharper disable once AccessToModifiedClosure
             if (_terminators.Any(t => children.Any(c => t.Discard(c, random))))
             {
                 splitLine = splitLine.Perpendicular();
-                children = Split(parcel, oabb, splitLine, random).ToArray();
+                children = Split(parcel, oabb, splitLine, random, metadata).ToArray();
             }
 
             //Either return this parcel because we can't find any valid children, or continue recursive splitting
             if (_terminators.Any(t => children.Any(c => t.Discard(c, random))))
                 return new[] { parcel };
             else
-                return children.SelectMany(a => RecursiveSplit(a, random)).ToArray();
+                return children.SelectMany(a => RecursiveSplit(a, random, metadata)).ToArray();
         }
 
         #region static helpers
-        private IEnumerable<Parcel> Split(Parcel parcel, OABB oabb, Vector2 sliceDirection, Func<double> random)
+        private IEnumerable<Parcel> Split(Parcel parcel, OABB oabb, Vector2 sliceDirection, Func<double> random, INamedDataCollection metadata)
         {
-            var point = oabb.Middle + Math.Max(oabb.Extents.X, oabb.Extents.Y) * sliceDirection.Perpendicular() * SplitPointGenerator.SelectFloatValue(random);
+            var point = oabb.Middle + Math.Max(oabb.Extents.X, oabb.Extents.Y) * sliceDirection.Perpendicular() * SplitPointGenerator.SelectFloatValue(random, metadata);
 
             var slices = parcel.Points().SlicePolygon(new Line2D(point, sliceDirection));
 

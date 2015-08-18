@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Instrumentation;
+using Myre.Collections;
 using HGVector2 = HandyCollections.Geometry.Vector2;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
@@ -62,7 +63,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             _begun = true;
         }
 
-        public void Build(TracingConfiguration config, Func<double> random, Vector2 min, Vector2 max)
+        public void Build(TracingConfiguration config, Func<double> random, INamedDataCollection metadata, Vector2 min, Vector2 max)
         {
             if (!_begun)
             {
@@ -81,13 +82,13 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
             Build(seeds, min, max, config.SeparationField, true, true, config.SegmentLength, config.MergeDistance, config.CosineSearchConeAngle, isOutOfBounds, null, s =>
             {
-                s.Width = config.RoadWidth.SelectIntValue(random);
+                s.Width = config.RoadWidth.SelectIntValue(random, metadata);
 
                 LinearReduction(s);
             });
         }
 
-        public void Build(TracingConfiguration config, Func<double> random, Region region)
+        public void Build(TracingConfiguration config, Func<double> random, INamedDataCollection metadata, Region region)
         {
             var extent = region.Max - region.Min;
             //var eigens = config.TensorField.Presample(new Vector2(region.Min.X, region.Min.Y), new Vector2(region.Max.X, region.Max.Y), (int)Math.Max(extent.X, extent.Y));
@@ -105,7 +106,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                 config.CosineSearchConeAngle,
                 p => !region.PointInPolygon(p), e => e.Streamline.Region == region,
                 s => {
-                    s.Width = config.RoadWidth.SelectIntValue(random);
+                    s.Width = config.RoadWidth.SelectIntValue(random, metadata);
                     s.Region = region;
 
                     LinearReduction(s);

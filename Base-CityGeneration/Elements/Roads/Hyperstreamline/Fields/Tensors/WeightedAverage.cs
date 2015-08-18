@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 {
@@ -32,11 +33,11 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         {
             public FieldContainer Tensors { get; set; }
 
-            public ITensorField Unwrap(Func<double> random)
+            public ITensorField Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 var wa = new WeightedAverage();
                 foreach (var tensorFieldContainer in Tensors)
-                    wa.Blend(tensorFieldContainer.Value.Unwrap(random), tensorFieldContainer.Key);
+                    wa.Blend(tensorFieldContainer.Value.Unwrap(random, metadata), tensorFieldContainer.Key);
                 return wa;
             }
 

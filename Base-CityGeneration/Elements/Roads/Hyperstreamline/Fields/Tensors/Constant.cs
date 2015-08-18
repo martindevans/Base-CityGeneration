@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 {
@@ -23,7 +24,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         {
             public Tensor Value { get; set; }
 
-            public ITensorField Unwrap(Func<double> random)
+            public ITensorField Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 return new Constant(Value);
             }

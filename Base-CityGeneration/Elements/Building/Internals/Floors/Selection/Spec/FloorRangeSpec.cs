@@ -4,6 +4,7 @@ using System.Linq;
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 {
@@ -22,8 +23,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        private readonly BaseValueGenerator _defaultHeightSpec;
-        public BaseValueGenerator DefaultHeight
+        private readonly IValueGenerator _defaultHeightSpec;
+        public IValueGenerator DefaultHeight
         {
             get
             {
@@ -31,7 +32,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        public FloorRangeSpec(FloorRangeIncludeSpec[] includes, BaseValueGenerator defaultHeightSpec)
+        public FloorRangeSpec(FloorRangeIncludeSpec[] includes, IValueGenerator defaultHeightSpec)
         {
             _includes = includes;
             _defaultHeightSpec = defaultHeightSpec;
@@ -40,12 +41,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
                 include.Height = include.Height ?? defaultHeightSpec;
         }
 
-        public IEnumerable<FloorSelection> Select(Func<double> random, Func<string[], ScriptReference> finder)
+        public IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
         {
             List<FloorSelection[]> selected = new List<FloorSelection[]>();
 
             //Includes return an enuemrable of enumerables, inner enumerables are items which must be continuous (i.e. all next to each other)
-            foreach (var selection in _includes.Select(include => include.Select(random, finder).Select(a => a.Where(b => b.Script != null)).ToArray()))
+            foreach (var selection in _includes.Select(include => include.Select(random, metadata, finder).Select(a => a.Where(b => b.Script != null)).ToArray()))
                 selected.AddRange(selection.Select(floorSelection => floorSelection.ToArray()));
 
             //Shuffle the list, then flatten out the sub lists
@@ -63,7 +64,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
             public ISelector Unwrap()
             {
-                BaseValueGenerator defaultHeight = DefaultHeight == null ? new NormallyDistributedValue(2.5f, 3, 3.5f, 0.2f) : BaseValueGeneratorContainer.FromObject(DefaultHeight);
+                IValueGenerator defaultHeight = DefaultHeight == null ? new NormallyDistributedValue(2.5f, 3, 3.5f, 0.2f) : BaseValueGeneratorContainer.FromObject(DefaultHeight);
 
                 return new FloorRangeSpec(Includes.Select(a => a.Unwrap(defaultHeight)).ToArray(), defaultHeight);
             }
@@ -85,8 +86,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        private readonly BaseValueGenerator _count;
-        public BaseValueGenerator Count
+        private readonly IValueGenerator _count;
+        public IValueGenerator Count
         {
             get
             {
@@ -104,9 +105,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         private readonly string _id;
         public string Id { get { return _id; } }
 
-        internal BaseValueGenerator Height;
+        internal IValueGenerator Height;
 
-        public FloorRangeIncludeSpec(string id, BaseValueGenerator count, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags, BaseValueGenerator height)
+        public FloorRangeIncludeSpec(string id, IValueGenerator count, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags, IValueGenerator height)
         {
             Continuous = continuous;
             Height = height;
@@ -117,10 +118,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             _count = count;
         }
 
-        public IEnumerable<IEnumerable<FloorSelection>> Select(Func<double> random, Func<string[], ScriptReference> finder)
+        public IEnumerable<IEnumerable<FloorSelection>> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
         {
             //How many items to emit?
-            int amount = _count.SelectIntValue(random);
+            int amount = _count.SelectIntValue(random, metadata);
 
             //Result to emit
             List<List<FloorSelection>> emit = new List<List<FloorSelection>>();
@@ -129,11 +130,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             Func<FloorSelection?> selectFloor;
             if (Vary)
             {
-                selectFloor = () => FloorSpec.SelectSingle(random, _tags, finder, Height.SelectFloatValue(random), Id);
+                selectFloor = () => FloorSpec.SelectSingle(random, _tags, finder, Height.SelectFloatValue(random, metadata), Id);
             }
             else
             {
-                var node = FloorSpec.SelectSingle(random, _tags, finder, Height.SelectFloatValue(random), Id);
+                var node = FloorSpec.SelectSingle(random, _tags, finder, Height.SelectFloatValue(random, metadata), Id);
                 selectFloor = () => node;
             }
 
@@ -172,7 +173,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
             public string Id { get; set; }
 
-            internal FloorRangeIncludeSpec Unwrap(BaseValueGenerator defaultHeight)
+            internal FloorRangeIncludeSpec Unwrap(IValueGenerator defaultHeight)
             {
                 var count = BaseValueGeneratorContainer.FromObject(Count);
 

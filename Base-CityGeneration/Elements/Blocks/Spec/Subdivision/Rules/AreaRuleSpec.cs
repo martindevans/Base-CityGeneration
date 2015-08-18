@@ -2,28 +2,29 @@
 using Base_CityGeneration.Parcels.Parcelling.Rules;
 using Base_CityGeneration.Utilities.Numbers;
 using System;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
 {
     public class AreaRuleSpec
         : BaseSubdividerRule
     {
-        private readonly BaseValueGenerator _min;
-        private readonly BaseValueGenerator _max;
+        private readonly IValueGenerator _min;
+        private readonly IValueGenerator _max;
 
-        private AreaRuleSpec(BaseValueGenerator min, BaseValueGenerator max, BaseValueGenerator terminationChance)
+        private AreaRuleSpec(IValueGenerator min, IValueGenerator max, IValueGenerator terminationChance)
             : base(terminationChance)
         {
             _min = min;
             _max = max;
         }
 
-        public override ITerminationRule Rule(Func<double> random)
+        public override ITerminationRule Rule(Func<double> random, INamedDataCollection metadata)
         {
             return new AreaRule(
-                _min.SelectFloatValue(random),
-                _max.SelectFloatValue(random),
-                TerminationChance.SelectFloatValue(random)
+                _min.SelectFloatValue(random, metadata),
+                _max.SelectFloatValue(random, metadata),
+                TerminationChance.SelectFloatValue(random, metadata)
             );
         }
 

@@ -1,5 +1,6 @@
 ﻿using Base_CityGeneration.Parcels.Parcelling;
 using System;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Lots.Constraints
 {
@@ -13,15 +14,15 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Lots.Constraints
             _inner = inner;
         }
 
-        public override bool Check(Parcel parcel, Func<double> random)
+        public override bool Check(Parcel parcel, Func<double> random, INamedDataCollection metadata)
         {
-            return !_inner.Check(parcel, random);
+            return !_inner.Check(parcel, random, metadata);
         }
 
         internal class Container
-            : BaseLotConstraint.BaseContainer
+            : BaseContainer
         {
-            public BaseLotConstraint.BaseContainer Inner { get; set; }
+            public BaseContainer Inner { get; set; }
 
             public override BaseLotConstraint Unwrap()
             {

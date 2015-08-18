@@ -1,21 +1,26 @@
 ﻿using System;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Utilities.Numbers
 {
     public class ConstantValue
-        : BaseValueGenerator
+        : IValueGenerator
     {
         private readonly float _value;
 
         public ConstantValue(float value)
-            : base(float.MinValue, float.MaxValue, false)
         {
             _value = value;
         }
 
-        protected override float GenerateFloatValue(Func<double> random)
+        public float SelectFloatValue(Func<double> random, INamedDataCollection data)
         {
             return _value;
+        }
+
+        public int SelectIntValue(Func<double> random, INamedDataCollection data)
+        {
+            return (int)Math.Round(_value);
         }
 
         internal class Container
@@ -23,7 +28,7 @@ namespace Base_CityGeneration.Utilities.Numbers
         {
             public float Value { get; set; }
 
-            protected override BaseValueGenerator UnwrapImpl()
+            protected override IValueGenerator UnwrapImpl()
             {
                 return new ConstantValue(Value);
             }

@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 {
@@ -55,7 +56,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public float MergeDistance { get; set; }
 
-        public BaseValueGenerator RoadWidth { get; set; }
+        public IValueGenerator RoadWidth { get; set; }
 
         public TracingConfiguration()
         {
@@ -82,16 +83,16 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
             public Fields.Tensors.ITensorFieldContainer TensorField { get; set; }
 
-            public TracingConfiguration Unwrap(Func<double> random)
+            public TracingConfiguration Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 return new TracingConfiguration {
-                    SearchConeAngle = MathHelper.ToRadians(BaseValueGeneratorContainer.FromObject(MergeSearchAngle).SelectFloatValue(random)),
-                    MergeDistance = BaseValueGeneratorContainer.FromObject(MergeDistance).SelectFloatValue(random),
-                    SegmentLength = BaseValueGeneratorContainer.FromObject(SegmentLength).SelectFloatValue(random),
+                    SearchConeAngle = MathHelper.ToRadians(BaseValueGeneratorContainer.FromObject(MergeSearchAngle).SelectFloatValue(random, metadata)),
+                    MergeDistance = BaseValueGeneratorContainer.FromObject(MergeDistance).SelectFloatValue(random, metadata),
+                    SegmentLength = BaseValueGeneratorContainer.FromObject(SegmentLength).SelectFloatValue(random, metadata),
                     RoadWidth = BaseValueGeneratorContainer.FromObject(RoadWidth),
                     PriorityField = PriorityField.Unwrap(),
                     SeparationField = SeparationField.Unwrap(),
-                    TensorField = TensorField.Unwrap(random)
+                    TensorField = TensorField.Unwrap(random, metadata)
                 };
             }
         }

@@ -1,13 +1,14 @@
 ﻿using EpimetheusPlugins.Procedural;
 using System;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Utilities.Numbers
 {
     public class NormallyDistributedValue
         : BaseValueGenerator
     {
-        private readonly float _mean;
-        public float Mean
+        private readonly IValueGenerator _mean;
+        public IValueGenerator Mean
         {
             get
             {
@@ -15,8 +16,8 @@ namespace Base_CityGeneration.Utilities.Numbers
             }
         }
 
-        private readonly float _deviation;
-        public float Deviation
+        private readonly IValueGenerator _deviation;
+        public IValueGenerator Deviation
         {
             get
             {
@@ -25,15 +26,27 @@ namespace Base_CityGeneration.Utilities.Numbers
         }
 
         public NormallyDistributedValue(float min, float mean, float max, float deviation, bool vary = false)
+            : base(new ConstantValue(min), new ConstantValue(max), vary)
+        {
+            _mean = new ConstantValue(mean);
+            _deviation = new ConstantValue(deviation);
+        }
+
+        public NormallyDistributedValue(IValueGenerator min, IValueGenerator mean, IValueGenerator max, IValueGenerator deviation, bool vary = false)
             : base(min, max, vary)
         {
             _mean = mean;
             _deviation = deviation;
         }
 
-        protected override float GenerateFloatValue(Func<double> random)
+        protected override float GenerateFloatValue(Func<double> random, INamedDataCollection data)
         {
-            return random.NormallyDistributedSingle(Deviation, Mean, Min, Max);
+            return random.NormallyDistributedSingle(
+                Deviation.SelectFloatValue(random, data),
+                Mean.SelectFloatValue(random, data),
+                Min.SelectFloatValue(random, data),
+                Max.SelectFloatValue(random, data)
+            );
         }
 
         internal class Container
@@ -45,7 +58,7 @@ namespace Base_CityGeneration.Utilities.Numbers
             public float? Deviation { get; set; }
             public bool Vary { get; set; }
 
-            protected override BaseValueGenerator UnwrapImpl()
+            protected override IValueGenerator UnwrapImpl()
             {
 
                 var mean = Mean.HasValue ? Mean.Value : MeanCalc(Min, Max);

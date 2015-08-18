@@ -1,23 +1,28 @@
 ﻿using System;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Utilities.Numbers
 {
     public class WrapperBaseValue
-        : BaseValueGenerator
+        : IValueGenerator
     {
-        private readonly BaseValueGenerator _basis;
+        private readonly IValueGenerator _basis;
         private readonly Func<float, float> _transform;
 
-        public WrapperBaseValue(BaseValueGenerator basis, Func<float, float> transform)
-            : base(float.MinValue, float.MaxValue, true)
+        public WrapperBaseValue(IValueGenerator basis, Func<float, float> transform)
         {
             _basis = basis;
             _transform = transform;
         }
 
-        protected override float GenerateFloatValue(Func<double> random)
+        public float SelectFloatValue(Func<double> random, INamedDataCollection data)
         {
-            return _transform(_basis.SelectFloatValue(random));
+            return _transform(_basis.SelectFloatValue(random, data));
+        }
+
+        public int SelectIntValue(Func<double> random, INamedDataCollection data)
+        {
+            return (int)Math.Round(_transform(_basis.SelectIntValue(random, data)));
         }
     }
 }

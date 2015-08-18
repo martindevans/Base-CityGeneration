@@ -1,5 +1,6 @@
 ﻿using System;
 using Base_CityGeneration.Parcels.Parcelling;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Lots.Constraints
 {
@@ -13,7 +14,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Lots.Constraints
             _type = type;
         }
 
-        public override bool Check(Parcel parcel, Func<double> random)
+        public override bool Check(Parcel parcel, Func<double> random, INamedDataCollection metadata)
         {
             return parcel.HasAccess(_type);
         }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Base-CityGeneration", "Base-CityGeneration\Base-CityGeneration.csproj", "{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}"
 EndProject
@@ -30,14 +30,14 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Release|x86.ActiveCfg = Release|Any CPU
-		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Release|x86.Build.0 = Release|Any CPU
+		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Release|x86.ActiveCfg = Release|x86
+		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Release|x86.Build.0 = Release|x86
 		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Release|x86.ActiveCfg = Release|Any CPU
-		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Release|x86.Build.0 = Release|Any CPU
+		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Release|x86.ActiveCfg = Release|x86
+		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Release|x86.Build.0 = Release|x86
 		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Release|x86.ActiveCfg = Release|Any CPU
-		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Release|x86.Build.0 = Release|Any CPU
+		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Release|x86.ActiveCfg = Release|x86
+		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
