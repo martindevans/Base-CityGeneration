@@ -1,5 +1,4 @@
 ﻿using Base_CityGeneration.Styles;
-using Microsoft.Xna.Framework;
 using Myre;
 using Myre.Collections;
 using System;
