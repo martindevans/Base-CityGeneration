@@ -10,12 +10,12 @@ namespace Base_CityGeneration.Styles
         /// <summary>
         /// The minimum maximum height of a building
         /// </summary>
-        public static readonly TypedNameDefault<float> MinimumMaximumBuildingHeightName = new TypedNameDefault<float>("ceiling_height_min", 2.1f);
+        public static readonly TypedNameDefault<float> MinimumMaximumBuildingHeightName = new TypedNameDefault<float>("building_height_max_min", 2.1f);
 
         /// <summary>
         /// The maximum maximum height of a building
         /// </summary>
-        public static readonly TypedNameDefault<float> MaximumMaximumBuildingHeightName = new TypedNameDefault<float>("ceiling_height_max", 3.5f);
+        public static readonly TypedNameDefault<float> MaximumMaximumBuildingHeightName = new TypedNameDefault<float>("building_height_max_max", 3.5f);
 
         /// <summary>
         /// The maximum height of a building
