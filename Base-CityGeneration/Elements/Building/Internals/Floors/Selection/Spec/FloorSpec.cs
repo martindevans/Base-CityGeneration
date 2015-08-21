@@ -75,6 +75,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
             public object Height { get; set; }
 
+            public FacadeSpec[] Facades { get; set; }
+
             public ISelector Unwrap()
             {
                 IValueGenerator height = Height == null ? new NormallyDistributedValue(2.5f, 3f, 3.5f, 0.2f) : BaseValueGeneratorContainer.FromObject(Height);

@@ -1,10 +1,9 @@
 ﻿using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection;
-using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Ref;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Selection.Spec.Ref
+namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Selection.Spec.Ref
 {
     [TestClass]
     public class IdRefTest
@@ -30,7 +29,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         [TestMethod]
         public void AssertThat_IdRef_FindsFloorWithGivenId_SearchingUpFromNull()
         {
-            IdRef i = new IdRef("d", SearchDirection.Up, VerticalElementCreationOptions.All);
+            IdRef i = new IdRef("d", SearchDirection.Up, RefFilter.All, false);
 
             var matches = i.Match(2, _floors, null);
 
@@ -41,7 +40,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         [TestMethod]
         public void AssertThat_IdRef_FindsFloorWithGivenId_SearchingDownFromNull()
         {
-            IdRef i = new IdRef("d", SearchDirection.Down, VerticalElementCreationOptions.All);
+            IdRef i = new IdRef("d", SearchDirection.Down, RefFilter.All, false);
 
             var matches = i.Match(2, _floors, null);
 
@@ -52,7 +51,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         [TestMethod]
         public void AssertThat_IdRef_FindsFloorWithGivenId_SearchingDownFromFloorAbove()
         {
-            IdRef i = new IdRef("d", SearchDirection.Down, VerticalElementCreationOptions.All);
+            IdRef i = new IdRef("d", SearchDirection.Down, RefFilter.All, false);
 
             var matches = i.Match(2, _floors, 0);
 
@@ -63,7 +62,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         [TestMethod]
         public void AssertThat_IdRef_FindsNothing_SearchingDownFromFloorBelow()
         {
-            IdRef i = new IdRef("d", SearchDirection.Down, VerticalElementCreationOptions.All);
+            IdRef i = new IdRef("d", SearchDirection.Down, RefFilter.All, false);
 
             var matches = i.Match(2, _floors, 7);
 
@@ -71,9 +70,19 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         }
 
         [TestMethod]
+        public void AssertThat_IdRef_FindsSingleMatch_SearchingDownFromFloorWithSameIdAsSearchId()
+        {
+            IdRef i = new IdRef("u", SearchDirection.Down, RefFilter.All, false);
+
+            var matches = i.Match(2, _floors, 13);
+
+            Assert.AreEqual(2, matches.Count());
+        }
+
+        [TestMethod]
         public void AssertThat_IdRef_FindsFloorWithGivenId_SearchingUpFromFloorBelow()
         {
-            IdRef i = new IdRef("d", SearchDirection.Up, VerticalElementCreationOptions.All);
+            IdRef i = new IdRef("d", SearchDirection.Up, RefFilter.All, false);
 
             var matches = i.Match(2, _floors, 10);
 
@@ -84,7 +93,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         [TestMethod]
         public void AssertThat_IdRef_FindsFloorWithGivenId_SearchingUpFromFloorAbove()
         {
-            IdRef i = new IdRef("d", SearchDirection.Up, VerticalElementCreationOptions.All);
+            IdRef i = new IdRef("d", SearchDirection.Up, RefFilter.All, false);
 
             var matches = i.Match(2, _floors, 4);
 
@@ -94,7 +103,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         [TestMethod]
         public void AssertThat_IdRef_FindsLowestFloorFirst_SearchingUp()
         {
-            IdRef i = new IdRef("a", SearchDirection.Up, VerticalElementCreationOptions.All);
+            IdRef i = new IdRef("a", SearchDirection.Up, RefFilter.All, false);
 
             var matches = i.Match(2, _floors, 12).ToArray();
 
@@ -107,7 +116,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Sel
         [TestMethod]
         public void AssertThat_IdRef_FindsHightestFloorFirst_SearchingDown()
         {
-            IdRef i = new IdRef("g", SearchDirection.Down, VerticalElementCreationOptions.All);
+            IdRef i = new IdRef("g", SearchDirection.Down, RefFilter.All, false);
 
             var matches = i.Match(2, _floors, 0).ToArray();
 

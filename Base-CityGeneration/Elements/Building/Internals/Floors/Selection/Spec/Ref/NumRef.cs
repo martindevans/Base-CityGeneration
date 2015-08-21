@@ -4,18 +4,17 @@ using System.Collections.Generic;
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Ref
 {
     public class NumRef
-        : IRef
+        : BaseRef
     {
         public int Number { get; private set; }
-        public VerticalElementCreationOptions Filter { get; private set; }
 
-        public NumRef(int number, VerticalElementCreationOptions filter)
+        public NumRef(int number, RefFilter filter, bool nonOverlapping)
+            : base(filter, nonOverlapping)
         {
             Number = number;
-            Filter = filter;
         }
 
-        public IEnumerable<FloorSelection> Match(int basements, FloorSelection[] floors, int? startIndex)
+        protected override IEnumerable<FloorSelection> MatchImpl(int basements, FloorSelection[] floors, int? startIndex)
         {
             //floors are top to bottom, so we need to convert the floor index
             int index = floors.Length - 1 - basements - Number;
@@ -29,18 +28,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.
         }
 
         internal class Container
-            : IRefContainer
+            : BaseContainer
         {
             public int N { get; set; }
 
-            public VerticalElementCreationOptions? Filter { get; set; }
+            private BaseRef _cached;
 
-            private IRef _cached;
-
-            public IRef Unwrap()
+            public override BaseRef Unwrap()
             {
                 if (_cached == null)
-                    _cached = new NumRef(N, Filter ?? VerticalElementCreationOptions.All);
+                    _cached = new NumRef(N, Filter ?? RefFilter.All, NonOverlapping);
                 return _cached;
             }
         }

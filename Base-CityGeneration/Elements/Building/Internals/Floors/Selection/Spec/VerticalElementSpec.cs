@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Ref;
+﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Ref;
 using Base_CityGeneration.Utilities;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 {
@@ -19,10 +19,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             }
         }
 
-        public IRef BottomFloor { get; private set; }
-        public IRef TopFloor { get; private set; }
+        public BaseRef BottomFloor { get; private set; }
+        public BaseRef TopFloor { get; private set; }
         
-        public VerticalElementSpec(KeyValuePair<float, string[]>[] tags, IRef bottomFloor, IRef topFloor)
+        public VerticalElementSpec(KeyValuePair<float, string[]>[] tags, BaseRef bottomFloor, BaseRef topFloor)
         {
             _tags = tags;
             TopFloor = topFloor;
@@ -31,14 +31,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
 
         public IEnumerable<VerticalSelection> Select(Func<double> random, Func<string[], ScriptReference> finder, int basements, FloorSelection[] floors)
         {
-            var bot = BottomFloor.Match(basements, floors);
-
-            var zipped = FilterByCreationMode(bot.SelectMany(a =>
-                FilterByCreationMode(TopFloor
-                    .Match(basements, floors, Array.IndexOf(floors, a))
-                    .Select(b => new KeyValuePair<FloorSelection, FloorSelection>(a, b))
-                    .Where(b => b.Key.Index != b.Value.Index), TopFloor.Filter)
-            ), BottomFloor.Filter);
+            var bot = BottomFloor.Match(basements, floors, null);
+            var zipped = TopFloor.MatchFrom(basements, floors, BottomFloor, bot);
 
             List<VerticalSelection> output = new List<VerticalSelection>();
             foreach (var vertical in zipped)
@@ -53,25 +47,25 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
             return output;
         }
 
-        private IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> FilterByCreationMode(IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> zipped, VerticalElementCreationOptions option)
+        private IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> FilterByCreationMode(IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> zipped, RefFilter option)
         {
             switch (option)
             {
-                case VerticalElementCreationOptions.All:
+                case RefFilter.All:
                     return zipped;
-                case VerticalElementCreationOptions.First:
+                case RefFilter.First:
                     return zipped.Take(1);
-                case VerticalElementCreationOptions.Last:
+                case RefFilter.Last:
                     return zipped.Reverse().Take(1).ToArray();
-                case VerticalElementCreationOptions.Shortest:
+                case RefFilter.Shortest:
                     throw new NotImplementedException();
-                case VerticalElementCreationOptions.Longest:
+                case RefFilter.Longest:
                     throw new NotImplementedException();
-                case VerticalElementCreationOptions.SingleOrNone:
+                case RefFilter.SingleOrNone:
                     if (zipped.Skip(1).Any())
                         return new KeyValuePair<FloorSelection, FloorSelection>[0];
                     return zipped.Take(1);
-                case VerticalElementCreationOptions.SingleOrFail:
+                case RefFilter.SingleOrFail:
                     throw new NotImplementedException();
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -82,8 +76,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
         {
             public TagContainer Tags { get; set; }
 
-            public IRefContainer Bottom { get; set; }
-            public IRefContainer Top { get; set; }
+            public BaseRef.BaseContainer Bottom { get; set; }
+            public BaseRef.BaseContainer Top { get; set; }
 
             public VerticalElementSpec Unwrap()
             {
@@ -94,43 +88,5 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec
                 );
             }
         }
-    }
-
-    public enum VerticalElementCreationOptions
-    {
-        /// <summary>
-        /// When there are multiple choices, take them all
-        /// </summary>
-        All,
-
-        /// <summary>
-        /// Take the first created element
-        /// </summary>
-        First,
-
-        /// <summary>
-        /// Take the last created element
-        /// </summary>
-        Last,
-
-        /// <summary>
-        /// Take the shortest element
-        /// </summary>
-        Shortest,
-
-        /// <summary>
-        /// Take the longest element
-        /// </summary>
-        Longest,
-
-        /// <summary>
-        /// If only one option was generated, take that. Otherwise take none
-        /// </summary>
-        SingleOrNone,
-
-        /// <summary>
-        /// If only one option was generated, take that. Otherwise take fail (cancel entire building)
-        /// </summary>
-        SingleOrFail,
     }
 }

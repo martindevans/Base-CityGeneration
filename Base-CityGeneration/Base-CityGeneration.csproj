@@ -222,6 +222,8 @@
     <Compile Include="Elements\Building\Facades\SubsectionFacade.cs" />
     <Compile Include="Elements\Building\IBuilding.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\SelectionFailedException.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FacadeConstraints\BaseFacadeConstraint.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FacadeSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FloorRangeSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\FloorSelector.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\ISelector.cs" />
@@ -229,7 +231,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Markers\GroundMarker.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\FloorSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\IdRef.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\IRef.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\BaseRef.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\NumRef.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\SearchDirection.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Selection\Spec\Ref\TaggedRef.cs" />

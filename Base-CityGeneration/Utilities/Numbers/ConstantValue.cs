@@ -4,7 +4,7 @@ using Myre.Collections;
 namespace Base_CityGeneration.Utilities.Numbers
 {
     public class ConstantValue
-        : IValueGenerator
+        : IValueGenerator, IEquatable<ConstantValue>
     {
         private readonly float _value;
 
@@ -32,6 +32,27 @@ namespace Base_CityGeneration.Utilities.Numbers
             {
                 return new ConstantValue(Value);
             }
+        }
+
+        public override int GetHashCode()
+        {
+            return _value.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is ConstantValue)
+                return Equals(obj as ConstantValue);
+
+            return ReferenceEquals(this, obj);
+        }
+
+        public bool Equals(ConstantValue other)
+        {
+            if (other == null)
+                return false;
+
+            return other._value.Equals(_value);
         }
     }
 }

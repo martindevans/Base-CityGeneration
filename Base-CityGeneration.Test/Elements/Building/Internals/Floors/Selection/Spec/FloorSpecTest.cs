@@ -1,7 +1,5 @@
 ﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec;
-using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
-using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
