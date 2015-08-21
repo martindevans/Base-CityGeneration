@@ -4,37 +4,37 @@ using System.Linq;
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Ref
 {
     public class TaggedRef
-        : IRef
+        : BaseRef
     {
         private readonly string[] _tags;
         public IEnumerable<string> Tags { get { return _tags; } }
 
-        public VerticalElementCreationOptions Filter { get; private set; }
+        private readonly RefFilter _filter;
 
-        private TaggedRef(string[] tags, VerticalElementCreationOptions filter)
+        public TaggedRef(string[] tags, RefFilter filter, bool nonOverlapping)
+            : base(filter, nonOverlapping)
         {
-            Filter = filter;
             _tags = tags;
+            _filter = filter;
         }
 
-        public IEnumerable<FloorSelection> Match(int basements, FloorSelection[] floors, int? startIndex)
+        protected override IEnumerable<FloorSelection> MatchImpl(int basements, FloorSelection[] floors, int? startIndex)
         {
             //If (TagsWeWant - TagsFloorHas) is empty then obviously the floor has all the tags we want
             return floors.Where(a => !_tags.Except(a.Tags).Any());
         }
 
         internal class Container
-            : IRefContainer
+            : BaseContainer
         {
             public string[] Tags { get; set; }
-            public VerticalElementCreationOptions? Filter { get; set; }
 
-            private IRef _cached;
+            private BaseRef _cached;
 
-            public IRef Unwrap()
+            public override BaseRef Unwrap()
             {
                 if (_cached == null)
-                    _cached = new TaggedRef(Tags, Filter ?? VerticalElementCreationOptions.All);
+                    _cached = new TaggedRef(Tags, Filter ?? RefFilter.All, NonOverlapping);
                 return _cached;
             }
         }
