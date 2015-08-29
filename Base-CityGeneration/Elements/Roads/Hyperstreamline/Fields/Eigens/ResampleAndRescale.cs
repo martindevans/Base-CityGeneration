@@ -2,7 +2,9 @@
 using System.Threading.Tasks;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors;
-using Microsoft.Xna.Framework;
+using System.Numerics;
+
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens
 {

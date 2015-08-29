@@ -3,7 +3,7 @@ using Base_CityGeneration.Parcels.Parcelling;
 using Base_CityGeneration.Parcels.Parcelling.Rules;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre.Collections;
 using System.Collections.Generic;
 using System.Linq;

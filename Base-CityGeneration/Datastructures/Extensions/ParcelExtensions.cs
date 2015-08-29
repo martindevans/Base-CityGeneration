@@ -1,7 +1,7 @@
 ﻿using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Parcels.Parcelling;
 using EpimetheusPlugins.Procedural.Utilities;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;

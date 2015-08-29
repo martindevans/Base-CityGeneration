@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Xml.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 
 namespace Base_CityGeneration.TestHelpers
 {

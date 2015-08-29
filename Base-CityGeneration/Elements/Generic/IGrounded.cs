@@ -1,5 +1,5 @@
 ﻿using EpimetheusPlugins.Procedural;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using System.Collections.ObjectModel;
 
 namespace Base_CityGeneration.Elements.Generic
@@ -33,7 +33,7 @@ namespace Base_CityGeneration.Elements.Generic
         {
             var offset = GroundOffset(grounded, height) + yOffset;
 
-            var prism = geometry.CreatePrism(material, footprint, height).Transform(Matrix.CreateTranslation(0, offset, 0));
+            var prism = geometry.CreatePrism(material, footprint, height).Transform(Matrix4x4.CreateTranslation(0, offset, 0));
             geometry.Union(prism);
         }
     }

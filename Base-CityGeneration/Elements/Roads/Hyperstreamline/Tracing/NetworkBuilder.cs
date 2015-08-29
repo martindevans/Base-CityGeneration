@@ -1,4 +1,5 @@
-﻿using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
+﻿using System.Numerics;
+using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors;
 using EpimetheusPlugins.Procedural.Utilities;
@@ -9,8 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management.Instrumentation;
 using Myre.Collections;
-using HGVector2 = HandyCollections.Geometry.Vector2;
-using Vector2 = Microsoft.Xna.Framework.Vector2;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 {
@@ -57,8 +57,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             _min = min;
             _max = max;
 
-            _vertices = new Quadtree<Vertex>(new BoundingRectangle(new HGVector2(min.X, min.Y), new HGVector2(max.X, max.Y)), 63);
-            _edges = new Quadtree<Edge>(new BoundingRectangle(new HGVector2(min.X, min.Y), new HGVector2(max.X, max.Y)), 31);
+            _vertices = new Quadtree<Vertex>(new BoundingRectangle(new Vector2(min.X, min.Y), new Vector2(max.X, max.Y)), 63);
+            _edges = new Quadtree<Edge>(new BoundingRectangle(new Vector2(min.X, min.Y), new Vector2(max.X, max.Y)), 31);
 
             _begun = true;
         }
@@ -386,8 +386,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                 return false;
 
             _edges.Insert(new BoundingRectangle(
-                new HGVector2(Math.Min(e.A.Position.X, e.B.Position.X), Math.Min(e.A.Position.Y, e.B.Position.Y)),
-                new HGVector2(Math.Max(e.A.Position.X, e.B.Position.X), Math.Max(e.A.Position.Y, e.B.Position.Y))
+                new Vector2(Math.Min(e.A.Position.X, e.B.Position.X), Math.Min(e.A.Position.Y, e.B.Position.Y)),
+                new Vector2(Math.Max(e.A.Position.X, e.B.Position.X), Math.Max(e.A.Position.Y, e.B.Position.Y))
             ), e);
 
             return true;
@@ -403,16 +403,16 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         {
             return _vertices.Intersects(
                 new BoundingRectangle(
-                    new HandyCollections.Geometry.Vector2(position.X - radius, position.Y - radius),
-                    new HandyCollections.Geometry.Vector2(position.X + radius, position.Y + radius)
+                    new Vector2(position.X - radius, position.Y - radius),
+                    new Vector2(position.X + radius, position.Y + radius)
                 )
             ).SelectMany(v => v.Edges).Distinct();
         }
 
         private Edge FindIntersectingEdge(Vector2 a, Vector2 b, out Vector2 intersectPosition)
         {
-            var min = new HGVector2(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y));
-            var max = new HGVector2(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
+            var min = new Vector2(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y));
+            var max = new Vector2(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
 
             var candidates = _edges.Intersects(new BoundingRectangle(min, max));
 
@@ -456,8 +456,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             //Create bounding rectangle (with 1 padding in either direction)
             var a = e.A.Position;
             var b = e.B.Position;
-            var min = new HGVector2(Math.Min(a.X, b.X) - 1, Math.Min(a.Y, b.Y) - 1);
-            var max = new HGVector2(Math.Max(a.X, b.X) + 1, Math.Max(a.Y, b.Y) + 1);
+            var min = new Vector2(Math.Min(a.X, b.X) - 1, Math.Min(a.Y, b.Y) - 1);
+            var max = new Vector2(Math.Max(a.X, b.X) + 1, Math.Max(a.Y, b.Y) + 1);
 
             //Remove from quadtree index
             if (!_edges.Remove(new BoundingRectangle(min, max), e))
@@ -474,7 +474,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         private Vertex FindVertex(Vector2 position, Vector2 direction, float radius, float cosineSearchAngle, Vertex skip)
         {
-            var candidates = _vertices.Intersects(new BoundingRectangle(new HandyCollections.Geometry.Vector2(position.X - radius, position.Y - radius), new HandyCollections.Geometry.Vector2(position.X + radius, position.Y + radius)));
+            var candidates = _vertices.Intersects(new BoundingRectangle(new Vector2(position.X - radius, position.Y - radius), new Vector2(position.X + radius, position.Y + radius)));
 
             Vertex closest = null;
             var closestDistanceSqr = float.MaxValue;
@@ -512,8 +512,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         private Vertex CreateVertex(Vector2 position)
         {
             var overlaps = _vertices.ContainedBy(new BoundingRectangle(
-                new HandyCollections.Geometry.Vector2(position.X - 1, position.Y - 1),
-                new HandyCollections.Geometry.Vector2(position.X + 1, position.Y + 1)
+                new Vector2(position.X - 1, position.Y - 1),
+                new Vector2(position.X + 1, position.Y + 1)
             ));
             if (overlaps.Any(a => a.Position == position))
                 throw new InvalidOperationException();
@@ -522,8 +522,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
             _vertices.Insert(
                 new BoundingRectangle(
-                    new HandyCollections.Geometry.Vector2(position.X, position.Y),
-                    new HandyCollections.Geometry.Vector2(position.X, position.Y)
+                    new Vector2(position.X, position.Y),
+                    new Vector2(position.X, position.Y)
                 ),
                 vertex
             );
@@ -536,7 +536,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             if (v.EdgeCount != 0)
                 throw new InvalidOperationException("Cannot delete vertex with attached edges");
 
-            var pos = new HGVector2(v.Position.X, v.Position.Y);
+            var pos = new Vector2(v.Position.X, v.Position.Y);
             return _vertices.Remove(new BoundingRectangle(pos, pos), v);
         }
         #endregion
@@ -627,8 +627,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         {
             return _vertices.Intersects(
                 new BoundingRectangle(
-                    new HandyCollections.Geometry.Vector2(float.MinValue),
-                    new HandyCollections.Geometry.Vector2(float.MaxValue)
+                    new Vector2(float.MinValue),
+                    new Vector2(float.MaxValue)
                 )
             ).Where(a => a.EdgeCount > 0);
         }

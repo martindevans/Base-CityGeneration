@@ -5,12 +5,15 @@ using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre.Collections;
 using Myre.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SwizzleMyVectors;
+
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Roads
 {

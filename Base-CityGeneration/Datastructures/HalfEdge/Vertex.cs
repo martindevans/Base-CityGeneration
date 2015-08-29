@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Placeholder.AI.Pathfinding.Graph;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge

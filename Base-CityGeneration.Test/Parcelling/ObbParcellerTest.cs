@@ -3,7 +3,7 @@ using Base_CityGeneration.Parcels.Parcelling.Rules;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using System;
 using System.Linq;
 

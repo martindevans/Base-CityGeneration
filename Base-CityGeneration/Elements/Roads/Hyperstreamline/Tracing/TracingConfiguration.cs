@@ -1,8 +1,10 @@
 ﻿using Base_CityGeneration.Utilities.Numbers;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using System;
 using System.Collections.Generic;
 using Myre.Collections;
+
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 {

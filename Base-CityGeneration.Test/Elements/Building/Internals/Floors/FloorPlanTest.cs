@@ -11,9 +11,10 @@ using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre.Collections;
 using Myre.Extensions;
+using SwizzleMyVectors;
 using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
 namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors

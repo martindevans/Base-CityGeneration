@@ -1,6 +1,7 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
 using Myre.Collections;
+
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Utilities.Numbers
 {

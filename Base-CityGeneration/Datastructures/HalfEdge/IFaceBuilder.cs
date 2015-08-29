@@ -1,5 +1,5 @@
 ﻿using System.Collections.ObjectModel;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {

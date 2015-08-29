@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Myre.Extensions;
+using System.Numerics;
+using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Datastructures
 {

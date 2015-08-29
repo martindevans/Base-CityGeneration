@@ -7,7 +7,7 @@ using Base_CityGeneration.Elements.Roads;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Test.Elements.Roads.Hyperstreamline

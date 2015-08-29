@@ -3,7 +3,7 @@ using System.Linq;
 using Base_CityGeneration.Elements.Generic;
 using Base_CityGeneration.Parcels.Parcelling;
 using EpimetheusPlugins.Procedural;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks

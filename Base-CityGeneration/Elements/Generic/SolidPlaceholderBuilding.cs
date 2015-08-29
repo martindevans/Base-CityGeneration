@@ -2,7 +2,7 @@
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre.Collections;
 using System;
 
@@ -27,7 +27,7 @@ namespace Base_CityGeneration.Elements.Generic
             var height = (float)Math.Min(bounds.Height, Math.Sqrt(Math.Abs(bounds.Footprint.Area())) * (Random() + 0.5));
             var material = hierarchicalParameters.DefaultMaterial(Random);
 
-            var prism = geometry.CreatePrism(material, bounds.Footprint, height).Transform(Matrix.CreateTranslation(0, height / 2f - bounds.Height / 2f + GroundHeight, 0));
+            var prism = geometry.CreatePrism(material, bounds.Footprint, height).Transform(Matrix4x4.CreateTranslation(0, height / 2f - bounds.Height / 2f + GroundHeight, 0));
             geometry.Union(prism);
         }
     }

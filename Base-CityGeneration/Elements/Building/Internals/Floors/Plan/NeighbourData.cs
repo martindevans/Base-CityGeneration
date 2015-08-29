@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using EpimetheusPlugins.Procedural.Utilities;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre.Extensions;
+using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 {

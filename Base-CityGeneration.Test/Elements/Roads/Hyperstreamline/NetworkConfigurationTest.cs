@@ -2,8 +2,10 @@
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
 using Base_CityGeneration.Utilities.Numbers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using System.IO;
+
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Test.Elements.Roads.Hyperstreamline
 {

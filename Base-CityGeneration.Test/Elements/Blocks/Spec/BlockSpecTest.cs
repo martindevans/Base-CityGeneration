@@ -5,7 +5,7 @@ using Base_CityGeneration.Parcels.Parcelling;
 using Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Selection;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using System;
 using System.IO;
 using System.Linq;

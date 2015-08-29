@@ -9,13 +9,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.
         private readonly string[] _tags;
         public IEnumerable<string> Tags { get { return _tags; } }
 
-        private readonly RefFilter _filter;
-
         public TaggedRef(string[] tags, RefFilter filter, bool nonOverlapping)
             : base(filter, nonOverlapping)
         {
             _tags = tags;
-            _filter = filter;
         }
 
         protected override IEnumerable<FloorSelection> MatchImpl(int basements, FloorSelection[] floors, int? startIndex)

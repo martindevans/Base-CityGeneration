@@ -9,7 +9,7 @@ using Base_CityGeneration.Elements.Generic;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre;
 using Myre.Collections;
 using Myre.Extensions;
@@ -93,7 +93,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                 //Transform overlap into coordinate frame of floor
                 var points = overlap.Bounds.Footprint.ToArray();
                 var w = overlap.WorldTransformation * InverseWorldTransformation;
-                Vector2.Transform(points, ref w, points);
+                for (int i = 0; i < points.Length; i++)
+                    points[i] = Vector2.Transform(points[i], w);
 
                 //Create a room using the identity script (todo: change using identity script for vertical features?)
                 var r = Plan.AddRoom(points, 0.1f, new[] { new ScriptReference(typeof(IdentityScript)) }).Single();

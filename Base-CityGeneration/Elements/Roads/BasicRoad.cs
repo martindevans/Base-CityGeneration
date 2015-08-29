@@ -8,9 +8,10 @@ using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre.Collections;
 using Myre.Extensions;
+using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Elements.Roads
 {
