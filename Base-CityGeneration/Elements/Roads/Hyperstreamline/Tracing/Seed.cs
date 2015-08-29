@@ -1,5 +1,5 @@
 ﻿using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 {

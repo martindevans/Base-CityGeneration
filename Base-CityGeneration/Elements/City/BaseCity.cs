@@ -8,7 +8,7 @@ using Base_CityGeneration.Elements.Roads;
 using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.City

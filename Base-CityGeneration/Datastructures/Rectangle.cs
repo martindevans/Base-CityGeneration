@@ -1,7 +1,7 @@
 ﻿
 using System;
 using JetBrains.Annotations;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 
 namespace Base_CityGeneration.Datastructures
 {

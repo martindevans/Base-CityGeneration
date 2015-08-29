@@ -1,10 +1,10 @@
-﻿using Base_CityGeneration.Datastructures;
+﻿using System.Numerics;
+using Base_CityGeneration.Datastructures;
 using Myre.Collections;
-using Myre.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Vector2 = Microsoft.Xna.Framework.Vector2;
+using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Parcels.Parcelling
 {

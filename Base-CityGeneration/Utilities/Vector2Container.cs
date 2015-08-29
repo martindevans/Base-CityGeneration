@@ -1,5 +1,5 @@
 ﻿using Base_CityGeneration.Utilities.Numbers;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using System;
 using Myre.Collections;
 

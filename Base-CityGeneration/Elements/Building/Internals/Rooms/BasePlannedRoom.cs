@@ -5,9 +5,11 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre;
 using Myre.Collections;
+
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Rooms
 {

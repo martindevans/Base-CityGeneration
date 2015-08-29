@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Numerics;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
-using Microsoft.Xna.Framework;
 using Myre;
 using Myre.Collections;
 using Myre.Extensions;

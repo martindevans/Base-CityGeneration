@@ -1,7 +1,8 @@
-﻿using Microsoft.Xna.Framework;
-using Myre;
+﻿using Myre;
 using Myre.Collections;
 using System;
+
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Styles
 {

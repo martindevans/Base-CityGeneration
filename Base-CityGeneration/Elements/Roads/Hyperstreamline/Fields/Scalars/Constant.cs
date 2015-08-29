@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Numerics;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars
 {

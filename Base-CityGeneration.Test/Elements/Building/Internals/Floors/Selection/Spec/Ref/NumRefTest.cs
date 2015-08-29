@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Base_CityGeneration.Elements.Building.Internals.Floors.Selection;
+﻿using Base_CityGeneration.Elements.Building.Internals.Floors.Selection;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Selection.Spec.Ref;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 
 namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Selection.Spec.Ref
 {

@@ -2,7 +2,7 @@
 using System.Collections.ObjectModel;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Procedural.Utilities;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using System.Linq;
 using Myre.Extensions;
 

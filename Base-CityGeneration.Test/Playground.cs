@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 
 namespace Base_CityGeneration.Test
 {

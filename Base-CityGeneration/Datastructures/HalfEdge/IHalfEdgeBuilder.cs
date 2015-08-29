@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using EpimetheusPlugins.Procedural.Utilities;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {

@@ -5,7 +5,9 @@ using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
-using Microsoft.Xna.Framework;
+using System.Numerics;
+
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 {

@@ -5,10 +5,13 @@ using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Services.CSG;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre;
 using Myre.Collections;
 using Myre.Extensions;
+using SwizzleMyVectors;
+
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Building.Facades
 {
@@ -71,10 +74,17 @@ namespace Base_CityGeneration.Elements.Building.Facades
             if (Math.Abs(thickness - 0) < float.Epsilon)
                 return null;
 
+            //new Matrix4x4 { Forward = new Vector3(vOut.X, 0, vOut.Y), Left = new Vector3(vLeft.X, 0, vLeft.Y), Up = Vector3.Up, M44 = 1 };
+            var basis = Matrix4x4.Identity;
+            basis = basis.Forward(new Vector3(vOut.X, 0, vOut.Y));
+            basis = basis.Left(new Vector3(vLeft.X, 0, vLeft.Y));
+            basis = basis.Up(Vector3.UnitY);
+            basis.M44 = 1;
+
             //Calculate transform from prism lying flat in plane to vertically aligned in plane of facade
-            var transform = Matrix.CreateTranslation(0, -(section.Thickness - thickness) / 2 + stamp.StartDepth * section.Thickness, 0) *
-                            Matrix.CreateRotationX(-MathHelper.PiOver2) *
-                            new Matrix { Forward = new Vector3(vOut.X, 0, vOut.Y), Left = new Vector3(vLeft.X, 0, vLeft.Y), Up = Vector3.Up, M44 = 1 };
+            var transform = Matrix4x4.CreateTranslation(0, -(section.Thickness - thickness) / 2 + stamp.StartDepth * section.Thickness, 0) *
+                            Matrix4x4.CreateRotationX(-MathHelper.PiOver2) *
+                            basis;
 
             //create brush
             return geometry.CreatePrism(material, stamp.Shape, Math.Abs(thickness)).Transform(transform);

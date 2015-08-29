@@ -1,12 +1,13 @@
 ﻿using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural.Utilities;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Elements.Roads
 {

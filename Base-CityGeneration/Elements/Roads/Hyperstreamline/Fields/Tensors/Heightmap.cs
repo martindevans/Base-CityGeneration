@@ -1,7 +1,9 @@
 ﻿using System;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors;
-using Microsoft.Xna.Framework;
+using System.Numerics;
+
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 {

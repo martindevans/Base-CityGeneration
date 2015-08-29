@@ -1,11 +1,12 @@
 ﻿using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Procedural.Utilities;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Myre.Collections;
 using Myre.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Parcels.Parcelling
 {
