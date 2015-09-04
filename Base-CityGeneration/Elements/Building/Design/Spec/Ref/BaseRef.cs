@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Myre.Extensions;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 {
@@ -17,10 +16,16 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
         /// </summary>
         public bool NonOverlapping { get; private set; }
 
-        protected BaseRef(RefFilter filter, bool nonOverlapping)
+        /// <summary>
+        /// Whether we allow pairs to be form of the same floor at the top and bottom
+        /// </summary>
+        public bool Inclusive { get; private set; }
+
+        protected BaseRef(RefFilter filter, bool nonOverlapping, bool inclusive)
         {
             Filter = filter;
             NonOverlapping = nonOverlapping;
+            Inclusive = inclusive;
         }
 
         public IEnumerable<FloorSelection> Match(int basements, IList<FloorSelection> floors, int? startIndex)
@@ -33,9 +38,9 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
             //Select all matching pairs
             var selected = start.FilterByMode(selectedByStart.SelectMany(a => {
 
-                var matches = MatchImpl(basements, floors, floors.FindIndex(f => f == a))
+                var matches = MatchImpl(basements, floors, a.Index)
                     .Select(b => new KeyValuePair<FloorSelection, FloorSelection>(a, b))
-                    .Where(b => b.Key.Index != b.Value.Index);
+                    .Where(p => Inclusive || p.Key.Index != p.Value.Index);
 
                 return FilterByMode(matches);
             }));
@@ -73,8 +78,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
                 case RefFilter.Last:
                     return zipped.Reverse().Take(1).ToArray();
                 case RefFilter.Shortest:
+                    if (!zipped.Any())
+                        return new KeyValuePair<FloorSelection, FloorSelection>[0];
                     return new[] { zipped.Aggregate((a, b) => Math.Abs(a.Key.Index - a.Value.Index) > Math.Abs(b.Key.Index - b.Value.Index) ? b : a) };
                 case RefFilter.Longest:
+                    if (!zipped.Any())
+                        return new KeyValuePair<FloorSelection, FloorSelection>[0];
                     return new[] { zipped.Aggregate((a, b) => Math.Abs(a.Key.Index - a.Value.Index) > Math.Abs(b.Key.Index - b.Value.Index) ? a : b) };
                 case RefFilter.SingleOrNone:
                     if (zipped.Skip(1).Any())
@@ -91,11 +100,26 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 
         protected abstract IEnumerable<FloorSelection> MatchImpl(int basements, IList<FloorSelection> floors, int? startIndex);
 
+        protected static IEnumerable<FloorSelection> Prefilter(IEnumerable<FloorSelection> floors, int? startIndex, SearchDirection direction = SearchDirection.Down)
+        {
+            switch (direction)
+            {
+                case SearchDirection.Up:
+                    return floors.Reverse().SkipWhile(a => startIndex.HasValue && a.Index != startIndex);
+                case SearchDirection.Down:
+                    return floors.SkipWhile(a => startIndex.HasValue && a.Index != startIndex);
+            }
+
+            throw new ArgumentException("Unknown search direction");
+        }
+
         internal abstract class BaseContainer
         {
             // Making protected would break serialization
             // ReSharper disable MemberCanBeProtected.Global
             public RefFilter? Filter { get; set; }
+
+            public bool Inclusive { get; set; }
 
             public bool NonOverlapping { get; set; }
             // ReSharper restore MemberCanBeProtected.Global

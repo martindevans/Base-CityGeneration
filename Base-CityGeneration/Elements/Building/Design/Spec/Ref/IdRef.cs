@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
@@ -11,8 +10,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 
         public SearchDirection Direction { get; private set; }
 
-        public IdRef(string id, SearchDirection direction, RefFilter filter, bool nonOverlapping)
-            : base(filter, nonOverlapping)
+        public IdRef(string id, SearchDirection direction, RefFilter filter, bool nonOverlapping, bool inclusive)
+            : base(filter, nonOverlapping, inclusive)
         {
             ID = id;
             Direction = direction;
@@ -20,18 +19,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 
         protected override IEnumerable<FloorSelection> MatchImpl(int basements, IList<FloorSelection> floors, int? startIndex)
         {
-            IEnumerable<FloorSelection> set;
-            switch (Direction)
-            {
-                case SearchDirection.Up:
-                    set = floors.Reverse().Skip(floors.Count - (startIndex ?? floors.Count) - 1);
-                    break;
-                case SearchDirection.Down:
-                    set = floors.Skip(startIndex ?? 0);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            IEnumerable<FloorSelection> set = Prefilter(floors, startIndex, Direction);
 
             var results = set.Where(a => a.Id == ID);
 
@@ -50,7 +38,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
             public override BaseRef Unwrap()
             {
                 if (_cached == null)
-                    _cached = new IdRef(Id, Search, Filter ?? RefFilter.All, NonOverlapping);
+                    _cached = new IdRef(Id, Search, Filter ?? RefFilter.All, NonOverlapping, Inclusive);
                 return _cached;
             }
         }

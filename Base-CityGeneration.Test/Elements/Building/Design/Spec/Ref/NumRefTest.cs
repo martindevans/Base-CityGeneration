@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Design.Spec;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,7 +29,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         [TestMethod]
         public void AssertThat_NumRef_FindsSpecifiedNumber()
         {
-            NumRef i = new NumRef(10, RefFilter.All, false);
+            NumRef i = new NumRef(10, RefFilter.All, false, false);
 
             var matches = i.Match(2, _floors, null);
 
@@ -41,7 +40,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         [TestMethod]
         public void AssertThat_NumRef_FindsBasement()
         {
-            NumRef i = new NumRef(-2, RefFilter.All, false);
+            NumRef i = new NumRef(-2, RefFilter.All, false, false);
 
             var matches = i.Match(2, _floors, null);
 
@@ -52,7 +51,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         [TestMethod]
         public void AssertThat_NumRef_FindsNothing_WhenNumberIsTooLow()
         {
-            NumRef i = new NumRef(-3, RefFilter.All, false);
+            NumRef i = new NumRef(-3, RefFilter.All, false, false);
 
             var matches = i.Match(2, _floors, null);
 
@@ -62,7 +61,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         [TestMethod]
         public void AssertThat_NumRef_FindsNothing_WhenNumberIsTooHigh()
         {
-            NumRef i = new NumRef(13, RefFilter.All, false);
+            NumRef i = new NumRef(13, RefFilter.All, false, false);
 
             var matches = i.Match(2, _floors, null);
 

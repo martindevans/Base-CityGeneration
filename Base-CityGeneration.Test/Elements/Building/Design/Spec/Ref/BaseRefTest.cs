@@ -1,8 +1,7 @@
-﻿using System.Linq;
-using Base_CityGeneration.Elements.Building.Design;
-using Base_CityGeneration.Elements.Building.Design.Spec;
+﻿using Base_CityGeneration.Elements.Building.Design.Spec;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 
 namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
 {
@@ -38,8 +37,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         [TestMethod]
         public void AssertThat_BaseRef_MatchFrom_SelectsNonOverlappingSections_WhenNonOverlappingModeIsSpecified()
         {
-            IdRef residential = new IdRef("residential", SearchDirection.Up, RefFilter.All, false);
-            IdRef skylobby = new IdRef("skylobby", SearchDirection.Up, RefFilter.First, true);
+            IdRef residential = new IdRef("residential", SearchDirection.Up, RefFilter.All, false, false);
+            IdRef skylobby = new IdRef("skylobby", SearchDirection.Up, RefFilter.First, true, false);
 
             var res = residential.Match(2, _floors, null).ToArray();
             var matched = skylobby.MatchFrom(2, _floors, residential, res).ToArray();
@@ -55,8 +54,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         [TestMethod]
         public void AssertThat_BaseRef_SelectsFirstSections_WhenFilterFirstIsSpecified()
         {
-            IdRef bot = new IdRef("skylobby", SearchDirection.Up, RefFilter.All, false);
-            IdRef top = new IdRef("skylobby", SearchDirection.Up, RefFilter.First, false);
+            IdRef bot = new IdRef("skylobby", SearchDirection.Up, RefFilter.All, false, false);
+            IdRef top = new IdRef("skylobby", SearchDirection.Up, RefFilter.First, false, false);
 
             var b = bot.Match(2, _floors, null).ToArray();
             var matched = top.MatchFrom(2, _floors, bot, b).ToArray();

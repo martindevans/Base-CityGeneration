@@ -29,7 +29,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         [TestMethod]
         public void AssertThat_NumRef_FindsAllFloorsTagged()
         {
-            TaggedRef i = new TaggedRef(new[] { "a" }, RefFilter.All, false);
+            TaggedRef i = new TaggedRef(new[] { "a" }, RefFilter.All, false, false);
 
             var matches = i.Match(2, _floors, null);
 
@@ -42,7 +42,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         [TestMethod]
         public void AssertThat_NumRef_FindsAllFloorsTagged_WithAllTags()
         {
-            TaggedRef i = new TaggedRef(new[] { "a", "x" }, RefFilter.All, false);
+            TaggedRef i = new TaggedRef(new[] { "a", "x" }, RefFilter.All, false, false);
 
             var matches = i.Match(2, _floors, null);
 
