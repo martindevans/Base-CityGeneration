@@ -223,6 +223,43 @@ Floors:
         }
 
         [TestMethod]
+        public void AssertThat_FacadeSelector_OutputsFacades_OnlyForNonObscuredFloors()
+        {
+            var b = BuildingDesigner.Deserialize(new StringReader(@"
+!Building
+Verticals: []
+Facades:
+    - Tags: { 1: [b] }
+      Bottom: !Id { Id: F }
+      Top: !Id { Id: F, Search: Up, Filter: Longest, NonOverlapping: true }
+
+    - Tags: { 1: [a] }
+      Bottom: !Num { N: 0 }
+      Top: !Num { N: 0, Inclusive: true }
+
+    - Tags: { 1: [c] }
+      Bottom: !Id { Id: Top }
+      Top: !Id { Id: Top, Inclusive: true }
+Floors:
+    - !Floor { Id: Top, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: Bot, Tags: { 1: [a] }, Height: 1 }
+"));
+
+            Assert.IsNotNull(b);
+
+            Random r = new Random(2);
+            var selection = b.Select(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { 1 }));
+
+            Assert.AreEqual(1, selection.Facades.Count);
+            Assert.AreEqual(2, selection.Facades.Single().Count);
+            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 1 && f.Top == 3));
+            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 4 && f.Top == 4));
+        }
+
+        [TestMethod]
         public void Playground()
         {
             var b = BuildingDesigner.Deserialize(new StringReader(@"
