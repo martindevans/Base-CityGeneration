@@ -1,7 +1,8 @@
 ﻿using System.Collections.ObjectModel;
+using Base_CityGeneration.Elements.Building.Design;
+using Base_CityGeneration.Elements.Building.Design.Spec;
 using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
-using Base_CityGeneration.Elements.Building.Internals.Floors.Selection;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using EpimetheusPlugins.Procedural;
 using Myre.Collections;

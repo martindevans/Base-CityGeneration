@@ -2,7 +2,7 @@
 using Base_CityGeneration.Elements.Blocks.Spec.Subdivision;
 using Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules;
 using Base_CityGeneration.Parcels.Parcelling;
-using Base_CityGeneration.Test.Elements.Building.Internals.Floors.Floors.Selection;
+using Base_CityGeneration.Test.Elements.Building.Design;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Numerics;
