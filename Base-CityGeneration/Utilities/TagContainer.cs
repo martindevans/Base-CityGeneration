@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Base_CityGeneration.Elements.Building.Internals.Floors.Selection;
+using Base_CityGeneration.Elements.Building.Design;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 
@@ -155,7 +155,7 @@ namespace Base_CityGeneration.Utilities
             }
 
             tags = null;
-            throw new SelectionFailedException("No suitable script found for any tag set");
+            throw new DesignFailedException("No suitable script found for any tag set");
         }
     }
 }
