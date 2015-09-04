@@ -9,9 +9,7 @@ using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
-using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
-using FMOD;
 using HandyCollections.Extensions;
 using JetBrains.Annotations;
 using Myre.Collections;
@@ -125,13 +123,12 @@ namespace Base_CityGeneration.Elements.Building.Design
             //Select floors which are above the required height
             //We keep a list of uninterrupted runs of floors, and then match facades on each run
             //to start with there is just one run
-            List<List<FloorSelection>> runs = new List<List<FloorSelection>>(new[] {
+            Stack<List<FloorSelection>> runs = new Stack<List<FloorSelection>>(new[] {
                 (from floor in allFloors
                  let below = allFloors.Where(f => f.Index < floor.Index).Select(f => f.Height).Sum()
                  where below >= startHeight
                  select floor).ToList()
-            });
-            runs.RemoveAll(r => r.Count == 0);
+            }.Where(r => r.Count > 0));
 
             //This entire wall is obscured, no facades
             if (runs.Count == 0)
@@ -143,13 +140,21 @@ namespace Base_CityGeneration.Elements.Building.Design
             //Keep applying specs to runs
             while (runs.Count > 0)
             {
-                throw new NotImplementedException("Keep selecting facades for each run until we have no more runs");
+                //Choose a run to process
+                var run = runs.Pop();
+
+                //Process it, adding a load of facades to the output, as well as producing a new set of runs
+                var produced = SelectFacadesForRun(random, finder, specs, run, facades);
+
+                //Add all the new runs to the stack
+                foreach (var item in produced)
+                    runs.Push(item);
             }
 
             return facades;
         }
 
-        private List<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<FacadeSpec> specs, List<FloorSelection> run, List<FacadeSelection> results)
+        private static IEnumerable<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<FacadeSpec> specs, List<FloorSelection> run, ICollection<FacadeSelection> results)
         {
             //working from the first selector to the last, try to find a facade for each floor
             foreach (var spec in specs)
@@ -164,16 +169,41 @@ namespace Base_CityGeneration.Elements.Building.Design
                 var bot = spec.Bottom.Match(0, run, null);
                 var top = spec.Top.MatchFrom(0, run, spec.Bottom, bot);
 
+                bool topAny = false;
                 foreach (var facade in top)
                 {
-                    results.Add(new FacadeSelection(
-                        script,
-                        Math.Min(facade.Key.Index, facade.Value.Index),
-                        Math.Max(facade.Key.Index, facade.Value.Index)
-                    ));
+                    topAny = true;
 
-                    throw new NotImplementedException("Removed floors used by this facade, return as a new run");
+                    //Create a face over this range of floors
+                    var min = Math.Min(facade.Key.Index, facade.Value.Index);
+                    var max = Math.Max(facade.Key.Index, facade.Value.Index);
+                    results.Add(new FacadeSelection(script, min, max));
+
+                    //Remove these floors from the run
+                    run.RemoveAll(a => a.Index >= min && a.Index <= max);
                 }
+
+                if (!topAny)
+                    continue;
+                
+                List<List<FloorSelection>> runs = new List<List<FloorSelection>>();
+
+                //Split the run up into multiple new runs
+                List<FloorSelection> newRun = new List<FloorSelection>();
+                for (int i = 0; i < run.Count; i++)
+                {
+                    if (newRun.Count == 0 || newRun[newRun.Count - 1].Index == run[i].Index + 1)
+                        newRun.Add(run[i]);
+                    else
+                    {
+                        runs.Add(newRun);
+                        newRun = new List<FloorSelection> { run[i] };
+                    }
+                }
+                if (newRun.Count > 0)
+                    runs.Add(newRun);
+
+                return runs;
             }
 
             throw new DesignFailedException("Could not find an applicable facade spec for floor run");

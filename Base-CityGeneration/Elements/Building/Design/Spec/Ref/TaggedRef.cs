@@ -9,8 +9,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
         private readonly string[] _tags;
         public IEnumerable<string> Tags { get { return _tags; } }
 
-        public TaggedRef(string[] tags, RefFilter filter, bool nonOverlapping)
-            : base(filter, nonOverlapping)
+        public TaggedRef(string[] tags, RefFilter filter, bool nonOverlapping, bool inclusive)
+            : base(filter, nonOverlapping, inclusive)
         {
             _tags = tags;
         }
@@ -31,7 +31,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
             public override BaseRef Unwrap()
             {
                 if (_cached == null)
-                    _cached = new TaggedRef(Tags, Filter ?? RefFilter.All, NonOverlapping);
+                    _cached = new TaggedRef(Tags, Filter ?? RefFilter.All, NonOverlapping, Inclusive);
                 return _cached;
             }
         }

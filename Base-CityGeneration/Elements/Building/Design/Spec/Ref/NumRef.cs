@@ -8,8 +8,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
     {
         public int Number { get; private set; }
 
-        public NumRef(int number, RefFilter filter, bool nonOverlapping)
-            : base(filter, nonOverlapping)
+        public NumRef(int number, RefFilter filter, bool nonOverlapping, bool inclusive)
+            : base(filter, nonOverlapping, inclusive)
         {
             Number = number;
         }
@@ -37,7 +37,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
             public override BaseRef Unwrap()
             {
                 if (_cached == null)
-                    _cached = new NumRef(N, Filter ?? RefFilter.All, NonOverlapping);
+                    _cached = new NumRef(N, Filter ?? RefFilter.All, NonOverlapping, Inclusive);
                 return _cached;
             }
         }
