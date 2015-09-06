@@ -8,21 +8,21 @@ using Myre.Collections;
 namespace Base_CityGeneration.Elements.Building.Design.Spec
 {
     public class RepeatSpec
-        : IFloorSelector
+        : BaseFloorSelector
     {
-        public IFloorSelector[] Items { get; private set; }
+        public BaseFloorSelector[] Items { get; private set; }
         public IValueGenerator Count { get; private set; }
 
         public bool Vary { get; private set; }
 
-        private RepeatSpec(IFloorSelector[] items, IValueGenerator count, bool vary)
+        private RepeatSpec(BaseFloorSelector[] items, IValueGenerator count, bool vary)
         {
             Items = items;
             Count = count;
             Vary = vary;
         }
 
-        public IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        public override IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
         {
             int count = Count.SelectIntValue(random, metadata);
 
@@ -55,7 +55,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
             public bool Vary { get; set; }
 
-            public IFloorSelector Unwrap()
+            public BaseFloorSelector Unwrap()
             {
                 return new RepeatSpec(
                     Items.Select(a => a.Unwrap()).ToArray(),

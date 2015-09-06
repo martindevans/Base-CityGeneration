@@ -220,6 +220,7 @@
     <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\FrontageRuleSpec.cs" />
     <Compile Include="Elements\Building\Design\FacadeSelection.cs" />
     <Compile Include="Elements\Building\Design\Spec\FloorSelection.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\FootprintMarker.cs" />
     <Compile Include="Elements\Building\Design\VerticalSelection.cs" />
     <Compile Include="Elements\Building\Facades\ConfigurableFacade.cs" />
     <Compile Include="Elements\Building\Facades\IBuildingFacade.cs" />
@@ -233,8 +234,8 @@
     <Compile Include="Elements\Building\Design\Spec\FacadeSpec.cs" />
     <Compile Include="Elements\Building\Design\Spec\FloorRangeSpec.cs" />
     <Compile Include="Elements\Building\Design\BuildingDesigner.cs" />
-    <Compile Include="Elements\Building\Design\Spec\IFloorSelector.cs" />
-    <Compile Include="Elements\Building\Design\Spec\Markers\IMarker.cs" />
+    <Compile Include="Elements\Building\Design\Spec\BaseFloorSelector.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\BaseMarker.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\GroundMarker.cs" />
     <Compile Include="Elements\Building\Design\Spec\FloorSpec.cs" />
     <Compile Include="Elements\Building\Design\Spec\Ref\IdRef.cs" />

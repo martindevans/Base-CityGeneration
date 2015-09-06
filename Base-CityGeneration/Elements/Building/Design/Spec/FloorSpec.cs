@@ -12,7 +12,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
     /// Selector for a single floor
     /// </summary>
     public class FloorSpec
-        : IFloorSelector
+        : BaseFloorSelector
     {
         private readonly KeyValuePair<float, string[]>[] _tags;
         public IEnumerable<KeyValuePair<float, string[]>> Tags
@@ -47,23 +47,13 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             _height = height;
         }
 
-        public IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        public override IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
         {
             var selected = SelectSingle(random, _tags, finder, _height.SelectFloatValue(random, metadata), Id);
             if (selected == null)
                 return new FloorSelection[0];
 
             return new FloorSelection[] { selected };
-        }
-
-        public static FloorSelection SelectSingle(Func<double> random, IEnumerable<KeyValuePair<float, string[]>> tags, Func<string[], ScriptReference> finder, float height, string id)
-        {
-            string[] selectedTags;
-            ScriptReference script = tags.SelectScript(random, finder, out selectedTags);
-            if (script == null)
-                return null;
-
-            return new FloorSelection(id, selectedTags, script, height);
         }
 
         internal class Container
@@ -77,7 +67,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
             public FacadeSpec.Container[] Facades { get; set; }
 
-            public IFloorSelector Unwrap()
+            public BaseFloorSelector Unwrap()
             {
                 IValueGenerator height = Height == null ? new NormallyDistributedValue(2.5f, 3f, 3.5f, 0.2f) : BaseValueGeneratorContainer.FromObject(Height);
 

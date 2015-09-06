@@ -28,8 +28,8 @@ namespace Base_CityGeneration.Elements.Building.Design
             }
         }
 
-        private readonly IFloorSelector[] _floorSelectors;
-        public IEnumerable<IFloorSelector> FloorSelectors
+        private readonly BaseFloorSelector[] _floorSelectors;
+        public IEnumerable<BaseFloorSelector> FloorSelectors
         {
             get
             {
@@ -43,7 +43,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             get { return _facadeSelectors; }
         }
 
-        public BuildingDesigner(IFloorSelector[] floorSelectors, VerticalElementSpec[] verticalSelectors, FacadeSpec[] facadeSelectors)
+        public BuildingDesigner(BaseFloorSelector[] floorSelectors, VerticalElementSpec[] verticalSelectors, FacadeSpec[] facadeSelectors)
         {
             _floorSelectors = floorSelectors;
             _verticalSelectors = verticalSelectors;
@@ -88,7 +88,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             );
         }
 
-        private static IEnumerable<FloorSelection> SelectFloors(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, IEnumerable<IFloorSelector> selectors)
+        private static IEnumerable<FloorSelection> SelectFloors(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, IEnumerable<BaseFloorSelector> selectors)
         {
             List<FloorSelection> floors = new List<FloorSelection>();
 
@@ -206,7 +206,9 @@ namespace Base_CityGeneration.Elements.Building.Design
                 return runs;
             }
 
-            throw new DesignFailedException("Could not find an applicable facade spec for floor run");
+            throw new DesignFailedException(
+                string.Format("Could not find an applicable facade spec for floor run [{0}]", string.Join(",", run.Select(a => string.Format("{0}({1})", a.Index, a.Id))))
+            );
         }
 
         public class Selection
@@ -251,6 +253,7 @@ namespace Base_CityGeneration.Elements.Building.Design
 
             //Floor element types
             serializer.Settings.RegisterTagMapping("Ground", typeof(GroundMarker.Container));
+            serializer.Settings.RegisterTagMapping("Footprint", typeof(FootprintMarker.Container));
             serializer.Settings.RegisterTagMapping("Building", typeof(Container));
             serializer.Settings.RegisterTagMapping("Floor", typeof(FloorSpec.Container));
             serializer.Settings.RegisterTagMapping("Range", typeof(FloorRangeSpec.Container));

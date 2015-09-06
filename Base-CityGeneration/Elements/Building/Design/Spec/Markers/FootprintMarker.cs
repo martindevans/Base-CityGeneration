@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using EpimetheusPlugins.Scripts;
+﻿using EpimetheusPlugins.Scripts;
 using Myre.Collections;
+using System;
+using System.Collections.Generic;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 {
-    /// <summary>
-    /// Marks where the ground is in a sequence
-    /// </summary>
-    public class GroundMarker
+    public class FootprintMarker
         : BaseMarker
     {
         public override IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
@@ -17,11 +14,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
         }
 
         internal class Container
-            :ISelectorContainer
+            : ISelectorContainer
         {
             public BaseFloorSelector Unwrap()
             {
-                return new GroundMarker();
+                return new FootprintMarker();
             }
         }
     }
