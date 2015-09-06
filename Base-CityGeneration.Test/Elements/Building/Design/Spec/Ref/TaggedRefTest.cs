@@ -9,21 +9,21 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
     public class TaggedRefTest
     {
         readonly FloorSelection[] _floors = {
-            new FloorSelection("top", new []{ "top" }, null, 0, 12),
-            new FloorSelection("a", new []{ "a" }, null, 0, 11),
-            new FloorSelection("a", new []{ "a", "x" }, null, 0, 10),
-            new FloorSelection("a", new []{ "a" }, null, 0, 9),
-            new FloorSelection("b", new []{ "b" }, null, 0, 8),
-            new FloorSelection("c", new []{ "c" }, null, 0, 7),
-            new FloorSelection("d", new []{ "d" }, null, 0, 6),
-            new FloorSelection("e", new []{ "e" }, null, 0, 5),
-            new FloorSelection("f", new []{ "f" }, null, 0, 4),
-            new FloorSelection("g", new []{ "g" }, null, 0, 3),
-            new FloorSelection("g", new []{ "g" }, null, 0, 2),
-            new FloorSelection("g", new []{ "g" }, null, 0, 1),
-            new FloorSelection("ground", new []{ "ground" }, null, 0, 0),
-            new FloorSelection("u", new []{ "u" }, null, 0, -1),
-            new FloorSelection("u", new []{ "u" }, null, 0, -2),
+            new FloorSelection("top", new []{ "top" }, null, null, 0, 12),
+            new FloorSelection("a", new []{ "a" }, null, null, 0, 11),
+            new FloorSelection("a", new []{ "a", "x" }, null, null, 0, 10),
+            new FloorSelection("a", new []{ "a" }, null, null, 0, 9),
+            new FloorSelection("b", new []{ "b" }, null, null, 0, 8),
+            new FloorSelection("c", new []{ "c" }, null, null, 0, 7),
+            new FloorSelection("d", new []{ "d" }, null, null, 0, 6),
+            new FloorSelection("e", new []{ "e" }, null, null, 0, 5),
+            new FloorSelection("f", new []{ "f" }, null, null, 0, 4),
+            new FloorSelection("g", new []{ "g" }, null, null, 0, 3),
+            new FloorSelection("g", new []{ "g" }, null, null, 0, 2),
+            new FloorSelection("g", new []{ "g" }, null, null, 0, 1),
+            new FloorSelection("ground", new []{ "ground" }, null, null, 0, 0),
+            new FloorSelection("u", new []{ "u" }, null, null, 0, -1),
+            new FloorSelection("u", new []{ "u" }, null, null, 0, -2),
         };
 
         [TestMethod]

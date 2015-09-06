@@ -12,6 +12,9 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         private readonly string[] _tags;
         public IEnumerable<string> Tags { get { return _tags; } }
 
+        private readonly BaseFloorSelector _selector;
+        public BaseFloorSelector Selector { get { return _selector; } }
+
         readonly ScriptReference _script;
         public ScriptReference Script
         {
@@ -39,11 +42,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             }
         }
 
-        public FloorSelection(string id, string[] tags, ScriptReference script, float height, int index = 0)
+        public FloorSelection(string id, string[] tags, BaseFloorSelector selector, ScriptReference script, float height, int index = 0)
         {
             _id = id;
             _tags = tags;
             _script = script;
+            _selector = selector;
             _height = height;
             _index = index;
         }

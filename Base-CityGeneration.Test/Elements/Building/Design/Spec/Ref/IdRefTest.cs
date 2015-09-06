@@ -9,21 +9,21 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
     public class IdRefTest
     {
         readonly FloorSelection[] _floors = {
-            new FloorSelection("top", null, null, 0, 12),
-            new FloorSelection("a", null, null, 0, 11),
-            new FloorSelection("a", null, null, 0, 10),
-            new FloorSelection("a", null, null, 0, 9),
-            new FloorSelection("b", null, null, 0, 8),
-            new FloorSelection("c", null, null, 0, 7),
-            new FloorSelection("d", null, null, 0, 6),
-            new FloorSelection("e", null, null, 0, 5),
-            new FloorSelection("f", null, null, 0, 4),
-            new FloorSelection("g", null, null, 0, 3),
-            new FloorSelection("g", null, null, 0, 2),
-            new FloorSelection("g", null, null, 0, 1),
-            new FloorSelection("ground", null, null, 0, 0),
-            new FloorSelection("u1", null, null, 0, -1),
-            new FloorSelection("u2", null, null, 0, -2),
+            new FloorSelection("top", null, null, null, 0, 12),
+            new FloorSelection("a", null, null, null, 0, 11),
+            new FloorSelection("a", null, null, null, 0, 10),
+            new FloorSelection("a", null, null, null, 0, 9),
+            new FloorSelection("b", null, null, null, 0, 8),
+            new FloorSelection("c", null, null, null, 0, 7),
+            new FloorSelection("d", null, null, null, 0, 6),
+            new FloorSelection("e", null, null, null, 0, 5),
+            new FloorSelection("f", null, null, null, 0, 4),
+            new FloorSelection("g", null, null, null, 0, 3),
+            new FloorSelection("g", null, null, null, 0, 2),
+            new FloorSelection("g", null, null, null, 0, 1),
+            new FloorSelection("ground", null, null, null, 0, 0),
+            new FloorSelection("u1", null, null, null, 0, -1),
+            new FloorSelection("u2", null, null, null, 0, -2),
         };
 
         [TestMethod]

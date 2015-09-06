@@ -260,6 +260,35 @@ Floors:
         }
 
         [TestMethod]
+        public void AssertThat_FacadeSelector_DoesNotOutputFacadeAcrossFootprintBreak()
+        {
+            var b = BuildingDesigner.Deserialize(new StringReader(@"
+!Building
+Verticals: []
+Facades:
+    - Tags: { 1: [b] }
+      Bottom: !Id { Id: F }
+      Top: !Id { Id: F, Search: Up, Filter: Longest, NonOverlapping: true }
+
+Floors:
+    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Footprint {}
+    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+"));
+
+            Assert.IsNotNull(b);
+
+            Random r = new Random(2);
+            var selection = b.Select(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { 0 }));
+
+            Assert.AreEqual(1, selection.Facades.Count);
+            Assert.AreEqual(2, selection.Facades.Single().Count);
+            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 1 && f.Top == 2));
+            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 3 && f.Top == 3));
+        }
+
+        [TestMethod]
         public void Playground()
         {
             var b = BuildingDesigner.Deserialize(new StringReader(@"

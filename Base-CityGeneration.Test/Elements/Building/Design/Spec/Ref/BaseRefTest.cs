@@ -9,29 +9,29 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
     public class BaseRefTest
     {
         private readonly FloorSelection[] _floors = {
-            new FloorSelection("roof", null, null, 0, 12),
+            new FloorSelection("roof", null, null, null, 0, 12),
 
-            new FloorSelection("penthouse", null, null, 0, 13),
+            new FloorSelection("penthouse", null, null, null, 0, 13),
 
-            new FloorSelection("skylobby", null, null, 0, 12),
-            new FloorSelection("residential", null, null, 0, 11),
-            new FloorSelection("residential", null, null, 0, 10),
-            new FloorSelection("residential", null, null, 0, 9),
+            new FloorSelection("skylobby", null, null, null, 0, 12),
+            new FloorSelection("residential", null, null, null, 0, 11),
+            new FloorSelection("residential", null, null, null, 0, 10),
+            new FloorSelection("residential", null, null, null, 0, 9),
 
-            new FloorSelection("skylobby", null, null, 0, 8),
-            new FloorSelection("residential", null, null, 0, 7),
-            new FloorSelection("residential", null, null, 0, 6),
-            new FloorSelection("residential", null, null, 0, 5),
+            new FloorSelection("skylobby", null, null, null, 0, 8),
+            new FloorSelection("residential", null, null, null, 0, 7),
+            new FloorSelection("residential", null, null, null, 0, 6),
+            new FloorSelection("residential", null, null, null, 0, 5),
 
-            new FloorSelection("skylobby", null, null, 0, 4),
-            new FloorSelection("residential", null, null, 0, 3),
-            new FloorSelection("residential", null, null, 0, 2),
-            new FloorSelection("residential", null, null, 0, 1),
+            new FloorSelection("skylobby", null, null, null, 0, 4),
+            new FloorSelection("residential", null, null, null, 0, 3),
+            new FloorSelection("residential", null, null, null, 0, 2),
+            new FloorSelection("residential", null, null, null, 0, 1),
 
-            new FloorSelection("ground", null, null, 0, 0),
+            new FloorSelection("ground", null, null, null, 0, 0),
 
-            new FloorSelection("basement", null, null, 0, -1),
-            new FloorSelection("basement", null, null, 0, -2),
+            new FloorSelection("basement", null, null, null, 0, -1),
+            new FloorSelection("basement", null, null, null,  0, -2),
         };
 
         [TestMethod]
