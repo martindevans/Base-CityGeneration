@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Design.Spec;
@@ -19,6 +18,7 @@ namespace Base_CityGeneration.Elements.Building.Design
 {
     public class BuildingDesigner
     {
+        #region field and properties
         private readonly VerticalElementSpec[] _verticalSelectors;
         public IEnumerable<VerticalElementSpec> VerticalSelectors
         {
@@ -42,60 +42,112 @@ namespace Base_CityGeneration.Elements.Building.Design
         {
             get { return _facadeSelectors; }
         }
+        #endregion
 
+        #region constructor
         public BuildingDesigner(BaseFloorSelector[] floorSelectors, VerticalElementSpec[] verticalSelectors, FacadeSpec[] facadeSelectors)
         {
             _floorSelectors = floorSelectors;
             _verticalSelectors = verticalSelectors;
             _facadeSelectors = facadeSelectors;
         }
+        #endregion
 
         /// <summary>
-        /// Select a design for this building based on the spec
+        /// Evaluate this building design spec to create a set of building internals (floors and vertical elements)
         /// </summary>
-        /// <param name="random">random number generator</param>
-        /// <param name="metadata">building metadata</param>
-        /// <param name="finder">a function which finds scripts from tags</param>
-        /// <param name="neighbourHeights">The heights of neighbouring buildings, for each edge of this building</param>
+        /// <param name="random"></param>
+        /// <param name="metadata"></param>
+        /// <param name="finder"></param>
         /// <returns></returns>
-        public Selection Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, ReadOnlyCollection<float> neighbourHeights)
+        public Internals Internals(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
         {
-            var aboveGround = _floorSelectors.TakeWhile(a => !(a is GroundMarker)).ToArray();
-            var belowGround = _floorSelectors.SkipWhile(a => !(a is GroundMarker)).ToArray();
+            var ground = _floorSelectors.OfType<GroundMarker>().Single();
+            var aboveGround = _floorSelectors.TakeWhile(a => !(a is GroundMarker)).Append(ground).ToArray();
+            var belowGround = _floorSelectors.SkipWhile(a => !(a is GroundMarker)).Skip(1).ToArray();
+
+            List<FootprintSelection> footprints = new List<FootprintSelection>();
 
             //Select above ground floors, then assign indices
-            var above = SelectFloors(random, metadata, finder, aboveGround).ToArray();
-            for (int i = 0; i < above.Length; i++)
-                above[i] = new FloorSelection(above[i], above.Length - i - 1);
+            var above = SelectFloors(random, metadata, finder, aboveGround, null);
+            int index = 0;
+            foreach (var run in above.Reverse())
+            {
+                footprints.Add(new FootprintSelection(run.Marker, index));
+                foreach (var floor in run.Selection.Reverse())
+                    floor.Index = index++;
+            }
 
             //Select below ground floors, then assign indices
-            var below = SelectFloors(random, metadata, finder, belowGround).ToArray();
-            for (int i = 0; i < below.Length; i++)
-                below[i] = new FloorSelection(below[i], -(i + 1));
+            var below = SelectFloors(random, metadata, finder, belowGround,ground);
+            index = 0;
+            foreach (var run in below)
+            {
+                foreach (var floor in run.Selection)
+                    floor.Index = --index;
+                footprints.Add(new FootprintSelection(run.Marker, index));
+            }
 
-            //Select vertical elements for floors
-            var verticals = SelectVerticals(random, finder, _verticalSelectors, above, below).ToArray();
+            //Create result object (with floors)
+            var internals = new Internals(this, above.Select(a => a.Selection).ToArray(), below.Select(a => a.Selection).ToArray(), footprints.ToArray());
 
-            //Select facades for floors
-            var facades = SelectFacades(random, finder, _facadeSelectors, above, neighbourHeights).ToArray();
+            //Select vertical elements for floors and add to result
+            internals.Verticals = SelectVerticals(random, finder, _verticalSelectors, internals.AboveGroundFloors, internals.BelowGroundFloors).ToArray();
 
-            //Return the selection, ready to be turned into a building
-            return new Selection(
-                above,
-                below,
-                verticals,
-                facades
-            );
+            //return result
+            return internals;
         }
 
-        private static IEnumerable<FloorSelection> SelectFloors(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, IEnumerable<BaseFloorSelector> selectors)
+        #region selection
+        /// <summary>
+        /// Select multiple runs of floors, ordered top down. Runs are split when the footprint of the floor changes (i.e. on Footprint Markers)
+        /// </summary>
+        /// <param name="random"></param>
+        /// <param name="metadata"></param>
+        /// <param name="finder"></param>
+        /// <param name="selectors"></param>
+        /// <param name="defaultMarker"></param>
+        /// <returns></returns>
+        private static FloorRun[] SelectFloors(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, IEnumerable<BaseFloorSelector> selectors, BaseMarker defaultMarker)
         {
-            List<FloorSelection> floors = new List<FloorSelection>();
+            List<FloorRun> floors = new List<FloorRun>();
 
+            BaseMarker currentMarker = defaultMarker;
+            List<FloorSelection> currentRun = new List<FloorSelection>();
             foreach (var selector in selectors)
-                floors.AddRange(selector.Select(random, metadata, finder));
+            {
+                var marker = selector as BaseMarker;
+                if (marker != null)
+                {
+                    currentMarker = marker;
+                    if (currentRun.Count > 0)
+                    {
+                        floors.Add(new FloorRun(currentRun.ToArray(), currentMarker));
+                        currentRun.Clear();
+                    }
+                }
+                else
+                    currentRun.AddRange(selector.Select(random, metadata, finder));
+            }
+            if (currentRun.Count > 0)
+                floors.Add(new FloorRun(currentRun.ToArray(), currentMarker));
 
-            return floors;
+            if (floors.Any(a => a.Marker == null))
+                throw new InvalidOperationException("Tried to create a run of floors with a null marker");
+
+            return floors.ToArray();
+        }
+
+        private class FloorRun
+        {
+            public readonly FloorSelection[] Selection;
+            public readonly BaseMarker Marker;
+
+            public FloorRun(FloorSelection[] floors, BaseMarker marker)
+            {
+                Selection = floors;
+                Marker = marker;
+            }
         }
 
         private static IEnumerable<VerticalSelection> SelectVerticals(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<VerticalElementSpec> verticalSelectors, IEnumerable<FloorSelection> above, IEnumerable<FloorSelection> below)
@@ -110,22 +162,22 @@ namespace Base_CityGeneration.Elements.Building.Design
             return verticals;
         }
 
-        private static IEnumerable<IEnumerable<FacadeSelection>> SelectFacades(Func<double> random, Func<string[], ScriptReference> finder, FacadeSpec[] selectors, FloorSelection[] aboveGroundFloors, IEnumerable<float> neighbourHeights)
+        internal IEnumerable<IEnumerable<FacadeSelection>> SelectFacades(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<FloorSelection> aboveGroundFloors, IEnumerable<float> neighbourHeights)
         {
             foreach (var height in neighbourHeights)
             {
-                yield return SelectFacadesForWall(random, finder, selectors, aboveGroundFloors, height);
+                yield return SelectFacadesForWall(random, finder, FacadeSelectors, aboveGroundFloors, height);
             }
         }
 
-        private static IEnumerable<FacadeSelection> SelectFacadesForWall(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<FacadeSpec> specs, FloorSelection[] allFloors, float startHeight)
+        private static IEnumerable<FacadeSelection> SelectFacadesForWall(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<FacadeSpec> specs, IEnumerable<FloorSelection> aboveGroundFloors, float startHeight)
         {
             //Select floors which are above the required height
             //We keep a list of uninterrupted runs of floors, and then match facades on each run
             //to start with there is just one run
             Stack<List<FloorSelection>> runs = new Stack<List<FloorSelection>>(new[] {
-                (from floor in allFloors
-                 let below = allFloors.Where(f => f.Index < floor.Index).Select(f => f.Height).Sum()
+                (from floor in aboveGroundFloors
+                 let below = aboveGroundFloors.Where(f => f.Index < floor.Index).Select(f => f.Height).Sum()
                  where below >= startHeight
                  select floor).ToList()
             }.Where(r => r.Count > 0));
@@ -210,38 +262,7 @@ namespace Base_CityGeneration.Elements.Building.Design
                 string.Format("Could not find an applicable facade spec for floor run [{0}]", string.Join(",", run.Select(a => string.Format("{0}({1})", a.Index, a.Id))))
             );
         }
-
-        public class Selection
-        {
-            /// <summary>
-            /// Set of floors to place above ground
-            /// </summary>
-            public IReadOnlyCollection<FloorSelection> AboveGroundFloors { get; private set; }
-
-            /// <summary>
-            /// Set of floors to place below ground
-            /// </summary>
-            public IReadOnlyCollection<FloorSelection> BelowGroundFloors { get; private set; }
-
-            /// <summary>
-            /// Vertical elements to place within this building
-            /// </summary>
-            public IReadOnlyCollection<VerticalSelection> Verticals { get; private set; }
-
-            /// <summary>
-            /// Facades to place around this building, in the same order as the "neighbour heights" supplied to the select method
-            /// </summary>
-            public IReadOnlyCollection<IReadOnlyCollection<FacadeSelection>> Facades { get; private set; }
-
-            public Selection(FloorSelection[] aboveGroundFloors, FloorSelection[] belowGroundFloors, VerticalSelection[] verticals, IEnumerable<IEnumerable<FacadeSelection>> facades)
-            {
-                AboveGroundFloors = aboveGroundFloors;
-                BelowGroundFloors = belowGroundFloors;
-                Verticals = verticals;
-
-                Facades = facades.Select(a => a.ToArray()).ToArray();
-            }
-        }
+        #endregion
 
         #region serialization
         private static Serializer CreateSerializer()

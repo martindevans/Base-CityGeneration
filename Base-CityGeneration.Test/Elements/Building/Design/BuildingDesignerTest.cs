@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Design;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
 using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -31,12 +32,13 @@ Floors:
         Max: 2
       Tags:
         1: [a]
+    - !Ground []
 "));
 
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { }));
+            var selection = b.Internals(r.NextDouble, null, Finder);
 
             Assert.AreEqual(1, selection.AboveGroundFloors.Count());
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
@@ -65,12 +67,13 @@ Floors:
       Height: *groupname
       Tags:
         1: [a]
+    - !Ground []
 "));
 
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { }));
+            var selection = b.Internals(r.NextDouble, null, Finder);
 
             Assert.AreEqual(2, selection.AboveGroundFloors.Count());
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
@@ -92,12 +95,13 @@ Floors:
     - !Floor
       Tags:
         1: null
+    - !Ground []
 "));
 
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { }));
+            var selection = b.Internals(r.NextDouble, null, Finder);
 
             Assert.AreEqual(0, selection.AboveGroundFloors.Count());
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
@@ -121,14 +125,15 @@ Floors:
             1: [a]
             1: [b]
             0: null
+    - !Ground []
 "));
 
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { }));
+            var selection = b.Internals(r.NextDouble, null, Finder);
 
-            Assert.IsTrue(selection.AboveGroundFloors.Count >= 1 && selection.AboveGroundFloors.Count <= 5);
+            Assert.IsTrue(selection.AboveGroundFloors.Any() && selection.AboveGroundFloors.Count() <= 5);
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
         }
 
@@ -148,15 +153,16 @@ Floors:
     - !Floor { Id: F, Tags: { 1: [a] } }
     - !Floor { Id: F, Tags: { 1: [a] } }
     - !Floor { Id: Bot, Tags: { 1: [a] } }
+    - !Ground []
 "));
 
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Select(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { 0 }));
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new [] { 0f });
 
-            Assert.AreEqual(1, selection.Facades.Count);
-            Assert.AreEqual(1, selection.Facades.Single().Count);
+            Assert.AreEqual(1, selection.Facades.Count());
+            Assert.AreEqual(1, selection.Facades.Single().Count());
         }
 
         [TestMethod]
@@ -176,12 +182,69 @@ Floors:
     - !Floor { Id: F, Tags: { 1: [a] } }
     - !Floor { Id: F, Tags: { 1: [a] } }
     - !Floor { Id: Bot, Tags: { 1: [a] } }
+    - !Ground []
 "));
 
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Select(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { 0 }));
+            b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { 0 }));
+        }
+
+        [TestMethod]
+        public void AssertThat_FloorSelector_SelectsGroundMarkerAsFootprint()
+        {
+            var b = BuildingDesigner.Deserialize(new StringReader(@"
+!Building
+Verticals: []
+Facades:
+    - Tags: { 1: [test] }
+      Bottom: !Num { N: 0 }
+      Top: !Id { Id: Top, Search: Up, Filter: Longest, NonOverlapping: true }
+Floors:
+    - !Floor { Id: Top, Tags: { 1: [a] } }
+    - !Floor { Id: F, Tags: { 1: [a] } }
+    - !Floor { Id: F, Tags: { 1: [a] } }
+    - !Floor { Id: F, Tags: { 1: [a] } }
+    - !Floor { Id: Bot, Tags: { 1: [a] } }
+    - !Ground []
+"));
+
+            Assert.IsNotNull(b);
+
+            Random r = new Random(2);
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new[] { 0f });
+
+            Assert.AreEqual(1, selection.Footprints.Count());
+            Assert.AreEqual(0, selection.Footprints.Single().Index);
+            Assert.IsInstanceOfType(selection.Footprints.Single().Marker, typeof(GroundMarker));
+        }
+
+        [TestMethod]
+        public void AssertThat_FloorSelector_SelectsNextMarkerDownAsFootprint()
+        {
+            var b = BuildingDesigner.Deserialize(new StringReader(@"
+!Building
+Verticals: []
+Floors:
+    - !Floor { Id: F, Tags: { 1: [a] } }
+    - !Floor { Id: F, Tags: { 1: [a] } }
+    - !Footprint []
+    - !Floor { Id: F, Tags: { 1: [a] } }
+    - !Floor { Id: F, Tags: { 1: [a] } }
+    - !Ground []
+"));
+
+            Assert.IsNotNull(b);
+
+            Random r = new Random(2);
+            var selection = b.Internals(r.NextDouble, null, Finder);
+
+            Assert.AreEqual(2, selection.Footprints.Count());
+            Assert.IsTrue(selection.Footprints.Any(a => a.Index == 0));
+            Assert.IsTrue(selection.Footprints.Any(a => a.Index == 2));
+            Assert.IsTrue(selection.Footprints.Any(a => a.Marker is GroundMarker));
+            Assert.IsTrue(selection.Footprints.Any(a => a.Marker is FootprintMarker));
         }
 
         [TestMethod]
@@ -208,15 +271,16 @@ Floors:
     - !Floor { Id: F, Tags: { 1: [a] } }
     - !Floor { Id: F, Tags: { 1: [a] } }
     - !Floor { Id: Bot, Tags: { 1: [a] } }
+    - !Ground []
 "));
 
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Select(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { 0 }));
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new float[] { 0 });
 
-            Assert.AreEqual(1, selection.Facades.Count);
-            Assert.AreEqual(3, selection.Facades.Single().Count);
+            Assert.AreEqual(1, selection.Facades.Count());
+            Assert.AreEqual(3, selection.Facades.Single().Count());
             Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 0 && f.Top == 0));
             Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 1 && f.Top == 3));
             Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 4 && f.Top == 4));
@@ -246,15 +310,16 @@ Floors:
     - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
     - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
     - !Floor { Id: Bot, Tags: { 1: [a] }, Height: 1 }
+    - !Ground []
 "));
 
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Select(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { 1 }));
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new float[] { 1 });
 
-            Assert.AreEqual(1, selection.Facades.Count);
-            Assert.AreEqual(2, selection.Facades.Single().Count);
+            Assert.AreEqual(1, selection.Facades.Count());
+            Assert.AreEqual(2, selection.Facades.Single().Count());
             Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 1 && f.Top == 3));
             Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 4 && f.Top == 4));
         }
@@ -272,20 +337,22 @@ Facades:
 
 Floors:
     - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
-    - !Footprint {}
+    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Footprint []
     - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
     - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Ground []
 "));
 
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Select(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { 0 }));
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new float[] { 0 });
 
-            Assert.AreEqual(1, selection.Facades.Count);
-            Assert.AreEqual(2, selection.Facades.Single().Count);
-            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 1 && f.Top == 2));
-            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 3 && f.Top == 3));
+            Assert.AreEqual(1, selection.Facades.Count());
+            Assert.AreEqual(2, selection.Facades.Single().Count());
+            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 0 && f.Top == 1));
+            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 2 && f.Top == 3));
         }
 
         [TestMethod]
@@ -301,6 +368,7 @@ Floors:
     - !Floor { Id: TopFloor, Tags: { 1: [a] } }
     - !Floor { Tags: { 1: [a] } }
     - !Floor { Id: GroundFloor, Tags: { 1: [a] } }
+    - !Ground []
 "));
 
             Func<string[], ScriptReference> finder = tags => {
@@ -309,7 +377,7 @@ Floors:
             };
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, null, finder, new ReadOnlyCollection<float>(new float[] { }));
+            var selection = b.Internals(r.NextDouble, null, finder);
 
             Assert.AreEqual(3, selection.AboveGroundFloors.Count());
             Assert.AreEqual(1, selection.Verticals.Count());

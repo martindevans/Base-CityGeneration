@@ -90,7 +90,7 @@ Floors:
 !Building
 Verticals: []
 Floors:
-    - !Ground {}
+    - !Ground []
 "));
 
             Assert.IsInstanceOfType(b.FloorSelectors.Single(), typeof(GroundMarker));
