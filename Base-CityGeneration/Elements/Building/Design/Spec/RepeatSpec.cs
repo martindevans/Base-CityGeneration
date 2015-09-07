@@ -40,8 +40,13 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
                 //Now repeat those cached items as many times as we need
                 for (int i = 0; i < count; i++)
-                    foreach (var cache in selectionCache)
-                        selection.AddRange(cache);
+                {
+                    selection.AddRange(
+                        from cache in selectionCache
+                        from floorSelection in cache
+                        select floorSelection.Clone()
+                    );
+                }
             }
             return selection;
         }

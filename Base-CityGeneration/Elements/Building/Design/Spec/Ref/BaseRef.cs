@@ -28,17 +28,17 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
             Inclusive = inclusive;
         }
 
-        public IEnumerable<FloorSelection> Match(int basements, IList<FloorSelection> floors, int? startIndex)
+        public IEnumerable<FloorSelection> Match(IList<FloorSelection> floors, int? startIndex)
         {
-            return MatchImpl(basements, floors, startIndex);
+            return MatchImpl(floors, startIndex);
         }
 
-        public IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> MatchFrom(int basements, IList<FloorSelection> floors, BaseRef start, IEnumerable<FloorSelection> selectedByStart)
+        public IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> MatchFrom(IList<FloorSelection> floors, BaseRef start, IEnumerable<FloorSelection> selectedByStart)
         {
             //Select all matching pairs
             var selected = start.FilterByMode(selectedByStart.SelectMany(a => {
 
-                var matches = MatchImpl(basements, floors, a.Index)
+                var matches = MatchImpl(floors, a.Index)
                     .Select(b => new KeyValuePair<FloorSelection, FloorSelection>(a, b))
                     .Where(p => Inclusive || p.Key.Index != p.Value.Index);
 
@@ -98,16 +98,16 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
             }
         }
 
-        protected abstract IEnumerable<FloorSelection> MatchImpl(int basements, IList<FloorSelection> floors, int? startIndex);
+        protected abstract IEnumerable<FloorSelection> MatchImpl(IList<FloorSelection> floors, int? startIndex);
 
         protected static IEnumerable<FloorSelection> Prefilter(IEnumerable<FloorSelection> floors, int? startIndex, SearchDirection direction = SearchDirection.Down)
         {
             switch (direction)
             {
                 case SearchDirection.Up:
-                    return floors.Reverse().SkipWhile(a => startIndex.HasValue && a.Index != startIndex);
+                    return floors.Where(a => !startIndex.HasValue || a.Index >= startIndex.Value).OrderBy(a => a.Index);
                 case SearchDirection.Down:
-                    return floors.SkipWhile(a => startIndex.HasValue && a.Index != startIndex);
+                    return floors.Where(a => !startIndex.HasValue || a.Index <= startIndex.Value).OrderByDescending(a => a.Index);
             }
 
             throw new ArgumentException("Unknown search direction");

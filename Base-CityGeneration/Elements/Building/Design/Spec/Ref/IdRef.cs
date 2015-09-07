@@ -17,7 +17,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
             Direction = direction;
         }
 
-        protected override IEnumerable<FloorSelection> MatchImpl(int basements, IList<FloorSelection> floors, int? startIndex)
+        protected override IEnumerable<FloorSelection> MatchImpl(IList<FloorSelection> floors, int? startIndex)
         {
             IEnumerable<FloorSelection> set = Prefilter(floors, startIndex, Direction);
 

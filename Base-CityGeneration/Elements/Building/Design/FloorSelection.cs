@@ -54,5 +54,10 @@ namespace Base_CityGeneration.Elements.Building.Design
             _height = selection.Height;
             Index = index;
         }
+
+        internal FloorSelection Clone()
+        {
+            return new FloorSelection(this, Index);
+        }
     }
 }

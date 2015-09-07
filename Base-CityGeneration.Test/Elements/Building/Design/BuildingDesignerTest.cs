@@ -19,6 +19,75 @@ namespace Base_CityGeneration.Test.Elements.Building.Design
         }
 
         [TestMethod]
+        public void AssertThat_BuildingFloorsAreAllUnique_WithBasicFloors()
+        {
+            var b = BuildingDesigner.Deserialize(new StringReader(@"
+!Building
+Verticals: []
+Floors:
+    - !Floor { Tags: { 1: [a] } }
+    - !Floor { Tags: { 1: [a] } }
+    - !Ground []
+"));
+
+            var internals = b.Internals(new Random(1).NextDouble, null, Finder);
+
+            Assert.AreEqual(2, internals.Floors.GroupBy(a => a.Index).Count());
+        }
+
+        [TestMethod]
+        public void AssertThat_BuildingFloorsAreAllUnique_WithFloorRange()
+        {
+            var b = BuildingDesigner.Deserialize(new StringReader(@"
+!Building
+Verticals: []
+Floors:
+    - !Range
+      Includes:
+        - Count: 10
+          Vary: false
+          Tags:
+            1: [a]
+            1: [b]
+            0: null
+    - !Ground []
+"));
+
+            var internals = b.Internals(new Random(1).NextDouble, null, Finder);
+
+            Assert.AreEqual(internals.Floors.Count(), internals.Floors.GroupBy(a => a.Index).Count());
+        }
+
+        [TestMethod]
+        public void AssertThat_BuildingFloorsAreAllUnique_WithFloorepeat()
+        {
+            var b = BuildingDesigner.Deserialize(new StringReader(@"
+!Building
+Aliases:
+  - &residential_floor_count !NormalValue
+    Min: 5
+    Max: 10
+
+Floors:
+  - !Repeat
+    Count:
+      !NormalValue
+      Min: 1
+      Max: 5
+    Items:
+      - !Range
+        Includes:
+          - Count: *residential_floor_count
+            Tags: { 1: [apartment] }
+  - !Ground []
+"));
+
+            var internals = b.Internals(new Random(1).NextDouble, null, Finder);
+
+            Assert.AreEqual(internals.Floors.Count(), internals.Floors.GroupBy(a => a.Index).Count());
+        }
+
+        [TestMethod]
         public void AssertThat_SingleFloorBuilding_OutputsSingleFloor()
         {
             var b = BuildingDesigner.Deserialize(new StringReader(@"
@@ -256,7 +325,7 @@ Verticals: []
 Facades:
     - Tags: { 1: [b] }
       Bottom: !Id { Id: F }
-      Top: !Id { Id: F, Search: Up, Filter: Longest, NonOverlapping: true }
+      Top: !Id { Id: F, Inclusive: true, Search: Up, Filter: Longest, NonOverlapping: true }
 
     - Tags: { 1: [a] }
       Bottom: !Num { N: 0 }

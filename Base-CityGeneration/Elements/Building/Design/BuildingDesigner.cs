@@ -93,7 +93,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             var internals = new Internals(this, above.Select(a => a.Selection).ToArray(), below.Select(a => a.Selection).ToArray(), footprints.ToArray());
 
             //Select vertical elements for floors and add to result
-            internals.Verticals = SelectVerticals(random, finder, _verticalSelectors, internals.AboveGroundFloors, internals.BelowGroundFloors).ToArray();
+            internals.Verticals = SelectVerticals(random, finder, _verticalSelectors, internals.Floors).ToArray();
 
             //return result
             return internals;
@@ -151,14 +151,14 @@ namespace Base_CityGeneration.Elements.Building.Design
             }
         }
 
-        private static IEnumerable<VerticalSelection> SelectVerticals(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<VerticalElementSpec> verticalSelectors, IEnumerable<FloorSelection> above, IEnumerable<FloorSelection> below)
+        private static IEnumerable<VerticalSelection> SelectVerticals(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<VerticalElementSpec> verticalSelectors, IEnumerable<FloorSelection> floors)
         {
-            var floors = above.Append(below).ToArray();
-
             List<VerticalSelection> verticals = new List<VerticalSelection>();
 
+            var fArr = floors.ToArray();
+
             foreach (var selector in verticalSelectors)
-                verticals.AddRange(selector.Select(random, finder, below.Count(), floors));
+                verticals.AddRange(selector.Select(random, finder, fArr));
 
             return verticals;
         }
@@ -219,8 +219,8 @@ namespace Base_CityGeneration.Elements.Building.Design
                     continue;
 
                 //Find top and bottom floors which match this spec
-                var bot = spec.Bottom.Match(0, run, null);
-                var top = spec.Top.MatchFrom(0, run, spec.Bottom, bot);
+                var bot = spec.Bottom.Match(run, null);
+                var top = spec.Top.MatchFrom(run, spec.Bottom, bot);
 
                 bool topAny = false;
                 foreach (var facade in top)

@@ -29,10 +29,10 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             BottomFloor = bottomFloor;
         }
 
-        public IEnumerable<VerticalSelection> Select(Func<double> random, Func<string[], ScriptReference> finder, int basements, FloorSelection[] floors)
+        public IEnumerable<VerticalSelection> Select(Func<double> random, Func<string[], ScriptReference> finder, FloorSelection[] floors)
         {
-            var bot = BottomFloor.Match(basements, floors, null);
-            var zipped = TopFloor.MatchFrom(basements, floors, BottomFloor, bot);
+            var bot = BottomFloor.Match(floors, null);
+            var zipped = TopFloor.MatchFrom(floors, BottomFloor, bot);
 
             List<VerticalSelection> output = new List<VerticalSelection>();
             foreach (var vertical in zipped)
@@ -42,34 +42,13 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
                 if (script == null)
                     continue;
 
-                output.Add(new VerticalSelection(finder(_tags.WeightedRandom(random)), floors.Length - Array.IndexOf(floors, vertical.Key) - basements - 1, floors.Length - Array.IndexOf(floors, vertical.Value) - basements - 1));
+                output.Add(new VerticalSelection(
+                    finder(_tags.WeightedRandom(random)),
+                    vertical.Key.Index,
+                    vertical.Value.Index
+                ));
             }
             return output;
-        }
-
-        private IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> FilterByCreationMode(IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> zipped, RefFilter option)
-        {
-            switch (option)
-            {
-                case RefFilter.All:
-                    return zipped;
-                case RefFilter.First:
-                    return zipped.Take(1);
-                case RefFilter.Last:
-                    return zipped.Reverse().Take(1).ToArray();
-                case RefFilter.Shortest:
-                    throw new NotImplementedException();
-                case RefFilter.Longest:
-                    throw new NotImplementedException();
-                case RefFilter.SingleOrNone:
-                    if (zipped.Skip(1).Any())
-                        return new KeyValuePair<FloorSelection, FloorSelection>[0];
-                    return zipped.Take(1);
-                case RefFilter.SingleOrFail:
-                    throw new NotImplementedException();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
         }
 
         internal class Container

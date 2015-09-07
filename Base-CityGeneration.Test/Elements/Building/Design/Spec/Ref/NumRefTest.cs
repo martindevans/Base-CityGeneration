@@ -32,7 +32,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             NumRef i = new NumRef(10, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, null);
+            var matches = i.Match(_floors, null);
 
             Assert.AreEqual(1, matches.Count());
             Assert.AreEqual(_floors[2], matches.Single());  //NumRef 10 == Floor 2 because we're counting *up* from the ground floor
@@ -43,7 +43,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             NumRef i = new NumRef(-2, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, null);
+            var matches = i.Match(_floors, null);
 
             Assert.AreEqual(1, matches.Count());
             Assert.AreEqual(_floors[14], matches.Single());
@@ -54,7 +54,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             NumRef i = new NumRef(-3, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, null);
+            var matches = i.Match(_floors, null);
 
             Assert.AreEqual(0, matches.Count());
         }
@@ -64,7 +64,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             NumRef i = new NumRef(13, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, null);
+            var matches = i.Match(_floors, null);
 
             Assert.AreEqual(0, matches.Count());
         }

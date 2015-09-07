@@ -51,7 +51,9 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
             //Shuffle the list, then flatten out the sub lists
             return selected
-                .Select(data => new {data, r = random()}).OrderBy(a => a.r).Select(a => a.data)
+                .Select(data => new {data, r = random()})
+                .OrderBy(a => a.r)
+                .Select(a => a.data)
                 .SelectMany(a => a);
         }
 
@@ -144,7 +146,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         else
         {
             var node = SelectSingle(selector, random, _tags, finder, Height.SelectFloatValue(random, metadata), Id);
-            selectFloor = () => node;
+            selectFloor = () => node == null ? null : node.Clone();
         }
 
         if (Continuous)
