@@ -1,24 +1,22 @@
-﻿using EpimetheusPlugins.Scripts;
-using Myre.Collections;
-using System;
-using System.Collections.Generic;
+﻿using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
+using System.Linq;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 {
     public class FootprintMarker
         : BaseMarker
     {
-        public override IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        public FootprintMarker(BaseFootprintAlgorithm[] algorithms)
+            : base(algorithms)
         {
-            yield break;
         }
 
         internal class Container
-            : ISelectorContainer
+            : BaseContainer
         {
-            public BaseFloorSelector Unwrap()
+            protected override BaseFloorSelector Unwrap()
             {
-                return new FootprintMarker();
+                return new FootprintMarker(this.Select(a => a.Unwrap()).ToArray());
             }
         }
     }

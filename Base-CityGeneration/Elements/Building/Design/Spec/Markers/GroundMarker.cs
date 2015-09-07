@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using EpimetheusPlugins.Scripts;
-using Myre.Collections;
+﻿using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
+using System.Linq;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 {
@@ -11,17 +9,17 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
     public class GroundMarker
         : BaseMarker
     {
-        public override IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        public GroundMarker(BaseFootprintAlgorithm[] algorithms)
+            : base(algorithms)
         {
-            yield break;
         }
 
         internal class Container
-            :ISelectorContainer
+            : BaseContainer
         {
-            public BaseFloorSelector Unwrap()
+            protected override BaseFloorSelector Unwrap()
             {
-                return new GroundMarker();
+                return new GroundMarker(this.Select(a => a.Unwrap()).ToArray());
             }
         }
     }

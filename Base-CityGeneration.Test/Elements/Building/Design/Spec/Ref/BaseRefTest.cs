@@ -1,4 +1,5 @@
-﻿using Base_CityGeneration.Elements.Building.Design.Spec;
+﻿using Base_CityGeneration.Elements.Building.Design;
+using Base_CityGeneration.Elements.Building.Design.Spec;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;

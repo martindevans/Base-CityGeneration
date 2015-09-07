@@ -42,6 +42,7 @@ Floors:
   - !Floor
     Id: Penthouse
     Tags: { 50: [penthouse], 50: null }
+  - !Footprint []
   - !Repeat
     Count:
       !NormalValue
@@ -57,7 +58,7 @@ Floors:
             Tags: { 1: [apartment] }
   - !Floor
     Tags: { 1: [ground floor, lobby, shops] }
-  - !Ground {}
+  - !Ground []
   - !Floor
     Tags: { 1: [parking] }
 "));
@@ -67,7 +68,7 @@ Floors:
             Func<string[], ScriptReference> finder = tags => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tags));
 
             Random r = new Random();
-            var selection = b.Select(r.NextDouble, null, finder, new ReadOnlyCollection<float>(new float[] { }));
+            var selection = b.Internals(r.NextDouble, null, finder);
 
             var v = selection.Verticals;
             Func<int, string> prefix = (floor) => new string(v.Select(a => a.Bottom <= floor && a.Top >= floor ? '|' : ' ').ToArray());
@@ -76,7 +77,7 @@ Floors:
             foreach (var item in selection.AboveGroundFloors)
             {
                 i++;
-                var pre = prefix(selection.AboveGroundFloors.Count - i - 1);
+                var pre = prefix(selection.AboveGroundFloors.Count() - i - 1);
                 Console.WriteLine("{0} {1} {2:##.##}m", pre, item.Script.Name, item.Height);
             }
 

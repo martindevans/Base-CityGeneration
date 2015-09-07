@@ -1,8 +1,9 @@
-﻿using EpimetheusPlugins.Scripts;
+﻿using Base_CityGeneration.Elements.Building.Design.Spec;
+using EpimetheusPlugins.Scripts;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Base_CityGeneration.Elements.Building.Design.Spec
+namespace Base_CityGeneration.Elements.Building.Design
 {
     public class FloorSelection
     {
@@ -33,14 +34,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             }
         }
 
-        private readonly int _index;
-        public int Index
-        {
-            get
-            {
-                return _index;
-            }
-        }
+        public int Index { get; internal set; }
 
         public FloorSelection(string id, string[] tags, BaseFloorSelector selector, ScriptReference script, float height, int index = 0)
         {
@@ -49,7 +43,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             _script = script;
             _selector = selector;
             _height = height;
-            _index = index;
+            Index = index;
         }
 
         public FloorSelection(FloorSelection selection, int index)
@@ -58,7 +52,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             _tags = selection.Tags.ToArray();
             _script = selection.Script;
             _height = selection.Height;
-            _index = index;
+            Index = index;
         }
     }
 }
