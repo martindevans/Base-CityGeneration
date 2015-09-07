@@ -32,7 +32,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             TaggedRef i = new TaggedRef(new[] { "a" }, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, null);
+            var matches = i.Match(_floors, null);
 
             Assert.AreEqual(3, matches.Count());
             Assert.IsTrue(matches.Contains(_floors[1]));
@@ -45,7 +45,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             TaggedRef i = new TaggedRef(new[] { "a", "x" }, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, null);
+            var matches = i.Match(_floors, null);
 
             Assert.AreEqual(1, matches.Count());
             Assert.IsTrue(matches.Contains(_floors[2]));

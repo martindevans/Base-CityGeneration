@@ -41,8 +41,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
             IdRef residential = new IdRef("residential", SearchDirection.Up, RefFilter.All, false, false);
             IdRef skylobby = new IdRef("skylobby", SearchDirection.Up, RefFilter.First, true, false);
 
-            var res = residential.Match(2, _floors, null).ToArray();
-            var matched = skylobby.MatchFrom(2, _floors, residential, res).ToArray();
+            var res = residential.Match(_floors, null).ToArray();
+            var matched = skylobby.MatchFrom(_floors, residential, res).ToArray();
 
             //We should have matched all the residential floors, paired with the next skylobby up
             //Then filtered these floors into groups which overlap, and take the first (i.e. lowest floor to next skylobby)
@@ -58,8 +58,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
             IdRef bot = new IdRef("skylobby", SearchDirection.Up, RefFilter.All, false, false);
             IdRef top = new IdRef("skylobby", SearchDirection.Up, RefFilter.First, false, false);
 
-            var b = bot.Match(2, _floors, null).ToArray();
-            var matched = top.MatchFrom(2, _floors, bot, b).ToArray();
+            var b = bot.Match(_floors, null).ToArray();
+            var matched = top.MatchFrom(_floors, bot, b).ToArray();
 
             Assert.AreEqual(2, matched.Count());
             Assert.IsTrue(matched.Any(a => a.Key.Index == 4 && a.Value.Index == 8));

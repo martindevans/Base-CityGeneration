@@ -15,7 +15,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
             _tags = tags;
         }
 
-        protected override IEnumerable<FloorSelection> MatchImpl(int basements, IList<FloorSelection> floors, int? startIndex)
+        protected override IEnumerable<FloorSelection> MatchImpl(IList<FloorSelection> floors, int? startIndex)
         {
             //If (TagsWeWant - TagsFloorHas) is empty then obviously the floor has all the tags we want
             return floors.Where(a => !_tags.Except(a.Tags).Any());

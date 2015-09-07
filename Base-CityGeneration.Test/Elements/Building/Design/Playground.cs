@@ -21,6 +21,7 @@ Aliases:
   - &residential_floor_count !NormalValue
     Min: 5
     Max: 10
+
 Verticals:
     # First lift from ground->lowest skylobby
     - Tags: { 1: [lift] }
@@ -36,6 +37,7 @@ Verticals:
     - Tags: { 1: [lift] }
       Bottom: !Num { N: 0 }
       Top: !Id { Id: Penthouse }
+
 Floors:
   - !Floor
     Tags: { 50: [roof, garden], 50: [roof, helipad] }
@@ -71,21 +73,20 @@ Floors:
             Random r = new Random();
             var selection = b.Internals(r.NextDouble, null, finder);
 
+            Assert.AreEqual(selection.Floors.Count(), selection.Floors.GroupBy(a => a.Index).Count());
+
             var v = selection.Verticals;
             Func<int, string> prefix = (floor) => new string(v.Select(a => a.Bottom <= floor && a.Top >= floor ? '|' : ' ').ToArray());
 
-            int i = 0;
             foreach (var item in selection.AboveGroundFloors)
             {
-                i++;
-                var pre = prefix(selection.AboveGroundFloors.Count() - i - 1);
+                var pre = prefix(item.Index);
                 Console.WriteLine("{0} {1} {2:##.##}m", pre, item.Script.Name, item.Height);
             }
 
-            i = 0;
             foreach (var item in selection.BelowGroundFloors)
             {
-                var pre = prefix(-(i + 1));
+                var pre = prefix(item.Index);
                 Console.WriteLine("{0} {1} {2:##.##}m", pre, item.Script.Name, item.Height);
             }
         }

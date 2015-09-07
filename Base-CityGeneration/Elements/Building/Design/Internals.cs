@@ -49,6 +49,17 @@ namespace Base_CityGeneration.Elements.Building.Design
             }
         }
 
+        public IEnumerable<FloorSelection> Floors
+        {
+            get
+            {
+                foreach (var floor in AboveGroundFloors)
+                    yield return floor;
+                foreach (var floor in BelowGroundFloors)
+                    yield return floor;
+            }
+        }
+
         public IEnumerable<FootprintSelection> Footprints { get; private set; }
 
         /// <summary>

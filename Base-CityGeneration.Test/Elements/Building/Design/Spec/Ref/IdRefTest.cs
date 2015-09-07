@@ -32,7 +32,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             IdRef i = new IdRef("d", SearchDirection.Up, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, null);
+            var matches = i.Match(_floors, null);
 
             Assert.AreEqual(1, matches.Count());
             Assert.AreEqual(_floors[6], matches.Single());
@@ -43,7 +43,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             IdRef i = new IdRef("d", SearchDirection.Down, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, null);
+            var matches = i.Match(_floors, null);
 
             Assert.AreEqual(1, matches.Count());
             Assert.AreEqual(_floors[6], matches.Single());
@@ -54,7 +54,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             IdRef i = new IdRef("d", SearchDirection.Down, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, 12);
+            var matches = i.Match(_floors, 12);
 
             Assert.AreEqual(1, matches.Count());
             Assert.AreEqual(_floors[6], matches.Single());
@@ -65,7 +65,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             IdRef i = new IdRef("d", SearchDirection.Down, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, 5);
+            var matches = i.Match(_floors, 5);
 
             Assert.AreEqual(0, matches.Count());
         }
@@ -75,7 +75,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             IdRef i = new IdRef("u1", SearchDirection.Down, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, -1);
+            var matches = i.Match(_floors, -1);
 
             Assert.AreEqual(1, matches.Count());
         }
@@ -85,7 +85,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             IdRef i = new IdRef("d", SearchDirection.Up, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, 5);
+            var matches = i.Match(_floors, 5);
 
             Assert.AreEqual(1, matches.Count());
             Assert.AreEqual(_floors[6], matches.Single());
@@ -96,7 +96,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             IdRef i = new IdRef("d", SearchDirection.Up, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, 7);
+            var matches = i.Match(_floors, 7);
 
             Assert.AreEqual(0, matches.Count());
         }
@@ -106,7 +106,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             IdRef i = new IdRef("a", SearchDirection.Up, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, 0).ToArray();
+            var matches = i.Match(_floors, 0).ToArray();
 
             Assert.AreEqual(3, matches.Count());
             Assert.AreEqual(9, matches[0].Index);
@@ -119,7 +119,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
         {
             IdRef i = new IdRef("g", SearchDirection.Down, RefFilter.All, false, false);
 
-            var matches = i.Match(2, _floors, 12).ToArray();
+            var matches = i.Match(_floors, 12).ToArray();
 
             Assert.AreEqual(3, matches.Count());
             Assert.AreEqual(3, matches[0].Index);
