@@ -42,7 +42,8 @@ Floors:
   - !Floor
     Id: Penthouse
     Tags: { 50: [penthouse], 50: null }
-  - !Footprint []
+  - !Footprint
+        - !FillSpace {}
   - !Repeat
     Count:
       !NormalValue
