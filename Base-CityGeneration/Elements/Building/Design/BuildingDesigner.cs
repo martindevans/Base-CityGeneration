@@ -5,6 +5,7 @@ using System.Linq;
 using Base_CityGeneration.Elements.Building.Design.Spec;
 using Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
@@ -272,10 +273,15 @@ namespace Base_CityGeneration.Elements.Building.Design
                 EmitTags = true,
             });
 
-            //Floor element types
+            //Root type
+            serializer.Settings.RegisterTagMapping("Building", typeof(Container));
+
+            //Markers
             serializer.Settings.RegisterTagMapping("Ground", typeof(GroundMarker.Container));
             serializer.Settings.RegisterTagMapping("Footprint", typeof(FootprintMarker.Container));
-            serializer.Settings.RegisterTagMapping("Building", typeof(Container));
+            serializer.Settings.RegisterTagMapping("FillSpace", typeof(FillSpace.Container));
+
+            //Floor element types
             serializer.Settings.RegisterTagMapping("Floor", typeof(FloorSpec.Container));
             serializer.Settings.RegisterTagMapping("Range", typeof(FloorRangeSpec.Container));
             serializer.Settings.RegisterTagMapping("Include", typeof(FloorRangeIncludeSpec.Container));
