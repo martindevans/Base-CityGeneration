@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Elements.Building.Internals.Rooms;
@@ -9,7 +10,6 @@ using Base_CityGeneration.Elements.Generic;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
-using System.Numerics;
 using Myre;
 using Myre.Collections;
 using Myre.Extensions;
@@ -37,7 +37,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         /// </summary>
         public int FloorIndex { get; set; }
 
-        public IVerticalFeature[] Overlaps { get; set; }
+        public IReadOnlyCollection<IVerticalFeature> Overlaps { get; set; }
 
         protected BaseFloor(float minHeight = 1.5f, float maxHeight = 4, float floorThickness = 0.1f, float ceilingThickness = 0.1f)
         {
