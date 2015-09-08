@@ -23,10 +23,5 @@ namespace Base_CityGeneration.Elements.Building.Internals.VerticalFeatures
         /// The top floor which this feature overlaps
         /// </summary>
         int TopFloorIndex { get; set; }
-
-        /// <summary>
-        /// The height of each floor
-        /// </summary>
-        float FloorHeight { get; set; }
     }
 }

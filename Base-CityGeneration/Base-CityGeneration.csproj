@@ -292,13 +292,13 @@
     <Compile Include="Utilities\Numbers\BaseValueGenerator.cs" />
     <Compile Include="Utilities\Numbers\UniformlyDistributedValue.cs" />
     <Compile Include="Elements\Building\Design\Spec\VerticalElementSpec.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\Rooms\IDoorPlacer.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\Rooms\IDoorTarget.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\Rooms\IPlannedRoom.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\Floors\Plan\FloorPlan.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\Floors\Plan\NeighbourData.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\Floors\Plan\RoomPlan.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\Rooms\IRoomPlanProvider.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\IDoorPlacer.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\IDoorTarget.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\IPlannedRoom.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Plan\FloorPlan.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Plan\NeighbourData.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Plan\RoomPlan.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\IRoomPlanProvider.cs" />
     <Compile Include="Elements\Generic\BigFlatPlane.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -323,13 +323,13 @@
     <Compile Include="Elements\Building\BaseBuilding.cs" />
     <Compile Include="Elements\Building\Facades\BaseFacade.cs" />
     <Compile Include="Elements\Building\Facades\IFacade.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\Floors\BaseFloor.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\Floors\IFloor.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\Rooms\BasePlannedRoom.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\Rooms\IRoom.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\VerticalFeatures\IVerticalFeature.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\VerticalFeatures\Stairs\IStairwell.cs" />
-    <Compile Include="Elements\Building\Facades\Internals\VerticalFeatures\Stairs\SpiralStaircase.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\BaseFloor.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\IFloor.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\BasePlannedRoom.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\IRoom.cs" />
+    <Compile Include="Elements\Building\Internals\VerticalFeatures\IVerticalFeature.cs" />
+    <Compile Include="Elements\Building\Internals\VerticalFeatures\Stairs\IStairwell.cs" />
+    <Compile Include="Elements\Building\Internals\VerticalFeatures\Stairs\SpiralStaircase.cs" />
     <Compile Include="Elements\Roads\BasicJunction.cs" />
     <Compile Include="Elements\Roads\BasicRoad.cs" />
     <Compile Include="Elements\Roads\FaceBlockBuilder.cs" />

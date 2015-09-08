@@ -24,7 +24,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.VerticalFeatures.Stair
 
         public int BottomFloorIndex { get; set; }
         public int TopFloorIndex { get; set; }
-        public float FloorHeight { get; set; }
 
         public override bool Accept(Prism bounds, INamedDataProvider parameters)
         {
