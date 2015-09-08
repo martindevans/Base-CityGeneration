@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Base-CityGeneration")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Procedural City Generation Toolkit")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Base-CityGeneration")]
