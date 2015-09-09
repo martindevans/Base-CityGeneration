@@ -13,6 +13,16 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         public BaseFloorSelector[] Items { get; private set; }
         public IValueGenerator Count { get; private set; }
 
+        public override float MinHeight
+        {
+            get { return Items.Sum(a => a.MinHeight) * Count.MinValue; }
+        }
+
+        public override float MaxHeight
+        {
+            get { return Items.Sum(a => a.MaxHeight) * Count.MaxValue; }
+        }
+
         public bool Vary { get; private set; }
 
         private RepeatSpec(BaseFloorSelector[] items, IValueGenerator count, bool vary)

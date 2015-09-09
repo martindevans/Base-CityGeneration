@@ -6,7 +6,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
     public class FillSpace
         : BaseFootprintAlgorithm
     {
-        public override IReadOnlyList<Vector2> Apply(IReadOnlyList<Vector2> footprint)
+        public override IReadOnlyList<Vector2> Apply(IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis)
         {
             return footprint;
         }

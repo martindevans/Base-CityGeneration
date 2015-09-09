@@ -8,6 +8,16 @@ namespace Base_CityGeneration.Utilities.Numbers
     {
         private readonly float _value;
 
+        public float MinValue
+        {
+            get { return _value; }
+        }
+
+        public float MaxValue
+        {
+            get { return _value; }
+        }
+
         public ConstantValue(float value)
         {
             _value = value;

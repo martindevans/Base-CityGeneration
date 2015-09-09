@@ -28,7 +28,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         private readonly float _ceilingThickness;
 
         private float _roomHeight;
-        private float _roomOffsetY;
 
         public FloorPlan Plan { get; private set; }
 
@@ -60,7 +59,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
             //Calculate some handy values
             _roomHeight = bounds.Height - _floorThickness - _ceilingThickness;
-            _roomOffsetY = -bounds.Height / 2 + _roomHeight / 2 + _floorThickness;
+            var roomOffsetY = -bounds.Height / 2 + _roomHeight / 2 + _floorThickness;
 
             //Create rooms for vertical features which overlap this floor
             var verticalSubsections = CreateVerticalOverlapRooms();
@@ -73,7 +72,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             CreateCeilings(bounds, geometry, verticalSubsections, null);
 
             //Create room scripts
-            CreateRoomScripts();
+            CreateRoomScripts(roomOffsetY, _roomHeight);
 
             //Rooms have been created
             CreatedRooms(Plan);
@@ -82,7 +81,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             var externalFacades = CreateExternalFacades(bounds, externalWallThickness);
 
             //Create facades for rooms
-            CreateRoomFacades(externalFacades);
+            CreateRoomFacades(externalFacades, roomOffsetY);
         }
 
         #region helpers
@@ -120,14 +119,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             geometry.Union(geometry.CreatePrism(material, bounds.Footprint, _ceilingThickness).Translate(new Vector3(0, bounds.Height / 2 - _ceilingThickness / 2, 0)));
         }
 
-        private void CreateRoomScripts()
+        private void CreateRoomScripts(float yOffset, float height)
         {
             foreach (var roomPlan in Plan.Rooms)
             {
                 var room = (IPlannedRoom)CreateChild(
-                    new Prism(_roomHeight, roomPlan.InnerFootprint),
+                    new Prism(height, roomPlan.InnerFootprint),
                     Quaternion.Identity,
-                    new Vector3(0, _roomOffsetY, 0), roomPlan.Scripts.Where(r => r.Implements<IPlannedRoom>())
+                    new Vector3(0, yOffset, 0), roomPlan.Scripts.Where(r => r.Implements<IPlannedRoom>())
                 );
                 if (room != null)
                     roomPlan.Node = room;
@@ -161,7 +160,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             return externalSections;
         }
 
-        private void CreateRoomFacades(List<IConfigurableFacade> externalFacades)
+        private void CreateRoomFacades(List<IConfigurableFacade> externalFacades, float yOffset)
         {
             //There are three types of facade:
             // 1. A border between 2 rooms
@@ -200,7 +199,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                         if (roomPlan.Id < facade.NeighbouringRoom.Id)
                         {
                             //Create a new facade between these rooms and store it for the other room to retrieve later
-                            newFacade = CreateInternalWall(roomPlan, facade);
+                            newFacade = CreateInternalWall(roomPlan, facade, yOffset);
                             interRoomFacades.AddOrUpdate(
                                 new KeyValuePair<RoomPlan, RoomPlan>(roomPlan, facade.NeighbouringRoom),
                                 _ => new List<IConfigurableFacade> { newFacade },
@@ -231,7 +230,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                         }
                     }
                     else
-                        newFacade = CreateInternalWall(roomPlan, facade);
+                        newFacade = CreateInternalWall(roomPlan, facade, yOffset);
 
                     if (newFacade != null)
                         generatedFacades.Add(facade, newFacade);
@@ -293,12 +292,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             );
         }
 
-        protected virtual IConfigurableFacade CreateInternalWall(RoomPlan room, RoomPlan.Facade facade)
+        protected virtual IConfigurableFacade CreateInternalWall(RoomPlan room, RoomPlan.Facade facade, float yOffset)
         {
             var wall = (IConfigurableFacade)CreateChild(
                 new Prism(_roomHeight, facade.Section.A, facade.Section.B, facade.Section.C, facade.Section.D),
                 Quaternion.Identity,
-                new Vector3(0, _roomOffsetY, 0),
+                new Vector3(0, yOffset, 0),
                 InternalFacadeScripts(room).Where(r => r.Implements<IConfigurableFacade>())
             );
 

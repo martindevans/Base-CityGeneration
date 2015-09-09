@@ -174,7 +174,7 @@ namespace Base_CityGeneration.Elements.Building
 
         protected abstract IEnumerable<FacadeSelection> SelectFacades();
 
-        protected abstract IReadOnlyList<Vector2> SelectFootprint(int floor);
+        protected abstract IEnumerable<Vector2> SelectFootprint(int floor);
 
         #region helpers
         private void CheckSubdivided()

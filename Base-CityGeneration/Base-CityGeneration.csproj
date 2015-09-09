@@ -218,6 +218,7 @@
     <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\AspectRatioRuleSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\BaseSubdividerRule.cs" />
     <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\FrontageRuleSpec.cs" />
+    <Compile Include="Elements\Building\BaseBuildingContainer.cs" />
     <Compile Include="Elements\Building\Design\Design.cs" />
     <Compile Include="Elements\Building\Design\FacadeSelection.cs" />
     <Compile Include="Elements\Building\Design\FootprintSelection.cs" />
@@ -249,6 +250,8 @@
     <Compile Include="Elements\Building\Design\Spec\Ref\SearchDirection.cs" />
     <Compile Include="Elements\Building\Design\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Design\Spec\RepeatSpec.cs" />
+    <Compile Include="Elements\Building\SpecBuilding.cs" />
+    <Compile Include="Elements\Building\SpecBuildingContainer.cs" />
     <Compile Include="Parcels\Parcelling\Rules\AspectRatioRule.cs" />
     <Compile Include="Utilities\Numbers\IValueGenerator.cs" />
     <Compile Include="Utilities\Numbers\MetaValue.cs" />
