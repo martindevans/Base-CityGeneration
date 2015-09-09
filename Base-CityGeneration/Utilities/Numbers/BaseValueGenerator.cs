@@ -35,6 +35,16 @@ namespace Base_CityGeneration.Utilities.Numbers
             }
         }
 
+        public float MaxValue
+        {
+            get { return _max.MaxValue; }
+        }
+
+        public float MinValue
+        {
+            get { return _min.MinValue; }
+        }
+
         private int? _intCache;
         private float? _singleCache;
 

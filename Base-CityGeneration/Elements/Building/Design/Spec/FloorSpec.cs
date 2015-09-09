@@ -14,6 +14,16 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
     public class FloorSpec
         : BaseFloorSelector
     {
+        public override float MinHeight
+        {
+            get { return _height.MinValue; }
+        }
+
+        public override float MaxHeight
+        {
+            get { return _height.MaxValue; }
+        }
+
         private readonly KeyValuePair<float, string[]>[] _tags;
         public IEnumerable<KeyValuePair<float, string[]>> Tags
         {

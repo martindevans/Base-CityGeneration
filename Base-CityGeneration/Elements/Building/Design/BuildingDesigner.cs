@@ -43,6 +43,16 @@ namespace Base_CityGeneration.Elements.Building.Design
         {
             get { return _facadeSelectors; }
         }
+
+        public float MinHeight
+        {
+            get { return _floorSelectors.Sum(a => a.MinHeight); }
+        }
+
+        public float MaxHeight
+        {
+            get { return _floorSelectors.Sum(a => a.MaxHeight); }
+        }
         #endregion
 
         #region constructor

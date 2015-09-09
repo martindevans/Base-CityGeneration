@@ -23,6 +23,16 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             }
         }
 
+        public override float MinHeight
+        {
+            get { return _includes.Sum(a => a.Count.MinValue * a.Height.MinValue); }
+        }
+
+        public override float MaxHeight
+        {
+            get { return _includes.Sum(a => a.Count.MaxValue * a.Height.MaxValue); }
+        }
+
         private readonly IValueGenerator _defaultHeightSpec;
         public IValueGenerator DefaultHeight
         {

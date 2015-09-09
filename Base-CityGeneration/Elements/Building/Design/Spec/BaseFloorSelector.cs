@@ -8,6 +8,10 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 {
     public abstract class BaseFloorSelector
     {
+        public abstract float MinHeight { get; }
+
+        public abstract float MaxHeight { get; }
+
         public abstract IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder);
 
         protected FloorSelection SelectSingle(Func<double> random, IEnumerable<KeyValuePair<float, string[]>> tags, Func<string[], ScriptReference> finder, float height, string id)

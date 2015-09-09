@@ -10,6 +10,16 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
     public abstract class BaseMarker
         : BaseFloorSelector
     {
+        public override float MinHeight
+        {
+            get { return 0; }
+        }
+
+        public override float MaxHeight
+        {
+            get { return 0; }
+        }
+
         private readonly BaseFootprintAlgorithm[] _footprintAlgorithms;
         public IEnumerable<BaseFootprintAlgorithm> FootprintAlgorithms
         {

@@ -9,6 +9,16 @@ namespace Base_CityGeneration.Utilities.Numbers
         private readonly IValueGenerator _basis;
         private readonly Func<float, float> _transform;
 
+        public float MaxValue
+        {
+            get { return _transform(_basis.MaxValue); }
+        }
+
+        public float MinValue
+        {
+            get { return _transform(_basis.MinValue); }
+        }
+
         public WrapperBaseValue(IValueGenerator basis, Func<float, float> transform)
         {
             _basis = basis;
