@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using System.Collections.Generic;
 using EpimetheusPlugins.Scripts;
@@ -29,6 +30,18 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
         protected BaseMarker(BaseFootprintAlgorithm[] footprintAlgorithms)
         {
             _footprintAlgorithms = footprintAlgorithms;
+        }
+
+        public IReadOnlyList<Vector2> Apply(IReadOnlyList<Vector2> footprint)
+        {
+            var wip = footprint;
+            for (int i = 0; i < _footprintAlgorithms.Length; i++)
+            {
+                var alg = _footprintAlgorithms[i];
+                wip = alg.Apply(wip, footprint);
+            }
+
+            return wip;
         }
 
         public override IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
