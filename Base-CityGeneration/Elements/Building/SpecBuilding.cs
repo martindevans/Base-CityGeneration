@@ -49,7 +49,7 @@ namespace Base_CityGeneration.Elements.Building
             var footprintLookup = footprints.ToDictionary(a => a.Index, a => a.Marker);
 
             //Generate initial ground shape
-            var ground = _design.Footprints.Single(a => a.Index == 0).Marker.Apply(initial);
+            var ground = _design.Footprints.Single(a => a.Index == 0).Marker.Apply(Random, HierarchicalParameters, initial);
             results.Add(0, ground);
 
             //Generate upwards
@@ -58,7 +58,7 @@ namespace Base_CityGeneration.Elements.Building
             {
                 BaseMarker gen;
                 if (footprintLookup.TryGetValue(i, out gen))
-                    previous = gen.Apply(previous);
+                    previous = gen.Apply(Random, HierarchicalParameters, previous);
                 results.Add(i, previous);
             }
 
@@ -68,7 +68,7 @@ namespace Base_CityGeneration.Elements.Building
             {
                 BaseMarker gen;
                 if (footprintLookup.TryGetValue(-i, out gen))
-                    previous = gen.Apply(previous);
+                    previous = gen.Apply(Random, HierarchicalParameters, previous);
                 results.Add(-i, previous);
             }
 
@@ -84,12 +84,12 @@ namespace Base_CityGeneration.Elements.Building
 
         protected override IEnumerable<VerticalSelection> SelectVerticals()
         {
-            yield break;    //todo: verticals in spec building
+            return _design.Verticals;
         }
 
-        protected override IEnumerable<FacadeSelection> SelectFacades()
+        protected override IEnumerable<FacadeSelection> SelectFacades(IReadOnlyCollection<float> neighbourHeights)
         {
-            yield break;    //todo: facades in spec building
+            yield break;
         }
 
         protected override IEnumerable<Vector2> SelectFootprint(int floor)

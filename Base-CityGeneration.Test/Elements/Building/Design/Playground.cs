@@ -45,7 +45,7 @@ Floors:
     Id: Penthouse
     Tags: { 50: [penthouse], 50: null }
   - !Footprint
-        - !FillSpace {}
+        - !Shrink { Distance: 1 }
   - !Repeat
     Count:
       !NormalValue

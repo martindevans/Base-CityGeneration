@@ -10,11 +10,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.VerticalFeatures
         : ISubdivisionContext
     {
         /// <summary>
-        /// Indicates if this is a major vertical feature (e.g. stairwell or lift) which you may want to lead a corridor up to or a minor vertical feature (e.g. utility shaft) which you probably don't!
-        /// </summary>
-        bool IsMajorFeature { get; }
-
-        /// <summary>
         /// The bottom floor which this feature overlaps
         /// </summary>
         int BottomFloorIndex { get; set; }
