@@ -32,13 +32,13 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
             _footprintAlgorithms = footprintAlgorithms;
         }
 
-        public IReadOnlyList<Vector2> Apply(IReadOnlyList<Vector2> footprint)
+        public IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint)
         {
             var wip = footprint;
             for (int i = 0; i < _footprintAlgorithms.Length; i++)
             {
                 var alg = _footprintAlgorithms[i];
-                wip = alg.Apply(wip, footprint);
+                wip = alg.Apply(random, metadata, wip, footprint);
             }
 
             return wip;

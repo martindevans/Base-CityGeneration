@@ -3,11 +3,13 @@ using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using EpimetheusPlugins.Procedural;
+using EpimetheusPlugins.Procedural.Utilities;
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Elements.Building
 {
@@ -81,10 +83,10 @@ namespace Base_CityGeneration.Elements.Building
 
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
-            //create things
+            //Create things
             _floors = CreateFloors(SelectFloors());
-            _facades = CreateFacades(SelectFacades());
-            _verticals = CreateVerticals(SelectVerticals());
+            _verticals = CreateVerticals(SelectVerticals(), _floors);
+            _facades = CreateFacades(SelectFacades(bounds.Footprint.Select(a => 0f).ToArray()));    //todo: get neighbour height data
 
             //Set up relationship between floor and facade (facades PrerequisiteOf floor)
             foreach (var facade in _facades)
@@ -144,19 +146,79 @@ namespace Base_CityGeneration.Elements.Building
 
         protected abstract IEnumerable<FloorSelection> SelectFloors();
 
-        private IReadOnlyCollection<IVerticalFeature> CreateVerticals(IEnumerable<VerticalSelection> verticals)
+        private IReadOnlyCollection<IVerticalFeature> CreateVerticals(IEnumerable<VerticalSelection> verticals, IReadOnlyDictionary<int, IFloor> floors)
         {
             if (verticals.Any(a => a.Bottom > a.Top))
                 throw new InvalidOperationException("Attempted to crete a vertical element where bottom > top");
 
-            //todo: verticals
-            //throw new NotImplementedException("Turn selection into actual nodes");
+            var results = new List<IVerticalFeature>();
 
-            ////Associate vertical elements with the floors they intersect
-            //foreach (var floor in _floors.Values)
-            //    floor.Overlaps = _verticals.Where(a => a.TopFloorIndex >= floor.FloorIndex && a.BottomFloorIndex <= floor.FloorIndex).ToArray();
+            foreach (var verticalSelection in verticals)
+            {
+                //Get all floors this feature overlaps
+                IFloor[] crossedFloors = (
+                    from i in Enumerable.Range(verticalSelection.Bottom, verticalSelection.Top - verticalSelection.Bottom + 1)
+                    select floors[i]
+                ).ToArray();
 
-            return new List<IVerticalFeature>();
+                //Calculate the intersection of all crossed floor footprints
+                var intersection = IntersectionOfFootprints(crossedFloors);
+
+                //Ask the bottom floors where this element should be placed
+                var footprint = crossedFloors[0].PlaceVerticalFeature(verticalSelection, intersection, crossedFloors);
+
+                //Transform from floor space into building space
+                var transform = crossedFloors[0].InverseWorldTransformation * WorldTransformation;
+                var bFootprint = footprint.Select(a => Vector3.Transform(a.X_Y(0), transform).XZ()).ToArray();
+
+                //Clockwise wind
+                if (bFootprint.Area() < 0)
+                    Array.Reverse(bFootprint);
+
+                //Calculate height
+                var height = crossedFloors.Sum(a => a.Bounds.Height);
+
+                //Create vertical element node
+                var vertical = (IVerticalFeature)CreateChild(
+                    new Prism(height, bFootprint),
+                    Quaternion.Identity,
+                    new Vector3(0, height / 2, 0),
+                    verticalSelection.Script
+                );
+                vertical.BottomFloorIndex = verticalSelection.Bottom;
+                vertical.TopFloorIndex = verticalSelection.Top;
+
+                //Accumulate all verticals
+                results.Add(vertical);
+            }
+
+            //Associate vertical elements with the floors they intersect
+            foreach (var floor in _floors.Values)
+                floor.Overlaps = results.Where(a => a.TopFloorIndex >= floor.FloorIndex && a.BottomFloorIndex <= floor.FloorIndex).ToArray();
+
+            return results;
+        }
+
+        private IReadOnlyList<Vector2> IntersectionOfFootprints(IFloor[] floors)
+        {
+            const int SCALE = 1000;
+            Clipper c = new Clipper();
+
+            for (int i = 0; i < floors.Length; i++)
+            {
+                int ii = i;
+                //Transform footprint from floor[i] space into floor[0] space
+                var transformed = floors[i].Bounds.Footprint.Select(a => Vector3.Transform(a.X_Y(0), floors[ii].InverseWorldTransformation * floors[0].WorldTransformation));
+                c.AddPolygon(
+                    transformed.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Z * SCALE))).ToList(),
+                    i == 0 ? PolyType.Subject : PolyType.Clip
+                );
+            }
+
+            var result = new List<List<IntPoint>>();
+            c.Execute(ClipType.Intersection, result);
+
+            return result[0].Select(a => new Vector2(a.X / (float)SCALE, a.Y / (float)SCALE)).ToArray();
         }
 
         protected abstract IEnumerable<VerticalSelection> SelectVerticals();
@@ -168,11 +230,15 @@ namespace Base_CityGeneration.Elements.Building
 
             //todo: facades
             //throw new NotImplementedException("Turn selection into actual nodes");
+            foreach (var facadeSelection in facades)
+            {
+                
+            }
 
             return new List<IBuildingFacade>();
         }
 
-        protected abstract IEnumerable<FacadeSelection> SelectFacades();
+        protected abstract IEnumerable<FacadeSelection> SelectFacades(IReadOnlyCollection<float> neighbourHeights);
 
         protected abstract IEnumerable<Vector2> SelectFootprint(int floor);
 

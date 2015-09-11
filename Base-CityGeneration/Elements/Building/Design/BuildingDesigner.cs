@@ -289,7 +289,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             //Markers
             serializer.Settings.RegisterTagMapping("Ground", typeof(GroundMarker.Container));
             serializer.Settings.RegisterTagMapping("Footprint", typeof(FootprintMarker.Container));
-            serializer.Settings.RegisterTagMapping("FillSpace", typeof(FillSpace.Container));
+            serializer.Settings.RegisterTagMapping("Shrink", typeof(Shrink.Container));
 
             //Floor element types
             serializer.Settings.RegisterTagMapping("Floor", typeof(FloorSpec.Container));

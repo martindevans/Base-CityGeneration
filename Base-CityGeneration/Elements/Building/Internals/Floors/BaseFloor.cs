@@ -1,18 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+﻿using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using Base_CityGeneration.Elements.Generic;
+using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
-using Myre;
 using Myre.Collections;
 using Myre.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors
 {
@@ -54,38 +56,40 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
-            //Get some style parameters
-            var externalWallThickness = hierarchicalParameters.GetMaybeValue(new TypedName<float>("external_wall_thickness")) ?? 0.25f;
-
             //Calculate some handy values
             _roomHeight = bounds.Height - _floorThickness - _ceilingThickness;
             var roomOffsetY = -bounds.Height / 2 + _roomHeight / 2 + _floorThickness;
 
+            //Create an empty floor plan
+            Plan = new FloorPlan(Bounds.Footprint);
+
             //Create rooms for vertical features which overlap this floor
-            var verticalSubsections = CreateVerticalOverlapRooms();
+            var verticalSubsections = CreateVerticalOverlapRooms(Plan);
 
             //Create other rooms in the plan
-            CreateFloorPlan(bounds);
+            CreateFloorPlan(bounds, Plan);
 
             //Create Floor and ceiling (with holes for vertical sections)
             CreateFloors(bounds, geometry, verticalSubsections, null);
             CreateCeilings(bounds, geometry, verticalSubsections, null);
 
+            //todo: rooms need information on external facades, such that they can ensure rooms are not created splitting windows
+
             //Create room scripts
-            CreateRoomScripts(roomOffsetY, _roomHeight);
+            CreateRoomScripts(roomOffsetY, _roomHeight, Plan);
 
             //Rooms have been created
             CreatedRooms(Plan);
 
-            //Create external facades
-            var externalFacades = CreateExternalFacades(bounds, externalWallThickness);
+            //Create external facades (subsections of building over this floor facade)
+            var externalFacades = CreateExternalFacades(bounds);
 
             //Create facades for rooms
-            CreateRoomFacades(externalFacades, roomOffsetY);
+            CreateRoomFacades(externalFacades, roomOffsetY, Plan);
         }
 
         #region helpers
-        private Dictionary<RoomPlan, IVerticalFeature> CreateVerticalOverlapRooms()
+        private Dictionary<RoomPlan, IVerticalFeature> CreateVerticalOverlapRooms(FloorPlan plan)
         {
             Dictionary<RoomPlan, IVerticalFeature> verticalSubsections = (Overlaps ?? new IVerticalFeature[0]).Select(overlap =>
             {
@@ -93,35 +97,58 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                 var points = overlap.Bounds.Footprint.ToArray();
                 var w = overlap.WorldTransformation * InverseWorldTransformation;
                 for (int i = 0; i < points.Length; i++)
-                    points[i] = Vector2.Transform(points[i], w);
+                    points[i] = Vector3.Transform(points[i].X_Y(0), w).XZ();
+
+                //Clockwise wind
+                if (points.Area() < 0)
+                    Array.Reverse(points);
 
                 //Create a room using the identity script (todo: change using identity script for vertical features?)
-                var r = Plan.AddRoom(points, 0.1f, new[] { new ScriptReference(typeof(IdentityScript)) }).Single();
+                var r = plan.AddRoom(points, 0.1f, new[] { new ScriptReference(typeof(IdentityScript)) }).Single();
                 return new KeyValuePair<RoomPlan, IVerticalFeature>(r, overlap);
             }).ToDictionary(a => a.Key, a => a.Value);
             return verticalSubsections;
         }
 
-        private void CreateFloorPlan(Prism bounds)
+        private void CreateFloorPlan(Prism bounds, FloorPlan plan)
         {
-            Plan = new FloorPlan(bounds.Footprint);
-            CreateRooms(Plan);
-            Plan.Freeze();
+            CreateRooms(plan);
+            plan.Freeze();
         }
 
         private void CreateFloors(Prism bounds, ISubdivisionGeometry geometry, Dictionary<RoomPlan, IVerticalFeature> verticalSubsections, string material)
         {
-            geometry.Union(geometry.CreatePrism(material, bounds.Footprint, _floorThickness).Translate(new Vector3(0, -bounds.Height / 2 + _floorThickness / 2, 0)));
+            var floor = geometry.CreatePrism(material, bounds.Footprint, _floorThickness).Translate(new Vector3(0, -bounds.Height / 2 + _floorThickness / 2, 0));
+
+            floor = CutVerticalHoles(floor, geometry, material, verticalSubsections);
+
+            geometry.Union(floor);
         }
 
         private void CreateCeilings(Prism bounds, ISubdivisionGeometry geometry, Dictionary<RoomPlan, IVerticalFeature> verticalSubsections, string material)
         {
-            geometry.Union(geometry.CreatePrism(material, bounds.Footprint, _ceilingThickness).Translate(new Vector3(0, bounds.Height / 2 - _ceilingThickness / 2, 0)));
+            var ceiling = geometry.CreatePrism(material, bounds.Footprint, _ceilingThickness).Translate(new Vector3(0, bounds.Height / 2 - _ceilingThickness / 2, 0));
+
+            ceiling = CutVerticalHoles(ceiling, geometry, material, verticalSubsections);
+
+            geometry.Union(ceiling);
         }
 
-        private void CreateRoomScripts(float yOffset, float height)
+        private ICsgShape CutVerticalHoles(ICsgShape shape, ISubdivisionGeometry geometry, string material, Dictionary<RoomPlan, IVerticalFeature> verticalSubsections)
         {
-            foreach (var roomPlan in Plan.Rooms)
+            foreach (var verticalSubsection in verticalSubsections)
+            {
+                shape = shape.Subtract(
+                    geometry.CreatePrism(material, verticalSubsection.Key.OuterFootprint, 1000)
+                );
+            }
+
+            return shape;
+        }
+
+        private void CreateRoomScripts(float yOffset, float height, FloorPlan plan)
+        {
+            foreach (var roomPlan in plan.Rooms)
             {
                 var room = (IPlannedRoom)CreateChild(
                     new Prism(height, roomPlan.InnerFootprint),
@@ -137,30 +164,33 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         {
         }
 
-        private List<IConfigurableFacade> CreateExternalFacades(Prism bounds, float externalWallThickness)
+        private List<IConfigurableFacade> CreateExternalFacades(Prism bounds)
         {
-            var externalSections = new List<IConfigurableFacade>();
+            //var externalSections = new List<IConfigurableFacade>();
 
-            foreach (var section in Plan.ExternalFootprint.Sections(externalWallThickness))
-            {
-                var facade = CreateChild(new Prism(bounds.Height, section.A, section.B, section.C, section.D), Quaternion.Identity, Vector3.Zero,
-                    ExternalFacadeScripts().Where(e => e.Implements<IConfigurableFacade>())
-                );
+            //foreach (var section in Plan.ExternalFootprint.Sections(externalWallThickness))
+            //{
+            //    var facade = CreateChild(new Prism(bounds.Height, section.A, section.B, section.C, section.D), Quaternion.Identity, Vector3.Zero,
+            //        ExternalFacadeScripts().Where(e => e.Implements<IConfigurableFacade>())
+            //    );
 
-                if (facade != null)
-                {
-                    facade.HierarchicalParameters.Set(new TypedName<string>("material"), "concrete");
+            //    if (facade != null)
+            //    {
+            //        facade.HierarchicalParameters.Set(new TypedName<string>("material"), "concrete");
 
-                    var c = (IConfigurableFacade)facade;
-                    c.Section = section;
-                    externalSections.Add(c);
-                }
-            }
+            //        var c = (IConfigurableFacade)facade;
+            //        c.Section = section;
+            //        externalSections.Add(c);
+            //    }
+            //}
 
-            return externalSections;
+            //return externalSections;
+
+            //todo: create subsection of appropriate building facade
+            return new List<IConfigurableFacade>();
         }
 
-        private void CreateRoomFacades(List<IConfigurableFacade> externalFacades, float yOffset)
+        private void CreateRoomFacades(IReadOnlyCollection<IConfigurableFacade> externalFacades, float yOffset, FloorPlan plan)
         {
             //There are three types of facade:
             // 1. A border between 2 rooms
@@ -175,7 +205,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             // Key is both rooms (in ID order), value is the all the facades between the two rooms
             Dictionary<KeyValuePair<RoomPlan, RoomPlan>, List<IConfigurableFacade>> interRoomFacades = new Dictionary<KeyValuePair<RoomPlan, RoomPlan>, List<IConfigurableFacade>>();
 
-            foreach (var roomPlan in Plan.Rooms.Where(r => r.Node != null).OrderBy(r => r.Id))
+            foreach (var roomPlan in plan.Rooms.Where(r => r.Node != null).OrderBy(r => r.Id))
             {
                 //All facades generated for this room
                 Dictionary<RoomPlan.Facade, IConfigurableFacade> generatedFacades = new Dictionary<RoomPlan.Facade, IConfigurableFacade>();
@@ -191,7 +221,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                         //Find the external wall which is co-linear with this facade section
                         var externalSection = FindExternalFacade(roomPlan.WallThickness, externalFacades, facade.Section.ExternalLineSegment); 
 
-                        //Create section (or call error handler if no externals ection was found)
+                        //Create section (or call error handler if no external section was found)
                         newFacade = externalSection == null ? FailedToFindExternalSection(roomPlan, facade) : CreateExternalWall(roomPlan, facade, externalSection);
                     }
                     else if (facade.NeighbouringRoom != null && facade.NeighbouringRoom.Node != null)
@@ -352,6 +382,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         #endregion
 
         #region abstracts
+        public abstract IEnumerable<Vector2> PlaceVerticalFeature(VerticalSelection vertical, IReadOnlyList<Vector2> validSpace, IReadOnlyList<IFloor> floors);  
+
         /// <summary>
         /// Call Plan.AddRoom to put new rooms into the floor plan
         /// </summary>

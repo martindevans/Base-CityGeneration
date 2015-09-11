@@ -225,7 +225,7 @@
     <Compile Include="Elements\Building\Design\Internals.cs" />
     <Compile Include="Elements\Building\Design\FloorSelection.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\BaseFootprintAlgorithm.cs" />
-    <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\FillSpace.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Shrink.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\FootprintMarker.cs" />
     <Compile Include="Elements\Building\Design\VerticalSelection.cs" />
     <Compile Include="Elements\Building\Facades\ConfigurableFacade.cs" />
