@@ -1,17 +1,24 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using Base_CityGeneration.Elements.Building.Design;
+﻿using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
 using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.IO;
+using System.Linq;
+using System.Numerics;
 
 namespace Base_CityGeneration.Test.Elements.Building.Design
 {
     [TestClass]
     public class BuildingDesignerTest
     {
+        private static readonly BuildingSideInfo[] _noNeighbours = {
+            new BuildingSideInfo(new Vector2(-10, -10), new Vector2(10, -10), new BuildingSideInfo.NeighbourInfo[0]),
+            new BuildingSideInfo(new Vector2(10, -10), new Vector2(10, 10), new BuildingSideInfo.NeighbourInfo[0]),
+            new BuildingSideInfo(new Vector2(10, 10), new Vector2(-10, 10), new BuildingSideInfo.NeighbourInfo[0]),
+            new BuildingSideInfo(new Vector2(-10, 10), new Vector2(-10, -10), new BuildingSideInfo.NeighbourInfo[0]),
+        };
+
         private static ScriptReference Finder(string[] tags)
         {
             Assert.IsNotNull(tags);
@@ -228,10 +235,14 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new [] { 0f });
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
 
-            Assert.AreEqual(1, selection.Facades.Count());
-            Assert.AreEqual(1, selection.Facades.Single().Count());
+            //One facade for each wall (4 walls)
+            Assert.AreEqual(4, selection.Walls.SelectMany(a => a.Facades).Count());
+
+            //Every wall has just one facade up it's entire height
+            Assert.IsTrue(selection.Walls.All(a => a.Facades.Count() == 1));
+            Assert.IsTrue(selection.Walls.SelectMany(a => a.Facades).All(a => a.Bottom == 0 && a.Top == 4));
         }
 
         [TestMethod]
@@ -257,7 +268,7 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new ReadOnlyCollection<float>(new float[] { 0 }));
+            b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
         }
 
         [TestMethod]
@@ -282,11 +293,14 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new[] { 0f });
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
 
-            Assert.AreEqual(1, selection.Footprints.Count());
-            Assert.AreEqual(0, selection.Footprints.Single().Index);
-            Assert.IsInstanceOfType(selection.Footprints.Single().Marker, typeof(GroundMarker));
+            //4 sides, 4 walls
+            Assert.AreEqual(4, selection.Walls.Count());
+            Assert.IsTrue(selection.Walls.All(a => a.BottomIndex == 0));
+
+            //Does one of the walls contain one of the seed points
+            Assert.AreEqual(1, selection.Walls.Count(a => a.Start == new Vector2(-10, -10)));
         }
 
         [TestMethod]
@@ -346,13 +360,14 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new float[] { 0 });
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
 
-            Assert.AreEqual(1, selection.Facades.Count());
-            Assert.AreEqual(3, selection.Facades.Single().Count());
-            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 0 && f.Top == 0));
-            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 1 && f.Top == 3));
-            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 4 && f.Top == 4));
+            var wall = selection.Walls.First();
+
+            Assert.AreEqual(3, wall.Facades.Count());
+            Assert.AreEqual(1, wall.Facades.Count(f => f.Bottom == 0 && f.Top == 0));
+            Assert.AreEqual(1, wall.Facades.Count(f => f.Bottom == 1 && f.Top == 3));
+            Assert.AreEqual(1, wall.Facades.Count(f => f.Bottom == 4 && f.Top == 4));
         }
 
         [TestMethod]
@@ -384,13 +399,16 @@ Floors:
 
             Assert.IsNotNull(b);
 
-            Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new float[] { 1 });
+            throw new NotImplementedException("Pass in some neighbour information which obscures floor 1");
 
-            Assert.AreEqual(1, selection.Facades.Count());
-            Assert.AreEqual(2, selection.Facades.Single().Count());
-            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 1 && f.Top == 3));
-            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 4 && f.Top == 4));
+            Random r = new Random(2);
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
+
+            var wall = selection.Walls.First();
+
+            Assert.AreEqual(2, wall.Facades.Count());
+            Assert.AreEqual(1, wall.Facades.Count(f => f.Bottom == 1 && f.Top == 3));
+            Assert.AreEqual(1, wall.Facades.Count(f => f.Bottom == 4 && f.Top == 4));
         }
 
         [TestMethod]
@@ -416,12 +434,16 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, new float[] { 0 });
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
 
-            Assert.AreEqual(1, selection.Facades.Count());
-            Assert.AreEqual(2, selection.Facades.Single().Count());
-            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 0 && f.Top == 1));
-            Assert.IsTrue(selection.Facades.Single().Any(f => f.Bottom == 2 && f.Top == 3));
+            var facades = selection.Walls.SelectMany(a => a.Facades);
+
+            //2 facades for all 4 walls
+            Assert.AreEqual(2 * 4, facades.Count());
+
+            //1 facade at this height for all 4 walls
+            Assert.AreEqual(1 * 4, facades.Count(f => f.Bottom == 0 && f.Top == 1));
+            Assert.AreEqual(1 * 4, facades.Count(f => f.Bottom == 2 && f.Top == 3));
         }
 
         [TestMethod]

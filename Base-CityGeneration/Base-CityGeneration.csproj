@@ -219,6 +219,7 @@
     <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\BaseSubdividerRule.cs" />
     <Compile Include="Elements\Blocks\Spec\Subdivision\Rules\FrontageRuleSpec.cs" />
     <Compile Include="Elements\Building\BaseBuildingContainer.cs" />
+    <Compile Include="Elements\Building\Design\BuildingSideInfo.cs" />
     <Compile Include="Elements\Building\Design\Design.cs" />
     <Compile Include="Elements\Building\Design\FacadeSelection.cs" />
     <Compile Include="Elements\Building\Design\FootprintSelection.cs" />

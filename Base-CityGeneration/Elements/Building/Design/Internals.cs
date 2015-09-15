@@ -1,9 +1,10 @@
-﻿using EpimetheusPlugins.Scripts;
+﻿using System.Linq;
+using System.Numerics;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
+using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Myre.Extensions;
 
 namespace Base_CityGeneration.Elements.Building.Design
 {
@@ -12,7 +13,6 @@ namespace Base_CityGeneration.Elements.Building.Design
         private readonly BuildingDesigner _designer;
 
         private readonly FloorSelection[][] _aboveGroundFloorRuns;
-
         /// <summary>
         /// Set of floors to place above ground
         /// </summary>
@@ -31,7 +31,6 @@ namespace Base_CityGeneration.Elements.Building.Design
         }
 
         private readonly FloorSelection[][] _belowGroundFloorRuns;
-
         /// <summary>
         /// Set of floors to place below ground
         /// </summary>
@@ -77,25 +76,76 @@ namespace Base_CityGeneration.Elements.Building.Design
             Footprints = footprints;
         }
 
-        public Design Externals(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, IEnumerable<float> neighbourHeights)
+        public Design Externals(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, BuildingSideInfo[] sides)
         {
-            List<FacadeSelection>[] facades = new List<FacadeSelection>[neighbourHeights.Count()];
-            for (int i = 0; i < facades.Length; i++)
-                facades[i] = new List<FacadeSelection>();
+            //Generate footprints up building
+            IReadOnlyDictionary<int, IReadOnlyList<Vector2>> footprints = GenerateFootprints(random, metadata, sides.Select(a => a.EdgeEnd).ToArray(), Footprints, AboveGroundFloors.Count(), BelowGroundFloors.Count());
 
+            //Results of facade selection
+            List<Design.Wall> walls = new List<Design.Wall>();
+
+            //Generate facades
             foreach (var run in _aboveGroundFloorRuns)
             {
-                var f = _designer.SelectFacades(random, finder, run, neighbourHeights);
+                var bot = run.Min(a => a.Index);
 
-                int index = 0;
-                foreach (var selectedFacades in f)
+                //Get the footprint for this run
+                var footprint = footprints[bot];
+
+                //Generate facades for each side
+                for (int i = 0; i < footprint.Count; i++)
                 {
-                    facades[index].AddRange(selectedFacades);
-                    index++;
+                    //Get start and end points of this wall
+                    var s = footprint[i];
+                    var e = footprint[(i + 1) % footprint.Count];
+
+                    //Select facades
+                    Design.Wall w = new Design.Wall(i, bot, s, e, _designer.SelectFacadesForWall(random, finder, run, sides, s, e));
+
+                    //Save results
+                    walls.Add(w);
                 }
             }
 
-            return new Design(AboveGroundFloors.Append(BelowGroundFloors), Footprints, Verticals, facades);
+            return new Design(Floors, Verticals, walls);
+        }
+
+        private static IReadOnlyDictionary<int, IReadOnlyList<Vector2>> GenerateFootprints(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> initial, IEnumerable<FootprintSelection> footprints, int aboveGroundFloorCount, int belowGroundFloorCount)
+        {
+            Dictionary<int, IReadOnlyList<Vector2>> results = new Dictionary<int, IReadOnlyList<Vector2>>();
+
+            //Index by floor number
+            var footprintLookup = footprints.ToDictionary(a => a.Index, a => a.Marker);
+
+            //Generate initial ground shape
+            var ground = footprints.Single(a => a.Index == 0).Marker.Apply(random, metadata, initial);
+            results.Add(0, ground);
+
+            //Generate upwards
+            var previous = ground;
+            for (int i = 1; i < aboveGroundFloorCount; i++)
+            {
+                BaseMarker gen;
+                if (footprintLookup.TryGetValue(i, out gen))
+                {
+                    previous = gen.Apply(random, metadata, previous);
+                    results.Add(i, previous);
+                }
+            }
+
+            //Generate downwards
+            previous = ground;
+            for (int i = 1; i < belowGroundFloorCount; i++)
+            {
+                BaseMarker gen;
+                if (footprintLookup.TryGetValue(-i, out gen))
+                {
+                    previous = gen.Apply(random, metadata, previous);
+                    results.Add(-i, previous);
+                }
+            }
+
+            return results;
         }
     }
 }

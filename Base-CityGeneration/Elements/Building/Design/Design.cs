@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace Base_CityGeneration.Elements.Building.Design
 {
@@ -11,27 +13,44 @@ namespace Base_CityGeneration.Elements.Building.Design
         public IEnumerable<FloorSelection> Floors { get; private set; }
 
         /// <summary>
-        /// Footprint selectors in this building
-        /// </summary>
-        public IEnumerable<FootprintSelection> Footprints { get; private set; }
-
-        /// <summary>
         /// Vertical elements to place within this building
         /// </summary>
         public IEnumerable<VerticalSelection> Verticals { get; private set; }
 
         /// <summary>
-        /// Facades to place around this building, in the same order as the "neighbour heights" supplied to the select method
+        /// Wall sections around this building, associated with facades above them
         /// </summary>
-        public IEnumerable<IEnumerable<FacadeSelection>> Facades { get; private set; }
+        public IEnumerable<Wall> Walls { get; private set; }
 
-        public Design(IEnumerable<FloorSelection> floors, IEnumerable<FootprintSelection> footprints, IEnumerable<VerticalSelection> verticals, IEnumerable<IEnumerable<FacadeSelection>> facades)
+        public Design(IEnumerable<FloorSelection> floors, IEnumerable<VerticalSelection> verticals, IEnumerable<Wall> walls)
         {
             Floors = floors.OrderBy(a => a.Index).ToArray();
-            Footprints = footprints.ToArray();
+            Walls = walls.ToArray();
             Verticals = verticals.ToArray();
+        }
 
-            Facades = facades.Select(a => a.ToArray()).ToArray();
+        public class Wall
+        {
+            public int BottomIndex { get; private set; }
+            public int FootprintIndex { get; private set; }
+
+            public Vector2 Start { get; private set; }
+            public Vector2 End { get; private set; }
+
+            public IEnumerable<FacadeSelection> Facades { get; private set; }
+
+            public Wall(int footprintIndex, int floorIndex, Vector2 start, Vector2 end, IEnumerable<FacadeSelection> facades)
+            {
+                BottomIndex = floorIndex;
+                FootprintIndex = footprintIndex;
+
+                Start = start;
+                End = end;
+
+                if (facades.Any(a => a.Bottom < floorIndex))
+                    throw new ArgumentException("Bottom floor of facade is below bottom floor of wall", "facades");
+                Facades = facades.ToArray();
+            }
         }
     }
 }
