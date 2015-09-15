@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design.Spec;
 using Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
@@ -173,32 +174,14 @@ namespace Base_CityGeneration.Elements.Building.Design
             return verticals;
         }
 
-        internal IEnumerable<IEnumerable<FacadeSelection>> SelectFacades(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<FloorSelection> aboveGroundFloors, IEnumerable<float> neighbourHeights)
+        internal IEnumerable<FacadeSelection> SelectFacadesForWall(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<FloorSelection> floorRun, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd)
         {
-            foreach (var height in neighbourHeights)
-            {
-                yield return SelectFacadesForWall(random, finder, FacadeSelectors, aboveGroundFloors, height);
-            }
-        }
+            List<FacadeSelection> result = new List<FacadeSelection>();
 
-        private static IEnumerable<FacadeSelection> SelectFacadesForWall(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<FacadeSpec> specs, IEnumerable<FloorSelection> aboveGroundFloors, float startHeight)
-        {
-            //Select floors which are above the required height
-            //We keep a list of uninterrupted runs of floors, and then match facades on each run
-            //to start with there is just one run
+            //Runs which we have no yet selected a facade for. Starts with just the input runs
             Stack<List<FloorSelection>> runs = new Stack<List<FloorSelection>>(new[] {
-                (from floor in aboveGroundFloors
-                 let below = aboveGroundFloors.Where(f => f.Index < floor.Index).Select(f => f.Height).Sum()
-                 where below >= startHeight
-                 select floor).ToList()
-            }.Where(r => r.Count > 0));
-
-            //This entire wall is obscured, no facades
-            if (runs.Count == 0)
-                return new FacadeSelection[0];
-
-            //Set of selected facades
-            List<FacadeSelection> facades = new List<FacadeSelection>();
+                floorRun.ToList()
+            });
 
             //Keep applying specs to runs
             while (runs.Count > 0)
@@ -207,14 +190,47 @@ namespace Base_CityGeneration.Elements.Building.Design
                 var run = runs.Pop();
 
                 //Process it, adding a load of facades to the output, as well as producing a new set of runs
-                var produced = SelectFacadesForRun(random, finder, specs, run, facades);
+                var produced = SelectFacadesForRun(random, finder, FacadeSelectors, run, result);
 
                 //Add all the new runs to the stack
                 foreach (var item in produced)
                     runs.Push(item);
             }
 
-            return facades;
+            return result;
+
+            ////Select floors which are above the required height
+            ////We keep a list of uninterrupted runs of floors, and then match facades on each run
+            ////to start with there is just one run
+            //Stack<List<FloorSelection>> runs = new Stack<List<FloorSelection>>(new[] {
+            //    (from floor in aboveGroundFloors
+            //     let below = aboveGroundFloors.Where(f => f.Index < floor.Index).Select(f => f.Height).Sum()
+            //     where below >= startHeight
+            //     select floor).ToList()
+            //}.Where(r => r.Count > 0));
+
+            ////This entire wall is obscured, no facades
+            //if (runs.Count == 0)
+            //    return new FacadeSelection[0];
+
+            ////Set of selected facades
+            //List<FacadeSelection> facades = new List<FacadeSelection>();
+
+            ////Keep applying specs to runs
+            //while (runs.Count > 0)
+            //{
+            //    //Choose a run to process
+            //    var run = runs.Pop();
+
+            //    //Process it, adding a load of facades to the output, as well as producing a new set of runs
+            //    var produced = SelectFacadesForRun(random, finder, specs, run, facades);
+
+            //    //Add all the new runs to the stack
+            //    foreach (var item in produced)
+            //        runs.Push(item);
+            //}
+
+            //return facades;
         }
 
         private static IEnumerable<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<FacadeSpec> specs, List<FloorSelection> run, ICollection<FacadeSelection> results)

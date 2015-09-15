@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using Base_CityGeneration.Elements.Building.Design;
-using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
+﻿using Base_CityGeneration.Elements.Building.Design;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace Base_CityGeneration.Elements.Building
 {
@@ -32,45 +31,25 @@ namespace Base_CityGeneration.Elements.Building
             var internals = hierarchicalParameters.GetValue(SpecBuildingContainer.BuildingInternalsName);
 
             //Generate externals, now we can get the neighbour information that we need from the surrounding containers
-            _design = internals.Externals(Random, hierarchicalParameters, a => ScriptReference.Find(a).Random((Func<double>)Random), new float[] { 0 }); //todo: Get neighbour height data
+            _design = internals.Externals(Random, hierarchicalParameters, a => ScriptReference.Find(a).Random((Func<double>)Random), null); //todo: Get neighbour height data
 
             //Generate and cache footprints
-            _footprints = GenerateFootprints(bounds.Footprint, _design.Footprints, _design.Floors.Count(a => a.Index >= 0), _design.Floors.Count(a => a.Index < 0));
+            _footprints = GenerateFootprints(_design.Walls);
 
             base.Subdivide(bounds, geometry, hierarchicalParameters);
         }
 
         #region helpers
-        private IReadOnlyDictionary<int, IReadOnlyList<Vector2>>  GenerateFootprints(IReadOnlyList<Vector2> initial, IEnumerable<FootprintSelection> footprints, int aboveGroundFloorCount, int belowGroundFloorCount)
+        private IReadOnlyDictionary<int, IReadOnlyList<Vector2>> GenerateFootprints(IEnumerable<Design.Design.Wall> walls)
         {
             Dictionary<int, IReadOnlyList<Vector2>> results = new Dictionary<int, IReadOnlyList<Vector2>>();
 
-            //Index by floor number
-            var footprintLookup = footprints.ToDictionary(a => a.Index, a => a.Marker);
+            //Split up into a group per floor
+            var levels = walls.GroupBy(a => a.BottomIndex);
 
-            //Generate initial ground shape
-            var ground = _design.Footprints.Single(a => a.Index == 0).Marker.Apply(Random, HierarchicalParameters, initial);
-            results.Add(0, ground);
-
-            //Generate upwards
-            var previous = ground;
-            for (int i = 1; i < aboveGroundFloorCount; i++)
-            {
-                BaseMarker gen;
-                if (footprintLookup.TryGetValue(i, out gen))
-                    previous = gen.Apply(Random, HierarchicalParameters, previous);
-                results.Add(i, previous);
-            }
-
-            //Generate downwards
-            previous = ground;
-            for (int i = 1; i < belowGroundFloorCount; i++)
-            {
-                BaseMarker gen;
-                if (footprintLookup.TryGetValue(-i, out gen))
-                    previous = gen.Apply(Random, HierarchicalParameters, previous);
-                results.Add(-i, previous);
-            }
+            //Order by the idnex, and reconstruct the complete footprint
+            foreach (var level in levels)
+                results.Add(level.Key, level.OrderBy(a => a.FootprintIndex).Select(a => a.Start).ToArray());
 
             return results;
         }
@@ -94,7 +73,32 @@ namespace Base_CityGeneration.Elements.Building
 
         protected override IEnumerable<Vector2> SelectFootprint(int floor)
         {
-            return _footprints[floor];
+            if (floor == 0)
+                return _footprints[0];
+
+            //Search down for next footprint
+            if (floor > 0)
+            {
+                for (int i = floor - 1; i >= 0; i--)
+                {
+                    IReadOnlyList<Vector2> ft;
+                    if (_footprints.TryGetValue(i, out ft))
+                        return ft;
+                }
+
+                throw new InvalidOperationException(string.Format("Failed to find a footprint below floor {0}", floor));
+            }
+
+            //Floor must be < 0
+            //Search up for next footprint
+            for (int i = 0; i <= 0; i++)
+            {
+                IReadOnlyList<Vector2> ft;
+                if (_footprints.TryGetValue(i, out ft))
+                    return ft;
+            }
+
+            throw new InvalidOperationException(string.Format("Failed to find a footprint above floor {0}", floor));
         }
         #endregion
     }
