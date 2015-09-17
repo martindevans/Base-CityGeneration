@@ -11,6 +11,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
             Type = type;
         }
 
+        public override bool Check(FloorSelection floor, BuildingSideInfo[] neighbours, System.Numerics.Vector2 edgeStart, System.Numerics.Vector2 edgeEnd)
+        {
+            throw new System.NotImplementedException();
+        }
+
         internal class Container
             : BaseContainer
         {

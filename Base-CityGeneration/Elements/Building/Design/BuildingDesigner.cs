@@ -83,20 +83,32 @@ namespace Base_CityGeneration.Elements.Building.Design
             //Select above ground floors, then assign indices
             var above = SelectFloors(random, metadata, finder, aboveGround, null);
             int index = 0;
+            float compoundHeight = 0;
             foreach (var run in above.Reverse())
             {
                 footprints.Add(new FootprintSelection(run.Marker, index));
                 foreach (var floor in run.Selection.Reverse())
+                {
                     floor.Index = index++;
+                    floor.CompoundHeight = compoundHeight;
+
+                    compoundHeight += floor.Height;
+                }
             }
 
             //Select below ground floors, then assign indices
             var below = SelectFloors(random, metadata, finder, belowGround,ground);
             index = 0;
+            compoundHeight = 0;
             foreach (var run in below)
             {
                 foreach (var floor in run.Selection)
+                {
                     floor.Index = --index;
+                    floor.CompoundHeight = compoundHeight;
+
+                    floor.CompoundHeight -= floor.Height;
+                }
                 footprints.Add(new FootprintSelection(run.Marker, index));
             }
 
@@ -190,7 +202,7 @@ namespace Base_CityGeneration.Elements.Building.Design
                 var run = runs.Pop();
 
                 //Process it, adding a load of facades to the output, as well as producing a new set of runs
-                var produced = SelectFacadesForRun(random, finder, FacadeSelectors, run, result);
+                var produced = SelectFacadesForRun(random, finder, run, neighbours, ftStart, ftEnd, result);
 
                 //Add all the new runs to the stack
                 foreach (var item in produced)
@@ -198,96 +210,95 @@ namespace Base_CityGeneration.Elements.Building.Design
             }
 
             return result;
-
-            ////Select floors which are above the required height
-            ////We keep a list of uninterrupted runs of floors, and then match facades on each run
-            ////to start with there is just one run
-            //Stack<List<FloorSelection>> runs = new Stack<List<FloorSelection>>(new[] {
-            //    (from floor in aboveGroundFloors
-            //     let below = aboveGroundFloors.Where(f => f.Index < floor.Index).Select(f => f.Height).Sum()
-            //     where below >= startHeight
-            //     select floor).ToList()
-            //}.Where(r => r.Count > 0));
-
-            ////This entire wall is obscured, no facades
-            //if (runs.Count == 0)
-            //    return new FacadeSelection[0];
-
-            ////Set of selected facades
-            //List<FacadeSelection> facades = new List<FacadeSelection>();
-
-            ////Keep applying specs to runs
-            //while (runs.Count > 0)
-            //{
-            //    //Choose a run to process
-            //    var run = runs.Pop();
-
-            //    //Process it, adding a load of facades to the output, as well as producing a new set of runs
-            //    var produced = SelectFacadesForRun(random, finder, specs, run, facades);
-
-            //    //Add all the new runs to the stack
-            //    foreach (var item in produced)
-            //        runs.Push(item);
-            //}
-
-            //return facades;
         }
 
-        private static IEnumerable<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<FacadeSpec> specs, List<FloorSelection> run, ICollection<FacadeSelection> results)
+        private IEnumerable<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<string[], ScriptReference> finder, List<FloorSelection> floors, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd, ICollection<FacadeSelection> results)
         {
             //working from the first selector to the last, try to find a facade for each floor
-            foreach (var spec in specs)
+            foreach (var spec in FacadeSelectors)
             {
                 //Find scripts for this spec
                 string[] selectedTags;
                 ScriptReference script = spec.Tags.SelectScript(random, finder, out selectedTags);
+
+                //Skip specs which cannot find a script
                 if (script == null)
                     continue;
 
-                //Find top and bottom floors which match this spec
-                var bot = spec.Bottom.Match(run, null);
-                var top = spec.Top.MatchFrom(run, spec.Bottom, bot);
+                //Remove floors from this run which do not pass the constraints of this facade spec
+                //This produces a new set of runs (e.g. if we removed the middle floor of the run then we produce 2 runs - one above and one below the removed floor)
+                var constrainedRuns = ConstrainRun(floors, spec.Constraints, neighbours, ftStart, ftEnd);
 
                 bool topAny = false;
-                foreach (var facade in top)
+                foreach (var run in constrainedRuns)
                 {
-                    topAny = true;
+                    //Find top and bottom floors which match this spec
+                    var facades = spec.Top.MatchFrom(run, spec.Bottom, spec.Bottom.Match(run, null));
 
-                    //Create a face over this range of floors
-                    var min = Math.Min(facade.Key.Index, facade.Value.Index);
-                    var max = Math.Max(facade.Key.Index, facade.Value.Index);
-                    results.Add(new FacadeSelection(script, min, max));
+                    foreach (var facade in facades)
+                    {
+                        topAny = true;
 
-                    //Remove these floors from the run
-                    run.RemoveAll(a => a.Index >= min && a.Index <= max);
+                        //Create a face over this range of floors
+                        var min = Math.Min(facade.Key.Index, facade.Value.Index);
+                        var max = Math.Max(facade.Key.Index, facade.Value.Index);
+                        results.Add(new FacadeSelection(script, min, max));
+
+                        //Remove these floors from the run
+                        floors.RemoveAll(a => a.Index >= min && a.Index <= max);
+                    }
                 }
 
                 if (!topAny)
                     continue;
-                
-                List<List<FloorSelection>> runs = new List<List<FloorSelection>>();
 
-                //Split the run up into multiple new runs
-                List<FloorSelection> newRun = new List<FloorSelection>();
-                for (int i = 0; i < run.Count; i++)
-                {
-                    if (newRun.Count == 0 || newRun[newRun.Count - 1].Index == run[i].Index + 1)
-                        newRun.Add(run[i]);
-                    else
-                    {
-                        runs.Add(newRun);
-                        newRun = new List<FloorSelection> { run[i] };
-                    }
-                }
-                if (newRun.Count > 0)
-                    runs.Add(newRun);
-
-                return runs;
+                return SplitIntoContinuousRuns(floors);
             }
 
             throw new DesignFailedException(
-                string.Format("Could not find an applicable facade spec for floor run [{0}]", string.Join(",", run.Select(a => string.Format("{0}({1})", a.Index, a.Id))))
+                string.Format("Could not find an applicable facade spec for floor run [{0}]", string.Join(",", floors.Select(a => string.Format("{0}({1})", a.Index, a.Id))))
             );
+        }
+
+        private static IEnumerable<List<FloorSelection>> SplitIntoContinuousRuns(List<FloorSelection> run)
+        {
+            //Make sure run is in correct order (top down)
+            run.Sort((a, b) => b.Index.CompareTo(a.Index));
+
+            //Split the run up into multiple new runs
+            List<FloorSelection> newRun = new List<FloorSelection>();
+            for (int i = 0; i < run.Count; i++)
+            {
+                //If this is a new run, or the previous floors is continuous with this one we're ok
+                if (newRun.Count == 0 || newRun[newRun.Count - 1].Index == run[i].Index + 1)
+                    newRun.Add(run[i]);
+                else
+                {
+                    //This floor is *not* continuous with previous floor, start a new run
+                    yield return newRun;
+                    newRun = new List<FloorSelection> { run[i] };
+                }
+            }
+
+            //Make sure to return the last result (if it's not empty)
+            if (newRun.Count > 0)
+                yield return newRun;
+        }
+
+        /// <summary>
+        /// Given a run of floors apply constraints to eliminate floors and generate sub runs
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerable<List<FloorSelection>> ConstrainRun(IEnumerable<FloorSelection> run, IEnumerable<BaseFacadeConstraint> constraints, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd)
+        {
+            //Floors which pass all constraints
+            List<FloorSelection> passed = (
+                from floor in run
+                where constraints.All(c => c.Check(floor, neighbours, ftStart, ftEnd))
+                select floor
+            ).ToList();
+
+            return SplitIntoContinuousRuns(passed);
         }
         #endregion
 
@@ -315,6 +326,7 @@ namespace Base_CityGeneration.Elements.Building.Design
 
             //Facade types
             serializer.Settings.RegisterTagMapping("Access", typeof(AccessConstraint.Container));
+            serializer.Settings.RegisterTagMapping("Clearance", typeof(ClearanceConstraint.Container));
 
             //Utility types
             serializer.Settings.RegisterTagMapping("NormalValue", typeof(NormallyDistributedValue.Container));
@@ -324,6 +336,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             serializer.Settings.RegisterTagMapping("Num", typeof(NumRef.Container));
             serializer.Settings.RegisterTagMapping("Tagged", typeof(TaggedRef.Container));
             serializer.Settings.RegisterTagMapping("Id", typeof(IdRef.Container));
+            serializer.Settings.RegisterTagMapping("RegexId", typeof(RegexIdRef.Container));
 
             return serializer;
         }
