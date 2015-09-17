@@ -26,6 +26,9 @@ namespace Base_CityGeneration.Elements.Building.Design
         }
 
         readonly float _height;
+        /// <summary>
+        /// Height of this floor (from floor to ceiling)
+        /// </summary>
         public float Height
         {
             get
@@ -33,6 +36,11 @@ namespace Base_CityGeneration.Elements.Building.Design
                 return _height;
             }
         }
+
+        /// <summary>
+        /// The sum of the height of all floors between this one and the ground floor
+        /// </summary>
+        public float CompoundHeight { get; internal set; }
 
         public int Index { get; internal set; }
 

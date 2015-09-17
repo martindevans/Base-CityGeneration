@@ -377,38 +377,101 @@ Floors:
 !Building
 Verticals: []
 Facades:
-    - Tags: { 1: [b] }
+    - Tags: { 1: [a] }
       Bottom: !Id { Id: F }
       Top: !Id { Id: F, Search: Up, Filter: Longest, NonOverlapping: true }
+      Constraints: [ !Clearance { Distance: 20 } ]
 
-    - Tags: { 1: [a] }
-      Bottom: !Num { N: 0 }
-      Top: !Num { N: 0, Inclusive: true }
+    - Tags: { 1: [blank] }
+      Bottom: !Id { Id: '*' }
+      Top: !Id { Id: '*', Inclusive: true, Filter: First }
 
-    - Tags: { 1: [c] }
-      Bottom: !Id { Id: Top }
-      Top: !Id { Id: Top, Inclusive: true }
 Floors:
-    - !Floor { Id: Top, Tags: { 1: [a] }, Height: 1 }
     - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
     - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
     - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
-    - !Floor { Id: Bot, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
     - !Ground []
 "));
 
             Assert.IsNotNull(b);
 
-            throw new NotImplementedException("Pass in some neighbour information which obscures floor 1");
+            //Entire length obscured to 1m
+            var n1 = new BuildingSideInfo.NeighbourInfo[] {
+                new BuildingSideInfo.NeighbourInfo(0, 1, 1)
+            };
+
+            //Entire length of the first side is obscured up to height 1m (floor 1)
+            var neighbours = new[] {
+                new BuildingSideInfo(new Vector2(-10, -10), new Vector2(10, -10), n1),
+                new BuildingSideInfo(new Vector2(10, -10), new Vector2(10, 10), n1),
+                new BuildingSideInfo(new Vector2(10, 10), new Vector2(-10, 10), n1),
+                new BuildingSideInfo(new Vector2(-10, 10), new Vector2(-10, -10), n1),
+            };
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, neighbours);
 
             var wall = selection.Walls.First();
 
+            //Without an obstacle we would get 1 facade, floor 0->3 (FFFF)
+            //However, the ground floor is obscured, so we get 2 facades:
+            //  F (blank) 0
+            //  FFF (a) 1->3
+
             Assert.AreEqual(2, wall.Facades.Count());
             Assert.AreEqual(1, wall.Facades.Count(f => f.Bottom == 1 && f.Top == 3));
-            Assert.AreEqual(1, wall.Facades.Count(f => f.Bottom == 4 && f.Top == 4));
+            Assert.AreEqual(1, wall.Facades.Count(f => f.Bottom == 0 && f.Top == 0));
+        }
+
+        [TestMethod]
+        public void AssertThat_FacadeSelector_OutputsFacades_WhichDoNotViolateConstraints()
+        {
+            var b = BuildingDesigner.Deserialize(new StringReader(@"
+!Building
+Verticals: []
+Facades:
+    - Tags: { 1: [b] }
+      Bottom: !Id { Id: F }
+      Top: !Id { Id: F, Search: Up, Filter: Longest, NonOverlapping: true }
+      Constraints: [ !Clearance { Distance: 20 } ]
+
+    - Tags: { 1: [blank] }
+      Bottom: !Id { Id: '*' }
+      Top: !Id { Id: '*', Inclusive: true, Filter: First }
+
+Floors:
+    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Ground []
+"));
+
+            Assert.IsNotNull(b);
+
+            //Entire length obscured to 1m
+            var n1 = new BuildingSideInfo.NeighbourInfo[] {
+                new BuildingSideInfo.NeighbourInfo(0, 1, 1)
+            };
+
+            //Entire length of the first side is obscured up to height 1m (floor 1)
+            var neighbours = new[] {
+                new BuildingSideInfo(new Vector2(-10, -10), new Vector2(10, -10), n1),
+                new BuildingSideInfo(new Vector2(10, -10), new Vector2(10, 10), n1),
+                new BuildingSideInfo(new Vector2(10, 10), new Vector2(-10, 10), n1),
+                new BuildingSideInfo(new Vector2(-10, 10), new Vector2(-10, -10), n1),
+            };
+
+            Random r = new Random(2);
+            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, neighbours);
+
+            var wall = selection.Walls.First();
+
+            //Without an obstacle we would get 1 facade floors 0->2
+            //However floors zero is obscured by neighbours, so we should get a facade from 1->2 instead
+            Assert.AreEqual(2, wall.Facades.Count());
+            Assert.AreEqual(1, wall.Facades.Count(f => f.Bottom == 1 && f.Top == 2));
+            Assert.AreEqual(1, wall.Facades.Count(f => f.Bottom == 0 && f.Top == 0));
         }
 
         [TestMethod]

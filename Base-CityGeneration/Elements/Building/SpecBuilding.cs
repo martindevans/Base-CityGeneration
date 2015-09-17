@@ -73,10 +73,11 @@ namespace Base_CityGeneration.Elements.Building
 
         protected override IEnumerable<Vector2> SelectFootprint(int floor)
         {
+            //There's always a floor zero footprint
             if (floor == 0)
                 return _footprints[0];
 
-            //Search down for next footprint
+            //Search downwards from this floor for next footprint
             if (floor > 0)
             {
                 for (int i = floor - 1; i >= 0; i--)
@@ -90,7 +91,7 @@ namespace Base_CityGeneration.Elements.Building
             }
 
             //Floor must be < 0
-            //Search up for next footprint
+            //Search upwards from this floor for next footprint
             for (int i = 0; i <= 0; i++)
             {
                 IReadOnlyList<Vector2> ft;

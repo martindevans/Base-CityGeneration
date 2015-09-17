@@ -1,19 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 {
-    public class IdRef
+    public class RegexIdRef
         : BaseRef
     {
-        public string ID { get; private set; }
+        public string Pattern { get; private set; }
 
         public SearchDirection Direction { get; private set; }
 
-        public IdRef(string id, SearchDirection direction, RefFilter filter, bool nonOverlapping, bool inclusive)
+        public RegexIdRef(string pattern, SearchDirection direction, RefFilter filter, bool nonOverlapping, bool inclusive)
             : base(filter, nonOverlapping, inclusive)
         {
-            ID = id;
+            Pattern = pattern;
             Direction = direction;
         }
 
@@ -21,7 +22,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
         {
             IEnumerable<FloorSelection> set = Prefilter(floors, startIndex, Direction);
 
-            var results = set.Where(a => a.Id == ID || ID == "*");
+            var results = set.Where(a => Regex.IsMatch(a.Id, Pattern));
 
             return results;
         }
@@ -29,16 +30,16 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
         internal class Container
             : BaseContainer
         {
-            public string Id { get; set; }
+            public string Pattern { get; set; }
 
             public SearchDirection Search { get; set; }
 
-            private IdRef _cached;
+            private RegexIdRef _cached;
 
             public override BaseRef Unwrap()
             {
                 if (_cached == null)
-                    _cached = new IdRef(Id, Search, Filter ?? RefFilter.All, NonOverlapping, Inclusive);
+                    _cached = new RegexIdRef(Pattern, Search, Filter ?? RefFilter.All, NonOverlapping, Inclusive);
                 return _cached;
             }
         }
