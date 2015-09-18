@@ -20,7 +20,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
 
             var selected = range.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
-            Assert.IsTrue(2 <= selected.Count() && selected.Count() <= 3);
+            //Flatten runs into floors
+            var floors = selected.SelectMany(a => a.Selection);
+
+            Assert.IsTrue(2 <= floors.Count() && floors.Count() <= 3);
         }
 
         [TestMethod]
@@ -32,7 +35,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
 
             var selected = range.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
-            Assert.AreEqual(0, selected.Count());
+            //Flatten runs into floors
+            var floors = selected.SelectMany(a => a.Selection);
+
+            Assert.AreEqual(0, floors.Count());
         }
 
         [TestMethod]
@@ -46,10 +52,11 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
             Random r = new Random();
             var selected = range.Select(r.NextDouble, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a))).ToArray();
 
-            //Find the first "continuous" floor, then check that every single one of the next 20 is also "continuous"
-            var startCont = selected.Select((a, i) => new {a, i}).Where(a => a.a.Script.Name == "continuous").Select(a => a.i).First();
-            for (int i = 0; i < 20; i++)
-                Assert.AreEqual("continuous", selected[i + startCont].Script.Name);
+            //Flatten runs into floors
+            var floors = selected.SelectMany(a => a.Selection);
+
+            //Find the first continuous floor, then check that the next 20 floors are all "continuous"
+            Assert.IsTrue(floors.SkipWhile(a => a.Script.Name != "continuous").Take(20).All(a => a.Script.Name == "continuous"));
         }
     }
 }

@@ -87,6 +87,9 @@ namespace Base_CityGeneration.Elements.Building.Design
             //Generate facades
             foreach (var run in _aboveGroundFloorRuns)
             {
+                if (!run.Any())
+                    continue;
+
                 var bot = run.Min(a => a.Index);
 
                 //Get the footprint for this run

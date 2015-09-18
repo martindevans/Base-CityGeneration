@@ -57,13 +57,13 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             _height = height;
         }
 
-        public override IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
         {
             var selected = SelectSingle(random, _tags, finder, _height.SelectFloatValue(random, metadata), Id);
             if (selected == null)
-                return new FloorSelection[0];
-
-            return new FloorSelection[] { selected };
+                yield return new FloorRun(new FloorSelection[0], null);
+            else
+                yield return new FloorRun(new FloorSelection[] { selected }, null);
         }
 
         internal class Container

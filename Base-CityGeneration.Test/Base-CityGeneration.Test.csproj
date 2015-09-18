@@ -58,12 +58,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5718.33327, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5718.33328\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5735.28271, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5735.28272\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5718.33328, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5718.33328\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
+    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5735.28272, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5735.28272\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -80,20 +80,20 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Myre, Version=6.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Myre.6.0.0.0\lib\net46\Myre.dll</HintPath>
+    <Reference Include="Myre, Version=6.2.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Myre.6.2.0.0\lib\net46\Myre.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Myre.Debugging, Version=4.0.3.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>..\packages\Myre.Debugging.4.0.3.0\lib\net46\Myre.Debugging.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Myre.Entities, Version=7.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Myre.Entities.7.1.0.0\lib\net46\Myre.Entities.dll</HintPath>
+    <Reference Include="Myre.Entities, Version=7.2.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Myre.Entities.7.2.0.0\lib\net46\Myre.Entities.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Myre.Graphics, Version=6.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Myre.Graphics.6.1.0.0\lib\net46\Myre.Graphics.dll</HintPath>
+    <Reference Include="Myre.Graphics, Version=6.3.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Myre.Graphics.6.3.0.0\lib\net46\Myre.Graphics.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -105,23 +105,23 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.0.1\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.1.1\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder, Version=3.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.3.1.0.0\lib\net46\Placeholder.dll</HintPath>
+    <Reference Include="Placeholder, Version=3.1.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.3.1.1.0\lib\net46\Placeholder.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.AI.Control, Version=14.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.AI.Control.14.1.0.0\lib\net46\Placeholder.AI.Control.dll</HintPath>
+    <Reference Include="Placeholder.AI.Control, Version=14.1.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.AI.Control.14.1.1.0\lib\net46\Placeholder.AI.Control.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.AI.Pathfinding, Version=9.1.0.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>..\packages\Placeholder.AI.Pathfinding.9.1.0.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.Audio2, Version=5.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.Audio2.5.1.0.0\lib\net46\Placeholder.Audio2.dll</HintPath>
+    <Reference Include="Placeholder.Audio2, Version=5.1.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.Audio2.5.1.1.0\lib\net46\Placeholder.Audio2.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=9.1.0.0, Culture=neutral, processorArchitecture=x86">
@@ -132,20 +132,20 @@
       <HintPath>..\packages\Placeholder.Entities.2.1.0.0\lib\net46\Placeholder.Entities.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.Networking, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.Networking.2.1.0.0\lib\net46\Placeholder.Networking.dll</HintPath>
+    <Reference Include="Placeholder.Networking, Version=2.1.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.Networking.2.1.1.0\lib\net46\Placeholder.Networking.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.Serialization, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.Serialization.2.1.0.0\lib\net46\Placeholder.Serialization.dll</HintPath>
+    <Reference Include="Placeholder.Serialization, Version=2.1.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.Serialization.2.1.1.0\lib\net46\Placeholder.Serialization.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Poly2Tri, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Poly2Tri.1.0.1.0\lib\net35-Client\Poly2Tri.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SharpYaml, Version=1.5.0.22228, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpYaml.1.5.0\lib\SharpYaml.dll</HintPath>
+    <Reference Include="SharpYaml, Version=1.5.1.18863, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpYaml.1.5.1\lib\SharpYaml.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SupersonicSound, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">

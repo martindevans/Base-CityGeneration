@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
+using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using System.Collections.Generic;
 using EpimetheusPlugins.Scripts;
 using Myre.Collections;
+using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 {
@@ -39,14 +41,57 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
             {
                 var alg = _footprintAlgorithms[i];
                 wip = alg.Apply(random, metadata, wip, footprint);
+
+                wip = Reduce(wip);
             }
 
             return wip;
         }
 
-        public override IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        /// <summary>
+        /// Reduce the number of sides in this footprint
+        /// </summary>
+        /// <param name="footprint"></param>
+        /// <returns></returns>
+        private static IReadOnlyList<Vector2> Reduce(IReadOnlyList<Vector2> footprint)
         {
-            yield break;
+            if (footprint.Count <= 3)
+                return footprint;
+
+            List<Vector2> result = footprint.ToList();
+
+            for (int i = 0; i < result.Count; i++)
+            {
+                if (footprint.Count <= 3)
+                    break;
+
+                //Get previous, current and next
+                var a = result[(i + result.Count - 1) % result.Count];
+                var b = result[i];
+                var c = result[(i + 1) % result.Count];
+
+                var ab = b - a;
+                var bc = c - b;
+
+                var area = Math.Abs(0.5f * ab.Cross(bc));
+
+                //sin 2 degree * 0.5 * 2 * 2
+                //i.e. we remove angle with less than the area of a 2 degree bend between 2 meter pieces
+                if (area < 0.069798f)
+                {
+                    i--;
+                    result.RemoveAt(i);
+                }
+            }
+
+            return result;
+        }
+
+        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        {
+            return new FloorRun[1] {
+                new FloorRun(new FloorSelection[0], this)
+            };
         }
 
         internal abstract class BaseContainer

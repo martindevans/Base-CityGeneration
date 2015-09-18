@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
+﻿using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design;
 using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace Base_CityGeneration.Test.Elements.Building.Design
 {
@@ -21,70 +21,113 @@ Aliases:
   - &residential_floor_count !NormalValue
     Min: 5
     Max: 10
+  - &FloorHeight !UniformValue
+    Min: 2
+    Max: 5
+    Vary: true
 
-Verticals:
-    # First lift from ground->lowest skylobby
-    - Tags: { 1: [lift] }
-      Bottom: !Num { N: 0 }
-      Top: !Id { Id: Skylobby, Search: Up, Filter: First }
-
-    # Set of lifts from skylobby up to next skylobby
-    - Tags: { 1: [lift] }
+Facades:
+    # Penthouse facade
+    - Tags: { 1: [BlankFacade] }
+      Bottom: !Id { Id: Penthouse }
+      Top: !Id { Id: Penthouse, Inclusive: true }
+    
+    # Skylobby facades
+    - Tags: { 1: [BlankFacade] }
       Bottom: !Id { Id: Skylobby }
-      Top: !Id { Id: Skylobby, Search: Up, Filter: First }
-
-    # Express lift for penthouse
-    - Tags: { 1: [lift] }
+      Top: !Id { Id: Skylobby, Inclusive: true, Search: Up, Filter: First }
+      
+    # Residential facades
+    - Tags: { 1: [BlankFacade] }
+      Bottom: !Id { Id: Residential }
+      Top: !Id { Id: Residential, Inclusive: true, Search: Up, Filter: Longest, NonOverlapping: true }
+      
+    # Ground entrances
+    - Tags: { 1: [BlankFacade] }
       Bottom: !Num { N: 0 }
-      Top: !Id { Id: Penthouse }
+      Top: !Num { N: 0, Inclusive: true }
+      #Constraints: [ !Access { Type: Road } ]
+      
+    - Tags: { 1: [BlankFacade] }
+      Bottom: !Num { N: 0 }
+      Top: !Num { N: 0 }
+      
+Verticals:
+  # First lift from ground->lowest skylobby
+  - Tags: { 1: [HollowVertical] }
+    Bottom: !Num { N: 0 }
+    Top: !Num { N: 5 }
 
 Floors:
   - !Floor
-    Tags: { 50: [roof, garden], 50: [roof, helipad] }
-  - !Floor
     Id: Penthouse
-    Tags: { 50: [penthouse], 50: null }
+    Tags: { 50: [SolidFloor], 50: null }
+
   - !Footprint
-        - !Shrink { Distance: 1 }
+    - !Shrink { Distance: 5 }
+    - !Twist { Angle: 15 }
+    - !Clip {}
+
   - !Repeat
-    Count:
-      !NormalValue
+    Count: !NormalValue
       Min: 1
       Max: 5
     Items:
+
+      - !Footprint
+        - !Shrink { Distance: 5 }
+        - !Twist { Angle: 15 }
+        - !Clip {}
+
       - !Floor
         Id: Skylobby
-        Tags: { 1: [skylobby] }
-      - !Range
-        Includes:
-          - Count: *residential_floor_count
-            Tags: { 1: [apartment] }
+        Tags: { 1: [SolidFloor] }
+      - !Repeat
+        Count: *residential_floor_count
+        Vary: true
+        Items:
+            - !Floor
+              Tags: { 1: [SolidFloor] }
+              Id: Residential
+
+  - !Footprint
+    - !Shrink { Distance: 1 }
+    - !Twist { Angle: 15 }
+    - !Clip {}
+
   - !Floor
-    Tags: { 1: [ground floor, lobby, shops] }
+    Tags: { 1: [SolidFloor] }
+    Height: *FloorHeight
+
   - !Ground []
-  - !Floor
-    Tags: { 1: [parking] }
+
 "));
 
             Assert.IsNotNull(b);
 
             Func<string[], ScriptReference> finder = tags => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tags));
 
-            Random r = new Random();
-            var selection = b.Internals(r.NextDouble, null, finder);
+            var lot = new Vector2[] {
+                new Vector2(-30, -30),
+                new Vector2(-30, 30f),
+                new Vector2(30, 30f),
+                new Vector2(30, -30f)
+            };
+
+            Random r = new Random(10);
+            var selection = b.Internals(r.NextDouble, null, finder).Externals(r.NextDouble, null, finder, new BuildingSideInfo[] {
+                new BuildingSideInfo(lot[0], lot[1], new BuildingSideInfo.NeighbourInfo[0]),
+                new BuildingSideInfo(lot[1], lot[2], new BuildingSideInfo.NeighbourInfo[0]),
+                new BuildingSideInfo(lot[2], lot[3], new BuildingSideInfo.NeighbourInfo[0]),
+                new BuildingSideInfo(lot[3], lot[0], new BuildingSideInfo.NeighbourInfo[0]),
+            });
 
             Assert.AreEqual(selection.Floors.Count(), selection.Floors.GroupBy(a => a.Index).Count());
 
             var v = selection.Verticals;
             Func<int, string> prefix = (floor) => new string(v.Select(a => a.Bottom <= floor && a.Top >= floor ? '|' : ' ').ToArray());
 
-            foreach (var item in selection.AboveGroundFloors)
-            {
-                var pre = prefix(item.Index);
-                Console.WriteLine("{0} {1} {2:##.##}m", pre, item.Script.Name, item.Height);
-            }
-
-            foreach (var item in selection.BelowGroundFloors)
+            foreach (var item in selection.Floors.OrderByDescending(a => a.Index))
             {
                 var pre = prefix(item.Index);
                 Console.WriteLine("{0} {1} {2:##.##}m", pre, item.Script.Name, item.Height);

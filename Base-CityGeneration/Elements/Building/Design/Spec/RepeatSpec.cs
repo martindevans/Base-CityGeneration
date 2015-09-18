@@ -32,33 +32,29 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             Vary = vary;
         }
 
-        public override IEnumerable<FloorSelection> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
         {
             int count = Count.SelectIntValue(random, metadata);
 
-            List<FloorSelection> selection = new List<FloorSelection>();
             if (Vary)
             {
-                for (int i = 0; i < count; i++)
-                    foreach (var selector in Items)
-                        selection.AddRange(selector.Select(random, metadata, finder));
+                //Run the selectors multiple times, each independent of one another
+                return from i in Enumerable.Range(0, count)
+                       from selector in Items
+                       from run in selector.Select(random, metadata, finder)
+                       select run;
             }
             else
             {
                 //Generate selections for each item in the repeat (cached)
-                List<FloorSelection[]> selectionCache = Items.Select(selector => selector.Select(random, metadata, finder).ToArray()).ToList();
+                var selectionCache = Items.Select(selector => selector.Select(random, metadata, finder).ToArray()).ToList();
 
-                //Now repeat those cached items as many times as we need
-                for (int i = 0; i < count; i++)
-                {
-                    selection.AddRange(
-                        from cache in selectionCache
-                        from floorSelection in cache
-                        select floorSelection.Clone()
-                    );
-                }
+                //Repeat the same runs over multiple times
+                return from i in Enumerable.Range(0, count)
+                       from cache in selectionCache
+                       from run in cache
+                       select run.Clone();
             }
-            return selection;
         }
 
         internal class Container

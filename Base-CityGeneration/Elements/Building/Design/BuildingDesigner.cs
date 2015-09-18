@@ -81,23 +81,26 @@ namespace Base_CityGeneration.Elements.Building.Design
             List<FootprintSelection> footprints = new List<FootprintSelection>();
 
             //Select above ground floors, then assign indices
-            var above = SelectFloors(random, metadata, finder, aboveGround, null);
+            var above = SelectFloors(random, metadata, finder, aboveGround, ground, aboveGround: true);
             int index = 0;
             float compoundHeight = 0;
             foreach (var run in above.Reverse())
             {
-                footprints.Add(new FootprintSelection(run.Marker, index));
-                foreach (var floor in run.Selection.Reverse())
+                if (run.Selection.Count > 0)
                 {
-                    floor.Index = index++;
-                    floor.CompoundHeight = compoundHeight;
+                    footprints.Add(new FootprintSelection(run.Marker, index));
+                    foreach (var floor in run.Selection.Reverse())
+                    {
+                        floor.Index = index++;
+                        floor.CompoundHeight = compoundHeight;
 
-                    compoundHeight += floor.Height;
+                        compoundHeight += floor.Height;
+                    }
                 }
             }
 
             //Select below ground floors, then assign indices
-            var below = SelectFloors(random, metadata, finder, belowGround,ground);
+            var below = SelectFloors(random, metadata, finder, belowGround, ground, aboveGround: false);
             index = 0;
             compoundHeight = 0;
             foreach (var run in below)
@@ -107,13 +110,13 @@ namespace Base_CityGeneration.Elements.Building.Design
                     floor.Index = --index;
                     floor.CompoundHeight = compoundHeight;
 
-                    floor.CompoundHeight -= floor.Height;
+                    compoundHeight -= floor.Height;
                 }
                 footprints.Add(new FootprintSelection(run.Marker, index));
             }
 
             //Create result object (with floors)
-            var internals = new Internals(this, above.Select(a => a.Selection).ToArray(), below.Select(a => a.Selection).ToArray(), footprints.ToArray());
+            var internals = new Internals(this, above.Select(a => a.Selection.ToArray()).ToArray(), below.Select(a => a.Selection.ToArray()).ToArray(), footprints.ToArray());
 
             //Select vertical elements for floors and add to result
             internals.Verticals = SelectVerticals(random, finder, _verticalSelectors, internals.Floors).ToArray();
@@ -130,48 +133,51 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// <param name="metadata"></param>
         /// <param name="finder"></param>
         /// <param name="selectors"></param>
-        /// <param name="defaultMarker"></param>
+        /// <param name="groundMarker"></param>
+        /// <param name="aboveGround"></param>
         /// <returns></returns>
-        private static FloorRun[] SelectFloors(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, IEnumerable<BaseFloorSelector> selectors, BaseMarker defaultMarker)
+        private static IEnumerable<FloorRun> SelectFloors(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, IEnumerable<BaseFloorSelector> selectors, BaseMarker groundMarker, bool aboveGround)
         {
-            List<FloorRun> floors = new List<FloorRun>();
+            List<FloorRun> runs = new List<FloorRun>();
 
-            BaseMarker currentMarker = defaultMarker;
-            List<FloorSelection> currentRun = new List<FloorSelection>();
+            BaseMarker previousMarker = groundMarker;
+            List<FloorSelection> floors = new List<FloorSelection>();
+            //Selectors, ordered top to bottom
             foreach (var selector in selectors)
             {
-                var marker = selector as BaseMarker;
-                if (marker != null)
+                //Runs, ordered top to bottom
+                var r = selector.Select(random, metadata, finder);
+
+                foreach (var floorRun in r)
                 {
-                    currentMarker = marker;
-                    if (currentRun.Count > 0)
+                    floors.AddRange(floorRun.Selection);
+
+                    if (floorRun.Marker != null)
                     {
-                        floors.Add(new FloorRun(currentRun.ToArray(), currentMarker));
-                        currentRun.Clear();
+                        if (aboveGround)
+                        {
+                            runs.Add(new FloorRun(floors.ToArray(), floorRun.Marker));
+                            floors.Clear();
+                        }
+                        else
+                        {
+                            runs.Add(new FloorRun(floors.ToArray(), previousMarker));
+                            previousMarker = floorRun.Marker;
+                            floors.Clear();
+                        }
                     }
                 }
-                else
-                    currentRun.AddRange(selector.Select(random, metadata, finder));
             }
-            if (currentRun.Count > 0)
-                floors.Add(new FloorRun(currentRun.ToArray(), currentMarker));
 
-            if (floors.Any(a => a.Marker == null))
-                throw new InvalidOperationException("Tried to create a run of floors with a null marker");
+            //Sanity check
+            if (aboveGround && floors.Count > 0)
+                throw new InvalidOperationException("Leftover floors above ground - no ground marker?");
 
-            return floors.ToArray();
-        }
+            //Final below ground run (doesn't have a footprint at the bottom, because udnerground floors have footprints above not below)
+            if (!aboveGround && floors.Count > 0)
+                runs.Add(new FloorRun(floors.ToArray(), previousMarker));
 
-        private class FloorRun
-        {
-            public readonly FloorSelection[] Selection;
-            public readonly BaseMarker Marker;
-
-            public FloorRun(FloorSelection[] floors, BaseMarker marker)
-            {
-                Selection = floors;
-                Marker = marker;
-            }
+            return runs;
         }
 
         private static IEnumerable<VerticalSelection> SelectVerticals(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<VerticalElementSpec> verticalSelectors, IEnumerable<FloorSelection> floors)
@@ -317,6 +323,8 @@ namespace Base_CityGeneration.Elements.Building.Design
             serializer.Settings.RegisterTagMapping("Ground", typeof(GroundMarker.Container));
             serializer.Settings.RegisterTagMapping("Footprint", typeof(FootprintMarker.Container));
             serializer.Settings.RegisterTagMapping("Shrink", typeof(Shrink.Container));
+            serializer.Settings.RegisterTagMapping("Clip", typeof(Clip.Container));
+            serializer.Settings.RegisterTagMapping("Twist", typeof(Twist.Container));
 
             //Floor element types
             serializer.Settings.RegisterTagMapping("Floor", typeof(FloorSpec.Container));
