@@ -31,12 +31,22 @@ namespace Base_CityGeneration.Elements.Building
             var internals = hierarchicalParameters.GetValue(SpecBuildingContainer.BuildingInternalsName);
 
             //Generate externals, now we can get the neighbour information that we need from the surrounding containers
-            _design = internals.Externals(Random, hierarchicalParameters, a => ScriptReference.Find(a).Random((Func<double>)Random), null); //todo: Get neighbour height data
+            _design = internals.Externals(Random, hierarchicalParameters, a => ScriptReference.Find(a).Random((Func<double>)Random), GetNeighbourInfo(bounds)); //todo: Get neighbour height data
 
             //Generate and cache footprints
             _footprints = GenerateFootprints(_design.Walls);
 
             base.Subdivide(bounds, geometry, hierarchicalParameters);
+        }
+
+        private BuildingSideInfo[] GetNeighbourInfo(Prism bounds)
+        {
+            List<BuildingSideInfo> info = new List<BuildingSideInfo>();
+
+            for (int i = 0; i < bounds.Footprint.Count; i++)
+                info.Add(new BuildingSideInfo(bounds.Footprint[i], bounds.Footprint[(i + 1) % bounds.Footprint.Count], new BuildingSideInfo.NeighbourInfo[0]));
+
+            return info.ToArray();
         }
 
         #region helpers

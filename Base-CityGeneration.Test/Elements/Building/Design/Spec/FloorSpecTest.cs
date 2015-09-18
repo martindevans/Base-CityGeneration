@@ -21,7 +21,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
             var selected = spec.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
             Assert.AreEqual(1, selected.Count());
-            Assert.AreEqual("tag", selected.Single().Script.Name);
+            Assert.AreEqual("tag", selected.Single().Selection.Single().Script.Name);
         }
 
         [TestMethod]
@@ -33,7 +33,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
 
             var selected = spec.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
-            Assert.AreEqual(0, selected.Count());
+            var floors = selected.SelectMany(a => a.Selection);
+
+            Assert.AreEqual(0, floors.Count());
         }
     }
 }
