@@ -38,6 +38,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         /// </summary>
         public int FloorIndex { get; set; }
 
+        public float FloorAltitude { get; set; }
+
+        public float FloorHeight { get; set; }
+
         public IReadOnlyCollection<IVerticalFeature> Overlaps { get; set; }
 
         protected BaseFloor(float minHeight = 1.5f, float maxHeight = 4, float floorThickness = 0.1f, float ceilingThickness = 0.1f)

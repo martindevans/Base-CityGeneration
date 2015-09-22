@@ -9,8 +9,24 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
     public interface IFloor
         : ISubdivisionContext
     {
+        /// <summary>
+        /// Index of this floor in parent building (ground floor is zero, basements are negative)
+        /// </summary>
         int FloorIndex { get; set; }
 
+        /// <summary>
+        /// Altitude of the *base* of this floor
+        /// </summary>
+        float FloorAltitude { get; set; }
+
+        /// <summary>
+        /// Height of this floor
+        /// </summary>
+        float FloorHeight { get; set; }
+
+        /// <summary>
+        /// Vertical features which cross this floor
+        /// </summary>
         IReadOnlyCollection<IVerticalFeature> Overlaps { set; }
 
         /// <summary>

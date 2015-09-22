@@ -12,11 +12,11 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <summary>
         /// Index of the lowest floor this facade covers
         /// </summary>
-        int BottomFloorIndex { get; }
+        int BottomFloorIndex { get; set; }
 
         /// <summary>
         /// Index of the highest floor this facade covers
         /// </summary>
-        int TopFloorIndex { get; }
+        int TopFloorIndex { get; set; }
     }
 }
