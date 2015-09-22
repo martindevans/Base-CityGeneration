@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Myre;
 using Myre.Collections;
 
@@ -100,7 +101,7 @@ namespace Base_CityGeneration.Styles
         /// <param name="generate">Function to generate a new value if no old one existed</param>
         /// <param name="save">Indicates if the generated value should be saved into the provider</param>
         /// <returns>The determined value</returns>
-        public static T DetermineHierarchicalValue<T>(this INamedDataCollection provider, TypedName<T> name, Func<T, T> update, Func<T> generate, bool save = true) where T : IEquatable<T>
+        public static T DetermineHierarchicalValue<T>(this INamedDataCollection provider, TypedName<T> name, Func<T, T> update, Func<T> generate) where T : IEquatable<T>
         {
             T value;
             if (provider.TryGetValue<T>(name, out value))
@@ -108,7 +109,7 @@ namespace Base_CityGeneration.Styles
                 var oldValue = value;
                 value = update(oldValue);
 
-                if (!oldValue.Equals(value))
+                if (!EqualityComparer<T>.Default.Equals(oldValue, value))
                     provider.Set<T>(name, value);
             }
             else

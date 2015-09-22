@@ -2,6 +2,7 @@
 using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
+using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using Myre.Collections;
@@ -14,7 +15,7 @@ using SwizzleMyVectors;
 namespace Base_CityGeneration.Elements.Building
 {
     public abstract class BaseBuilding
-        :ProceduralScript, IBuilding
+        : ProceduralScript, IBuilding
     {
         public float GroundHeight { get; set; }
 
@@ -29,6 +30,7 @@ namespace Base_CityGeneration.Elements.Building
         }
 
         private int _belowGroundFloors;
+
         public int BelowGroundFloors
         {
             get
@@ -47,7 +49,8 @@ namespace Base_CityGeneration.Elements.Building
             }
         }
 
-        private IReadOnlyDictionary<int, IFloor> _floors; 
+        private IReadOnlyDictionary<int, IFloor> _floors;
+
         public IFloor Floor(int index)
         {
             CheckSubdivided();
@@ -83,10 +86,13 @@ namespace Base_CityGeneration.Elements.Building
 
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
+            //Select external building parameters
+            var externals = SelectExternals();
+
             //Create things
-            _floors = CreateFloors(SelectFloors());
+            _floors = CreateFloors(SelectFloors(), Footprints(externals));
             _verticals = CreateVerticals(SelectVerticals(), _floors);
-            _facades = CreateFacades(SelectFacades(bounds.Footprint.Select(a => 0f).ToArray()));    //todo: get neighbour height data
+            _facades = CreateFacades(geometry, externals, hierarchicalParameters);
 
             //Set up relationship between floor and facade (facades PrerequisiteOf floor)
             foreach (var facade in _facades)
@@ -103,7 +109,7 @@ namespace Base_CityGeneration.Elements.Building
             }
         }
 
-        private IReadOnlyDictionary<int, IFloor> CreateFloors(IEnumerable<FloorSelection> floors)
+        private IReadOnlyDictionary<int, IFloor> CreateFloors(IEnumerable<FloorSelection> floors, Func<int, IReadOnlyList<Vector2>> footprintSelector)
         {
             //Sanity check selection does not have two floors in the same place
             if (floors.GroupBy(a => a.Index).Any(g => g.Count() > 1))
@@ -123,7 +129,7 @@ namespace Base_CityGeneration.Elements.Building
             foreach (var floor in floors.OrderBy(a => a.Index))
             {
                 //Get the footprint for this floor
-                var footprint = SelectFootprint(floor.Index);
+                var footprint = footprintSelector(floor.Index);
 
                 //Create node
                 IFloor node = (IFloor)CreateChild(
@@ -131,8 +137,10 @@ namespace Base_CityGeneration.Elements.Building
                     Quaternion.Identity,
                     new Vector3(0, offset + floor.Height / 2f, 0),
                     floor.Script
-                );
+                    );
                 node.FloorIndex = floor.Index;
+                node.FloorAltitude = offset;
+                node.FloorHeight = floor.Height;
 
                 //Move offset up for next floor
                 offset += floor.Height;
@@ -159,7 +167,7 @@ namespace Base_CityGeneration.Elements.Building
                 IFloor[] crossedFloors = (
                     from i in Enumerable.Range(verticalSelection.Bottom, verticalSelection.Top - verticalSelection.Bottom + 1)
                     select floors[i]
-                ).ToArray();
+                    ).ToArray();
 
                 //Calculate the intersection of all crossed floor footprints
                 var intersection = IntersectionOfFootprints(crossedFloors);
@@ -184,7 +192,7 @@ namespace Base_CityGeneration.Elements.Building
                     Quaternion.Identity,
                     new Vector3(0, height / 2, 0),
                     verticalSelection.Script
-                );
+                    );
                 vertical.BottomFloorIndex = verticalSelection.Bottom;
                 vertical.TopFloorIndex = verticalSelection.Top;
 
@@ -199,7 +207,121 @@ namespace Base_CityGeneration.Elements.Building
             return results;
         }
 
-        private IReadOnlyList<Vector2> IntersectionOfFootprints(IFloor[] floors)
+        protected abstract IEnumerable<VerticalSelection> SelectVerticals();
+
+        private IReadOnlyCollection<IBuildingFacade> CreateFacades(ISubdivisionGeometry geometry, IEnumerable<Footprint> footprints, INamedDataCollection hierarchicalParameters)
+        {
+            //Accumulate results
+            List<IBuildingFacade> results = new List<IBuildingFacade>();
+
+            //Calculate external wall thickness
+            var thickness = hierarchicalParameters.ExternalWallThickness(Random);
+            var material = hierarchicalParameters.ExternalWallMaterial(Random);
+
+            var footprintArr = footprints.OrderBy(a => a.BottomIndex).ToArray();
+            for (int i = 0; i < footprintArr.Length; i++)
+            {
+                var footprint = footprintArr[i];
+                var topIndex = (i == footprintArr.Length - 1) ? (_floors[_floors.Keys.Max()].FloorIndex) : (footprintArr[i + 1].BottomIndex - 1);
+
+                //Sanity check that we have the correct number of facades
+                if (footprint.Facades.Count != footprint.Shape.Count)
+                    throw new InvalidOperationException(string.Format("Tried to created {0} facades for {1} walls", footprint.Facades.Count, footprint.Shape.Count));
+
+                //Generate wall sections to fill in
+                var sections = footprint.Shape.Sections(thickness);
+
+                //Split into corner sections and non corner sections
+                var corners = sections.Where(a => a.IsCorner).ToArray();
+                sections = sections.Where(a => !a.IsCorner).ToArray();
+
+                {
+                    //Calculate altitude of bottom and top of this facade
+                    var bot = _floors[footprint.BottomIndex].FloorAltitude;
+                    var top = _floors[topIndex].FloorAltitude + _floors[topIndex].FloorHeight;
+                    var mid = (bot + top) * 0.5f;
+
+                    //Fill in corner sections (solid)
+                    foreach (var corner in corners)
+                    {
+                        var prism = geometry.CreatePrism(material, new[] {
+                            corner.A, corner.B, corner.C, corner.D
+                        }, top - bot).Translate(new Vector3(0, mid, 0));
+                        geometry.Union(prism);
+                    }
+                }
+
+                //Now iterate through sides and create facades
+                for (int sideIndex = 0; sideIndex < footprint.Facades.Count; sideIndex++)
+                {
+                    //Get start and end point of this wall
+                    var sideStart = footprint.Shape[sideIndex];
+                    var sideEnd = footprint.Shape[(sideIndex + 1) % footprint.Shape.Count];
+
+                    //find which section this side is for
+                    var sideSegment = new LineSegment2D(sideStart, sideEnd);
+                    var section = (from s in sections
+                                   let aD = Vector2.Distance(Geometry2D.ClosestPointOnLineSegment(sideSegment, s.ExternalLineSegment.Start), s.ExternalLineSegment.Start)
+                                   where aD < 0.1f
+                                   let bD = Vector2.Distance(Geometry2D.ClosestPointOnLineSegment(sideSegment, s.ExternalLineSegment.End), s.ExternalLineSegment.End)
+                                   where bD < 0.1f
+                                   let d = aD + bD
+                                   orderby d
+                                   select s).First();
+
+                    //There are multiple facades for any one wall section, iterate through them and create them
+                    foreach (var facade in footprint.Facades[sideIndex])
+                    {
+                        //Sanity check that the facade does not underrun the valid range
+                        //We can't sanity check overrun (easily) because that's based on the start of the *next* footprint
+                        if (facade.Bottom < footprint.BottomIndex)
+                            throw new InvalidOperationException(string.Format("Facade associated with wall at floor {0} attempted to place itself at floor {1}", footprint.BottomIndex, facade.Bottom));
+
+                        var bot = _floors[facade.Bottom].FloorAltitude;
+                        var top = _floors[facade.Top].FloorAltitude + _floors[facade.Top].FloorHeight;
+                        var mid = (bot + top) * 0.5f;
+
+                        var prism = new Prism(top - bot, section.A, section.B, section.C, section.D);
+                        var node = (IBuildingFacade)CreateChild(prism, Quaternion.Identity, new Vector3(0, mid, 0), facade.Script);
+
+                        node.Section = section;
+                        node.BottomFloorIndex = facade.Bottom;
+                        node.TopFloorIndex = facade.Top;
+
+                        results.Add(node);
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Select all the footprints which make up the shape of this building, as well as facades associated with them
+        /// </summary>
+        /// <returns></returns>
+        protected abstract IEnumerable<Footprint> SelectExternals();
+
+        #region helpers
+        protected BuildingSideInfo[] GetNeighbourInfo(Prism bounds)
+        {
+            //todo: Get neighbour height data
+
+            List<BuildingSideInfo> info = new List<BuildingSideInfo>();
+
+            for (int i = 0; i < bounds.Footprint.Count; i++)
+                info.Add(new BuildingSideInfo(bounds.Footprint[i], bounds.Footprint[(i + 1) % bounds.Footprint.Count], new BuildingSideInfo.NeighbourInfo[0]));
+
+            return info.ToArray();
+        }
+
+        private void CheckSubdivided()
+        {
+            if (State == SubdivisionStates.NotSubdivided)
+                throw new InvalidOperationException("Cannot query BaseBuilding before it is subdivided");
+        }
+
+        private static IReadOnlyList<Vector2> IntersectionOfFootprints(IFloor[] floors)
         {
             const int SCALE = 1000;
             Clipper c = new Clipper();
@@ -212,7 +334,7 @@ namespace Base_CityGeneration.Elements.Building
                 c.AddPolygon(
                     transformed.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Z * SCALE))).ToList(),
                     i == 0 ? PolyType.Subject : PolyType.Clip
-                );
+                    );
             }
 
             var result = new List<List<IntPoint>>();
@@ -221,33 +343,58 @@ namespace Base_CityGeneration.Elements.Building
             return result[0].Select(a => new Vector2(a.X / (float)SCALE, a.Y / (float)SCALE)).ToArray();
         }
 
-        protected abstract IEnumerable<VerticalSelection> SelectVerticals();
-
-        private IReadOnlyCollection<IBuildingFacade> CreateFacades(IEnumerable<FacadeSelection> facades)
+        private static Func<int, IReadOnlyList<Vector2>> Footprints(IEnumerable<Footprint> externals)
         {
-            if (facades.Any(a => a.Bottom > a.Top))
-                throw new InvalidOperationException("Attempted to crete a facade element where bottom > top");
+            var footprints = externals.ToDictionary(a => a.BottomIndex, a => a);
 
-            //todo: facades
-            //throw new NotImplementedException("Turn selection into actual nodes");
-            foreach (var facadeSelection in facades)
-            {
-                
-            }
+            return (floor) => {
+                //There's always a floor zero footprint
+                if (floor == 0)
+                    return footprints[0].Shape;
 
-            return new List<IBuildingFacade>();
-        }
+                //Search downwards from this floor for next footprint
+                if (floor > 0)
+                {
+                    for (int i = floor; i >= 0; i--)
+                    {
+                        Footprint ft;
+                        if (footprints.TryGetValue(i, out ft))
+                            return ft.Shape;
+                    }
 
-        protected abstract IEnumerable<FacadeSelection> SelectFacades(IReadOnlyCollection<float> neighbourHeights);
+                    throw new InvalidOperationException(string.Format("Failed to find a footprint below floor {0}", floor));
+                }
 
-        protected abstract IEnumerable<Vector2> SelectFootprint(int floor);
+                //Floor must be < 0
+                //Search upwards from this floor for next footprint
+                for (int i = 0; i <= 0; i++)
+                {
+                    Footprint ft;
+                    if (footprints.TryGetValue(i, out ft))
+                        return ft.Shape;
+                }
 
-        #region helpers
-        private void CheckSubdivided()
-        {
-            if (State == SubdivisionStates.NotSubdivided)
-                throw new InvalidOperationException("Cannot query BaseBuilding before it is subdivided");
+                throw new InvalidOperationException(string.Format("Failed to find a footprint above floor {0}", floor));
+            };
         }
         #endregion
+
+        protected struct Footprint
+        {
+            public int BottomIndex { get; private set; }
+
+            public IReadOnlyList<Vector2> Shape { get; private set; }
+
+            public IReadOnlyList<IReadOnlyList<FacadeSelection>> Facades { get; private set; }
+
+            public Footprint(int bottomIndex, IReadOnlyList<Vector2> shape, IReadOnlyList<IReadOnlyList<FacadeSelection>> facades)
+                : this()
+            {
+                BottomIndex = bottomIndex;
+
+                Shape = shape;
+                Facades = facades;
+            }
+        }
     }
 }

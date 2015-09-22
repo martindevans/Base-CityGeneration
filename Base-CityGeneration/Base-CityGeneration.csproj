@@ -258,6 +258,7 @@
     <Compile Include="Elements\Building\SpecBuilding.cs" />
     <Compile Include="Elements\Building\SpecBuildingContainer.cs" />
     <Compile Include="Parcels\Parcelling\Rules\AspectRatioRule.cs" />
+    <Compile Include="Styles\InternalWalls.cs" />
     <Compile Include="Utilities\Numbers\IValueGenerator.cs" />
     <Compile Include="Utilities\Numbers\MetaValue.cs" />
     <Compile Include="Utilities\TagContainer.cs" />
@@ -352,7 +353,7 @@
     <Compile Include="Styles\Ceiling.cs" />
     <Compile Include="Styles\Materials.cs" />
     <Compile Include="Styles\TypedNameDefault.cs" />
-    <Compile Include="Styles\InternalWalls.cs" />
+    <Compile Include="Styles\ExternalWalls.cs" />
     <Compile Include="TreeSearch.cs" />
     <Compile Include="Utilities\Numbers\NormallyDistributedValue.cs" />
     <Compile Include="Utilities\Numbers\WrapperBaseValue.cs" />
