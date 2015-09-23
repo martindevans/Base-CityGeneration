@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
-
+using SwizzleMyVectors.Geometry;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Building.Facades
@@ -50,10 +49,34 @@ namespace Base_CityGeneration.Elements.Building.Facades
         {
             get
             {
-                throw new NotImplementedException("Project stamps from parent back into local space of this subsection");
-                //Remember to discard stamps which do not fit within this subsection!
-                //Or maybe we should keep the overhanging stamps? They may intersect this section even if they aren't entirely contained
-                //Perhaps we should clip them to this seubsection, that seems a little excessive though
+                //Transform stamp from parent space into subsection space, discard stamps which do not overlap this subsection
+                return from stamp in _parent.Stamps
+
+                       //Remap from parent space into subsection space
+                       let remapped = new BaseFacade.Stamp(
+                           FromParentDepth(stamp.StartDepth), FromParentDepth(stamp.EndDepth),
+                           stamp.Additive, stamp.Material,
+                           stamp.Shape.Select(FromParentXY).ToArray()
+                       )
+
+                       //Check stamp intersects subsection (in depth)
+                       where MathHelper.Min(remapped.StartDepth, remapped.EndDepth) <= (_minDepth + _rangeDepth)
+                       where MathHelper.Max(remapped.StartDepth, remapped.EndDepth) >= _minDepth
+
+                       //Calculate bounding box of stamp (in subsection space)
+                       let xs = (from xy in remapped.Shape select xy.X)
+                       let minX = xs.Min()
+                       let maxX = xs.Max()
+                       let ys = (from xy in remapped.Shape select xy.Y)
+                       let minY = ys.Min() 
+                       let maxY = ys.Max()
+                       let bounds = new BoundingRectangle(new Vector2(minX, minY), new Vector2(maxX, maxY))
+
+                       //Check that the stamp intersects the subsection
+                       where bounds.Intersects(new BoundingRectangle(Vector2.Zero, _maxXY - _minXY))
+
+                       //Select this stamp
+                       select remapped;
             }
         }
 
@@ -71,14 +94,26 @@ namespace Base_CityGeneration.Elements.Building.Facades
             return depth * _rangeDepth + _minDepth;
         }
 
+        private float FromParentDepth(float parentDepth)
+        {
+            return (parentDepth - _minDepth) / _rangeDepth;
+        }
+
         private Vector2 ToParentXY(Vector2 xy)
         {
             var remapped = xy + _delta;
 
+            //Clamp to subsection to ensure that subsection stamps cannot overhang the subsection
             return new Vector2(
                 MathHelper.Clamp(remapped.X, _minXY.X, _maxXY.X),
                 MathHelper.Clamp(remapped.Y, _minXY.Y, _maxXY.Y)
             );
+        }
+
+        private Vector2 FromParentXY(Vector2 parentXY)
+        {
+            //no clamping required
+            return parentXY - _delta;
         }
 
         public Walls.Section Section { get; set; }
