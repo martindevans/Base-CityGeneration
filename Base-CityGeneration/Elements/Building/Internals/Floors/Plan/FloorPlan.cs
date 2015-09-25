@@ -19,7 +19,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         private readonly Clipper _clipper = new Clipper();
 
         private readonly ReadOnlyCollection<Vector2> _externalFootprint;
-        public IEnumerable<Vector2> ExternalFootprint
+        public IReadOnlyList<Vector2> ExternalFootprint
         {
             get { return _externalFootprint; }
         }

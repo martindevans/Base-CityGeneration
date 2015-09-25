@@ -10,11 +10,13 @@ using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using Myre.Extensions;
+using SwizzleMyVectors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using SwizzleMyVectors;
+
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors
 {
@@ -170,28 +172,50 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
         private List<IConfigurableFacade> CreateExternalFacades(Prism bounds)
         {
-            //var externalSections = new List<IConfigurableFacade>();
+            var externalSections = new List<IConfigurableFacade>();
 
-            //foreach (var section in Plan.ExternalFootprint.Sections(externalWallThickness))
-            //{
-            //    var facade = CreateChild(new Prism(bounds.Height, section.A, section.B, section.C, section.D), Quaternion.Identity, Vector3.Zero,
-            //        ExternalFacadeScripts().Where(e => e.Implements<IConfigurableFacade>())
-            //    );
+            //Find the parent building which contains this floor
+            var building = TreeSearch.SearchUp<IBuilding, IBuilding>(this, n => n, typeof(IBuildingContainer));
+            if (building == null)
+                throw new InvalidOperationException("Attempted to subdivide BaseFloor, but cannot find IBuilding node ancestor");
 
-            //    if (facade != null)
-            //    {
-            //        facade.HierarchicalParameters.Set(new TypedName<string>("material"), "concrete");
+            //Get all facades which cross this floor
+            var facades = building.Facades(FloorIndex);
 
-            //        var c = (IConfigurableFacade)facade;
-            //        c.Section = section;
-            //        externalSections.Add(c);
-            //    }
-            //}
+            for (int i = 0; i < Plan.ExternalFootprint.Count; i++)
+            {
+                //Get start and end points of this edge
+                var start = Plan.ExternalFootprint[i];
+                var end = Plan.ExternalFootprint[(i + 1) % Plan.ExternalFootprint.Count];
+                var segment = new LineSegment2D(start, end);
 
-            //return externalSections;
+                //Select the exteral facade which lies along this edge
+                var wall = (from facade in facades
+                            where Geometry2D.LineLineParallelism(facade.Section.ExternalLineSegment.Line(), segment.Line()) == Geometry2D.Parallelism.Collinear
+                            let aD = Geometry2D.DistanceFromPointToLineSegment(facade.Section.ExternalLineSegment.Start, facade.Section.ExternalLineSegment)
+                            let bD = Geometry2D.DistanceFromPointToLineSegment(facade.Section.ExternalLineSegment.End, facade.Section.ExternalLineSegment)
+                            orderby aD + bD
+                            select facade).First();
 
-            //todo: create subsection of appropriate building facade
-            return new List<IConfigurableFacade>();
+                //Start and end points (X-Axis) are always start and end of facade (i.e. subsection is always full width)
+                //What are the start and end points (Y-Axis)
+                var bottomOfFacade = building.Floor(wall.BottomFloorIndex).FloorAltitude;
+                var y = FloorAltitude - bottomOfFacade - _floorThickness;
+
+                //Height of the open space of the floor (top of floor, to bottom of ceiling)
+                var height = FloorHeight - _floorThickness - _ceilingThickness;
+
+                SubsectionFacade subsection = new SubsectionFacade(wall,
+                    new Vector2(0, y),
+                    new Vector2(wall.Section.ExternalLineSegment.LongLine().Direction.Length(), y + height),
+                    0, 1,
+                    wall.Section
+                );
+
+                externalSections.Add(subsection);
+            }
+
+            return externalSections;
         }
 
         private void CreateRoomFacades(IReadOnlyCollection<IConfigurableFacade> externalFacades, float yOffset, FloorPlan plan)
@@ -353,15 +377,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         protected virtual IConfigurableFacade FailedToFindInternalNeighbourSection(RoomPlan a, RoomPlan b, RoomPlan.Facade facade)
         {
             return null;
-        }
-
-        /// <summary>
-        /// Return a set of possible scripts to use for the external facades. Must implement IConfigurableFacade
-        /// </summary>
-        /// <returns></returns>
-        protected virtual IEnumerable<ScriptReference> ExternalFacadeScripts()
-        {
-            return ScriptReference.Find<IConfigurableFacade>();
         }
 
         /// <summary>

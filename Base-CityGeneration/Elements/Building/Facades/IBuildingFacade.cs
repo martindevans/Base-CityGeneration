@@ -7,7 +7,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
     /// An external facade of a building
     /// </summary>
     public interface IBuildingFacade
-        : IFacade, ISubdivisionContext
+        : IConfigurableFacade, ISubdivisionContext
     {
         /// <summary>
         /// Index of the lowest floor this facade covers

@@ -117,17 +117,5 @@ namespace Base_CityGeneration.Elements.Building.Facades
         }
 
         public Walls.Section Section { get; set; }
-
-        public void Delete()
-        {
-            //Make a really massive stamp, which will be clamped to the size of this subsection (thus removing the entire subsection)
-            AddStamp(new BaseFacade.Stamp(0, 1, false, null, new[]
-            {
-                new Vector2(-float.MaxValue, -float.MaxValue),
-                new Vector2(float.MaxValue, -float.MaxValue),
-                new Vector2(float.MaxValue, float.MaxValue),
-                new Vector2(-float.MaxValue, float.MaxValue),
-            }));
-        }
     }
 }

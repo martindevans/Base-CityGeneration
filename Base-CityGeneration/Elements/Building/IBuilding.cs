@@ -44,6 +44,6 @@ namespace Base_CityGeneration.Elements.Building
         /// </summary>
         /// <param name="floor"></param>
         /// <returns></returns>
-        IEnumerable<IFacade> Facades(int floor);
+        IEnumerable<IBuildingFacade> Facades(int floor);
     }
 }
