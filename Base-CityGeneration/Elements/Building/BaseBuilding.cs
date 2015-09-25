@@ -5,6 +5,7 @@ using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
+using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
@@ -77,7 +78,7 @@ namespace Base_CityGeneration.Elements.Building
         #region facade data
         private IReadOnlyCollection<IBuildingFacade> _facades;
 
-        public IEnumerable<IFacade> Facades(int floor)
+        public IEnumerable<IBuildingFacade> Facades(int floor)
         {
             CheckSubdivided();
             return _facades.Where(f => f.BottomFloorIndex <= floor && f.TopFloorIndex >= floor);
@@ -229,71 +230,92 @@ namespace Base_CityGeneration.Elements.Building
                     throw new InvalidOperationException(string.Format("Tried to created {0} facades for {1} walls", footprint.Facades.Count, footprint.Shape.Count));
 
                 //Generate wall sections to fill in
-                var sections = footprint.Shape.Sections(thickness);
+                var footprintWallSections = footprint.Shape.Sections(thickness);
 
                 //Split into corner sections and non corner sections
-                var corners = sections.Where(a => a.IsCorner).ToArray();
-                sections = sections.Where(a => !a.IsCorner).ToArray();
+                var corners = footprintWallSections.Where(a => a.IsCorner).ToArray();
+                var sections = footprintWallSections.Where(a => !a.IsCorner).ToArray();
 
-                {
-                    //Calculate altitude of bottom and top of this facade
-                    var bot = _floors[footprint.BottomIndex].FloorAltitude;
-                    var top = _floors[topIndex].FloorAltitude + _floors[topIndex].FloorHeight;
-                    var mid = (bot + top) * 0.5f;
-
-                    //Fill in corner sections (solid)
-                    foreach (var corner in corners)
-                    {
-                        var prism = geometry.CreatePrism(material, new[] {
-                            corner.A, corner.B, corner.C, corner.D
-                        }, top - bot).Translate(new Vector3(0, mid, 0));
-                        geometry.Union(prism);
-                    }
-                }
+                //Create the tiny bits of facade in the corners
+                CreateCornerFacades(geometry, footprint, topIndex, corners, material);
 
                 //Now iterate through sides and create facades
-                for (int sideIndex = 0; sideIndex < footprint.Facades.Count; sideIndex++)
-                {
-                    //Get start and end point of this wall
-                    var sideStart = footprint.Shape[sideIndex];
-                    var sideEnd = footprint.Shape[(sideIndex + 1) % footprint.Shape.Count];
-
-                    //find which section this side is for
-                    var sideSegment = new LineSegment2D(sideStart, sideEnd);
-                    var section = (from s in sections
-                                   let aD = Vector2.Distance(Geometry2D.ClosestPointOnLineSegment(sideSegment, s.ExternalLineSegment.Start), s.ExternalLineSegment.Start)
-                                   where aD < 0.1f
-                                   let bD = Vector2.Distance(Geometry2D.ClosestPointOnLineSegment(sideSegment, s.ExternalLineSegment.End), s.ExternalLineSegment.End)
-                                   where bD < 0.1f
-                                   let d = aD + bD
-                                   orderby d
-                                   select s).First();
-
-                    //There are multiple facades for any one wall section, iterate through them and create them
-                    foreach (var facade in footprint.Facades[sideIndex])
-                    {
-                        //Sanity check that the facade does not underrun the valid range
-                        //We can't sanity check overrun (easily) because that's based on the start of the *next* footprint
-                        if (facade.Bottom < footprint.BottomIndex)
-                            throw new InvalidOperationException(string.Format("Facade associated with wall at floor {0} attempted to place itself at floor {1}", footprint.BottomIndex, facade.Bottom));
-
-                        var bot = _floors[facade.Bottom].FloorAltitude;
-                        var top = _floors[facade.Top].FloorAltitude + _floors[facade.Top].FloorHeight;
-                        var mid = (bot + top) * 0.5f;
-
-                        var prism = new Prism(top - bot, section.A, section.B, section.C, section.D);
-                        var node = (IBuildingFacade)CreateChild(prism, Quaternion.Identity, new Vector3(0, mid, 0), facade.Script);
-
-                        node.Section = section;
-                        node.BottomFloorIndex = facade.Bottom;
-                        node.TopFloorIndex = facade.Top;
-
-                        results.Add(node);
-                    }
-                }
+                CreatePrimaryFacades(footprint, sections, results);
             }
 
             return results;
+        }
+
+        private void CreatePrimaryFacades(Footprint footprint, Walls.Section[] sections, ICollection<IBuildingFacade> results)
+        {
+            for (int sideIndex = 0; sideIndex < footprint.Facades.Count; sideIndex++)
+            {
+                //Get start and end point of this wall
+                var sideStart = footprint.Shape[sideIndex];
+                var sideEnd = footprint.Shape[(sideIndex + 1) % footprint.Shape.Count];
+
+                //find which section this side is for
+                var sideSegment = new LineSegment2D(sideStart, sideEnd);
+                var section = (from s in sections
+                               let aD = Vector2.Distance(Geometry2D.ClosestPointOnLineSegment(sideSegment, s.ExternalLineSegment.Start), s.ExternalLineSegment.Start)
+                               where aD < 0.1f
+                               let bD = Vector2.Distance(Geometry2D.ClosestPointOnLineSegment(sideSegment, s.ExternalLineSegment.End), s.ExternalLineSegment.End)
+                               where bD < 0.1f
+                               let d = aD + bD
+                               orderby d
+                               select s).First();
+
+                //There are multiple facades for any one wall section, iterate through them and create them
+                foreach (var facade in footprint.Facades[sideIndex])
+                {
+                    //Sanity check that the facade does not underrun the valid range
+                    //We can't sanity check overrun (easily) because that's based on the start of the *next* footprint
+                    if (facade.Bottom < footprint.BottomIndex)
+                        throw new InvalidOperationException(string.Format("Facade associated with wall at floor {0} attempted to place itself at floor {1}", footprint.BottomIndex, facade.Bottom));
+
+                    var bot = _floors[facade.Bottom].FloorAltitude;
+                    var top = _floors[facade.Top].FloorAltitude + _floors[facade.Top].FloorHeight;
+                    var mid = (bot + top) * 0.5f;
+
+                    var prism = new Prism(top - bot, section.A, section.B, section.C, section.D);
+
+                    //Create a configurable facade in the space
+                    var configurableNode = (ConfigurableFacade)CreateChild(prism, Quaternion.Identity, new Vector3(0, mid, 0), new ScriptReference(typeof(ConfigurableFacade)));
+                    configurableNode.Section = section;
+
+                    //Create the specified facade in the *same* space
+                    var externalFacade = (BaseBuildingFacade)CreateChild(prism, Quaternion.Identity, new Vector3(0, mid, 0), facade.Script);
+                    externalFacade.Facade = configurableNode;
+                    externalFacade.Section = section;
+                    externalFacade.BottomFloorIndex = facade.Bottom;
+                    externalFacade.TopFloorIndex = facade.Top;
+                    results.Add(externalFacade);
+
+                    //Make sure the building facade subdivides before the configurable facade (this ensures it can configure the facade)
+                    configurableNode.AddPrerequisite(externalFacade, true);
+
+                    //Make sure floors subdivide before configurable facade (this ensures it too can configure the facade)
+                    for (int i = externalFacade.BottomFloorIndex; i <= externalFacade.TopFloorIndex; i++)
+                        configurableNode.AddPrerequisite(_floors[i], false);
+                }
+            }
+        }
+
+        private void CreateCornerFacades(ISubdivisionGeometry geometry, Footprint footprint, int topIndex, Walls.Section[] corners, string material)
+        {
+            //Calculate altitude of bottom and top of this facade
+            var bot = _floors[footprint.BottomIndex].FloorAltitude;
+            var top = _floors[topIndex].FloorAltitude + _floors[topIndex].FloorHeight;
+            var mid = (bot + top) * 0.5f;
+
+            //Fill in corner sections (solid)
+            foreach (var corner in corners)
+            {
+                var prism = geometry.CreatePrism(material, new[] {
+                    corner.A, corner.B, corner.C, corner.D
+                }, top - bot).Translate(new Vector3(0, mid, 0));
+                geometry.Union(prism);
+            }
         }
 
         /// <summary>

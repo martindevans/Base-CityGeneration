@@ -12,10 +12,10 @@ namespace Base_CityGeneration
         /// <typeparam name="T">The type of the result</typeparam>
         /// <typeparam name="I">The type of the intermediate node which can answer the question</typeparam>
         /// <param name="start">The node to start at</param>
-        /// <param name="processNode">Take an intermediate node and produce a result</param>
+        /// <param name="queryNode">Take an intermediate node and produce a result</param>
         /// <param name="stopTypes">A set of types to stop at if encountered and cancel the search</param>
         /// <returns></returns>
-        public static T SearchUp<T, I>(ISubdivisionContext start, Func<I, T> processNode, params Type[] stopTypes)
+        public static T SearchUp<T, I>(ISubdivisionContext start, Func<I, T> queryNode, params Type[] stopTypes)
             where T : class
             where I : class
         {
@@ -27,7 +27,7 @@ namespace Base_CityGeneration
                 var p = node as I;
                 if (p != null)
                 {
-                    var f = processNode(p);
+                    var f = queryNode(p);
                     return f;
                 }
 
