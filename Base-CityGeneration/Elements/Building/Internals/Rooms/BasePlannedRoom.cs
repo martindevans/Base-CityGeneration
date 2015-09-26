@@ -35,7 +35,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Rooms
                 PlaceConnections(bounds, ConnectDoorsTo);
         }
 
-        public Dictionary<RoomPlan.Facade, IConfigurableFacade> Facades { protected get; set; }
+        public IReadOnlyDictionary<RoomPlan.Facade, IConfigurableFacade> Facades { protected get; set; }
 
         private readonly ISet<IPlannedRoom> _connectTo = new HashSet<IPlannedRoom>();
         protected IEnumerable<IPlannedRoom> ConnectDoorsTo

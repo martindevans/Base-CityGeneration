@@ -95,18 +95,11 @@ namespace Base_CityGeneration.Elements.Building
             _verticals = CreateVerticals(SelectVerticals(), _floors);
             _facades = CreateFacades(geometry, externals, hierarchicalParameters);
 
-            //Set up relationship between floor and facade (facades PrerequisiteOf floor)
-            foreach (var facade in _facades)
-            {
-                for (int i = facade.BottomFloorIndex; i < facade.TopFloorIndex; i++)
-                    _floors[i].AddPrerequisite(facade, true);
-            }
-
             //Set up relationship between floor and verticals (floor PrerequisiteOf vertical)
             foreach (var vertical in _verticals)
             {
-                for (int i = vertical.BottomFloorIndex; i < vertical.TopFloorIndex; i++)
-                    vertical.AddPrerequisite(_floors[i], false);
+                for (int i = vertical.BottomFloorIndex; i <= vertical.TopFloorIndex; i++)
+                    vertical.AddPrerequisite(_floors[i]);
             }
         }
 
@@ -297,6 +290,11 @@ namespace Base_CityGeneration.Elements.Building
                     //Make sure floors subdivide before configurable facade (this ensures it too can configure the facade)
                     for (int i = externalFacade.BottomFloorIndex; i <= externalFacade.TopFloorIndex; i++)
                         configurableNode.AddPrerequisite(_floors[i], false);
+
+                    //Make sure the building facade subdivides before the floor (this ensures the floor can see the effects of the facade)
+                    for (int i = externalFacade.BottomFloorIndex; i <= externalFacade.TopFloorIndex; i++)
+                        _floors[i].AddPrerequisite(externalFacade, true);
+
                 }
             }
         }
