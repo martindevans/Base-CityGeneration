@@ -11,7 +11,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Rooms
     public interface IPlannedRoom
         : IRoom
     {
-        Dictionary<RoomPlan.Facade, IConfigurableFacade> Facades { set; }
+        IReadOnlyDictionary<RoomPlan.Facade, IConfigurableFacade> Facades { set; }
     }
 
     public static class IPlannedRoomExtensions
