@@ -300,7 +300,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             //Floors which pass all constraints
             List<FloorSelection> passed = (
                 from floor in run
-                where constraints.All(c => c.Check(floor, neighbours, ftStart, ftEnd))
+                where constraints.All(c => c.Check(floor, neighbours, ftStart, ftEnd, floor.CompoundHeight, floor.Height))
                 select floor
             ).ToList();
 

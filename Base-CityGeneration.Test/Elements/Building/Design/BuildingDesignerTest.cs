@@ -398,7 +398,7 @@ Floors:
 
             //Entire length obscured to 1m
             var n1 = new BuildingSideInfo.NeighbourInfo[] {
-                new BuildingSideInfo.NeighbourInfo(0, 1, 1)
+                new BuildingSideInfo.NeighbourInfo(0, 1, 1, new BuildingSideInfo.NeighbourInfo.Resource[0])
             };
 
             //Entire length of the first side is obscured up to height 1m (floor 1)
@@ -451,7 +451,7 @@ Floors:
 
             //Entire length obscured to 1m
             var n1 = new BuildingSideInfo.NeighbourInfo[] {
-                new BuildingSideInfo.NeighbourInfo(0, 1, 1)
+                new BuildingSideInfo.NeighbourInfo(0, 1, 1, new BuildingSideInfo.NeighbourInfo.Resource[0])
             };
 
             //Entire length of the first side is obscured up to height 1m (floor 1)
