@@ -35,7 +35,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
         {
             _parent = parent;
 
-            _delta = max - (max - min) / 2;
+            _delta = (min + max) / 2;
             _minXY = min;
             _maxXY = max;
 

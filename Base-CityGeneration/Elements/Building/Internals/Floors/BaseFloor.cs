@@ -164,16 +164,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                 //Height of the open space of the floor (top of floor, to bottom of ceiling)
                 var height = FloorHeight - _floorThickness - _ceilingThickness;
 
+                //how wide is the wall?
+                var wallLength = wall.Section.ExternalLineSegment.LongLine().Direction.Length();
+
                 SubsectionFacade subsection = new SubsectionFacade(wall,
-                    new Vector2(0, y),
-                    new Vector2(wall.Section.ExternalLineSegment.LongLine().Direction.Length(), y + height),
+                    new Vector2(-wallLength, y),
+                    new Vector2(wallLength, y + height),
                     0, 1,
                     wall.Section
                 );
 
                 externalSections.Add(subsection);
-
-                Console.WriteLine(subsection.Stamps.ToArray());
             }
 
             return externalSections;
