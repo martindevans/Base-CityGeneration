@@ -6,6 +6,7 @@ using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Services.CSG;
 using System.Numerics;
+using EpimetheusPlugins.Entities.Prefabs.Graphical;
 using Myre;
 using Myre.Collections;
 using Myre.Extensions;
@@ -38,11 +39,22 @@ namespace Base_CityGeneration.Elements.Building.Facades
             var stamps = EmbossingStamps(hierarchicalParameters, Section.Width, bounds.Height);
             foreach (var stamp in stamps)
             {
-                var brush = ConvertStampToBrush(Section, stamp, geometry, hierarchicalParameters);
+                var brush = ConvertStampToBrush(Section, stamp, stamp.Material, geometry, hierarchicalParameters);
                 if (brush == null)
                     continue;
 
-                facade = stamp.Additive ? facade.Union(brush) : facade.Subtract(brush);
+                //Add the shape if this is additive. However if this is a glass stamp ignore the additive flag and subtract always.
+                facade = (stamp.Additive && !stamp.GlassFill.HasValue) ? facade.Union(brush) : facade.Subtract(brush);
+
+                //Create a block of glass in the appropriate place
+                if (stamp.GlassFill.HasValue)
+                {
+                    //Create a brusg for the glass. Either reuse the existing brush (if the material is the same) or create a new one with the glass material
+                    var glassBrush = stamp.GlassFill.Value.Material == stamp.Material ? brush : ConvertStampToBrush(Section, stamp, stamp.GlassFill.Value.Material, geometry, hierarchicalParameters);
+
+                    //todo: Transform this with (inverse)-world-transform
+                    Window.Create(this, glassBrush.Transform(WorldTransformation), stamp.GlassFill.Value.Opacity, stamp.GlassFill.Value.Scattering, stamp.GlassFill.Value.Attenuation);
+                }
             }
 
             //Place the geometry in the world
@@ -56,12 +68,13 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// </summary>
         /// <param name="section"></param>
         /// <param name="stamp"></param>
+        /// <param name="material"></param>
         /// <param name="geometry"></param>
         /// <param name="hierarchicalParameters"></param>
         /// <returns></returns>
-        private static ICsgShape ConvertStampToBrush(Walls.Section section, Stamp stamp, ICsgFactory geometry, INamedDataProvider hierarchicalParameters)
+        private static ICsgShape ConvertStampToBrush(Walls.Section section, Stamp stamp, string material, ICsgFactory geometry, INamedDataProvider hierarchicalParameters)
         {
-            var material = stamp.Material ?? hierarchicalParameters.GetValue(new TypedName<string>("material"));
+            material = material ?? hierarchicalParameters.GetValue(new TypedName<string>("material"));
 
             //Establish basis vectors
             var vOut = section.Normal;
@@ -137,9 +150,33 @@ namespace Base_CityGeneration.Elements.Building.Facades
             public readonly bool Additive;
 
             /// <summary>
+            /// If not null, this space will be filled in with glass
+            /// </summary>
+            public readonly GlassInfo? GlassFill;
+
+            /// <summary>
             /// The material of this stamp
             /// </summary>
             public readonly string Material;
+
+            /// <summary>
+            /// Create a new embossing stamp
+            /// </summary>
+            /// <param name="startDepth">The depth into the facade to start the emboss. 0 indicate the inside, 1 indicates the outside</param>
+            /// <param name="endDepth">The depth into the facade to end the emboss. 0 indicate the inside, 1 indicates the outside</param>
+            /// <param name="additive">If true, this emboss will add material, if false this emboss will cut material away</param>
+            /// <param name="material">The material of this stamp</param>
+            /// <param name="glassInfo">This stamp will be filled in with glass</param>
+            /// <param name="shape">The shape of this stamp in the plane. 0,0 indicates the center, negative values are to the left and down, positive values are to the right and up</param>
+            public Stamp(float startDepth, float endDepth, bool additive, string material, GlassInfo glassInfo, params Vector2[] shape)
+            {
+                StartDepth = startDepth;
+                EndDepth = endDepth;
+                Additive = additive;
+                Material = material;
+                Shape = shape;
+                GlassFill = glassInfo;
+            }
 
             /// <summary>
             /// Create a new embossing stamp
@@ -156,6 +193,27 @@ namespace Base_CityGeneration.Elements.Building.Facades
                 Additive = additive;
                 Material = material;
                 Shape = shape;
+
+                GlassFill = null;
+            }
+        }
+
+        /// <summary>
+        /// Information used to create a block of glass
+        /// </summary>
+        public struct GlassInfo
+        {
+            public readonly float Opacity;
+            public readonly float Scattering;
+            public readonly float Attenuation;
+            public readonly string Material;
+
+            public GlassInfo(float opacity, float scattering = 0.2f, float attenuation = 0.25f, string material = "glass")
+            {
+                Opacity = opacity;
+                Scattering = scattering;
+                Attenuation = attenuation;
+                Material = material;
             }
         }
     }

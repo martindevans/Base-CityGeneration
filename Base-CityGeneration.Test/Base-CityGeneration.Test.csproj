@@ -58,12 +58,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5746.28391, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5746.28391\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5763.31217, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5763.31218\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5746.28391, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5746.28391\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
+    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5763.31218, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5763.31218\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -80,8 +80,8 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Myre, Version=6.2.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Myre.6.2.0.0\lib\net46\Myre.dll</HintPath>
+    <Reference Include="Myre, Version=6.3.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Myre.6.3.0.0\lib\net46\Myre.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Myre.Debugging, Version=4.0.3.0, Culture=neutral, processorArchitecture=x86">
@@ -92,8 +92,8 @@
       <HintPath>..\packages\Myre.Entities.7.2.0.0\lib\net46\Myre.Entities.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Myre.Graphics, Version=8.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Myre.Graphics.8.0.0.0\lib\net46\Myre.Graphics.dll</HintPath>
+    <Reference Include="Myre.Graphics, Version=9.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Myre.Graphics.9.0.0.0\lib\net46\Myre.Graphics.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -120,8 +120,8 @@
       <HintPath>..\packages\Placeholder.AI.Pathfinding.9.1.0.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.Audio2, Version=5.1.1.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.Audio2.5.1.1.0\lib\net46\Placeholder.Audio2.dll</HintPath>
+    <Reference Include="Placeholder.Audio2, Version=5.2.4.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.Audio2.5.2.4.0\lib\net46\Placeholder.Audio2.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=9.1.0.0, Culture=neutral, processorArchitecture=x86">
@@ -148,8 +148,8 @@
       <HintPath>..\packages\SharpYaml.1.5.1\lib\SharpYaml.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SupersonicSound, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SupersonicSound.3.0.0.0\lib\net46\SupersonicSound.dll</HintPath>
+    <Reference Include="SupersonicSound, Version=4.1.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\SupersonicSound.4.1.1.0\lib\net46\SupersonicSound.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SwizzleMyVectors, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
