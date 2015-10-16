@@ -50,7 +50,7 @@ namespace Base_CityGeneration.Elements.Building
 
         protected abstract float CalculateHeight();
 
-        public IReadOnlyList<ISubdivisionContext> Neighbours { get; set; }
+        public IReadOnlyList<NeighbourInfo> Neighbours { get; set; }
     }
 
     /// <summary>
