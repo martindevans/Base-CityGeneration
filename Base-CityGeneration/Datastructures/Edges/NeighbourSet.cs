@@ -10,12 +10,12 @@ namespace Base_CityGeneration.Datastructures.Edges
     /// <summary>
     /// A set of line segments, which you can extract potential neighbours from (i.e. overlapping co-linear line segments)
     /// </summary>
-    public class NeighbourSet
+    public class NeighbourSet<T>
     {
         /// <summary>
         /// Segments, keyed with their angle rounded down to the nearest integer
         /// </summary>
-        private readonly Dictionary<int, List<LineSegment2D>> _segments = new Dictionary<int, List<LineSegment2D>>();
+        private readonly Dictionary<int, List<KeyValuePair<LineSegment2D, T>>> _segments = new Dictionary<int, List<KeyValuePair<LineSegment2D, T>>>();
 
         public int Count { get; private set; }
 
@@ -36,7 +36,7 @@ namespace Base_CityGeneration.Datastructures.Edges
 
             for (var i = lowKey; i <= highKey; i++)
             {
-                List<LineSegment2D> segments;
+                List<KeyValuePair<LineSegment2D, T>> segments;
 
                 // Key cannot be null, it's an int!
                 // ReSharper disable once ExceptionNotDocumentedOptional
@@ -44,8 +44,10 @@ namespace Base_CityGeneration.Datastructures.Edges
                     continue;
 
                 //Check these lines
-                foreach (var segment in segments)
+                foreach (var item in segments)
                 {
+                    var segment = item.Key;
+
                     //Do not compare to self
                     if (segment.Equals(query))
                         continue;
@@ -72,30 +74,37 @@ namespace Base_CityGeneration.Datastructures.Edges
                         continue;
 
                     //Clamp points into the line segment
-                    sp = Clamp(st, sp, queryLine);
-                    ep = Clamp(et, ep, queryLine);
+                    Clamp(ref st, ref sp, queryLine);
+                    Clamp(ref et, ref ep, queryLine);
 
                     var segmentLine = segment.LongLine();
-                    yield return new NeighbourResult(segment, Geometry2D.ClosestPointDistanceAlongLine(segmentLine, sp), Geometry2D.ClosestPointDistanceAlongLine(segmentLine, ep));
+                    yield return new NeighbourResult(
+                        segment,
+                        Geometry2D.ClosestPointDistanceAlongLine(segmentLine, sp), Geometry2D.ClosestPointDistanceAlongLine(segmentLine, ep),
+                        item.Value,
+                        st, et
+                    );
                 }
             }
         }
 
-        private static Vector2 Clamp(float t, Vector2 pointAtT, Line2D line)
+        private static void Clamp(ref float t, ref Vector2 pointAtT, Line2D line)
         {
+            //Clamp into range, or early exit if already within range
             if (t < 0)
                 t = 0;
             else if (t > 1)
                 t = 1;
             else
-                return pointAtT;
+                return;
 
-            return line.Point + line.Direction * t;
+            //Calculate new point
+            pointAtT = line.Point + line.Direction * t;
         }
 
-        public void Add(LineSegment2D segment)
+        public void Add(LineSegment2D segment, T value)
         {
-            GetList(Angle(segment)).Add(segment);
+            GetList(Angle(segment)).Add(new KeyValuePair<LineSegment2D, T>(segment, value));
             Count++;
         }
 
@@ -117,31 +126,63 @@ namespace Base_CityGeneration.Datastructures.Edges
             return (int)(degrees % 180);
         }
 
-        private List<LineSegment2D> GetList(float angle)
+        private List<KeyValuePair<LineSegment2D, T>> GetList(float angle)
         {
             var key = ToKey(angle);
 
-            List<LineSegment2D> list;
+            List<KeyValuePair<LineSegment2D, T>> list;
             if (!_segments.TryGetValue(key, out list))
             {
-                list = new List<LineSegment2D>();
+                list = new List<KeyValuePair<LineSegment2D, T>>();
                 _segments.Add(key, list);
             }
 
             return list;
         }
 
+        /// <summary>
+        /// Information about a neighbour relationship
+        /// </summary>
         public struct NeighbourResult
         {
+            /// <summary>
+            /// The segment which is a neighbour of your query
+            /// </summary>
             public readonly LineSegment2D Segment;
-            public readonly float OverlapStart;
-            public readonly float OverlapEnd;
 
-            public NeighbourResult(LineSegment2D segment, float overlapStart, float overlapEnd)
+            /// <summary>
+            /// Start point (distance along line of Segment property) of overlap
+            /// </summary>
+            public readonly float SegmentOverlapStart;
+
+            /// <summary>
+            /// End point (distance along line of Segment property) of overlap
+            /// </summary>
+            public readonly float SegmentOverlapEnd;
+
+            /// <summary>
+            /// Start point (distance along line of query) of overlap
+            /// </summary>
+            public readonly float QueryOverlapStart;
+
+            /// <summary>
+            /// End point (distance along line of query) of overlap
+            /// </summary>
+            public readonly float QueryOverlapEnd;
+
+            /// <summary>
+            /// Value associated with this line segment
+            /// </summary>
+            public readonly T Value; 
+
+            public NeighbourResult(LineSegment2D segment, float segmentOverlapStart, float segmentOverlapEnd, T value, float queryOverlapStart, float queryOverlapEnd)
             {
                 Segment = segment;
-                OverlapStart = overlapStart;
-                OverlapEnd = overlapEnd;
+                SegmentOverlapStart = segmentOverlapStart;
+                SegmentOverlapEnd = segmentOverlapEnd;
+                Value = value;
+                QueryOverlapStart = queryOverlapStart;
+                QueryOverlapEnd = queryOverlapEnd;
             }
         }
     }

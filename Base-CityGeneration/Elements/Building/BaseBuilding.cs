@@ -11,6 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Elements.Blocks;
+using Base_CityGeneration.Elements.Roads;
 using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Elements.Building
@@ -20,7 +22,7 @@ namespace Base_CityGeneration.Elements.Building
     {
         public float GroundHeight { get; set; }
 
-        public IReadOnlyList<ISubdivisionContext> Neighbours { get; set; }
+        public IReadOnlyList<NeighbourInfo> Neighbours { get; set; }
 
         #region floor data
         public int AboveGroundFloors
@@ -327,14 +329,48 @@ namespace Base_CityGeneration.Elements.Building
         #region helpers
         protected BuildingSideInfo[] GetNeighbourInfo(Prism bounds)
         {
-            //todo: Get neighbour height data
+            var sides = new BuildingSideInfo[bounds.Footprint.Count];
 
-            var info = new List<BuildingSideInfo>();
+            for (var i = 0; i < bounds.Footprint.Count; i++)
+            {
+                //Start and end point of this segment
+                var a = bounds.Footprint[i];
+                var b = bounds.Footprint[(i + 1) % bounds.Footprint.Count];
 
-            for (int i = 0; i < bounds.Footprint.Count; i++)
-                info.Add(new BuildingSideInfo(bounds.Footprint[i], bounds.Footprint[(i + 1) % bounds.Footprint.Count], new BuildingSideInfo.NeighbourInfo[0]));
+                //Neighbours which are for this segment
+                var ns = from n in (Neighbours ?? new NeighbourInfo[0])
+                         where n.Segment.Equals(new LineSegment2D(a, b))
+                         let result = ExtractDataFromUnknownNode(n.Neighbour)
+                         select new BuildingSideInfo.NeighbourInfo(n.Start, n.End, result.Key, result.Value);
 
-            return info.ToArray();
+                //Save the results
+                sides[i] = new BuildingSideInfo(a, b, ns.ToArray());
+            }
+
+            return sides;
+        }
+
+        private KeyValuePair<float, BuildingSideInfo.NeighbourInfo.Resource[]> ExtractDataFromUnknownNode(ISubdivisionContext neighbour)
+        {
+            #region fields
+            //Wouldn't it be great if we were using C#7 and we could use a match statement on type...
+            //...Instead we're going to hide the dirty details in here
+            IBuildingContainer ibc;
+            IRoad ir;
+            #endregion
+
+            if ((ibc = neighbour as IBuildingContainer) != null)
+            {
+                return new KeyValuePair<float, BuildingSideInfo.NeighbourInfo.Resource[]>(ibc.Height, new BuildingSideInfo.NeighbourInfo.Resource[0]);
+            }
+            else if ((ir = neighbour as IRoad) != null)
+            {
+                return new KeyValuePair<float, BuildingSideInfo.NeighbourInfo.Resource[]>(0, new BuildingSideInfo.NeighbourInfo.Resource[] {
+                    new BuildingSideInfo.NeighbourInfo.Resource(0, 0, "road")
+                });
+            }
+
+            return new KeyValuePair<float, BuildingSideInfo.NeighbourInfo.Resource[]>(0, new BuildingSideInfo.NeighbourInfo.Resource[0]);
         }
 
         private void CheckSubdivided()
@@ -343,20 +379,20 @@ namespace Base_CityGeneration.Elements.Building
                 throw new InvalidOperationException("Cannot query BaseBuilding before it is subdivided");
         }
 
-        private static IReadOnlyList<Vector2> IntersectionOfFootprints(IFloor[] floors)
+        private static IReadOnlyList<Vector2> IntersectionOfFootprints(IReadOnlyList<IFloor> floors)
         {
             const int SCALE = 1000;
-            Clipper c = new Clipper();
+            var c = new Clipper();
 
-            for (int i = 0; i < floors.Length; i++)
+            for (var i = 0; i < floors.Count; i++)
             {
-                int ii = i;
+                var ii = i;
                 //Transform footprint from floor[i] space into floor[0] space
                 var transformed = floors[i].Bounds.Footprint.Select(a => Vector3.Transform(a.X_Y(0), floors[ii].InverseWorldTransformation * floors[0].WorldTransformation));
                 c.AddPolygon(
                     transformed.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Z * SCALE))).ToList(),
                     i == 0 ? PolyType.Subject : PolyType.Clip
-                    );
+                );
             }
 
             var result = new List<List<IntPoint>>();
