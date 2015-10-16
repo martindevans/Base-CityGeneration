@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Base_CityGeneration.Elements.Blocks;
 using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
@@ -7,7 +8,7 @@ using Base_CityGeneration.Elements.Generic;
 namespace Base_CityGeneration.Elements.Building
 {
     public interface IBuilding
-        : IGrounded
+        : IGrounded, INeighbour
     {
         /// <summary>
         /// Total number of floors (above + below ground)

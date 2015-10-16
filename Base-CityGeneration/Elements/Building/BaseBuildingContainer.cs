@@ -1,6 +1,8 @@
 ﻿using EpimetheusPlugins.Procedural;
 using Myre.Collections;
 using System;
+using System.Collections.Generic;
+using Base_CityGeneration.Elements.Blocks;
 
 namespace Base_CityGeneration.Elements.Building
 {
@@ -14,6 +16,11 @@ namespace Base_CityGeneration.Elements.Building
         private readonly float _maxHeight;
 
         private float? _height;
+
+        /// <summary>
+        /// Get the height of this container
+        /// </summary>
+        /// <exception cref="InvalidOperationException" accessor="get">Cannot get height of building container before container is subdivided</exception>
         public float Height
         {
             get
@@ -42,13 +49,15 @@ namespace Base_CityGeneration.Elements.Building
         }
 
         protected abstract float CalculateHeight();
+
+        public IReadOnlyList<ISubdivisionContext> Neighbours { get; set; }
     }
 
     /// <summary>
     /// Represents an abstract "container" of a building from which height can be calculated. This is used by neighbouring buildings when creating external facades
     /// </summary>
     public interface IBuildingContainer
-        : ISubdivisionContext
+        : ISubdivisionContext, INeighbour
     {
         float Height { get; }
     }
