@@ -66,8 +66,8 @@
       <HintPath>..\packages\Cassowary.4.0.0.0\lib\net35-Client\Cassowary.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5763.31217, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5763.31217\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5766.32682, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5766.32682\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -192,6 +192,7 @@
   <ItemGroup>
     <Compile Include="Datastructures\Constraints\ConstrainedRectangle.cs" />
     <Compile Include="Datastructures\Constraints\Range.cs" />
+    <Compile Include="Datastructures\Edges\NeighbourSet.cs" />
     <Compile Include="Datastructures\Extensions\MeshExtensions.cs" />
     <Compile Include="Datastructures\Extensions\ParcelExtensions.cs" />
     <Compile Include="Datastructures\Extensions\Vector2EnumerableExtensions.cs" />
@@ -203,6 +204,7 @@
     <Compile Include="Datastructures\Path.cs" />
     <Compile Include="Datastructures\Rectangle.cs" />
     <Compile Include="Datastructures\SeparatingAxisTester.cs" />
+    <Compile Include="Elements\Blocks\INeighbour.cs" />
     <Compile Include="Elements\Blocks\Spec\Adjustment\BaseAdjustmentSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\BlockSpec.cs" />
     <Compile Include="Elements\Blocks\Spec\Lots\Constraints\Invert.cs" />

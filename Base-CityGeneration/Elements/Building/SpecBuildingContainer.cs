@@ -31,8 +31,11 @@ namespace Base_CityGeneration.Elements.Building
 
             base.Subdivide(bounds, geometry, hierarchicalParameters);
 
+            //Create the node which will create the building form the spec
             var building = (SpecBuilding)CreateChild(bounds, Quaternion.Identity, Vector3.Zero, new ScriptReference(typeof(SpecBuilding)));
-            //todo: set all neighbouring building containers as prerequisities of the building
+
+            //Copy neighbour data into building (from container)
+            building.Neighbours = Neighbours;
         }
 
         protected override float CalculateHeight()

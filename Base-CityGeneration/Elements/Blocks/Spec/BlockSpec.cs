@@ -114,6 +114,8 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
 
         internal class Container
         {
+            public List<string> Tags { get; set; }
+
             public List<object> Aliases { get; set; }
 
             public BaseSubdivideSpec.BaseContainer Subdivide { get; set; }

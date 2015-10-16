@@ -52,7 +52,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
                     //Create a brusg for the glass. Either reuse the existing brush (if the material is the same) or create a new one with the glass material
                     var glassBrush = stamp.GlassFill.Value.Material == stamp.Material ? brush : ConvertStampToBrush(Section, stamp, stamp.GlassFill.Value.Material, geometry, hierarchicalParameters);
 
-                    //todo: Transform this with (inverse)-world-transform
+                    //Transform this with world-transform to place window in correct place in world
                     Window.Create(this, glassBrush.Transform(WorldTransformation), stamp.GlassFill.Value.Opacity, stamp.GlassFill.Value.Scattering, stamp.GlassFill.Value.Attenuation);
                 }
             }
@@ -215,6 +215,10 @@ namespace Base_CityGeneration.Elements.Building.Facades
                 Attenuation = attenuation;
                 Material = material;
             }
+
+            public static readonly GlassInfo ClearGlass = new GlassInfo(0.2f, 0.25f, 0.25f, "glass");
+            public static readonly GlassInfo FoggyGlass = new GlassInfo(0.4f, 0.75f, 0.75f, "glass");
+            public static readonly GlassInfo DarkGlass = new GlassInfo(0.6f, 1.0f, 1.0f, "glass");
         }
     }
 }

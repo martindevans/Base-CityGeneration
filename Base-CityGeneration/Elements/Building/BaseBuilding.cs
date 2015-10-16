@@ -20,6 +20,8 @@ namespace Base_CityGeneration.Elements.Building
     {
         public float GroundHeight { get; set; }
 
+        public IReadOnlyList<ISubdivisionContext> Neighbours { get; set; }
+
         #region floor data
         public int AboveGroundFloors
         {
@@ -327,7 +329,7 @@ namespace Base_CityGeneration.Elements.Building
         {
             //todo: Get neighbour height data
 
-            List<BuildingSideInfo> info = new List<BuildingSideInfo>();
+            var info = new List<BuildingSideInfo>();
 
             for (int i = 0; i < bounds.Footprint.Count; i++)
                 info.Add(new BuildingSideInfo(bounds.Footprint[i], bounds.Footprint[(i + 1) % bounds.Footprint.Count], new BuildingSideInfo.NeighbourInfo[0]));
@@ -399,12 +401,24 @@ namespace Base_CityGeneration.Elements.Building
         }
         #endregion
 
+        /// <summary>
+        /// Information about a footprint of the building, building footprint can change on arbitrary floors of the buildings
+        /// </summary>
         protected struct Footprint
         {
+            /// <summary>
+            /// Footprint covers all floors up to the next footprint from this floor
+            /// </summary>
             public int BottomIndex { get; private set; }
 
+            /// <summary>
+            /// The shape of this footprint
+            /// </summary>
             public IReadOnlyList<Vector2> Shape { get; private set; }
 
+            /// <summary>
+            /// Facades to place around this footprint. Outer list is indexed by side, inner list is for multiple facades covering a single side (over different floors)
+            /// </summary>
             public IReadOnlyList<IReadOnlyList<FacadeSelection>> Facades { get; private set; }
 
             public Footprint(int bottomIndex, IReadOnlyList<Vector2> shape, IReadOnlyList<IReadOnlyList<FacadeSelection>> facades)
