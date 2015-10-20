@@ -252,11 +252,13 @@ namespace Base_CityGeneration.Elements.Building
                 var sideEnd = footprint.Shape[(sideIndex + 1) % footprint.Shape.Count];
 
                 //find which section this side is for
-                var sideSegment = new LineSegment2D(sideStart, sideEnd);
+                var sideSegment = new LineSegment2D(sideStart, sideEnd).Line();
                 var section = (from s in sections
-                               let aD = Vector2.Distance(Geometry2D.ClosestPointOnLineSegment(sideSegment, s.ExternalLineSegment.Start), s.ExternalLineSegment.Start)
+                               let aP = Geometry2D.ClosestPointDistanceAlongLine(sideSegment, s.ExternalLineSegment.Start) * sideSegment.Direction + sideSegment.Point
+                               let aD = Vector2.Distance(aP, s.ExternalLineSegment.Start)
                                where aD < 0.1f
-                               let bD = Vector2.Distance(Geometry2D.ClosestPointOnLineSegment(sideSegment, s.ExternalLineSegment.End), s.ExternalLineSegment.End)
+                               let bP = Geometry2D.ClosestPointDistanceAlongLine(sideSegment, s.ExternalLineSegment.End) * sideSegment.Direction + sideSegment.Point
+                               let bD = Vector2.Distance(bP, s.ExternalLineSegment.End)
                                where bD < 0.1f
                                let d = aD + bD
                                orderby d
