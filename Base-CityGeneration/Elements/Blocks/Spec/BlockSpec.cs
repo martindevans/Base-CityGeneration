@@ -18,6 +18,10 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
 {
     public class BlockSpec
     {
+        public IEnumerable<KeyValuePair<string, string>> Tags { get; private set; }
+        public Guid Id { get; private set; }
+        public string Description { get; private set; }
+
         private readonly BaseSubdivideSpec _subdivide;
         public BaseSubdivideSpec Subdivider
         {
@@ -36,8 +40,12 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
             get { return _lots; }
         }
 
-        public BlockSpec(BaseSubdivideSpec subdivide, IEnumerable<BaseAdjustmentSpec> adjustments, IEnumerable<LotSpec> lots)
+        public BlockSpec(IEnumerable<KeyValuePair<string, string>> tags, Guid id, string description, BaseSubdivideSpec subdivide, IEnumerable<BaseAdjustmentSpec> adjustments, IEnumerable<LotSpec> lots)
         {
+            Tags = tags;
+            Id = id;
+            Description = description;
+
             _subdivide = subdivide;
             _adjustments = adjustments.ToArray();
             _lots = lots.ToArray();
@@ -114,7 +122,9 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
 
         internal class Container
         {
-            public List<string> Tags { get; set; }
+            public Dictionary<string, string> Tags { get; set; }
+            public string Id { get; set; }
+            public string Description { get; set; }
 
             public List<object> Aliases { get; set; }
 
@@ -127,6 +137,9 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
             public BlockSpec Unwrap()
             {
                 return new BlockSpec(
+                    Tags,
+                    Guid.Parse(Id ?? Guid.NewGuid().ToString()),
+                    Description,
                     Subdivide.Unwrap(),
                     (Adjustments ?? new BaseAdjustmentSpec.BaseContainer[0]).Select(a => a.Unwrap()).ToArray(),
                     (Lots ?? new LotSpec.BaseContainer[0]).Select(a => a.Unwrap()).ToArray()
