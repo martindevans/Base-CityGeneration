@@ -21,6 +21,10 @@ namespace Base_CityGeneration.Elements.Building.Design
     public class BuildingDesigner
     {
         #region field and properties
+        public IEnumerable<KeyValuePair<string, string>> Tags { get; private set; }
+        public Guid Id { get; private set; }
+        public string Description { get; private set; }
+
         private readonly VerticalElementSpec[] _verticalSelectors;
         public IEnumerable<VerticalElementSpec> VerticalSelectors
         {
@@ -57,8 +61,12 @@ namespace Base_CityGeneration.Elements.Building.Design
         #endregion
 
         #region constructor
-        public BuildingDesigner(BaseFloorSelector[] floorSelectors, VerticalElementSpec[] verticalSelectors, FacadeSpec[] facadeSelectors)
+        public BuildingDesigner(IEnumerable<KeyValuePair<string, string>> tags, Guid id, string description, BaseFloorSelector[] floorSelectors, VerticalElementSpec[] verticalSelectors, FacadeSpec[] facadeSelectors)
         {
+            Tags = tags;
+            Id = id;
+            Description = description;
+
             _floorSelectors = floorSelectors;
             _verticalSelectors = verticalSelectors;
             _facadeSelectors = facadeSelectors;
@@ -358,7 +366,9 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         internal class Container
         {
-            public List<string> Tags { get; set; }
+            public Dictionary<string, string> Tags { get; set; }
+            public string Id { get; set; }
+            public string Description { get; set; }
 
             public List<object> Aliases { get; set; }
 
@@ -369,6 +379,9 @@ namespace Base_CityGeneration.Elements.Building.Design
             public BuildingDesigner Unwrap()
             {
                 return new BuildingDesigner(
+                    Tags,
+                    Guid.Parse(Id ?? Guid.NewGuid().ToString()),
+                    Description,
                     Floors.Select(a => a.Unwrap()).ToArray(),
                     (Verticals ?? new VerticalElementSpec.Container[0]).Select(a => a.Unwrap()).ToArray(),
                     (Facades ?? new FacadeSpec.Container[0]).Select(a => a.Unwrap()).ToArray()
