@@ -150,7 +150,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
                 //Select the exteral facade which lies along this edge
                 var wall = (from facade in facades
-                            where Geometry2D.LineLineParallelism(facade.Section.ExternalLineSegment.Line(), segment.Line()) == Geometry2D.Parallelism.Collinear
+                            where Geometry2D.LineLineParallelism(facade.Section.ExternalLineSegment.Line(), segment.Line()) != Geometry2D.Parallelism.None
                             let aD = Geometry2D.DistanceFromPointToLineSegment(facade.Section.ExternalLineSegment.Start, facade.Section.ExternalLineSegment)
                             let bD = Geometry2D.DistanceFromPointToLineSegment(facade.Section.ExternalLineSegment.End, facade.Section.ExternalLineSegment)
                             orderby aD + bD
