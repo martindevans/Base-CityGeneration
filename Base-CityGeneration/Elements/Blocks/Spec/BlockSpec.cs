@@ -13,6 +13,7 @@ using SharpYaml.Serialization;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Base_CityGeneration.Elements.Building;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec
 {
@@ -70,7 +71,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
                 if (lotSpec.Check(parcel, random, metadata))
                 {
                     KeyValuePair<string, string>[] selected;
-                    return lotSpec.Tags.SelectScript(random, scriptFinder, out selected);
+                    return lotSpec.Tags.SelectScript(random, scriptFinder, out selected, typeof(IBuildingContainer));
                 }
             }
 
