@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Design;
+using Base_CityGeneration.Elements.Building.Facades;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
+using HandyCollections.Extensions;
 
 namespace Base_CityGeneration.Utilities
 {
@@ -122,7 +124,13 @@ namespace Base_CityGeneration.Utilities
 
     internal static class TagsContainerExtensions
     {
-        public static ScriptReference SelectScript(this IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tagsSets, Func<double> random, Func<KeyValuePair<string, string>[], ScriptReference> finder, out KeyValuePair<string, string>[] tags)
+        public static ScriptReference SelectScript(
+            this IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tagsSets,
+            Func<double> random,
+            Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder,
+            out KeyValuePair<string, string>[] tags,
+            params Type[] extraConstraints
+        )
         {
             var options = tagsSets.ToList();
             while (options.Count > 0)
@@ -135,7 +143,7 @@ namespace Base_CityGeneration.Utilities
                     return null;
 
                 //Find a script for this set
-                var script = finder(tags);
+                var script = finder(tags, extraConstraints);
 
                 //If we found something we're good to go
                 if (script != null)

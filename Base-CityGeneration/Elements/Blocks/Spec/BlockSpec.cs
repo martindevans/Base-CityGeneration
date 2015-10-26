@@ -63,7 +63,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
             return parcels;
         }
 
-        public ScriptReference SelectLot(Parcel parcel, Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> scriptFinder)
+        public ScriptReference SelectLot(Parcel parcel, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> scriptFinder)
         {
             foreach (var lotSpec in _lots)
             {

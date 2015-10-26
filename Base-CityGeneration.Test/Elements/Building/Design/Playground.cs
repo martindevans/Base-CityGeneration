@@ -106,7 +106,7 @@ Floors:
 
             Assert.IsNotNull(b);
 
-            Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder = tags => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tags));
+            Func<IEnumerable<KeyValuePair<string, string>>, Type[], ScriptReference> finder = (tags, types) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tags));
 
             var lot = new Vector2[] {
                 new Vector2(-30, -30),

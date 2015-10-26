@@ -25,7 +25,7 @@ namespace Base_CityGeneration.Elements.Building
 
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
-            _internals = _designer.Internals(Random, HierarchicalParameters, a => ScriptReference.Find(a).Random((Func<double>)Random));
+            _internals = _designer.Internals(Random, HierarchicalParameters, (a, b) => ScriptReference.Find(a, b).Random((Func<double>)Random));
 
             HierarchicalParameters.Set(BuildingInternalsName, _internals);
 

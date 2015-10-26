@@ -20,7 +20,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design
             new BuildingSideInfo(new Vector2(-10, 10), new Vector2(-10, -10), new BuildingSideInfo.NeighbourInfo[0]),
         };
 
-        private static ScriptReference Finder(IEnumerable<KeyValuePair<string, string>> tags)
+        private static ScriptReference Finder(IEnumerable<KeyValuePair<string, string>> tags, params Type[] types)
         {
             Assert.IsNotNull(tags);
             return new ScriptReference(typeof(TestScript));

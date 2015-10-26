@@ -87,7 +87,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
             return result;
         }
 
-        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder)
+        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
         {
             return new FloorRun[1] {
                 new FloorRun(new FloorSelection[0], this)
