@@ -15,10 +15,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
         public void AssertThat_FloorSpec_SelectsSingleItem_FromSingleChoice()
         {
             FloorSpec spec = new FloorSpec(new[] {
-                new KeyValuePair<float, string[]>(1, new [] { "tag" })
+                new KeyValuePair<float, KeyValuePair<string, string>[]>(1, new [] { new KeyValuePair<string, string>("key", "tag") })
             }, new NormallyDistributedValue(1, 2, 3, 1, false));
 
-            var selected = spec.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
+            var selected = spec.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a.Select(t => t.Value))));
 
             Assert.AreEqual(1, selected.Count());
             Assert.AreEqual("tag", selected.Single().Selection.Single().Script.Name);
@@ -28,7 +28,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
         public void AssertThat_FloorSpec_SelectsNothing_FromNull()
         {
             FloorSpec spec = new FloorSpec(new[] {
-                new KeyValuePair<float, string[]>(1, null)
+                new KeyValuePair<float, KeyValuePair<string, string>[]>(1, null)
             }, new NormallyDistributedValue(1, 2, 3, 1, false));
 
             var selected = spec.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));

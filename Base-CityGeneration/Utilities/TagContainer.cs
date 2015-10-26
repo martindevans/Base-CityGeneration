@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Design;
 using EpimetheusPlugins.Procedural;
@@ -9,22 +8,23 @@ using EpimetheusPlugins.Scripts;
 
 namespace Base_CityGeneration.Utilities
 {
-    class TagContainer
-        : IDictionary<float, string[]>
+    internal class TagContainerContainer
+        : IDictionary<float, Dictionary<string, string>>
     {
-        private readonly List<KeyValuePair<float, string[]>> _data = new List<KeyValuePair<float, string[]>>();  
+        private readonly List<KeyValuePair<float, Dictionary<string, string>>> _data = new List<KeyValuePair<float, Dictionary<string, string>>>();
 
-        public IEnumerator<KeyValuePair<float, string[]>> GetEnumerator()
+        #region implementation
+        public IEnumerator<KeyValuePair<float, Dictionary<string, string>>> GetEnumerator()
         {
             return _data.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return ((IEnumerable)_data).GetEnumerator();
         }
 
-        public void Add(KeyValuePair<float, string[]> item)
+        public void Add(KeyValuePair<float, Dictionary<string, string>> item)
         {
             _data.Add(item);
         }
@@ -34,46 +34,40 @@ namespace Base_CityGeneration.Utilities
             _data.Clear();
         }
 
-        public bool Contains(KeyValuePair<float, string[]> item)
+        public bool Contains(KeyValuePair<float, Dictionary<string, string>> item)
         {
             return _data.Contains(item);
         }
 
-        public void CopyTo(KeyValuePair<float, string[]>[] array, int arrayIndex)
+        public void CopyTo(KeyValuePair<float, Dictionary<string, string>>[] array, int arrayIndex)
         {
             _data.CopyTo(array, arrayIndex);
         }
 
-        public bool Remove(KeyValuePair<float, string[]> item)
+        public bool Remove(KeyValuePair<float, Dictionary<string, string>> item)
         {
             return _data.Remove(item);
         }
 
         public int Count
         {
-            get
-            {
-                return _data.Count;
-            }
+            get { return _data.Count; }
         }
 
         public bool IsReadOnly
         {
-            get
-            {
-                return false;
-            }
+            get { return false; }
         }
 
         public bool ContainsKey(float key)
         {
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            return _data.FindIndex(a => a.Key == key) != -1;
+            return _data.Any(a => a.Key == key);
         }
 
-        public void Add(float key, string[] value)
+        public void Add(float key, Dictionary<string, string> value)
         {
-            Add(new KeyValuePair<float, string[]>(key, value));
+            _data.Add(new KeyValuePair<float, Dictionary<string, string>>(key, value));
         }
 
         public bool Remove(float key)
@@ -82,55 +76,53 @@ namespace Base_CityGeneration.Utilities
             return _data.RemoveAll(a => a.Key == key) > 0;
         }
 
-        public bool TryGetValue(float key, out string[] value)
+        public bool TryGetValue(float key, out Dictionary<string, string> value)
         {
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            var i = _data.FindIndex(a => a.Key == key);
-            if (i == -1)
+            foreach (var item in _data)
             {
-                value = null;
-                return false;
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                if (item.Key == key)
+                {
+                    value = item.Value;
+                    return true;
+                }
             }
 
-            value = _data[i].Value;
-            return true;
+            value = default(Dictionary<string, string>);
+            return false;
         }
 
-        public string[] this[float key]
+        public Dictionary<string, string> this[float key]
         {
             get
             {
-                string[] v;
-                if (!TryGetValue(key, out v))
-                    throw new KeyNotFoundException(key.ToString(CultureInfo.InvariantCulture));
-                return v;
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                return _data.First(a => a.Key == key).Value;
             }
-            set
-            {
-                Add(key, value);
-            }
+            set { throw new NotSupportedException(); }
         }
 
         public ICollection<float> Keys
         {
-            get
-            {
-                return _data.Select(a => a.Key).ToArray();
-            }
+            get { return _data.Select(a => a.Key).ToArray(); }
         }
 
-        public ICollection<string[]> Values
+        public ICollection<Dictionary<string, string>> Values
         {
-            get
-            {
-                return _data.Select(a => a.Value).ToArray();
-            }
+            get { return _data.Select(a => a.Value).ToArray(); }
+        }
+        #endregion
+
+        public IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> Unwrap()
+        {
+            foreach (var item in _data)
+                yield return new KeyValuePair<float, KeyValuePair<string, string>[]>(item.Key, item.Value == null ? null : item.Value.ToArray());
         }
     }
 
     internal static class TagsContainerExtensions
     {
-        public static ScriptReference SelectScript(this IEnumerable<KeyValuePair<float, string[]>> tagsSets, Func<double> random, Func<string[], ScriptReference> finder, out string[] tags)
+        public static ScriptReference SelectScript(this IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tagsSets, Func<double> random, Func<KeyValuePair<string, string>[], ScriptReference> finder, out KeyValuePair<string, string>[] tags)
         {
             var options = tagsSets.ToList();
             while (options.Count > 0)

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Design.Spec;
@@ -43,8 +44,8 @@ Floors:
         Deviation: 2
 
       Tags:
-        1: [a]
-        2: [b]
+        1: { tag: a }
+        2: { tag: b }
 "));
 
             Assert.IsNotNull(b);
@@ -58,8 +59,8 @@ Floors:
             Assert.AreEqual(new ConstantValue(2), h.Deviation);
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
-            Assert.AreEqual("a", spec.Tags.Single(a => a.Key == 1).Value.Single());
-            Assert.AreEqual("b", spec.Tags.Single(a => a.Key == 2).Value.Single());
+            Assert.AreEqual(new KeyValuePair<string, string>("tag", "a"), spec.Tags.Single(a => a.Key == 1).Value.Single());
+            Assert.AreEqual(new KeyValuePair<string, string>("tag", "b"), spec.Tags.Single(a => a.Key == 2).Value.Single());
 // ReSharper restore CompareOfFloatsByEqualityOperator
         }
 
@@ -79,7 +80,7 @@ Floors:
           Vary: true
           Continuous: false
           Tags:
-            1: [a]
+            1: { tag: a }
 "));
         }
 

@@ -76,7 +76,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             Footprints = footprints;
         }
 
-        public Design Externals(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, BuildingSideInfo[] sides)
+        public Design Externals(Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder, BuildingSideInfo[] sides)
         {
             //Generate footprints up building
             IReadOnlyDictionary<int, IReadOnlyList<Vector2>> footprints = GenerateFootprints(random, metadata, sides.Select(a => a.EdgeEnd).ToArray(), Footprints, AboveGroundFloors.Count(), BelowGroundFloors.Count());

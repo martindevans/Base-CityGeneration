@@ -80,7 +80,7 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// <param name="metadata"></param>
         /// <param name="finder"></param>
         /// <returns></returns>
-        public Internals Internals(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        public Internals Internals(Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder)
         {
             var ground = _floorSelectors.OfType<GroundMarker>().Single();
             var aboveGround = _floorSelectors.TakeWhile(a => !(a is GroundMarker)).Append(ground).ToArray();
@@ -144,7 +144,7 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// <param name="groundMarker"></param>
         /// <param name="aboveGround"></param>
         /// <returns></returns>
-        private static IEnumerable<FloorRun> SelectFloors(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder, IEnumerable<BaseFloorSelector> selectors, BaseMarker groundMarker, bool aboveGround)
+        private static IEnumerable<FloorRun> SelectFloors(Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder, IEnumerable<BaseFloorSelector> selectors, BaseMarker groundMarker, bool aboveGround)
         {
             List<FloorRun> runs = new List<FloorRun>();
 
@@ -188,7 +188,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             return runs;
         }
 
-        private static IEnumerable<VerticalSelection> SelectVerticals(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<VerticalElementSpec> verticalSelectors, IEnumerable<FloorSelection> floors)
+        private static IEnumerable<VerticalSelection> SelectVerticals(Func<double> random, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder, IEnumerable<VerticalElementSpec> verticalSelectors, IEnumerable<FloorSelection> floors)
         {
             List<VerticalSelection> verticals = new List<VerticalSelection>();
 
@@ -200,7 +200,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             return verticals;
         }
 
-        internal IEnumerable<FacadeSelection> SelectFacadesForWall(Func<double> random, Func<string[], ScriptReference> finder, IEnumerable<FloorSelection> floorRun, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd)
+        internal IEnumerable<FacadeSelection> SelectFacadesForWall(Func<double> random, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder, IEnumerable<FloorSelection> floorRun, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd)
         {
             List<FacadeSelection> result = new List<FacadeSelection>();
 
@@ -226,13 +226,13 @@ namespace Base_CityGeneration.Elements.Building.Design
             return result;
         }
 
-        private IEnumerable<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<string[], ScriptReference> finder, List<FloorSelection> floors, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd, ICollection<FacadeSelection> results)
+        private IEnumerable<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder, List<FloorSelection> floors, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd, ICollection<FacadeSelection> results)
         {
             //working from the first selector to the last, try to find a facade for each floor
             foreach (var spec in FacadeSelectors)
             {
                 //Find scripts for this spec
-                string[] selectedTags;
+                KeyValuePair<string, string>[] selectedTags;
                 ScriptReference script = spec.Tags.SelectScript(random, finder, out selectedTags);
 
                 //Skip specs which cannot find a script
@@ -366,6 +366,7 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         internal class Container
         {
+            // ReSharper disable once CollectionNeverUpdated.Global
             public Dictionary<string, string> Tags { get; set; }
             public string Id { get; set; }
             public string Description { get; set; }

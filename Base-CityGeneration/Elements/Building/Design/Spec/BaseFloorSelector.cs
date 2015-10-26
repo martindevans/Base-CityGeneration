@@ -14,11 +14,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         public abstract float MaxHeight { get; }
 
-        public abstract IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder);
+        public abstract IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder);
 
-        protected FloorSelection SelectSingle(Func<double> random, IEnumerable<KeyValuePair<float, string[]>> tags, Func<string[], ScriptReference> finder, float height, string id)
+        protected FloorSelection SelectSingle(Func<double> random, IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder, float height, string id)
         {
-            string[] selectedTags;
+            KeyValuePair<string, string>[] selectedTags;
             ScriptReference script = tags.SelectScript(random, finder, out selectedTags);
             if (script == null)
                 return null;

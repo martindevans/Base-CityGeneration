@@ -63,13 +63,13 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
             return parcels;
         }
 
-        public ScriptReference SelectLot(Parcel parcel, Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> scriptFinder)
+        public ScriptReference SelectLot(Parcel parcel, Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> scriptFinder)
         {
             foreach (var lotSpec in _lots)
             {
                 if (lotSpec.Check(parcel, random, metadata))
                 {
-                    string[] selected;
+                    KeyValuePair<string, string>[] selected;
                     return lotSpec.Tags.SelectScript(random, scriptFinder, out selected);
                 }
             }
