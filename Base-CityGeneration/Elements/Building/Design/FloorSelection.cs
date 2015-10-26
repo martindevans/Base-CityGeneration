@@ -10,8 +10,8 @@ namespace Base_CityGeneration.Elements.Building.Design
         private readonly string _id;
         public string Id { get { return _id; } }
 
-        private readonly string[] _tags;
-        public IEnumerable<string> Tags { get { return _tags; } }
+        private readonly KeyValuePair<string, string>[] _tags;
+        public IEnumerable<KeyValuePair<string, string>> Tags { get { return _tags; } }
 
         private readonly BaseFloorSelector _selector;
         public BaseFloorSelector Selector { get { return _selector; } }
@@ -44,7 +44,7 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         public int Index { get; internal set; }
 
-        public FloorSelection(string id, string[] tags, BaseFloorSelector selector, ScriptReference script, float height, int index = 0)
+        public FloorSelection(string id, KeyValuePair<string, string>[] tags, BaseFloorSelector selector, ScriptReference script, float height, int index = 0)
         {
             _id = id;
             _tags = tags;

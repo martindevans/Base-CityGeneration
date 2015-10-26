@@ -15,7 +15,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
         public void AssertThat_RangeWithSingleInclude_RepeatsSingleItemInIncludeCorrectNumberOfTimes()
         {
             var range = new FloorRangeSpec(new[] {
-                new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, string[]>(1, new [] { "tag" }) }, null)
+                new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, KeyValuePair<string, string>[]>(1, new [] { new KeyValuePair<string, string>("tag", "tag")
+                }) }, null)
             }, new NormallyDistributedValue(1, 2, 3, 1, false));
 
             var selected = range.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
@@ -30,7 +31,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
         public void AssertThat_RangeWithSingleInclude_OutputsNothing_WhenIncludeIsNull()
         {
             var range = new FloorRangeSpec(new[] {
-                new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, string[]>(1, null) }, null)
+                new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, KeyValuePair<string, string>[]>(1, null) }, null)
             }, new NormallyDistributedValue(1, 2, 3, 1));
 
             var selected = range.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
@@ -45,8 +46,12 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
         public void AssertThat_RangeWithContinuousInclude_IsNotInterrupted()
         {
             var range = new FloorRangeSpec(new[] {
-                new FloorRangeIncludeSpec("id", new NormallyDistributedValue(20, 20, 20, 10), false, true, new[] { new KeyValuePair<float, string[]>(1, new [] { "continuous" }) }, null),
-                new FloorRangeIncludeSpec("id", new NormallyDistributedValue(20, 30, 40, 10), false, false, new[] { new KeyValuePair<float, string[]>(1, new [] { "interrupt" }) }, null)
+                new FloorRangeIncludeSpec("id", new NormallyDistributedValue(20, 20, 20, 10), false, true, new[] {
+                    new KeyValuePair<float, KeyValuePair<string, string>[]>(1, new [] { new KeyValuePair<string, string>("key", "continuous") })
+                }, null),
+                new FloorRangeIncludeSpec("id", new NormallyDistributedValue(20, 30, 40, 10), false, false, new[] {
+                    new KeyValuePair<float, KeyValuePair<string, string>[]>(1, new [] { new KeyValuePair<string, string>("key", "interrupt") })
+                }, null)
             }, new NormallyDistributedValue(1, 2, 3, 1, false));
 
             Random r = new Random();

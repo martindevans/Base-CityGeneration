@@ -32,7 +32,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             Vary = vary;
         }
 
-        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder)
         {
             int count = Count.SelectIntValue(random, metadata);
 

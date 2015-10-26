@@ -11,8 +11,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
     {
         public BaseFacadeConstraint[] Constraints { get; private set; }
 
-        private readonly KeyValuePair<float, string[]>[] _tags;
-        public IEnumerable<KeyValuePair<float, string[]>> Tags
+        private readonly KeyValuePair<float, KeyValuePair<string, string>[]>[] _tags;
+        public IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> Tags
         {
             get
             {
@@ -23,7 +23,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         public BaseRef Bottom { get; private set; }
         public BaseRef Top { get; private set; }
 
-        private FacadeSpec(BaseFacadeConstraint[] constraints, KeyValuePair<float, string[]>[] tags, BaseRef bottom, BaseRef top)
+        private FacadeSpec(BaseFacadeConstraint[] constraints, KeyValuePair<float, KeyValuePair<string, string>[]>[] tags, BaseRef bottom, BaseRef top)
         {
             Constraints = constraints;
             Bottom = bottom;
@@ -34,7 +34,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         internal class Container
         {
-            public TagContainer Tags { get; [UsedImplicitly]set; }
+            public TagContainerContainer Tags { get; [UsedImplicitly]set; }
 
             public BaseFacadeConstraint.BaseContainer[] Constraints { get; [UsedImplicitly]set; }
 
@@ -45,7 +45,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             {
                 return new FacadeSpec(
                     (Constraints ?? new BaseFacadeConstraint.BaseContainer[0]).Select(a => a.Unwrap()).ToArray(),
-                    Tags.ToArray(),
+                    Tags.Unwrap().ToArray(),
                     Bottom.Unwrap(),
                     Top.Unwrap()
                 );

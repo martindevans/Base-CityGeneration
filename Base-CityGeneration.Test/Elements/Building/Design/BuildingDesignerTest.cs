@@ -3,6 +3,7 @@ using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
 using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -19,7 +20,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design
             new BuildingSideInfo(new Vector2(-10, 10), new Vector2(-10, -10), new BuildingSideInfo.NeighbourInfo[0]),
         };
 
-        private static ScriptReference Finder(string[] tags)
+        private static ScriptReference Finder(IEnumerable<KeyValuePair<string, string>> tags)
         {
             Assert.IsNotNull(tags);
             return new ScriptReference(typeof(TestScript));
@@ -32,8 +33,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Design
 !Building
 Verticals: []
 Floors:
-    - !Floor { Tags: { 1: [a] } }
-    - !Floor { Tags: { 1: [a] } }
+    - !Floor { Tags: { 1: { a: b } } }
+    - !Floor { Tags: { 1: { a: b } } }
     - !Ground []
 "));
 
@@ -54,8 +55,8 @@ Floors:
         - Count: 10
           Vary: false
           Tags:
-            1: [a]
-            1: [b]
+            1: { a: b }
+            1: { a: c }
             0: null
     - !Ground []
 "));
@@ -85,7 +86,7 @@ Floors:
       - !Range
         Includes:
           - Count: *residential_floor_count
-            Tags: { 1: [apartment] }
+            Tags: { 1: { a: b } }
   - !Ground []
 "));
 
@@ -107,7 +108,7 @@ Floors:
         Min: 1
         Max: 2
       Tags:
-        1: [a]
+        1: { a: b }
     - !Ground []
 "));
 
@@ -138,11 +139,11 @@ Floors:
     - !Floor
       Height: *groupname
       Tags:
-        1: [a]
+        1: { a: b }
     - !Floor
       Height: *groupname
       Tags:
-        1: [a]
+        1: { a: b }
     - !Ground []
 "));
 
@@ -198,8 +199,8 @@ Floors:
             Max: 5
           Vary: true
           Tags:
-            1: [a]
-            1: [b]
+            1: { a: a }
+            1: { a: b }
             0: null
     - !Ground []
 "));
@@ -220,15 +221,15 @@ Floors:
 !Building
 Verticals: []
 Facades:
-    - Tags: { 1: [test] }
+    - Tags: { 1: { a: b } }
       Bottom: !Num { N: 0 }
       Top: !Id { Id: Top, Search: Up, Filter: Longest, NonOverlapping: true }
 Floors:
-    - !Floor { Id: Top, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: Bot, Tags: { 1: [a] } }
+    - !Floor { Id: Top, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: Bot, Tags: { 1: { a: b } } }
     - !Ground []
 "));
 
@@ -253,15 +254,15 @@ Floors:
 !Building
 Verticals: []
 Facades:
-    - Tags: { 1: [test] }
+    - Tags: { 1: { a: b } }
       Bottom: !Num { N: 0 }
       Top: !Id { Id: F, Search: Up, Filter: Shortest, NonOverlapping: true }    #Matching to the *first* F does not cover all floors!
 Floors:
-    - !Floor { Id: Top, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: Bot, Tags: { 1: [a] } }
+    - !Floor { Id: Top, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: Bot, Tags: { 1: { a: b } } }
     - !Ground []
 "));
 
@@ -278,15 +279,15 @@ Floors:
 !Building
 Verticals: []
 Facades:
-    - Tags: { 1: [test] }
+    - Tags: { 1: { a: b } }
       Bottom: !Num { N: 0 }
       Top: !Id { Id: Top, Search: Up, Filter: Longest, NonOverlapping: true }
 Floors:
-    - !Floor { Id: Top, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: Bot, Tags: { 1: [a] } }
+    - !Floor { Id: Top, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: Bot, Tags: { 1: { a: b } } }
     - !Ground []
 "));
 
@@ -310,11 +311,11 @@ Floors:
 !Building
 Verticals: []
 Floors:
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
     - !Footprint []
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
     - !Ground []
 "));
 
@@ -337,23 +338,23 @@ Floors:
 !Building
 Verticals: []
 Facades:
-    - Tags: { 1: [b] }
+    - Tags: { 1: { a: b } }
       Bottom: !Id { Id: F }
       Top: !Id { Id: F, Inclusive: true, Search: Up, Filter: Longest, NonOverlapping: true }
 
-    - Tags: { 1: [a] }
+    - Tags: { 1: { a: b } }
       Bottom: !Num { N: 0 }
       Top: !Num { N: 0, Inclusive: true }
 
-    - Tags: { 1: [c] }
+    - Tags: { 1: { a: b } }
       Bottom: !Id { Id: Top }
       Top: !Id { Id: Top, Inclusive: true }
 Floors:
-    - !Floor { Id: Top, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: F, Tags: { 1: [a] } }
-    - !Floor { Id: Bot, Tags: { 1: [a] } }
+    - !Floor { Id: Top, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: F, Tags: { 1: { a: b } } }
+    - !Floor { Id: Bot, Tags: { 1: { a: b } } }
     - !Ground []
 "));
 
@@ -377,20 +378,20 @@ Floors:
 !Building
 Verticals: []
 Facades:
-    - Tags: { 1: [a] }
+    - Tags: { 1: { a: a } }
       Bottom: !Id { Id: F }
       Top: !Id { Id: F, Search: Up, Filter: Longest, NonOverlapping: true }
       Constraints: [ !Clearance { Distance: 20 } ]
 
-    - Tags: { 1: [blank] }
+    - Tags: { 1: { a: b } }
       Bottom: !Id { Id: '*' }
       Top: !Id { Id: '*', Inclusive: true, Filter: First }
 
 Floors:
-    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
-    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
-    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
-    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: { a: c } }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: { a: d } }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: { a: e } }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: { a: f } }, Height: 1 }
     - !Ground []
 "));
 
@@ -431,19 +432,19 @@ Floors:
 !Building
 Verticals: []
 Facades:
-    - Tags: { 1: [b] }
+    - Tags: { 1: { a: a } }
       Bottom: !Id { Id: F }
       Top: !Id { Id: F, Search: Up, Filter: Longest, NonOverlapping: true }
       Constraints: [ !Clearance { Distance: 20 } ]
 
-    - Tags: { 1: [blank] }
+    - Tags: { 1: { a: x } }
       Bottom: !Id { Id: '*' }
       Top: !Id { Id: '*', Inclusive: true, Filter: First }
 
 Floors:
-    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
-    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
-    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: { a: b } }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: { a: c } }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: { a: d } }, Height: 1 }
     - !Ground []
 "));
 
@@ -481,16 +482,16 @@ Floors:
 !Building
 Verticals: []
 Facades:
-    - Tags: { 1: [b] }
+    - Tags: { 1: { a: b } }
       Bottom: !Id { Id: F }
       Top: !Id { Id: F, Search: Up, Filter: Longest, NonOverlapping: true }
 
 Floors:
-    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
-    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: { a: b } }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: { a: b } }, Height: 1 }
     - !Footprint []
-    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
-    - !Floor { Id: F, Tags: { 1: [a] }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: { a: c } }, Height: 1 }
+    - !Floor { Id: F, Tags: { 1: { a: d } }, Height: 1 }
     - !Ground []
 "));
 
@@ -515,23 +516,18 @@ Floors:
             var b = BuildingDesigner.Deserialize(new StringReader(@"
 !Building
 Verticals:
-    - Tags: { 1: [lift] }
+    - Tags: { 1: { tag: lift } }
       Bottom: !Id { Id: GroundFloor }
       Top: !Id { Id: TopFloor }
 Floors:
-    - !Floor { Id: TopFloor, Tags: { 1: [a] } }
-    - !Floor { Tags: { 1: [a] } }
-    - !Floor { Id: GroundFloor, Tags: { 1: [a] } }
+    - !Floor { Id: TopFloor, Tags: { 1: { a: b }  } }
+    - !Floor { Tags: { 1: { a: b}  } }
+    - !Floor { Id: GroundFloor, Tags: { 1: { a: b }  } }
     - !Ground []
 "));
 
-            Func<string[], ScriptReference> finder = tags => {
-                Assert.IsNotNull(tags);
-                return new ScriptReference(typeof(TestScript));
-            };
-
             Random r = new Random();
-            var selection = b.Internals(r.NextDouble, null, finder);
+            var selection = b.Internals(r.NextDouble, null, Finder);
 
             Assert.AreEqual(3, selection.AboveGroundFloors.Count());
             Assert.AreEqual(1, selection.Verticals.Count());

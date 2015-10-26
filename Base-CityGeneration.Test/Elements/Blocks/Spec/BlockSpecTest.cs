@@ -45,17 +45,17 @@ Lots:
     - Constraints:
         - !RequireArea { Min: 10, Max: 20 }
       Tags:
-        1: [Overconstrained]
+        1: { a: b }
 
     - Constraints:
         - !RequireArea { Min: 300 }
         - !RequireAccess { Type: road }
       Tags:
-        1: [Selection1]
+        1: { a: c }
 
     # No constraints. Selection proceeds from top to bottom, so in this case that means no road access
     - Tags:
-        1: [Selection2]
+        1: { a: b }
 "));
 
         [TestMethod]
@@ -85,7 +85,7 @@ Lots:
 
             var selected = _spec.SelectLot(p, () => 1, new NamedBoxCollection(), a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
-            Assert.AreEqual("Selection1", selected.Name);
+            Assert.AreEqual("[a, c]", selected.Name);
         }
 
         [TestMethod]

@@ -6,10 +6,10 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
     public class TaggedRef
         : BaseRef
     {
-        private readonly string[] _tags;
-        public IEnumerable<string> Tags { get { return _tags; } }
+        private readonly KeyValuePair<string, string>[] _tags;
+        public IEnumerable<KeyValuePair<string, string>> Tags { get { return _tags; } }
 
-        public TaggedRef(string[] tags, RefFilter filter, bool nonOverlapping, bool inclusive)
+        public TaggedRef(KeyValuePair<string, string>[] tags, RefFilter filter, bool nonOverlapping, bool inclusive)
             : base(filter, nonOverlapping, inclusive)
         {
             _tags = tags;
@@ -24,7 +24,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
         internal class Container
             : BaseContainer
         {
-            public string[] Tags { get; set; }
+            public KeyValuePair<string, string>[] Tags { get; set; }
 
             private BaseRef _cached;
 

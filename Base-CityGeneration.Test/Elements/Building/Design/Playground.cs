@@ -4,6 +4,7 @@ using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -28,40 +29,40 @@ Aliases:
 
 Facades:
     # Penthouse facade
-    - Tags: { 1: [BlankFacade] }
+    - Tags: { 1: { tag: BlankFacade } }
       Bottom: !Id { Id: Penthouse }
       Top: !Id { Id: Penthouse, Inclusive: true }
     
     # Skylobby facades
-    - Tags: { 1: [BlankFacade] }
+    - Tags: { 1: { tag: BlankFacade } }
       Bottom: !Id { Id: Skylobby }
       Top: !Id { Id: Skylobby, Inclusive: true, Search: Up, Filter: First }
       
     # Residential facades
-    - Tags: { 1: [BlankFacade] }
+    - Tags: { 1: { tag: BlankFacade } }
       Bottom: !Id { Id: Residential }
       Top: !Id { Id: Residential, Inclusive: true, Search: Up, Filter: Longest, NonOverlapping: true }
       
     # Ground entrances
-    - Tags: { 1: [BlankFacade] }
+    - Tags: { 1: { tag: BlankFacade } }
       Bottom: !Num { N: 0 }
       Top: !Num { N: 0, Inclusive: true }
       #Constraints: [ !Access { Type: Road } ]
       
-    - Tags: { 1: [BlankFacade] }
+    - Tags: { 1: { tag: BlankFacade } }
       Bottom: !Num { N: 0 }
       Top: !Num { N: 0 }
       
 Verticals:
   # First lift from ground->lowest skylobby
-  - Tags: { 1: [HollowVertical] }
+  - Tags: { 1: { tag: HollowVertical } }
     Bottom: !Num { N: 0 }
     Top: !Num { N: 5 }
 
 Floors:
   - !Floor
     Id: Penthouse
-    Tags: { 50: [SolidFloor], 50: null }
+    Tags: { 50: { tag: SolidFloor }, 50: null }
 
   - !Footprint
     - !Shrink { Distance: 5 }
@@ -81,13 +82,13 @@ Floors:
 
       - !Floor
         Id: Skylobby
-        Tags: { 1: [SolidFloor] }
+        Tags: { 1: { tag: SolidFloor } }
       - !Repeat
         Count: *residential_floor_count
         Vary: true
         Items:
             - !Floor
-              Tags: { 1: [SolidFloor] }
+              Tags: { 1: { tag: SolidFloor } }
               Id: Residential
 
   - !Footprint
@@ -96,7 +97,7 @@ Floors:
     - !Clip {}
 
   - !Floor
-    Tags: { 1: [SolidFloor] }
+    Tags: { 1: { tag: SolidFloor } }
     Height: *FloorHeight
 
   - !Ground []
@@ -105,7 +106,7 @@ Floors:
 
             Assert.IsNotNull(b);
 
-            Func<string[], ScriptReference> finder = tags => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tags));
+            Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder = tags => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tags));
 
             var lot = new Vector2[] {
                 new Vector2(-30, -30),

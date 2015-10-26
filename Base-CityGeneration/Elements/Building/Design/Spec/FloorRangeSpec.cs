@@ -51,7 +51,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
                 include.Height = include.Height ?? defaultHeightSpec;
         }
 
-        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder)
         {
             List<FloorSelection[]> selected = new List<FloorSelection[]>();
 
@@ -91,11 +91,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
     public class FloorRangeIncludeSpec
     {
-        private readonly KeyValuePair<float, string[]>[] _tags;
+        private readonly KeyValuePair<float, KeyValuePair<string, string>[]>[] _tags;
         /// <summary>
         /// Sets of chances (keyed by relative chance) to satisfy this spec
         /// </summary>
-        public IEnumerable<KeyValuePair<float, string[]>> Tags
+        public IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> Tags
         {
             get { return _tags; }
         }
@@ -122,7 +122,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         internal IValueGenerator Height;
 
-        public FloorRangeIncludeSpec(string id, IValueGenerator count, bool vary, bool continuous, KeyValuePair<float, string[]>[] tags, IValueGenerator height)
+        public FloorRangeIncludeSpec(string id, IValueGenerator count, bool vary, bool continuous, KeyValuePair<float, KeyValuePair<string, string>[]>[] tags, IValueGenerator height)
         {
             Continuous = continuous;
             Height = height;
@@ -133,9 +133,9 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             _count = count;
         }
 
-        private static FloorSelection SelectSingle(BaseFloorSelector selector, Func<double> random, IEnumerable<KeyValuePair<float, string[]>> tags, Func<string[], ScriptReference> finder, float height, string id)
+        private static FloorSelection SelectSingle(BaseFloorSelector selector, Func<double> random, IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder, float height, string id)
         {
-            string[] selectedTags;
+            KeyValuePair<string, string>[] selectedTags;
             ScriptReference script = tags.SelectScript(random, finder, out selectedTags);
             if (script == null)
                 return null;
@@ -143,7 +143,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             return new FloorSelection(id, selectedTags, selector, script, height);
         }
 
-        public IEnumerable<IEnumerable<FloorSelection>> Select(BaseFloorSelector selector, Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        public IEnumerable<IEnumerable<FloorSelection>> Select(BaseFloorSelector selector, Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder)
         {
             //How many items to emit?
             int amount = _count.SelectIntValue(random, metadata);
@@ -191,7 +191,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         internal class Container
         {
-            public TagContainer Tags { get; set; }
+            public TagContainerContainer Tags { get; set; }
 
             public object Count { get; set; }
 
@@ -206,7 +206,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             {
                 var count = BaseValueGeneratorContainer.FromObject(Count);
 
-                return new FloorRangeIncludeSpec(Id ?? Guid.NewGuid().ToString(), count, Vary, Continuous, Tags.ToArray(), Height == null ? defaultHeight : BaseValueGeneratorContainer.FromObject(Height));
+                return new FloorRangeIncludeSpec(Id ?? Guid.NewGuid().ToString(), count, Vary, Continuous, Tags.Unwrap().ToArray(), Height == null ? defaultHeight : BaseValueGeneratorContainer.FromObject(Height));
             }
         }
     }

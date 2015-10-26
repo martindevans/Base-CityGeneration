@@ -10,8 +10,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 {
     public class VerticalElementSpec
     {
-        private readonly KeyValuePair<float, string[]>[] _tags;
-        public IEnumerable<KeyValuePair<float, string[]>> Tags
+        private readonly KeyValuePair<float, KeyValuePair<string, string>[]>[] _tags;
+        public IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> Tags
         {
             get
             {
@@ -21,15 +21,15 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         public BaseRef BottomFloor { get; private set; }
         public BaseRef TopFloor { get; private set; }
-        
-        public VerticalElementSpec(KeyValuePair<float, string[]>[] tags, BaseRef bottomFloor, BaseRef topFloor)
+
+        public VerticalElementSpec(KeyValuePair<float, KeyValuePair<string, string>[]>[] tags, BaseRef bottomFloor, BaseRef topFloor)
         {
             _tags = tags;
             TopFloor = topFloor;
             BottomFloor = bottomFloor;
         }
 
-        public IEnumerable<VerticalSelection> Select(Func<double> random, Func<string[], ScriptReference> finder, FloorSelection[] floors)
+        public IEnumerable<VerticalSelection> Select(Func<double> random, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder, FloorSelection[] floors)
         {
             var bot = BottomFloor.Match(floors, null);
             var zipped = TopFloor.MatchFrom(floors, BottomFloor, bot);
@@ -37,7 +37,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             List<VerticalSelection> output = new List<VerticalSelection>();
             foreach (var vertical in zipped)
             {
-                string[] chosenTags;
+                KeyValuePair<string, string>[] chosenTags;
                 var script = _tags.SelectScript(random, finder, out chosenTags);
                 if (script == null)
                     continue;
@@ -53,7 +53,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         internal class Container
         {
-            public TagContainer Tags { get; set; }
+            public TagContainerContainer Tags { get; set; }
 
             public BaseRef.BaseContainer Bottom { get; set; }
             public BaseRef.BaseContainer Top { get; set; }
@@ -61,7 +61,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             public VerticalElementSpec Unwrap()
             {
                 return new VerticalElementSpec(
-                    Tags.ToArray(),
+                    Tags.Unwrap().ToArray(),
                     Bottom.Unwrap(),
                     Top.Unwrap()
                 );

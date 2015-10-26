@@ -24,8 +24,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             get { return _height.MaxValue; }
         }
 
-        private readonly KeyValuePair<float, string[]>[] _tags;
-        public IEnumerable<KeyValuePair<float, string[]>> Tags
+        private readonly KeyValuePair<float, KeyValuePair<string, string>[]>[] _tags;
+        public IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> Tags
         {
             get
             {
@@ -45,19 +45,19 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         private readonly string _id;
         public string Id { get { return _id; } }
 
-        public FloorSpec(KeyValuePair<float, string[]>[] tags, IValueGenerator height)
+        public FloorSpec(KeyValuePair<float, KeyValuePair<string, string>[]>[] tags, IValueGenerator height)
             : this(Guid.NewGuid().ToString(), tags, height)
         {
         }
 
-        public FloorSpec(string id, KeyValuePair<float, string[]>[] tags, IValueGenerator height)
+        public FloorSpec(string id, KeyValuePair<float, KeyValuePair<string, string>[]>[] tags, IValueGenerator height)
         {
             _id = id;
             _tags = tags;
             _height = height;
         }
 
-        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<string[], ScriptReference> finder)
+        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder)
         {
             var selected = SelectSingle(random, _tags, finder, _height.SelectFloatValue(random, metadata), Id);
             if (selected == null)
@@ -71,7 +71,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         {
             public string Id { get; set; }
 
-            public TagContainer Tags { get; set; }
+            public TagContainerContainer Tags { get; set; }
 
             public object Height { get; set; }
 
@@ -81,7 +81,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             {
                 IValueGenerator height = Height == null ? new NormallyDistributedValue(2.5f, 3f, 3.5f, 0.2f) : BaseValueGeneratorContainer.FromObject(Height);
 
-                return new FloorSpec(Id ?? Guid.NewGuid().ToString(), Tags.ToArray(), height);
+                return new FloorSpec(Id ?? Guid.NewGuid().ToString(), Tags.Unwrap().ToArray(), height);
             }
         }
     }

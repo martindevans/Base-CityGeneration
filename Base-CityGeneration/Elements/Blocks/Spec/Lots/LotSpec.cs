@@ -16,13 +16,13 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Lots
             get { return _constraints; }
         }
 
-        private readonly KeyValuePair<float, string[]>[] _tags;
-        public IEnumerable<KeyValuePair<float, string[]>> Tags
+        private readonly KeyValuePair<float, KeyValuePair<string, string>[]>[] _tags;
+        public IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> Tags
         {
             get { return _tags; }
         }
 
-        private LotSpec(BaseLotConstraint[] constraints, KeyValuePair<float, string[]>[] tags)
+        private LotSpec(BaseLotConstraint[] constraints, KeyValuePair<float, KeyValuePair<string, string>[]>[] tags)
         {
             _constraints = constraints;
             _tags = tags;
@@ -32,13 +32,13 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Lots
         {
             public BaseLotConstraint.BaseContainer[] Constraints { get; set; }
 
-            public TagContainer Tags { get; set; }
+            public TagContainerContainer Tags { get; set; }
 
             public LotSpec Unwrap()
             {
                 return new LotSpec(
                     (Constraints ?? new BaseLotConstraint.BaseContainer[0]).Select(a => a.Unwrap()).ToArray(),
-                    Tags.ToArray()
+                    Tags.Unwrap().ToArray()
                 );
             }
         }
