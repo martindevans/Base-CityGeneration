@@ -135,7 +135,7 @@ namespace Base_CityGeneration.Elements.Building
                     Quaternion.Identity,
                     new Vector3(0, offset + floor.Height / 2f, 0),
                     floor.Script
-                    );
+                );
                 node.FloorIndex = floor.Index;
                 node.FloorAltitude = offset;
                 node.FloorHeight = floor.Height;

@@ -28,7 +28,7 @@ namespace Base_CityGeneration.Elements.Building
             var internals = hierarchicalParameters.GetValue(SpecBuildingContainer.BuildingInternalsName);
 
             //Generate externals, now we can get the neighbour information that we need from the surrounding containers
-            _design = internals.Externals(Random, hierarchicalParameters, a => ScriptReference.Find(a).Random((Func<double>)Random), GetNeighbourInfo(bounds));
+            _design = internals.Externals(Random, hierarchicalParameters, (a, b) => ScriptReference.Find(a, b).Random((Func<double>)Random), GetNeighbourInfo(bounds));
 
             base.Subdivide(bounds, geometry, hierarchicalParameters);
         }

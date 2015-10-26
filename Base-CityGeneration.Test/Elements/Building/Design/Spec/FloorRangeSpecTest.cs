@@ -19,7 +19,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
                 }) }, null)
             }, new NormallyDistributedValue(1, 2, 3, 1, false));
 
-            var selected = range.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
+            var selected = range.Select(() => 0.5, null, (a, b) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
             //Flatten runs into floors
             var floors = selected.SelectMany(a => a.Selection);
@@ -34,7 +34,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
                 new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, KeyValuePair<string, string>[]>(1, null) }, null)
             }, new NormallyDistributedValue(1, 2, 3, 1));
 
-            var selected = range.Select(() => 0.5, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
+            var selected = range.Select(() => 0.5, null, (a, b) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
             //Flatten runs into floors
             var floors = selected.SelectMany(a => a.Selection);
@@ -55,7 +55,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
             }, new NormallyDistributedValue(1, 2, 3, 1, false));
 
             Random r = new Random();
-            var selected = range.Select(r.NextDouble, null, a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a))).ToArray();
+            var selected = range.Select(r.NextDouble, null, (a, b) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a))).ToArray();
 
             //Flatten runs into floors
             var floors = selected.SelectMany(a => a.Selection);

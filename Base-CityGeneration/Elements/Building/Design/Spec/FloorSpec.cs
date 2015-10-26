@@ -57,7 +57,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             _height = height;
         }
 
-        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder)
+        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
         {
             var selected = SelectSingle(random, _tags, finder, _height.SelectFloatValue(random, metadata), Id);
             if (selected == null)

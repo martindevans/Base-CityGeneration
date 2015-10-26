@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
+using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using Base_CityGeneration.Utilities;
-using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec
@@ -29,7 +29,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             BottomFloor = bottomFloor;
         }
 
-        public IEnumerable<VerticalSelection> Select(Func<double> random, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder, FloorSelection[] floors)
+        public IEnumerable<VerticalSelection> Select(Func<double> random, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorSelection[] floors)
         {
             var bot = BottomFloor.Match(floors, null);
             var zipped = TopFloor.MatchFrom(floors, BottomFloor, bot);
@@ -38,12 +38,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             foreach (var vertical in zipped)
             {
                 KeyValuePair<string, string>[] chosenTags;
-                var script = _tags.SelectScript(random, finder, out chosenTags);
+                var script = _tags.SelectScript(random, finder, out chosenTags, typeof(IVerticalFeature));
                 if (script == null)
                     continue;
 
                 output.Add(new VerticalSelection(
-                    finder(_tags.WeightedRandom(random)),
+                    script,
                     vertical.Key.Index,
                     vertical.Value.Index
                 ));

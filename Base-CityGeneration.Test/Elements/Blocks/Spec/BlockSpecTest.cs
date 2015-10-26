@@ -83,7 +83,7 @@ Lots:
                 new Parcel.Edge { Start = new Vector2(0, -100), End = new Vector2(0, 0), Resources = new [] { "road" } },
             });
 
-            var selected = _spec.SelectLot(p, () => 1, new NamedBoxCollection(), a => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
+            var selected = _spec.SelectLot(p, () => 1, new NamedBoxCollection(), (a, b) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
             Assert.AreEqual("[a, c]", selected.Name);
         }

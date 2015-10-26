@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Base_CityGeneration.Elements.Building.Internals.Floors;
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
@@ -51,7 +52,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
                 include.Height = include.Height ?? defaultHeightSpec;
         }
 
-        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder)
+        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
         {
             List<FloorSelection[]> selected = new List<FloorSelection[]>();
 
@@ -133,17 +134,17 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             _count = count;
         }
 
-        private static FloorSelection SelectSingle(BaseFloorSelector selector, Func<double> random, IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder, float height, string id)
+        private static FloorSelection SelectSingle(BaseFloorSelector selector, Func<double> random, IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float height, string id)
         {
             KeyValuePair<string, string>[] selectedTags;
-            ScriptReference script = tags.SelectScript(random, finder, out selectedTags);
+            ScriptReference script = tags.SelectScript(random, finder, out selectedTags, typeof(IFloor));
             if (script == null)
                 return null;
 
             return new FloorSelection(id, selectedTags, selector, script, height);
         }
 
-        public IEnumerable<IEnumerable<FloorSelection>> Select(BaseFloorSelector selector, Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder)
+        public IEnumerable<IEnumerable<FloorSelection>> Select(BaseFloorSelector selector, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
         {
             //How many items to emit?
             int amount = _count.SelectIntValue(random, metadata);

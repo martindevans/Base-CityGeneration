@@ -5,6 +5,7 @@ using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
+using Base_CityGeneration.Elements.Building.Internals.Floors;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec
 {
@@ -14,12 +15,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         public abstract float MaxHeight { get; }
 
-        public abstract IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder);
+        public abstract IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder);
 
-        protected FloorSelection SelectSingle(Func<double> random, IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, Func<IEnumerable<KeyValuePair<string, string>>, ScriptReference> finder, float height, string id)
+        protected FloorSelection SelectSingle(Func<double> random, IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float height, string id)
         {
             KeyValuePair<string, string>[] selectedTags;
-            ScriptReference script = tags.SelectScript(random, finder, out selectedTags);
+            ScriptReference script = tags.SelectScript(random, finder, out selectedTags, typeof(IFloor));
             if (script == null)
                 return null;
 
