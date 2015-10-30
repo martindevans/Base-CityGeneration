@@ -306,13 +306,18 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// <returns></returns>
         private IEnumerable<List<FloorSelection>> ConstrainRun(IEnumerable<FloorSelection> run, IEnumerable<BaseFacadeConstraint> constraints, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd)
         {
-            //Floors which pass all constraints
-            List<FloorSelection> passed = (
+            // Check whether each floor individually passes this constraint
+            var passed = (
                 from floor in run
-                where constraints.All(c => c.Check(floor, neighbours, ftStart, ftEnd, floor.CompoundHeight, floor.Height))
+                where constraints.All(c => c.Check(floor, neighbours, ftStart, ftEnd, floor.CompoundHeight, floor.CompoundHeight + floor.Height))
                 select floor
             ).ToList();
 
+            //Split floors up into continuous runs of floors which passed, and floors which did not
+            // i.e. a set like (p=pass, f=fail):
+            //     [ p, p, p, f, f, p, p, p ]
+            // Becomes runs like:
+            //     [ p, p, p ], [ f, f ], [ p, p, p ]
             return SplitIntoContinuousRuns(passed);
         }
         #endregion

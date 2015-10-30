@@ -19,10 +19,15 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             c.AddPolygon(footprint.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Y * SCALE))).ToList(), PolyType.Subject);
             c.AddPolygon(basis.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Y * SCALE))).ToList(), PolyType.Clip);
 
-            List<List<IntPoint>> solution = new List<List<IntPoint>>();
-            c.Execute(ClipType.Intersection, solution);
+            List<List<IntPoint>> solutions = new List<List<IntPoint>>();
+            c.Execute(ClipType.Intersection, solutions);
 
-            return solution.Single().Select(a => new Vector2(a.X / (float)SCALE, a.Y / (float)SCALE)).ToArray();
+            var clipperSolution = solutions.Single();
+
+            if (Clipper.Orientation(clipperSolution))
+                clipperSolution.Reverse();
+
+            return clipperSolution.Select(a => new Vector2(a.X / (float)SCALE, a.Y / (float)SCALE)).ToArray();
         }
 
         public class Container

@@ -70,7 +70,7 @@ namespace Base_CityGeneration.Datastructures.Edges
                         continue;
 
                     //Check if *both* points are beyond the line in the same direction, meaning there is no segment overlap
-                    if (st > 1 && et > 1 || st < 0 && et < 0)
+                    if (st >= 1 && et >= 1 || st <= 0 && et <= 0)
                         continue;
 
                     //Clamp points into the line segment
