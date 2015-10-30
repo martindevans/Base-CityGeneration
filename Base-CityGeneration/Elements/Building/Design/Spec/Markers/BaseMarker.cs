@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Myre.Collections;
+using Poly2Tri;
+using Poly2Tri.Utility;
 using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
@@ -38,16 +40,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
         public IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint)
         {
             var wip = footprint;
-            for (int i = 0; i < _footprintAlgorithms.Length; i++)
+            foreach (var alg in _footprintAlgorithms)
             {
-                var alg = _footprintAlgorithms[i];
                 wip = alg.Apply(random, metadata, wip, footprint);
-
                 wip = Reduce(wip);
             }
-
-            if (Clipper.Orientation(wip.Select(a => new IntPoint((int)(a.X * 1000), (int)(a.Y * 1000))).ToList()))
-                wip = wip.Reverse().ToArray();
 
             return wip;
         }
@@ -59,36 +56,33 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
         /// <returns></returns>
         private static IReadOnlyList<Vector2> Reduce(IReadOnlyList<Vector2> footprint)
         {
+            //Early exit, we can't do anything useful with a line!
             if (footprint.Count <= 3)
                 return footprint;
 
-            List<Vector2> result = footprint.ToList();
+            //Create a list with the points in
+            var p = new Point2DList();
+            p.AddRange(footprint.Select(a => new Point2D(a.X, a.Y)).ToArray());
 
-            for (int i = 0; i < result.Count; i++)
+            //If two consecutive points are in the same position, remove one
+            p.RemoveDuplicateNeighborPoints();
+
+            //Merge edges which are parallel (with a tolerance of 5 degrees)
+            p.MergeParallelEdges(0.0871557);
+
+            //Ensure shape is clockwise wound
+            p.CalculateWindingOrder();
+            if (p.WindingOrder != Point2DList.WindingOrderType.Clockwise)
             {
-                if (footprint.Count <= 3)
-                    break;
+                if (p.WindingOrder != Point2DList.WindingOrderType.AntiClockwise)
+                    throw new InvalidOperationException("Winding order is neither clockwise or anticlockwise");
 
-                //Get previous, current and next
-                var a = result[(i + result.Count - 1) % result.Count];
-                var b = result[i];
-                var c = result[(i + 1) % result.Count];
-
-                var ab = b - a;
-                var bc = c - b;
-
-                var area = Math.Abs(0.5f * ab.Cross(bc));
-
-                //sin 2 degree * 0.5 * 2 * 2
-                //i.e. we remove angle with less than the area of a 2 degree bend between 2 meter pieces
-                if (area < 0.069798f)
-                {
-                    i--;
-                    result.RemoveAt(i);
-                }
+                //We're done (but we need to correct the winding)
+                return p.Select(a => new Vector2(a.Xf, a.Yf)).ToArray();
             }
 
-            return result;
+            //We're done :D
+            return p.Select(a => new Vector2(a.Xf, a.Yf)).ToArray();
         }
 
         public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
