@@ -210,14 +210,14 @@ namespace Base_CityGeneration.Elements.Building
         private IReadOnlyCollection<IBuildingFacade> CreateFacades(ISubdivisionGeometry geometry, IEnumerable<Footprint> footprints, INamedDataCollection hierarchicalParameters)
         {
             //Accumulate results
-            List<IBuildingFacade> results = new List<IBuildingFacade>();
+            var results = new List<IBuildingFacade>();
 
             //Calculate external wall thickness
             var thickness = hierarchicalParameters.ExternalWallThickness(Random);
             var material = hierarchicalParameters.ExternalWallMaterial(Random);
 
             var footprintArr = footprints.OrderBy(a => a.BottomIndex).ToArray();
-            for (int i = 0; i < footprintArr.Length; i++)
+            for (var i = 0; i < footprintArr.Length; i++)
             {
                 var footprint = footprintArr[i];
                 var topIndex = (i == footprintArr.Length - 1) ? (_floors[_floors.Keys.Max()].FloorIndex) : (footprintArr[i + 1].BottomIndex - 1);
@@ -315,10 +315,21 @@ namespace Base_CityGeneration.Elements.Building
             //Fill in corner sections (solid)
             foreach (var corner in corners)
             {
-                var prism = geometry.CreatePrism(material, new[] {
-                    corner.A, corner.B, corner.C, corner.D
-                }, top - bot).Translate(new Vector3(0, mid, 0));
-                geometry.Union(prism);
+
+                try
+                {
+                    var prism = geometry.CreatePrism(material, new[] {
+                        corner.A, corner.B, corner.C, corner.D
+                    }, top - bot).Translate(new Vector3(0, mid, 0));
+                    geometry.Union(prism);
+                }
+                catch (ArgumentException)
+                {
+                    //Suppress the argument exception, why?
+                    //If we try to create a degenerate prism (negative height, only 2 points) we get an arg exception
+                    //Corner sections can be very slim, sometimes *so slim* that the four points merge together
+                    //In this case we don't care, the section is so small we'll just skip it!
+                }
             }
         }
 
