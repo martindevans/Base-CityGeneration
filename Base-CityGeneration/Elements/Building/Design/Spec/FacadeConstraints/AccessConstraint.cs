@@ -41,8 +41,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
                 //Check if all of the neighbours along that subsection have the resource we're looking for
                 foreach (var neighbour in side.Neighbours)
                 {
+                    var ns = Math.Min(neighbour.Start, neighbour.End);
+                    var ne = Math.Max(neighbour.Start, neighbour.End);
+
                     //Skip this subsection if it does not overlap our area of interest
-                    if (neighbour.Start > et || neighbour.End < st)
+                    if (ns > et || ne < st)
                         continue;
 
                     //Try to find the resource we want

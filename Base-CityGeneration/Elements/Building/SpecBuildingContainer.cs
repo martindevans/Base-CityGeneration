@@ -34,6 +34,10 @@ namespace Base_CityGeneration.Elements.Building
             //Create the node which will create the building form the spec
             var building = (SpecBuilding)CreateChild(bounds, Quaternion.Identity, Vector3.Zero, new ScriptReference(typeof(SpecBuilding)));
 
+            //Make sure sibling container subdivide before building
+            foreach (var sibling in Parent.Children.OfType<IBuildingContainer>())
+                building.AddPrerequisite(sibling, false);
+
             //Copy neighbour data into building (from container)
             building.Neighbours = Neighbours;
         }

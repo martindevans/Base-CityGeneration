@@ -37,7 +37,7 @@ namespace Base_CityGeneration.Elements.Blocks
                 ((INeighbour)neighbour.Value).Neighbours = CalculateNeighbours(neighbour, neighbours).ToArray();
         }
 
-        private static IEnumerable<NeighbourInfo> CalculateNeighbours(KeyValuePair<Parcel, ISubdivisionContext> subject, NeighbourSet<ISubdivisionContext> nodes)
+        private IEnumerable<NeighbourInfo> CalculateNeighbours(KeyValuePair<Parcel, ISubdivisionContext> subject, NeighbourSet<ISubdivisionContext> nodes)
         {
             foreach (var edge in subject.Key.Edges)
             {
@@ -51,10 +51,10 @@ namespace Base_CityGeneration.Elements.Blocks
 
                     yield return new NeighbourInfo(
                         neighbour.Value,
-                        neighbour.Segment,
+                        neighbour.Segment.Transform(WorldTransformation),
                         neighbour.SegmentOverlapStart,
                         neighbour.SegmentOverlapEnd,
-                        query,
+                        query.Transform(WorldTransformation),
                         neighbour.QueryOverlapStart,
                         neighbour.QueryOverlapEnd
                     );

@@ -74,9 +74,21 @@ namespace Base_CityGeneration.Test.Datastructures.Edges
         public void AssertThat_ParallelButNotColinnearSegments_AreNotNeighbours()
         {
             _set.Add(new LineSegment2D(new Vector2(0, 0), new Vector2(10, 0)), 5);
-            _set.Add(new LineSegment2D(new Vector2(15, 10), new Vector2(5, 10)), 6);
+            _set.Add(new LineSegment2D(new Vector2(0, 10), new Vector2(10, 10)), 6);
 
-            var neighbours = _set.Neighbours(new LineSegment2D(new Vector2(0, 0), new Vector2(10, 0)), 0, 0).ToArray();
+            var neighbours = _set.Neighbours(new LineSegment2D(new Vector2(0, 0), new Vector2(10, 0)), 0, 1).ToArray();
+
+            // ReSharper disable once ExceptionNotDocumented
+            Assert.AreEqual(0, neighbours.Length);
+        }
+
+        [TestMethod]
+        public void AssertThat_ParallelButNotColinnearSegments_Reversed_AreNotNeighbours()
+        {
+            _set.Add(new LineSegment2D(new Vector2(0, 0), new Vector2(10, 0)), 5);
+            _set.Add(new LineSegment2D(new Vector2(0, -10), new Vector2(10, -10)), 6);
+
+            var neighbours = _set.Neighbours(new LineSegment2D(new Vector2(0, 0), new Vector2(10, 0)), 0, 1).ToArray();
 
             // ReSharper disable once ExceptionNotDocumented
             Assert.AreEqual(0, neighbours.Length);
@@ -88,7 +100,7 @@ namespace Base_CityGeneration.Test.Datastructures.Edges
             _set.Add(new LineSegment2D(new Vector2(0, 0), new Vector2(10, 0)), 7);
             _set.Add(new LineSegment2D(new Vector2(5, 0), new Vector2(15, 1f)), 8);
 
-            var neighbours = _set.Neighbours(new LineSegment2D(new Vector2(0, 0), new Vector2(10, 0)), 0, 0.1f).ToArray();
+            var neighbours = _set.Neighbours(new LineSegment2D(new Vector2(0, 0), new Vector2(10, 0)), 0, 0.9f).ToArray();
 
             // ReSharper disable once ExceptionNotDocumented
             Assert.AreEqual(0, neighbours.Length);

@@ -338,10 +338,12 @@ namespace Base_CityGeneration.Elements.Building
                 //Start and end point of this segment
                 var a = bounds.Footprint[i];
                 var b = bounds.Footprint[(i + 1) % bounds.Footprint.Count];
+                var seg = new LineSegment2D(a, b).Transform(WorldTransformation);
+                var line = seg.Line();
 
                 //Neighbours which are for this segment
                 var ns = from n in (Neighbours ?? new NeighbourInfo[0])
-                         where n.Segment.Equals(new LineSegment2D(a, b))
+                         where (Geometry2D.LineLineParallelism(n.Segment.Line(), line) == Geometry2D.Parallelism.Collinear)
                          let result = ExtractDataFromUnknownNode(n.Neighbour)
                          select new BuildingSideInfo.NeighbourInfo(n.Start, n.End, result.Key, result.Value);
 

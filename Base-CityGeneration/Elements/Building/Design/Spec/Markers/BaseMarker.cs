@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using System.Collections.Generic;
+using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using SwizzleMyVectors;
@@ -44,6 +45,9 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 
                 wip = Reduce(wip);
             }
+
+            if (Clipper.Orientation(wip.Select(a => new IntPoint((int)(a.X * 1000), (int)(a.Y * 1000))).ToList()))
+                wip = wip.Reverse().ToArray();
 
             return wip;
         }
