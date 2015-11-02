@@ -253,7 +253,7 @@ namespace Base_CityGeneration.Elements.Building
 
                 //find which section this side is for
                 var sideSegment = new LineSegment2D(sideStart, sideEnd).Line();
-                var section = (from s in sections
+                var maybeSection = (from s in sections
                                let aP = Geometry2D.ClosestPointDistanceAlongLine(sideSegment, s.ExternalLineSegment.Start) * sideSegment.Direction + sideSegment.Point
                                let aD = Vector2.Distance(aP, s.ExternalLineSegment.Start)
                                where aD < 0.1f
@@ -262,7 +262,12 @@ namespace Base_CityGeneration.Elements.Building
                                where bD < 0.1f
                                let d = aD + bD
                                orderby d
-                               select s).First();
+                               select s).Cast<Walls.Section?>().FirstOrDefault();
+
+                //Failed to find a section, this can happen when wall segments are so small the two corner segments either end completely cover the actual wall
+                if (!maybeSection.HasValue)
+                    continue;
+                var section = maybeSection.Value;
 
                 //There are multiple facades for any one wall section, iterate through them and create them
                 foreach (var facade in footprint.Facades[sideIndex])

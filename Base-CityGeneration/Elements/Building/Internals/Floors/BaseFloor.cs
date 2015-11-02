@@ -143,18 +143,29 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
             for (int i = 0; i < Plan.ExternalFootprint.Count; i++)
             {
+                //Nb. There's lots of "WS" going on here, this stands for "World Space"
+                //We have the footprint in floor space and the facades in facade space, we transform both into world space to compare them
+
                 //Get start and end points of this edge
                 var start = Plan.ExternalFootprint[i];
                 var end = Plan.ExternalFootprint[(i + 1) % Plan.ExternalFootprint.Count];
-                var segment = new LineSegment2D(start, end);
+                var footprintSegWS = new LineSegment2D(start, end).Transform(WorldTransformation);
+                var footprintLineWS = footprintSegWS.Line();
 
                 //Select the exteral facade which lies along this edge
                 var wall = (from facade in facades
-                            where Geometry2D.LineLineParallelism(facade.Section.ExternalLineSegment.Line(), segment.Line()) != Geometry2D.Parallelism.None
-                            let aD = Geometry2D.DistanceFromPointToLineSegment(facade.Section.ExternalLineSegment.Start, facade.Section.ExternalLineSegment)
-                            let bD = Geometry2D.DistanceFromPointToLineSegment(facade.Section.ExternalLineSegment.End, facade.Section.ExternalLineSegment)
+                            let facadeSegWS = facade.Section.ExternalLineSegment.Transform(facade.WorldTransformation)
+                            let facadeLineWS = facadeSegWS.Line()
+                            where Geometry2D.LineLineParallelism(facadeLineWS, footprintLineWS) != Geometry2D.Parallelism.None
+                            let aD = Geometry2D.DistanceFromPointToLineSegment(facadeSegWS.Start, footprintSegWS)
+                            let bD = Geometry2D.DistanceFromPointToLineSegment(facadeSegWS.End, footprintSegWS)
                             orderby aD + bD
-                            select facade).First();
+                            select facade).FirstOrDefault();
+
+                //This happens in cases where the building didn't generate an external facade for a section (e.g. section too small to fit a facade in)
+                //If the building didn't generate a facade, obviously the floor can't find it!
+                if (wall == null)
+                    continue;
 
                 //Start and end points (X-Axis) are always start and end of facade (i.e. subsection is always full width)
                 //What are the start and end points (Y-Axis)
