@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
@@ -7,6 +8,7 @@ using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Services.CSG;
 using System.Numerics;
 using EpimetheusPlugins.Entities.Prefabs.Graphical;
+using EpimetheusPlugins.Extensions;
 using Myre;
 using Myre.Collections;
 using Myre.Extensions;
@@ -51,6 +53,8 @@ namespace Base_CityGeneration.Elements.Building.Facades
                 {
                     //Create a brusg for the glass. Either reuse the existing brush (if the material is the same) or create a new one with the glass material
                     var glassBrush = stamp.GlassFill.Value.Material == stamp.Material ? brush : ConvertStampToBrush(Section, stamp, stamp.GlassFill.Value.Material, geometry, hierarchicalParameters);
+                    if (glassBrush == null)
+                        continue;
 
                     //Transform this with world-transform to place window in correct place in world
                     Window.Create(this, glassBrush.Transform(WorldTransformation), stamp.GlassFill.Value.Opacity, stamp.GlassFill.Value.Scattering, stamp.GlassFill.Value.Attenuation);
@@ -77,22 +81,21 @@ namespace Base_CityGeneration.Elements.Building.Facades
             material = material ?? hierarchicalParameters.GetValue(new TypedName<string>("material"));
 
             //Establish basis vectors
-            var vOut = section.Normal;
+            var vOut = Vector2.Normalize(section.Normal);
             var vLeft = vOut.Perpendicular();
 
             //Calculate absolute thickness of stamp
             var thickness = (stamp.EndDepth - stamp.StartDepth) * section.Thickness;
 
             //Zero thickness stamp does nothing, early exit with null
-            if (Math.Abs(thickness - 0) < float.Epsilon)
+            if (Math.Abs(thickness - 0) < 0.01f)
                 return null;
 
-            //new Matrix4x4 { Forward = new Vector3(vOut.X, 0, vOut.Y), Left = new Vector3(vLeft.X, 0, vLeft.Y), Up = Vector3.Up, M44 = 1 };
+            //Create a transform matrix to place the brush into the plane of the facade
             var basis = Matrix4x4.Identity;
-            basis = basis.Forward(new Vector3(vOut.X, 0, vOut.Y));
-            basis = basis.Left(new Vector3(vLeft.X, 0, vLeft.Y));
+            basis = basis.Forward(vOut.X_Y(0));
+            basis = basis.Left(vLeft.X_Y(0));
             basis = basis.Up(Vector3.UnitY);
-            basis.M44 = 1;
 
             //Calculate transform from prism lying flat in plane to vertically aligned in plane of facade
             var transform = Matrix4x4.CreateTranslation(0, -(section.Thickness - thickness) / 2 + stamp.StartDepth * section.Thickness, 0) *
@@ -100,7 +103,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
                             basis;
 
             //create brush
-            return geometry.CreatePrism(material, stamp.Shape, Math.Abs(thickness)).Transform(transform);
+            return geometry.CreatePrism(material, stamp.Shape.Clockwise().ToArray(), Math.Abs(thickness)).Transform(transform);
         }
 
         /// <summary>
