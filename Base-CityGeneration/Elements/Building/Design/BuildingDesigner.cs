@@ -7,6 +7,7 @@ using Base_CityGeneration.Elements.Building.Design.Spec;
 using Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.Conditionals;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
 using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Utilities;
@@ -339,6 +340,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             serializer.Settings.RegisterTagMapping("Shrink", typeof(Shrink.Container));
             serializer.Settings.RegisterTagMapping("Clip", typeof(Clip.Container));
             serializer.Settings.RegisterTagMapping("Twist", typeof(Twist.Container));
+            serializer.Settings.RegisterTagMapping("MinArea", typeof(MinArea.Container));
 
             //Floor element types
             serializer.Settings.RegisterTagMapping("Floor", typeof(FloorSpec.Container));

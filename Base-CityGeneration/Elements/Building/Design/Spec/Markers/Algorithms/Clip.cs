@@ -10,16 +10,25 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
     public class Clip
         : BaseFootprintAlgorithm
     {
-        public override IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis)
+        private readonly bool _lot;
+
+        public Clip(bool lot)
         {
-            Clipper c = new Clipper();
+            _lot = lot;
+        }
+
+        public override IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis, IReadOnlyList<Vector2> lot)
+        {
+            var c = new Clipper();
 
             const int SCALE = 1000;
 
             c.AddPolygon(footprint.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Y * SCALE))).ToList(), PolyType.Subject);
-            c.AddPolygon(basis.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Y * SCALE))).ToList(), PolyType.Clip);
 
-            List<List<IntPoint>> solutions = new List<List<IntPoint>>();
+            var clip = _lot ? lot : basis;
+            c.AddPolygon(clip.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Y * SCALE))).ToList(), PolyType.Clip);
+
+            var solutions = new List<List<IntPoint>>();
             c.Execute(ClipType.Intersection, solutions);
 
             var clipperSolution = solutions.Single();
@@ -33,11 +42,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
         public class Container
             : BaseContainer
         {
-            public object Angle { get; set; }
+            public bool Lot { get; set; }
 
             internal override BaseFootprintAlgorithm Unwrap()
             {
-                return new Clip();
+                return new Clip(Lot);
             }
         }
     }

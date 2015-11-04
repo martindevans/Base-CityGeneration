@@ -18,7 +18,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             _distance = distance;
         }
 
-        public override IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis)
+        public override IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis, IReadOnlyList<Vector2> lot)
         {
             var amount = _distance.SelectFloatValue(random, metadata);
 

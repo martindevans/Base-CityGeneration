@@ -4,12 +4,9 @@ using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using System.Collections.Generic;
-using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Myre.Collections;
-using Poly2Tri;
 using Poly2Tri.Utility;
-using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 {
@@ -37,12 +34,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
             _footprintAlgorithms = footprintAlgorithms;
         }
 
-        public IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint)
+        public IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> lot)
         {
             var wip = footprint;
             foreach (var alg in _footprintAlgorithms)
             {
-                wip = alg.Apply(random, metadata, wip, footprint);
+                wip = alg.Apply(random, metadata, wip, footprint, lot);
                 wip = Reduce(wip);
             }
 

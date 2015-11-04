@@ -14,8 +14,9 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
         /// <param name="metadata"></param>
         /// <param name="footprint">The result of the previous algorithm in the sequence</param>
         /// <param name="basis">The initial footprint which started the sequence</param>
+        /// <param name="lot">The shape of the lot of the building</param>
         /// <returns>A new footprint, passed into the next in sequence as the "footprint" parameter</returns>
-        public abstract IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis);
+        public abstract IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis, IReadOnlyList<Vector2> lot);
 
         public abstract class BaseContainer
         {
