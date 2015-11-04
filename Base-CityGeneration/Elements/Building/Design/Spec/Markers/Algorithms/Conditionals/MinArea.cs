@@ -22,7 +22,10 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
         {
             var area = Area.SelectFloatValue(random, metadata);
 
-            return Clipper.Area(footprint.Select(a => new IntPoint((int)(a.X * 1000), (int)(a.Y * 1000))).ToList()) > area;
+            const int SCALE = 1000;
+            var measuredArea = Math.Abs(Clipper.Area(footprint.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Y * SCALE))).ToList())) / (SCALE * SCALE);
+
+            return measuredArea > area;
         }
 
         public class Container
