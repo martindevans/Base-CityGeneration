@@ -229,6 +229,8 @@
     <Compile Include="Elements\Building\Design\FloorSelection.cs" />
     <Compile Include="Elements\Building\Design\Spec\FacadeConstraints\ClearanceConstraint.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\BaseFootprintAlgorithm.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\InvertCorner.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Bevel.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Clip.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Conditionals\BaseConditional.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Conditionals\MinArea.cs" />
