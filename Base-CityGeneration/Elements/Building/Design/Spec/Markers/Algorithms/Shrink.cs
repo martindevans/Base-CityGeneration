@@ -13,7 +13,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
     {
         private readonly IValueGenerator _distance;
 
-        private Shrink(IValueGenerator distance)
+        public Shrink(IValueGenerator distance)
         {
             _distance = distance;
         }

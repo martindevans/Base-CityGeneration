@@ -340,6 +340,8 @@ namespace Base_CityGeneration.Elements.Building.Design
             serializer.Settings.RegisterTagMapping("Shrink", typeof(Shrink.Container));
             serializer.Settings.RegisterTagMapping("Clip", typeof(Clip.Container));
             serializer.Settings.RegisterTagMapping("Twist", typeof(Twist.Container));
+            serializer.Settings.RegisterTagMapping("Bevel", typeof(Bevel.Container));
+            serializer.Settings.RegisterTagMapping("InvertCorner", typeof(InvertCorner.Container));
             serializer.Settings.RegisterTagMapping("MinArea", typeof(MinArea.Container));
 
             //Floor element types
