@@ -121,7 +121,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             var footprintLookup = footprints.ToDictionary(a => a.Index, a => a.Marker);
 
             //Generate initial ground shape
-            var ground = footprints.Single(a => a.Index == 0).Marker.Apply(random, metadata, initial);
+            var ground = footprints.Single(a => a.Index == 0).Marker.Apply(random, metadata, initial, initial);
             results.Add(0, ground);
 
             //Generate upwards
@@ -131,7 +131,7 @@ namespace Base_CityGeneration.Elements.Building.Design
                 BaseMarker gen;
                 if (footprintLookup.TryGetValue(i, out gen))
                 {
-                    previous = gen.Apply(random, metadata, previous);
+                    previous = gen.Apply(random, metadata, previous, initial);
                     results.Add(i, previous);
                 }
             }
@@ -143,7 +143,7 @@ namespace Base_CityGeneration.Elements.Building.Design
                 BaseMarker gen;
                 if (footprintLookup.TryGetValue(-i, out gen))
                 {
-                    previous = gen.Apply(random, metadata, previous);
+                    previous = gen.Apply(random, metadata, previous, initial);
                     results.Add(-i, previous);
                 }
             }

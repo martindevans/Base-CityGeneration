@@ -18,7 +18,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             _angle = angle;
         }
 
-        public override IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis)
+        public override IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis, IReadOnlyList<Vector2> lot)
         {
             var center = footprint.Aggregate((a, b) => a + b) / footprint.Count;
             var radians = Microsoft.Xna.Framework.MathHelper.ToRadians(_angle.SelectFloatValue(random, metadata));
