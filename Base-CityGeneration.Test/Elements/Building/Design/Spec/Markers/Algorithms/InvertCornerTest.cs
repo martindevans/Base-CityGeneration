@@ -20,7 +20,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Markers.Algorit
                 new Vector2(-10, 10)
             };
 
-            var r = Test(new InvertCorner(new ConstantValue(90), new ConstantValue(2), true, true), input);
+            var r = Test(new InvertCorner(new ConstantValue(90), new ConstantValue(2), new ConstantValue(0), true, true), input);
 
             //We've slice off 4 corners of known area, so we know the exact target area
             Assert.AreEqual(400 - (4 * 4),  r.Area(), 0.01f);
@@ -37,7 +37,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Markers.Algorit
             };
 
             //Set angle threshold low enough that no bevelling will occur
-            var r = Test(new InvertCorner(new ConstantValue(45), new ConstantValue(2), true, true), input);
+            var r = Test(new InvertCorner(new ConstantValue(45), new ConstantValue(2), new ConstantValue(0), true, true), input);
 
             for (var i = 0; i < input.Length; i++)
                 Assert.AreEqual(input[i], r[i]);
@@ -53,11 +53,25 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Markers.Algorit
                 new Vector2(-10, 10)
             };
 
-            //Set angle threshold low enough that no bevelling will occur
-            var r = Test(new InvertCorner(new ConstantValue(90), new ConstantValue(50), true, true), input);
+            var r = Test(new InvertCorner(new ConstantValue(90), new ConstantValue(50), new ConstantValue(0), true, true), input);
 
             //We've sliced away the entire floor!
             Assert.AreEqual(0, r.Area(), 0.01f);
+        }
+
+        [TestMethod]
+        public void Playground()
+        {
+            var input = new Vector2[] {
+                new Vector2(10, 10),
+                new Vector2(10, -10),
+                new Vector2(-10, -10),
+                new Vector2(-10, 0),
+                new Vector2(0, 0),
+                new Vector2(0, 10),
+            };
+
+            var r = Test(new InvertCorner(new ConstantValue(90), new ConstantValue(2), new ConstantValue(2), true, true), input);
         }
     }
 }

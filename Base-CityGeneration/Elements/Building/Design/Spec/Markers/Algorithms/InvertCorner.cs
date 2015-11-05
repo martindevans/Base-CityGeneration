@@ -14,14 +14,16 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
     {
         private readonly IValueGenerator _angle;
         private readonly IValueGenerator _distance;
+        private readonly IValueGenerator _minDistance;
 
         private readonly bool _inner;
         private readonly bool _outer;
 
-        public InvertCorner(IValueGenerator angle, IValueGenerator distance, bool inner, bool outer)
+        public InvertCorner(IValueGenerator angle, IValueGenerator distance, IValueGenerator minDistance, bool inner, bool outer)
         {
             _angle = angle;
             _distance = distance;
+            _minDistance = minDistance;
             _inner = inner;
             _outer = outer;
         }
@@ -63,6 +65,14 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
 
                 //Check that incut is not larger than the edge
                 distance = Math.Min(distance, Math.Min(abLength * 0.5f, bcLength * 0.5f));
+
+                //Terminate if distance is too small
+                var min = _minDistance.SelectFloatValue(random, metadata);
+                if (distance < min)
+                {
+                    result.Add(b);
+                    continue;
+                }
 
                 //Point between A and B
                 var b1 = a + (ab / abLength) * (abLength - distance);
@@ -107,6 +117,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             public object Distance { get; set; }
 
             /// <summary>
+            /// If the distance is reduced (due to the wall being too small) nothing will happen if the new distance is less than this distance
+            /// </summary>
+            public object MinDistance { get; set; }
+
+            /// <summary>
             /// Whether or not inner corners (i.e. corners with the smallest angle on the inside of the building) should be inverted
             /// </summary>
             public bool InvertInner { get; set; }
@@ -121,6 +136,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
                 return new InvertCorner(
                     BaseValueGeneratorContainer.FromObject(Angle),
                     BaseValueGeneratorContainer.FromObject(Distance),
+                    BaseValueGeneratorContainer.FromObject(MinDistance ?? 0),
                     InvertInner,
                     InvertOuter
                 );

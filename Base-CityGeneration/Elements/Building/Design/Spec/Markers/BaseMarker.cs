@@ -5,6 +5,7 @@ using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using System.Collections.Generic;
 using EpimetheusPlugins.Scripts;
+using HandyCollections.Extensions;
 using Myre.Collections;
 using Poly2Tri.Utility;
 
@@ -59,13 +60,14 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 
             //Create a list with the points in
             var p = new Point2DList();
-            p.AddRange(footprint.Select(a => new Point2D(a.X, a.Y)).ToArray());
+            p.AddRange(footprint.Append(footprint[0]).Select(a => new Point2D(a.X, a.Y)).ToArray());
 
             //If two consecutive points are in the same position, remove one
             p.RemoveDuplicateNeighborPoints();
 
-            //Merge edges which are parallel (with a tolerance of 5 degrees)
-            p.MergeParallelEdges(0.0871557);
+            //Merge edges which are parallel (with a tolerance of 1 degree)
+            //p.MergeParallelEdges(0.01745240643);
+            p.Simplify();
 
             //Ensure shape is clockwise wound
             p.CalculateWindingOrder();
