@@ -3,8 +3,6 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
-using EpimetheusPlugins.Procedural.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Markers.Algorithms
