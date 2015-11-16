@@ -1,8 +1,8 @@
 param($installPath, $toolsPath, $package, $project)
 
-Function MakeCopyToOutput($project, $name)
+Function MakeCopyToOutput($proj, $name)
 {
-    $item = $project.ProjectItems.Item($name);
+    $item = $proj.ProjectItems.Item($name);
     $item.Properties.Item("BuildAction").Value = [int]0
     $item.Properties.Item("CopyToOutputDirectory").Value = [int]2
 }
