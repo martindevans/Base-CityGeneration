@@ -1,6 +1,4 @@
-﻿using System;
-using System.Numerics;
-using EpimetheusPlugins.Scripts;
+﻿using EpimetheusPlugins.Scripts;
 using Ninject;
 
 namespace Base_CityGeneration
