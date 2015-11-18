@@ -5,7 +5,7 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using Base_CityGeneration.Utilities;
 using JetBrains.Annotations;
 
-namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
+namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 {
     public class RoomSpec
         : BaseSpaceSpec

@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Numerics;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
+using Base_CityGeneration.TestHelpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Design
@@ -10,7 +13,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Design
         [TestMethod]
         public void TestMethod1()
         {
-            FloorDesigner.Deserialize(new StringReader(@"
+            var designer = FloorDesigner.Deserialize(new StringReader(@"
 # root node
 !Floorplan
 
@@ -27,9 +30,9 @@ Aliases:
       Tags:
         1: { Type: Residential, Style: Modern, Class: LivingRoom }
       # Constraints on the placement of the room
-      Constraints: []
-# - { Strength: 1,    Req: !Exterior { Window: true } }
-# - { Strength: 0.5,  Req: !Exterior { Door: false } }
+      Constraints:
+         - { Strength: 1,    Req: !Exterior { Window: true } }
+         - { Strength: 0.5,  Req: !Exterior { Door: false } }
       # Constraints on the connections between this room and other rooms
       # Lounge can be used as a corridor to access other rooms
       Walkthrough: true
@@ -44,6 +47,8 @@ Aliases:
       Id: Kitchen
       Tags:
         1: { Type: Residential, Style: Modern, Class: Kitchen }
+      Constraints:
+        - { Strength: 1,    Req: !Area { Min: 9 } }
 
     # A group is a group of rooms, it is laid out in exactly the same way as a single room, but itself contains further rooms (and thus has the union of all child rooms)
     - &apartment !Group
@@ -67,10 +72,24 @@ Aliases:
       
 Rooms:
     - *apartment
-#- !Repeat
-#     Count: !UniformValue { Min: 1, Max: 10 }
-#     Room: *apartment
+    - !Repeat
+      Required: !UniformValue { Min: 1, Max: 3 }
+      Optional: !UniformValue { Min: 1, Max: 3 }
+      Room: *apartment
 "));
+
+            var floorplan = designer.Design(new Vector2[] {
+                new Vector2(30,  20),
+                new Vector2(20,  -30),
+                new Vector2(0,   -30),
+                new Vector2(0,   0),
+                new Vector2(-20, 0),
+                new Vector2(-20, 20),
+            });
+
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan).ToString());
+
+            Assert.IsTrue(true);
         }
 
 //        [TestMethod]

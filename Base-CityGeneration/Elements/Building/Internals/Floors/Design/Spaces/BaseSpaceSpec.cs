@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using JetBrains.Annotations;
+using Myre.Collections;
 
-namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
+namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 {
     public abstract class BaseSpaceSpec
+        : ISpaceSpecProducer
     {
         public string Id { get; private set; }
 
@@ -23,7 +26,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             Connections = connections;
         }
 
+        IEnumerable<BaseSpaceSpec> ISpaceSpecProducer.Produce(bool required, Func<double> random, INamedDataCollection metadata)
+        {
+            if (required)
+                yield return this;
+        }
+
         internal abstract class BaseContainer
+            : ISpaceSpecProducerContainer
         {
             protected static readonly RequirementStrengthContainer<BaseSpaceConstraintSpec, BaseSpaceConstraintSpec.BaseContainer>[] NoConstraints = new RequirementStrengthContainer<BaseSpaceConstraintSpec, BaseSpaceConstraintSpec.BaseContainer>[0];
             protected static readonly RequirementStrengthContainer<BaseSpaceConnectionSpec, BaseSpaceConnectionSpec.BaseContainer>[] NoConnections = new RequirementStrengthContainer<BaseSpaceConnectionSpec, BaseSpaceConnectionSpec.BaseContainer>[0];
@@ -38,6 +48,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             // ReSharper restore MemberCanBeProtected.Global
 
             internal abstract BaseSpaceSpec Unwrap();
+
+            ISpaceSpecProducer IUnwrappable<ISpaceSpecProducer>.Unwrap()
+            {
+                return Unwrap();
+            }
         }
     }
 }

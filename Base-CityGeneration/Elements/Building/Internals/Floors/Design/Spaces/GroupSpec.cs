@@ -4,7 +4,7 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using JetBrains.Annotations;
 
-namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
+namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 {
     public class GroupSpec
         : BaseSpaceSpec
