@@ -1,0 +1,27 @@
+﻿using JetBrains.Annotations;
+
+namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections
+{
+    public class RegexIdRef
+        : BaseSpaceConnectionSpec
+    {
+        private readonly string _pattern;
+        public string Pattern { get { return _pattern; } }
+
+        public RegexIdRef(string pattern)
+        {
+            _pattern = pattern;
+        }
+
+        internal class Container
+            : BaseContainer
+        {
+            public string Pattern { get; [UsedImplicitly]set; }
+
+            public override BaseSpaceConnectionSpec Unwrap()
+            {
+                return new RegexIdRef(Pattern);
+            }
+        }
+    }
+}

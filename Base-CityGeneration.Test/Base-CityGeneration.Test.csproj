@@ -204,6 +204,7 @@
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\BevelTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\TwistTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\ShrinkTest.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Playground.cs" />
     <Compile Include="Elements\Building\Internals\Floors\FloorPlanTest.cs" />
     <Compile Include="Elements\Building\Design\BuildingDesignerTest.cs" />
     <Compile Include="Elements\Building\Design\Playground.cs" />

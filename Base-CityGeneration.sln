@@ -25,31 +25,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Base-CityGeneration.TestHel
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
-		Release|Any CPU = Release|Any CPU
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Debug|x86.ActiveCfg = Debug|x86
+		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Debug|x86.Build.0 = Debug|x86
 		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Release|x86.ActiveCfg = Release|x86
 		{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}.Release|x86.Build.0 = Release|x86
-		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Debug|x86.ActiveCfg = Debug|x86
+		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Debug|x86.Build.0 = Debug|x86
 		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Release|x86.ActiveCfg = Release|x86
 		{FFF9B24F-21BB-46CE-B49B-7702B8E85267}.Release|x86.Build.0 = Release|x86
-		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Debug|x86.ActiveCfg = Debug|x86
+		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Debug|x86.Build.0 = Debug|x86
 		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Release|x86.ActiveCfg = Release|x86
 		{B225867B-9AFA-432C-9BCD-8A9097C2E599}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection

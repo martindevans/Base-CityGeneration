@@ -272,10 +272,23 @@
     <Compile Include="Elements\Building\Design\Spec\Ref\SearchDirection.cs" />
     <Compile Include="Elements\Building\Design\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Design\Spec\RepeatSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\BaseSpaceSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\Either.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\Invert.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\RegexIdRef.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\TaggedRef.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\BaseSpaceConstraintSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\BaseSpaceConnectionSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\FloorDesigner.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\GroupSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\IdRef.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\RequirementStrength.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\RoomSpec.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\EmptyRoom.cs" />
     <Compile Include="Elements\Building\SpecBuilding.cs" />
     <Compile Include="Elements\Building\SpecBuildingContainer.cs" />
     <Compile Include="Entry.cs" />
+    <Compile Include="IUnwrappable.cs" />
     <Compile Include="Parcels\Parcelling\Rules\AspectRatioRule.cs" />
     <Compile Include="Styles\InternalWalls.cs" />
     <Compile Include="Utilities\Numbers\IValueGenerator.cs" />
@@ -397,6 +410,7 @@
     <Content Include="libgmp-10.dll" />
     <Content Include="libmpfr-4.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
