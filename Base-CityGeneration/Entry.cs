@@ -1,4 +1,7 @@
-﻿using EpimetheusPlugins.Scripts;
+﻿using System;
+using System.Numerics;
+using CGAL_StraightSkeleton_Dotnet;
+using EpimetheusPlugins.Scripts;
 using Ninject;
 
 namespace Base_CityGeneration
@@ -9,6 +12,21 @@ namespace Base_CityGeneration
     {
         public void Loaded(IKernel kernel)
         {
+        }
+    }
+
+    public static class Program
+    {
+        public static void Main(string[] args)
+        {
+            var ss = StraightSkeleton.Generate(new Vector2[] {
+                new Vector2(20, 10),
+                new Vector2(20, -10),
+                new Vector2(-20, -10),
+                new Vector2(-20, 10),
+            });
+
+            Console.WriteLine(ss);
         }
     }
 }
