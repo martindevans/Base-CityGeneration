@@ -79,7 +79,7 @@ Rooms:
 "));
 
             var floorplan = designer.Design(new Vector2[] {
-                new Vector2(30,  20),
+                new Vector2(25,  20),
                 new Vector2(20,  -30),
                 new Vector2(0,   -30),
                 new Vector2(0,   0),
@@ -87,7 +87,7 @@ Rooms:
                 new Vector2(-20, 20),
             });
 
-            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan).ToString());
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 4).ToString());
 
             Assert.IsTrue(true);
         }
