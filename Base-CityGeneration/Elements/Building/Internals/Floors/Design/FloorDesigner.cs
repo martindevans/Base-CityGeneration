@@ -11,6 +11,7 @@ using Base_CityGeneration.Utilities.Numbers;
 using CGAL_StraightSkeleton_Dotnet;
 using JetBrains.Annotations;
 using SharpYaml.Serialization;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 {
@@ -41,7 +42,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         {
             using (var skeleton = StraightSkeleton.Generate(footprint))
             {
-                //check if skeleton is too small, or twoo far from walls - if it is generate an offset skeleton
+                //check if skeleton is too small, or too far from walls - if it is generate an offset skeleton
+                float max;
+                float min;
+                MeasureSkeletonDistance(skeleton, out min, out max);
+
+                ///////////////////////
+                ///// Nb: Probably want to store the skeleton/spoke/edge association information to use later!
+                ///////////////////////
 
                 //Connect external doors to hallway
                 //Connect vertical features to hallway
@@ -56,6 +64,34 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             }
 
             return new FloorPlan(footprint);
+        }
+
+        private static void MeasureSkeletonDistance(StraightSkeleton skeleton, out float min, out float max)
+        {
+            min = float.MaxValue;
+            max = float.MinValue;
+
+            foreach (var item in skeleton.Skeleton.Select(a => a.Key))
+            {
+                var skeletonVertex = item;
+
+                var edges = new HashSet<LineSegment2>(
+                    from edge in skeleton.Borders
+                    from spoke in skeleton.Spokes
+                    where spoke.Value == skeletonVertex
+                    where edge.Key == spoke.Key || edge.Value == spoke.Key
+                    select new LineSegment2(edge.Key, edge.Value)
+                );
+
+                foreach (var edge in edges)
+                {
+                    var closest = edge.Line.ClosestPoint(skeletonVertex);
+                    var distance = Vector2.Distance(closest, skeletonVertex);
+
+                    min = Math.Min(min, distance);
+                    max = Math.Max(max, distance);
+                }
+            }
         }
 
         #region serialization
