@@ -69,8 +69,8 @@
       <HintPath>..\packages\Cassowary.4.0.0.0\lib\net35-Client\Cassowary.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="CGAL_StraightSkeleton_Dotnet, Version=1.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\CGAL_StraightSkeleton_Dotnet.1.1.0.0\lib\net46\CGAL_StraightSkeleton_Dotnet.dll</HintPath>
+    <Reference Include="CGAL_StraightSkeleton_Dotnet, Version=3.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\CGAL_StraightSkeleton_Dotnet.3.0.0.0\lib\net46\CGAL_StraightSkeleton_Dotnet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="EpimetheusPlugins, Version=1.0.5798.29366, Culture=neutral, processorArchitecture=x86">
@@ -166,8 +166,8 @@
       <HintPath>..\packages\SupersonicSound.4.1.1.0\lib\net46\SupersonicSound.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SwizzleMyVectors, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SwizzleMyVectors.2.1.0.0\lib\net46\SwizzleMyVectors.dll</HintPath>
+    <Reference Include="SwizzleMyVectors, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SwizzleMyVectors.3.0.0.0\lib\net46\SwizzleMyVectors.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

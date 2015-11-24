@@ -4,6 +4,7 @@ using System.Numerics;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
 using Base_CityGeneration.TestHelpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Design
 {
@@ -70,6 +71,13 @@ Aliases:
       Constraints: []
       Connections: []
       
+#Hallways:
+#    # If a hallway is closer than this to an external wall it will 'snap' to be adjacent to the wall
+#    SnapDistance: !UniformValue { Min: 3, Max: 5, Vary: true }
+#
+#    # If a hallway is farther than this from an external wall, it will generate an offset corridor  in between
+#    SplitDistance: !UniformValue { Min: 10, Max: 15 }
+
 Rooms:
     - *apartment
     - !Repeat
@@ -78,16 +86,46 @@ Rooms:
       Room: *apartment
 "));
 
-            var floorplan = designer.Design(new Vector2[] {
-                new Vector2(25,  20),
-                new Vector2(20,  -30),
-                new Vector2(0,   -30),
-                new Vector2(0,   0),
-                new Vector2(-20, 0),
-                new Vector2(-20, 20),
+            var rnd = new Random();
+            Func<double> random = rnd.NextDouble;
+            var meta = new NamedBoxCollection();
+
+            ////Octagon
+            //var floorplan = designer.Design(random, meta, null, new Vector2[] {
+            //    new Vector2(2,  4),
+            //    new Vector2(4,  2),
+            //    new Vector2(4,  -2),
+            //    new Vector2(2,  -4),
+            //    new Vector2(-2, -4),
+            //    new Vector2(-4, -2),
+            //    new Vector2(-4, 2),
+            //    new Vector2(-2, 4),
+            //});
+
+            //Corner shape
+            var floorplan = designer.Design(random, meta, null, new Vector2[] {
+                new Vector2(5,  5),
+                new Vector2(5,  -6),
+                new Vector2(0,  -6),
+                new Vector2(0,  0),
+                new Vector2(-4, 0),
+                new Vector2(-4, 5),
             });
 
-            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 4).ToString());
+            ////Weird spikey shape (unlikely to be generated)
+            //var floorplan = designer.Design(random, meta, null, new Vector2[] {
+            //    new Vector2(-10, 10),
+            //    new Vector2(-8, 10),
+            //    new Vector2(-6, 6),
+            //    new Vector2(-4, 10),
+            //    new Vector2(10, 10),
+            //    new Vector2(10, 3),
+            //    new Vector2(6, 0),
+            //    new Vector2(10, -3),
+            //    new Vector2(-10, -10),
+            //});
+
+            //Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 4).ToString());
 
             Assert.IsTrue(true);
         }
