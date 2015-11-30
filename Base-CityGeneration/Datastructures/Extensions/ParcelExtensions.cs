@@ -1,10 +1,10 @@
 ﻿using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Parcels.Parcelling;
-using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Datastructures.Extensions
 {
@@ -139,7 +139,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
             float score = float.MaxValue;
             foreach (var halfEdge in face.Edges)
             {
-                var closest = Geometry2D.ClosestPointOnLineSegment(new LineSegment2D(halfEdge.EndVertex.Position, halfEdge.Pair.EndVertex.Position), point);
+                var closest = new LineSegment2(halfEdge.EndVertex.Position, halfEdge.Pair.EndVertex.Position).ClosestPoint(point);
                 var d = Vector2.DistanceSquared(closest, point);
                 if (d < score)
                 {

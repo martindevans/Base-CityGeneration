@@ -2,7 +2,6 @@
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors;
-using EpimetheusPlugins.Procedural.Utilities;
 using HandyCollections.Geometry;
 using HandyCollections.Heap;
 using System;
@@ -426,20 +425,20 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                     continue;
 
                 //Do we intersect at all?
-                var intersection = Geometry2D.LineLineSegmentIntersection(new LineSegment2D(candidate.A.Position, candidate.B.Position), new Line2D(a, b - a));
+                var intersection = new LineSegment2(candidate.A.Position, candidate.B.Position).Intersects(new Ray2(a, b - a));
                 if (!intersection.HasValue)
                     continue;
 
                 //Is this intersection closer than the best so far?
-                if (intersection.Value.DistanceAlongLineB >= d)
+                if (intersection.Value.DistanceAlongB >= d)
                     continue;
 
                 //Is the intersection *actually* valid (i.e. within the bound of line 2)
-                if (intersection.Value.DistanceAlongLineB > 1 || intersection.Value.DistanceAlongLineB < 0)
+                if (intersection.Value.DistanceAlongB > 1 || intersection.Value.DistanceAlongB < 0)
                     continue;
 
                 //We have a winner, update best fit so far
-                d = intersection.Value.DistanceAlongLineB;
+                d = intersection.Value.DistanceAlongB;
                 intersectPosition = intersection.Value.Position;
                 selected = candidate;
             }

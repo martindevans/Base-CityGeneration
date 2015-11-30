@@ -14,6 +14,7 @@ using System.Numerics;
 using Base_CityGeneration.Elements.Blocks;
 using Base_CityGeneration.Elements.Roads;
 using SwizzleMyVectors;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building
 {
@@ -252,12 +253,12 @@ namespace Base_CityGeneration.Elements.Building
                 var sideEnd = footprint.Shape[(sideIndex + 1) % footprint.Shape.Count];
 
                 //find which section this side is for
-                var sideSegment = new LineSegment2D(sideStart, sideEnd).Line();
+                var sideSegment = new LineSegment2(sideStart, sideEnd).Line;
                 var maybeSection = (from s in sections
-                               let aP = Geometry2D.ClosestPointDistanceAlongLine(sideSegment, s.ExternalLineSegment.Start) * sideSegment.Direction + sideSegment.Point
+                               let aP = sideSegment.ClosestPointDistanceAlongLine(s.ExternalLineSegment.Start) * sideSegment.Direction + sideSegment.Position
                                let aD = Vector2.Distance(aP, s.ExternalLineSegment.Start)
                                where aD < 0.1f
-                               let bP = Geometry2D.ClosestPointDistanceAlongLine(sideSegment, s.ExternalLineSegment.End) * sideSegment.Direction + sideSegment.Point
+                               let bP = sideSegment.ClosestPointDistanceAlongLine(s.ExternalLineSegment.End) * sideSegment.Direction + sideSegment.Position
                                let bD = Vector2.Distance(bP, s.ExternalLineSegment.End)
                                where bD < 0.1f
                                let d = aD + bD
@@ -354,12 +355,12 @@ namespace Base_CityGeneration.Elements.Building
                 //Start and end point of this segment
                 var a = bounds.Footprint[i];
                 var b = bounds.Footprint[(i + 1) % bounds.Footprint.Count];
-                var seg = new LineSegment2D(a, b).Transform(WorldTransformation);
-                var line = seg.Line();
+                var seg = new LineSegment2(a, b).Transform(WorldTransformation);
+                var line = seg.Line;
 
                 //Neighbours which are for this segment
                 var ns = from n in (Neighbours ?? new NeighbourInfo[0])
-                         where (Geometry2D.LineLineParallelism(n.Segment.Line(), line) == Geometry2D.Parallelism.Collinear)
+                         where (n.Segment.Line.Parallelism(line) == Parallelism.Collinear)
                          let result = ExtractDataFromUnknownNode(n.Neighbour)
                          select new BuildingSideInfo.NeighbourInfo(n.Start, n.End, result.Key, result.Value);
 
@@ -425,7 +426,7 @@ namespace Base_CityGeneration.Elements.Building
         {
             var footprints = externals.ToDictionary(a => a.BottomIndex, a => a);
 
-            return (floor) => {
+            return floor => {
                 //There's always a floor zero footprint
                 if (floor == 0)
                     return footprints[0].Shape;

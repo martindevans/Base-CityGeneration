@@ -8,16 +8,16 @@ namespace Base_CityGeneration.Datastructures.Extensions
 {
     public static class Vector2EnumerableExtensions
     {
-        public static OABB FitOabb(this IEnumerable<Vector2> points)
+        public static OABR FitOabb(this IEnumerable<Vector2> points)
         {
             Random r = new Random();
             return points.FitOabb(0, 0, r.NextDouble);
         }
 
-        public static OABB FitOabb(this IEnumerable<Vector2> points, float nonOptimalityChance, float maximumNonOptimalityRatio, Func<double> random)
+        public static OABR FitOabb(this IEnumerable<Vector2> points, float nonOptimalityChance, float maximumNonOptimalityRatio, Func<double> random)
         {
             //Finding the OABB of the hull is the same as finding the OABB of the parcel, but is quicker
-            var hull = points.Quickhull2D().ToArray();
+            var hull = points.ConvexHull().ToArray();
 
             //Find middle of hull
             Vector2 middle = hull.Aggregate(Vector2.Zero, (current, t) => current + t / hull.Length);
@@ -45,7 +45,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
                     }
 
                     var extents = (max - min) / 2;
-                    return new OABB(middle, -angle, extents);
+                    return new OABR(middle, -angle, extents);
                 })
                 .OrderBy(a => a.Extents.X * a.Extents.Y * 4).ToArray();
 

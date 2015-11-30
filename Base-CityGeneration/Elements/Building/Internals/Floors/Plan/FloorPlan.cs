@@ -4,6 +4,7 @@ using System.Linq;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using System.Numerics;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 {
@@ -259,12 +260,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                     return RoomAB;
             }
 
-            public LineSegment2D Segment(RoomPlan room)
+            public LineSegment2 Segment(RoomPlan room)
             {
                 if (RoomAB == room)
-                    return new LineSegment2D(A, B);
+                    return new LineSegment2(A, B);
                 else
-                    return new LineSegment2D(C, D);
+                    return new LineSegment2(C, D);
             }
         }
     }

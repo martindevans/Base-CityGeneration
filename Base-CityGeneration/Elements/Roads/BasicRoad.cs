@@ -10,8 +10,8 @@ using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using System.Numerics;
 using Myre.Collections;
-using Myre.Extensions;
 using SwizzleMyVectors;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Roads
 {
@@ -90,18 +90,18 @@ namespace Base_CityGeneration.Elements.Roads
 
                     default: {
                         //End line of road segment
-                        var lEnd = new Line2D(endPointA, Vector2.Normalize(endPointB - endPointA));
+                        var lEnd = new Ray2(endPointA, Vector2.Normalize(endPointB - endPointA));
 
                         //Direction along footpath
-                        var cDist = Geometry2D.DistanceFromPointToLine(section.C, lEnd);
-                        var aDist = Geometry2D.DistanceFromPointToLine(section.A, lEnd);
+                        var cDist = Math.Abs(lEnd.DistanceToPoint(section.C));
+                        var aDist = Math.Abs(lEnd.DistanceToPoint(section.A));
                         Vector2 alongFootpath = builder.Direction;
 
                         //side lines of footpath
-                        var lInner = new Line2D(section.D, alongFootpath);
+                        var lInner = new Ray2(section.D, alongFootpath);
 
                         //end point of path (projected out from corner point, perpenducular to direction - this ensures path end is square)
-                        var intersect = Geometry2D.LineLineIntersection(lInner, new Line2D(section.B, builder.Direction.Perpendicular()));
+                        var intersect = lInner.Intersects(new Ray2(section.B, builder.Direction.Perpendicular()));
                         if (!intersect.HasValue)
                             break;
 
@@ -171,8 +171,8 @@ namespace Base_CityGeneration.Elements.Roads
                 //If this footpath is along the side of the road
                 //If this footpath is along an end, and this end is a dead end (junction has one road)
                 if (Math.Abs(Vector2.Dot(section.Along, builder.Direction)) > 0.99f ||
-                    (deadEnd && IsAlongLineSegment(section, new LineSegment2D(leftEnd, rightEnd))) ||
-                    (deadStart && IsAlongLineSegment(section, new LineSegment2D(leftStart, rightStart)))
+                    (deadEnd && IsAlongLineSegment(section, new LineSegment2(leftEnd, rightEnd))) ||
+                    (deadStart && IsAlongLineSegment(section, new LineSegment2(leftStart, rightStart)))
                 )
                 {
                     MaterializeSection(geometry, material, section, height);
@@ -180,17 +180,17 @@ namespace Base_CityGeneration.Elements.Roads
             }
         }
 
-        private static bool IsAlongLineSegment(Walls.Section section, LineSegment2D segment)
+        private static bool IsAlongLineSegment(Walls.Section section, LineSegment2 segment)
         {
             //Check if this section points in the same (or opposite) direction
-            if (!(Math.Abs(Vector2.Dot(section.Along, segment.Line().Direction)) > 0.99f))
+            if (!(Math.Abs(Vector2.Dot(section.Along, segment.Line.Direction)) > 0.99f))
                 return false;
 
             //Check if the section is actually on the line
             //C and D are the outside points of the section, so they should lie on the line at the edge of the road
-            if (Geometry2D.DistanceFromPointToLineSegment(section.C, segment) > 0.01f)
+            if (segment.DistanceToPoint(section.C) > 0.01f)
                 return false;
-            if (Geometry2D.DistanceFromPointToLineSegment(section.D, segment) > 0.01f)
+            if (segment.DistanceToPoint(section.D) > 0.01f)
                 return false;
 
             return true;
@@ -203,7 +203,7 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void MaterializeSection(ISubdivisionGeometry geometry, string material, IEnumerable<Vector2> shape, float height)
         {
-            this.CreateFlatPlane(geometry, material, new ReadOnlyCollection<Vector2>(shape.Quickhull2D().ToArray()), height);
+            this.CreateFlatPlane(geometry, material, new ReadOnlyCollection<Vector2>(shape.ConvexHull().ToArray()), height);
         }
     }
 }

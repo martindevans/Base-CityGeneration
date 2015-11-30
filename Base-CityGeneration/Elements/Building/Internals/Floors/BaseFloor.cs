@@ -4,7 +4,6 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using Myre.Extensions;
@@ -13,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors
 {
@@ -149,16 +148,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                 //Get start and end points of this edge
                 var start = Plan.ExternalFootprint[i];
                 var end = Plan.ExternalFootprint[(i + 1) % Plan.ExternalFootprint.Count];
-                var footprintSegWS = new LineSegment2D(start, end).Transform(WorldTransformation);
-                var footprintLineWS = footprintSegWS.Line();
+                var footprintSegWS = new LineSegment2(start, end).Transform(WorldTransformation);
+                var footprintLineWS = footprintSegWS.Line;
 
                 //Select the exteral facade which lies along this edge
                 var wall = (from facade in facades
                             let facadeSegWS = facade.Section.ExternalLineSegment.Transform(facade.WorldTransformation)
-                            let facadeLineWS = facadeSegWS.Line()
-                            where Geometry2D.LineLineParallelism(facadeLineWS, footprintLineWS) != Geometry2D.Parallelism.None
-                            let aD = Geometry2D.DistanceFromPointToLineSegment(facadeSegWS.Start, footprintSegWS)
-                            let bD = Geometry2D.DistanceFromPointToLineSegment(facadeSegWS.End, footprintSegWS)
+                            let facadeLineWS = facadeSegWS.Line
+                            where facadeLineWS.Parallelism(footprintLineWS) != Parallelism.None
+                            let aD = footprintSegWS.DistanceToPoint(facadeSegWS.Start)
+                            let bD = footprintSegWS.DistanceToPoint(facadeSegWS.End)
                             orderby aD + bD
                             select facade).FirstOrDefault();
 
@@ -176,7 +175,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                 var height = FloorHeight - _floorThickness - _ceilingThickness;
 
                 //how wide is the wall?
-                var wallLength = wall.Section.ExternalLineSegment.LongLine().Direction.Length();
+                var wallLength = wall.Section.ExternalLineSegment.LongLine.Direction.Length();
 
                 SubsectionFacade subsection = new SubsectionFacade(wall,
                     new Vector2(-wallLength, y),
@@ -273,21 +272,21 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             }
         }
 
-        private static IConfigurableFacade FindExternalFacade(float wallThickness, IEnumerable<IConfigurableFacade> externalFacades, LineSegment2D segment)
+        private static IConfigurableFacade FindExternalFacade(float wallThickness, IEnumerable<IConfigurableFacade> externalFacades, LineSegment2 segment)
         {
             return externalFacades.FirstOrDefault(e =>
             {
                 var l = e.Section.ExternalLineSegment;
 
-                var edgeDirection = l.Line().Direction;
-                var segmentDirection = segment.Line().Direction;
+                var edgeDirection = l.Line.Direction;
+                var segmentDirection = segment.Line.Direction;
 
                 if (Math.Abs(Vector2.Dot(edgeDirection, segmentDirection)) < 0.99619469809f) //Allow 5 degrees difference
                     return false;
 
                 return
-                    Geometry2D.DistanceFromPointToLineSegment(segment.Start, l) < (wallThickness * 5) &&
-                    Geometry2D.DistanceFromPointToLineSegment(segment.End, l) < (wallThickness * 5);
+                    l.DistanceToPoint(segment.Start) < (wallThickness * 5) &&
+                    l.DistanceToPoint(segment.End) < (wallThickness * 5);
             });
         }
 
@@ -307,8 +306,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             ((ISubdivisionContext)externalSection).AddPrerequisite(roomPlan.Node);
 
             //Calculate X position of subsection (map room section onto full wall section)
-            var at = Geometry2D.ClosestPointDistanceAlongLine(externalSection.Section.InternalLineSegment.LongLine(), facade.Section.ExternalLineSegment.Start);
-            var bt = Geometry2D.ClosestPointDistanceAlongLine(externalSection.Section.InternalLineSegment.LongLine(), facade.Section.ExternalLineSegment.End);
+            var at = externalSection.Section.InternalLineSegment.LongLine.ClosestPointDistanceAlongLine(facade.Section.ExternalLineSegment.Start);
+            var bt = externalSection.Section.InternalLineSegment.LongLine.ClosestPointDistanceAlongLine(facade.Section.ExternalLineSegment.End);
 
             //Transform distance along facade into facade local coordinates
             var minAlong = Math.Min(at, bt) * externalSection.Section.Width - externalSection.Section.Width * 0.5f;

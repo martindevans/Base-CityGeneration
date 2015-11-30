@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using EpimetheusPlugins.Procedural.Utilities;
-
+using SwizzleMyVectors.Geometry;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Datastructures.Edges
@@ -15,7 +14,7 @@ namespace Base_CityGeneration.Datastructures.Edges
         /// <summary>
         /// Segments, keyed with their angle rounded down to the nearest integer
         /// </summary>
-        private readonly Dictionary<int, List<KeyValuePair<LineSegment2D, T>>> _segments = new Dictionary<int, List<KeyValuePair<LineSegment2D, T>>>();
+        private readonly Dictionary<int, List<KeyValuePair<LineSegment2, T>>> _segments = new Dictionary<int, List<KeyValuePair<LineSegment2, T>>>();
 
         public int Count { get; private set; }
 
@@ -26,17 +25,17 @@ namespace Base_CityGeneration.Datastructures.Edges
         /// <param name="angularTolerance">Maximum angular difference (radians) between lines which is still considered parallel</param>
         /// <param name="distanceTolerance">Maximum Distance between lines which is still considered a neighbour</param>
         /// <returns></returns>
-        public IEnumerable<NeighbourResult> Neighbours(LineSegment2D query, float angularTolerance, float distanceTolerance)
+        public IEnumerable<NeighbourResult> Neighbours(LineSegment2 query, float angularTolerance, float distanceTolerance)
         {
             var angle = Angle(query);
             var lowKey = ToKey(angle - angularTolerance);
             var highKey = ToKey(angle + angularTolerance + 1);
-            var queryLine = query.LongLine();
+            var queryLine = query.LongLine;
             var distanceToleranceSq = distanceTolerance * distanceTolerance;
 
             for (var i = lowKey; i <= highKey; i++)
             {
-                List<KeyValuePair<LineSegment2D, T>> segments;
+                List<KeyValuePair<LineSegment2, T>> segments;
 
                 // Key cannot be null, it's an int!
                 // ReSharper disable once ExceptionNotDocumentedOptional
@@ -57,14 +56,14 @@ namespace Base_CityGeneration.Datastructures.Edges
                         continue;
 
                     //Project points from segment onto query (early exit if the point is too far from the infinite length line)
-                    var st = Geometry2D.ClosestPointDistanceAlongLine(queryLine, segment.Start);
-                    var sp = queryLine.Point + queryLine.Direction * st;
+                    var st = queryLine.ClosestPointDistanceAlongLine(segment.Start);
+                    var sp = queryLine.Position + queryLine.Direction * st;
                     var sd = Vector2.DistanceSquared(segment.Start, sp);
                     if (sd > distanceToleranceSq)
                         continue;
 
-                    var et = Geometry2D.ClosestPointDistanceAlongLine(queryLine, segment.End);
-                    var ep = queryLine.Point + queryLine.Direction * et;
+                    var et = queryLine.ClosestPointDistanceAlongLine(segment.End);
+                    var ep = queryLine.Position + queryLine.Direction * et;
                     var ed = Vector2.DistanceSquared(segment.End, ep);
                     if (ed > distanceToleranceSq)
                         continue;
@@ -77,10 +76,10 @@ namespace Base_CityGeneration.Datastructures.Edges
                     Clamp(ref st, ref sp, queryLine);
                     Clamp(ref et, ref ep, queryLine);
 
-                    var segmentLine = segment.LongLine();
+                    var segmentLine = segment.LongLine;
                     yield return new NeighbourResult(
                         segment,
-                        Geometry2D.ClosestPointDistanceAlongLine(segmentLine, sp), Geometry2D.ClosestPointDistanceAlongLine(segmentLine, ep),
+                        segmentLine.ClosestPointDistanceAlongLine(sp), segmentLine.ClosestPointDistanceAlongLine(ep),
                         item.Value,
                         st, et
                     );
@@ -88,7 +87,7 @@ namespace Base_CityGeneration.Datastructures.Edges
             }
         }
 
-        private static void Clamp(ref float t, ref Vector2 pointAtT, Line2D line)
+        private static void Clamp(ref float t, ref Vector2 pointAtT, Ray2 line)
         {
             //Clamp into range, or early exit if already within range
             if (t < 0)
@@ -99,16 +98,16 @@ namespace Base_CityGeneration.Datastructures.Edges
                 return;
 
             //Calculate new point
-            pointAtT = line.Point + line.Direction * t;
+            pointAtT = line.Position + line.Direction * t;
         }
 
-        public void Add(LineSegment2D segment, T value)
+        public void Add(LineSegment2 segment, T value)
         {
-            GetList(Angle(segment)).Add(new KeyValuePair<LineSegment2D, T>(segment, value));
+            GetList(Angle(segment)).Add(new KeyValuePair<LineSegment2, T>(segment, value));
             Count++;
         }
 
-        private static float Angle(LineSegment2D segment)
+        private static float Angle(LineSegment2 segment)
         {
             var delta = segment.End - segment.Start;
             var angle = (float)Math.Atan2(delta.Y, delta.X);
@@ -126,14 +125,14 @@ namespace Base_CityGeneration.Datastructures.Edges
             return (int)(degrees % 180);
         }
 
-        private List<KeyValuePair<LineSegment2D, T>> GetList(float angle)
+        private List<KeyValuePair<LineSegment2, T>> GetList(float angle)
         {
             var key = ToKey(angle);
 
-            List<KeyValuePair<LineSegment2D, T>> list;
+            List<KeyValuePair<LineSegment2, T>> list;
             if (!_segments.TryGetValue(key, out list))
             {
-                list = new List<KeyValuePair<LineSegment2D, T>>();
+                list = new List<KeyValuePair<LineSegment2, T>>();
                 _segments.Add(key, list);
             }
 
@@ -148,7 +147,7 @@ namespace Base_CityGeneration.Datastructures.Edges
             /// <summary>
             /// The segment which is a neighbour of your query
             /// </summary>
-            public readonly LineSegment2D Segment;
+            public readonly LineSegment2 Segment;
 
             /// <summary>
             /// Start point (distance along line of Segment property) of overlap
@@ -175,7 +174,7 @@ namespace Base_CityGeneration.Datastructures.Edges
             /// </summary>
             public readonly T Value; 
 
-            public NeighbourResult(LineSegment2D segment, float segmentOverlapStart, float segmentOverlapEnd, T value, float queryOverlapStart, float queryOverlapEnd)
+            public NeighbourResult(LineSegment2 segment, float segmentOverlapStart, float segmentOverlapEnd, T value, float queryOverlapStart, float queryOverlapEnd)
             {
                 Segment = segment;
                 SegmentOverlapStart = segmentOverlapStart;

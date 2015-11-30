@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
-using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
@@ -10,8 +10,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         ReadOnlyCollection<Vector2> Shape { get; }
 
-        Line2D Left { get; }
-        Line2D Right { get; }
+        Ray2 Left { get; }
+        Ray2 Right { get; }
 
         Vector2 Direction { get; }
 

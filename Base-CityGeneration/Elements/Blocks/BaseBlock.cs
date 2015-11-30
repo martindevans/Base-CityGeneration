@@ -5,9 +5,8 @@ using Base_CityGeneration.Parcels.Parcelling;
 using EpimetheusPlugins.Procedural;
 using System.Numerics;
 using Base_CityGeneration.Datastructures.Edges;
-using EpimetheusPlugins.Procedural.Utilities;
 using Myre.Collections;
-
+using SwizzleMyVectors.Geometry;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Blocks
@@ -30,7 +29,7 @@ namespace Base_CityGeneration.Elements.Blocks
             var neighbours = new NeighbourSet<ISubdivisionContext>();
             foreach (var keyValuePair in nodes)
                 foreach (var edge in keyValuePair.Key.Edges)
-                    neighbours.Add(new LineSegment2D(edge.Start, edge.End), keyValuePair.Value);
+                    neighbours.Add(new LineSegment2(edge.Start, edge.End), keyValuePair.Value);
 
             //Associate node with their neighbours (for nodes which care)
             foreach (var neighbour in nodes.Where(node => node.Value is INeighbour))
@@ -41,7 +40,7 @@ namespace Base_CityGeneration.Elements.Blocks
         {
             foreach (var edge in subject.Key.Edges)
             {
-                var query = new LineSegment2D(edge.Start, edge.End);
+                var query = new LineSegment2(edge.Start, edge.End);
                 var neighbours = nodes.Neighbours(query, MathHelper.ToRadians(5), 1);
                 foreach (var neighbour in neighbours)
                 {

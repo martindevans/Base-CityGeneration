@@ -12,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SwizzleMyVectors;
-
+using SwizzleMyVectors.Geometry;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Roads
@@ -101,11 +101,8 @@ namespace Base_CityGeneration.Elements.Roads
                 Vector3.Transform(r1.LeftEnd.X_Y(0), InverseWorldTransformation).XZ(),
                 Vector3.Transform(r2.RightEnd.X_Y(0), InverseWorldTransformation).XZ(),
                 0.01f, out cwp, out cw, out ccwp, out ccw,
-                new[] {
-                    Vector3.Transform(r1.RightEnd.X_Y(0), InverseWorldTransformation).XZ(),
-                    Vector3.Transform(r2.LeftEnd.X_Y(0), InverseWorldTransformation).XZ()
-                }
-            );
+                Vector3.Transform(r1.RightEnd.X_Y(0), InverseWorldTransformation).XZ(),
+                Vector3.Transform(r2.LeftEnd.X_Y(0), InverseWorldTransformation).XZ());
 
             //Sanity check (only 1 direction should be acceptable)
             if (!(cw ^ ccw))
@@ -169,10 +166,7 @@ namespace Base_CityGeneration.Elements.Roads
             var r2Point = innerPoint + r2Across * r2.SidewalkWidth;
 
             //Point to turn the connect around
-            var centerPoint = Geometry2D.LineLineIntersection(
-                new Line2D(r1Point, r1.Direction.Perpendicular()),
-                new Line2D(r2Point, r2.Direction.Perpendicular())
-            );
+            var centerPoint = new Ray2(r1Point, r1.Direction.Perpendicular()).Intersects(new Ray2(r2Point, r2.Direction.Perpendicular()));
 
             //Sanity check!
             if (!centerPoint.HasValue)
@@ -188,7 +182,7 @@ namespace Base_CityGeneration.Elements.Roads
 
             //Helpers function for creating prisms
             Action<IEnumerable<Vector2>, bool> unionPrism = (footprint, check) => geometry.Union(geometry
-                .CreatePrism(material, footprint.Quickhull2D().ToArray(), height)
+                .CreatePrism(material, footprint.ConvexHull().ToArray(), height)
                 .Translate(new Vector3(0, this.GroundOffset(height), 0))
                 .Transform(InverseWorldTransformation),
                 check

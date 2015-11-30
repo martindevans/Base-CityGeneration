@@ -1,8 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Datastructures;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
 using Base_CityGeneration.TestHelpers;
+using Base_CityGeneration.Utilities.SVG;
+using EpimetheusPlugins.Procedural;
+using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Myre.Collections;
 
@@ -86,7 +92,7 @@ Rooms:
       Room: *apartment
 "));
 
-            var rnd = new Random();
+            var rnd = new Random(2);
             Func<double> random = rnd.NextDouble;
             var meta = new NamedBoxCollection();
 
@@ -193,5 +199,25 @@ Rooms:
 //    - 
 //"));
 //        }
+
+        [TestMethod]
+        public void MethodName()
+        {
+            Random r = new Random(1);
+            Func<double> rand = r.NextDouble;
+
+            var points = new List<Vector2>();
+            for (int i = 0; i < 100; i++)
+                points.Add(new Vector2(rand.NormallyDistributedSingle(25, 0), rand.NormallyDistributedSingle(25, 0)));
+
+            var hull = points.ConvexHull().ToArray();
+
+            var oabr = OABR.Fit(hull);
+
+            var svg = new SvgRenderer(2);
+            svg.AddOutline(hull, "red");
+            svg.AddOutline((IReadOnlyList<Vector2>)oabr.Points(new Vector2[4]));
+            Console.WriteLine(svg.Render());
+        }
     }
 }

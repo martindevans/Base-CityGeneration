@@ -58,12 +58,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5798.29366, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5798.29366\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5811.3876, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5811.3876\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="HandyCollections, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\HandyCollections.4.0.0.0\lib\net46\HandyCollections.dll</HintPath>
+    <Reference Include="HandyCollections, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HandyCollections.4.3.0.0\lib\net46\HandyCollections.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
@@ -88,8 +88,8 @@
       <HintPath>..\packages\Myre.Entities.8.0.0.0\lib\net46\Myre.Entities.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Myre.Graphics, Version=9.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Myre.Graphics.9.0.0.0\lib\net46\Myre.Graphics.dll</HintPath>
+    <Reference Include="Myre.Graphics, Version=10.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Myre.Graphics.10.0.0.0\lib\net46\Myre.Graphics.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -101,7 +101,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.2.0\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.2.1\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder, Version=3.1.1.0, Culture=neutral, processorArchitecture=x86">
@@ -112,16 +112,16 @@
       <HintPath>..\packages\Placeholder.AI.Control.14.1.1.0\lib\net46\Placeholder.AI.Control.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.AI.Pathfinding, Version=9.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.AI.Pathfinding.9.1.0.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
+    <Reference Include="Placeholder.AI.Pathfinding, Version=9.1.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.AI.Pathfinding.9.1.1.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Audio2, Version=5.2.4.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>..\packages\Placeholder.Audio2.5.2.4.0\lib\net46\Placeholder.Audio2.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=9.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.9.1.0.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
+    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=11.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.11.0.0.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Entities, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">
@@ -144,8 +144,8 @@
       <HintPath>..\packages\SupersonicSound.4.1.1.0\lib\net46\SupersonicSound.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SwizzleMyVectors, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SwizzleMyVectors.3.0.0.0\lib\net46\SwizzleMyVectors.dll</HintPath>
+    <Reference Include="SwizzleMyVectors, Version=6.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SwizzleMyVectors.6.1.0.0\lib\net46\SwizzleMyVectors.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
