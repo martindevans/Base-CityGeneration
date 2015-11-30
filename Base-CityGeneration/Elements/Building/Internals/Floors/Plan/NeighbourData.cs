@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
-using Myre.Extensions;
 using SwizzleMyVectors;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 {
@@ -48,7 +47,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 //Map points onto this edge
                 foreach (var edge in Edges(room))
                 {
-                    var edgeLine = new Line2D(edge.Segment.Start, edge.Segment.End - edge.Segment.Start);
+                    var edgeLine = new Ray2(edge.Segment.Start, edge.Segment.End - edge.Segment.Start);
 
                     foreach (var otherRoom in _plan.Rooms)
                     {
@@ -186,11 +185,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private static void AddNeighbour_N_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, bool nA, NeighbourInfo info)
         {
-            var lineOut = new Line2D(info.Point, info.OtherPoint - info.Point);
+            var lineOut = new Ray2(info.Point, info.OtherPoint - info.Point);
             var otherEdge = GetEdge(n.RoomCD, n.EdgeIndexRoomCD).Segment;
-            var otherEdgeLine = new Line2D(otherEdge.Start, otherEdge.End - otherEdge.Start);
+            var otherEdgeLine = new Ray2(otherEdge.Start, otherEdge.End - otherEdge.Start);
 
-            var proj = Geometry2D.LineLineIntersection(lineOut, otherEdgeLine);
+            var proj = lineOut.Intersects(otherEdgeLine);
             if (!proj.HasValue)
                 throw new InvalidOperationException("Reprojected segment section does not lie on other edge");
 
@@ -201,7 +200,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 Point = info.Point,
                 Pt = info.Pt,
                 OtherPoint = proj.Value.Position,
-                OPt = proj.Value.DistanceAlongLineB,
+                OPt = proj.Value.DistanceAlongB,
                 OtherRoom = n.RoomCD,
                 OtherEdgeIndex = n.EdgeIndexRoomCD
             });
@@ -258,23 +257,23 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             ));
         }
 
-        private static void ProjectPointsOntoEdge(RoomPlan otherRoom, Line2D edgeLine, Edge edge)
+        private static void ProjectPointsOntoEdge(RoomPlan otherRoom, Ray2 edgeLine, Edge edge)
         {
             foreach (var otherEdge in Edges(otherRoom))
             {
-                var otherEdgeLine = new Line2D(otherEdge.Segment.Start, otherEdge.Segment.End - otherEdge.Segment.Start);
+                var otherEdgeLine = new Ray2(otherEdge.Segment.Start, otherEdge.Segment.End - otherEdge.Segment.Start);
 
                 if (Vector2.Dot(edgeLine.Direction.Perpendicular(), otherEdgeLine.Direction.Perpendicular()) >= 0)
                     continue;
 
                 int lCount = 0;
-                if (Geometry2D.IsLeftOfLine(edgeLine, otherEdge.Segment.Start))
+                if (edgeLine.IsLeft(otherEdge.Segment.Start, float.Epsilon))
                     lCount++;
-                if (Geometry2D.IsLeftOfLine(edgeLine, otherEdge.Segment.End))
+                if (edgeLine.IsLeft(otherEdge.Segment.End, float.Epsilon))
                     lCount++;
-                if (Geometry2D.IsLeftOfLine(otherEdgeLine, edge.Segment.Start))
+                if (otherEdgeLine.IsLeft(edge.Segment.Start, float.Epsilon))
                     lCount++;
-                if (Geometry2D.IsLeftOfLine(otherEdgeLine, edge.Segment.End))
+                if (otherEdgeLine.IsLeft(edge.Segment.End, float.Epsilon))
                     lCount++;
                 if (lCount < 3)
                     continue;
@@ -302,9 +301,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 // C---------------------D
 
                 var c = otherEdge.Segment.Start;
-                var ct = Geometry2D.ClosestPointDistanceAlongLine(edgeLine, c);
+                var ct = edgeLine.ClosestPointDistanceAlongLine(c);
                 var d = otherEdge.Segment.End;
-                var dt = Geometry2D.ClosestPointDistanceAlongLine(edgeLine, d);
+                var dt = edgeLine.ClosestPointDistanceAlongLine(d);
 
                 if (ct < dt)
                     throw new InvalidOperationException("Edge is wound incorrectly");
@@ -316,7 +315,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                         // End Overlap
                         //      B------------A
                         //               C-------D
-                        var at = Geometry2D.ClosestPointDistanceAlongLine(otherEdgeLine, edge.Segment.Start);
+                        var at = otherEdgeLine.ClosestPointDistanceAlongLine(edge.Segment.Start);
 
                         CreateNeighbourInfoPair(otherRoom, edge, ct, 0, otherEdge, 0, at);
                     }
@@ -335,7 +334,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                         // Start Overlap
                         //      B------------A
                         // C-------D
-                        var bt = Geometry2D.ClosestPointDistanceAlongLine(otherEdgeLine, edge.Segment.End);
+                        var bt = otherEdgeLine.ClosestPointDistanceAlongLine(edge.Segment.End);
 
                         CreateNeighbourInfoPair(otherRoom, edge, dt, 1, otherEdge, 1, bt);
                     }
@@ -344,8 +343,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                         // Reverse Contained:
                         //      B------------A
                         // C---------------------D
-                        var at = Geometry2D.ClosestPointDistanceAlongLine(otherEdgeLine, edge.Segment.Start);
-                        var bt = Geometry2D.ClosestPointDistanceAlongLine(otherEdgeLine, edge.Segment.End);
+                        var at = otherEdgeLine.ClosestPointDistanceAlongLine(edge.Segment.Start);
+                        var bt = otherEdgeLine.ClosestPointDistanceAlongLine(edge.Segment.End);
 
                         CreateNeighbourInfoPair(otherRoom, edge, 0, at, otherEdge, 1, bt);
                     }
@@ -412,12 +411,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         private struct Edge
         {
             public readonly List<NeighbourInfo> EdgeList;
-            public LineSegment2D Segment;
+            public LineSegment2 Segment;
             public readonly uint Index;
 
             public Edge(Vector2 a, Vector2 b, uint index)
             {
-                Segment = new LineSegment2D(a, b);
+                Segment = new LineSegment2(a, b);
                 Index = index;
                 EdgeList = new List<NeighbourInfo>();
             }

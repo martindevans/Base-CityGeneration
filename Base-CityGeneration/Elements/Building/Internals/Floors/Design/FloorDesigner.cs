@@ -3,21 +3,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Utilities.Numbers;
 using CGAL_StraightSkeleton_Dotnet;
+using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using JetBrains.Annotations;
 using Myre.Collections;
 using SharpYaml.Serialization;
 using SwizzleMyVectors.Geometry;
-
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+#if DEBUG
+using Base_CityGeneration.Utilities.SVG;
+#endif
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 {
@@ -33,19 +34,30 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         {
             get { return _rooms; }
         }
+
+        private readonly IValueGenerator _minimumRegionSize;
+        public IValueGenerator MinimumRegionSize
+        {
+            get { return _minimumRegionSize; }
+        }
         #endregion
 
-        private FloorDesigner(Dictionary<string, string> tags, Guid id, string description, IReadOnlyCollection<ISpaceSpecProducer> rooms)
+        private FloorDesigner(Dictionary<string, string> tags, Guid id, string description, IReadOnlyCollection<ISpaceSpecProducer> rooms, IValueGenerator minimumRegionSize)
         {
             Tags = tags;
             Id = id;
             Description = description;
 
             _rooms = rooms;
+            _minimumRegionSize = minimumRegionSize;
         }
 
         public FloorPlan Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<Vector2> footprint)
         {
+#if DEBUG
+            var svg = new SvgRenderer(10);
+#endif
+
             //Generate set of required spaces
             var requiredSpecs = _rooms.SelectMany(r => r.Produce(true, random, metadata));
 
@@ -53,7 +65,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             
             //Generate a floor skeleton to lay hallways along and subdivide the floor into regions
-            var regions = GenerateRegions(footprint);
+            var regions = GenerateRegions(footprint, random, metadata);
+
+#if DEBUG
+            foreach (var region in regions)
+            {
+                svg.AddOutline(region.Shape);
+
+                var oabb = (Vector2[])region.OABB.Points(new Vector2[4]);
+                svg.AddOutline(oabb, "red");
+            }
+#endif
 
             //Connect external doors to hallway
             //Connect vertical features to hallway
@@ -66,28 +88,38 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             //If a space is passthrough merge it into adjacent hallways and expand it to fill space
 
+#if DEBUG
+            Console.WriteLine(svg.Render());
+#endif
+
             return result;
         }
 
-        private static IEnumerable<Edge> GenerateRegions(IReadOnlyList<Vector2> footprint)
+        private IEnumerable<FloorplanRegion> GenerateRegions(IReadOnlyList<Vector2> footprint, Func<double> random, INamedDataCollection metadata)
         {
             using (var straightSkeleton = StraightSkeleton.Generate(footprint))
             {
-                //Slice the floorplan up by the lines of the straight skeleton
-                List<IReadOnlyList<Vector2>> parts = new List<IReadOnlyList<Vector2>> { footprint };
+                //Slice the floorplan up by the lines of the straight skeleton, do not allow any polygons which are smaller than the limit
+                var parts = new List<IReadOnlyList<Vector2>> { footprint };
                 foreach (var edge in straightSkeleton.Skeleton)
                 {
-                    var sliceLine = new Line2D(edge.Start.Position, edge.End.Position - edge.Start.Position);
-                    parts = (from part in parts
-                             from resultPart in part.SlicePolygon(sliceLine)
-                             select (IReadOnlyList<Vector2>)resultPart.ToList()).ToList();
+                    var sliceLine = new Ray2(edge.Start.Position, edge.End.Position - edge.Start.Position);
+
+                    var wip = new List<IReadOnlyList<Vector2>>();
+                    foreach (var part in parts)
+                    {
+                        var sliced = part.SlicePolygon(sliceLine);
+                        if (sliced.Any(a => a.Area() < _minimumRegionSize.SelectFloatValue(random, metadata)))
+                            wip.Add(part);
+                        else
+                            wip.AddRange(sliced);
+                    }
+
+                    parts = wip;
                 }
 
-                DrawOutlines(parts);
-
+                return parts.Select(a => new FloorplanRegion(a));
             }
-
-            return new Edge[0];
         }
 
         #region serialization
@@ -140,61 +172,43 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             public ISpaceSpecProducerContainer[] Rooms { get; [UsedImplicitly] set; }
 
+            public object MinimumRegionSize { get; [UsedImplicitly]set; }
+
             public FloorDesigner Unwrap()
             {
-                return new FloorDesigner(Tags, Guid.Parse(Id ?? Guid.NewGuid().ToString()), Description, Rooms.Select(a => a.Unwrap()).ToArray());
+                return new FloorDesigner(
+                    Tags,
+                    Guid.Parse(Id ?? Guid.NewGuid().ToString()),
+                    Description,
+                    Rooms.Select(a => a.Unwrap()).ToArray(),
+                    BaseValueGeneratorContainer.FromObject(MinimumRegionSize ?? 9)
+                );
             }
         }
         #endregion
 
         #region Visualisation
-        private static void DrawOutlines(IReadOnlyList<IReadOnlyList<Vector2>> parts)
-        {
-            var svg = new StringBuilder();
-            svg.Append("<svg width=\"1000\" height=\"1000\"><g transform=\"translate(210, 210)\">");
-            foreach (var part in parts)
-                svg.Append(ToSvgPath(part, 10, "blue"));
-            Console.WriteLine(svg);  
-        }
+        
 
-        private static void DrawSkeleton(IEnumerable<Edge> borders, IEnumerable<Edge> spokes, IEnumerable<Edge> skeleton)
-        {
-            var svg = new StringBuilder();
-            svg.Append("<svg width=\"1000\" height=\"1000\"><g transform=\"translate(210, 210)\">");
-            svg.Append(string.Join("", ToSvgPaths(borders, 10, "blue")));
-            svg.Append(string.Join("", ToSvgPaths(spokes, 10, "red")));
-            svg.Append(string.Join("", ToSvgPaths(skeleton, 10, "green")));
-            Console.WriteLine(svg);
-        }
+        //private static void DrawSkeleton(IEnumerable<Edge> borders, IEnumerable<Edge> spokes, IEnumerable<Edge> skeleton)
+        //{
+        //    var svg = new StringBuilder();
+        //    svg.Append("<svg width=\"1000\" height=\"1000\"><g transform=\"translate(210, 210)\">");
+        //    svg.Append(string.Join("", ToOpenSvgPaths(borders, 10, "blue")));
+        //    svg.Append(string.Join("", ToOpenSvgPaths(spokes, 10, "red")));
+        //    svg.Append(string.Join("", ToOpenSvgPaths(skeleton, 10, "green")));
+        //    Console.WriteLine(svg);
+        //}
 
-        private static void DrawSkeleton(IEnumerable<Edge> edges)
-        {
-            var svg = new StringBuilder();
-            svg.Append("<svg width=\"1000\" height=\"1000\"><g transform=\"translate(210, 210)\">");
-            svg.Append(string.Join("", ToSvgPaths(edges.Where(e => e.Type == EdgeType.Border), 10, "blue")));
-            svg.Append(string.Join("", ToSvgPaths(edges.Where(e => e.Type == EdgeType.Spoke), 10, "red")));
-            svg.Append(string.Join("", ToSvgPaths(edges.Where(e => e.Type == EdgeType.Skeleton), 10, "green")));
-            Console.WriteLine(svg);
-        }
-
-        private static IEnumerable<string> ToSvgPaths(IEnumerable<Edge> edges, float scale, string color)
-        {
-            foreach (var edge in edges)
-                yield return string.Format("<path fill=\"none\" stroke=\"" + color + "\" d=\"M{0} {1} L{2} {3}\"></path>", edge.Start.Position.X * scale, edge.Start.Position.Y * scale, edge.End.Position.X * scale, edge.End.Position.Y * scale);
-        }
-
-        private static string ToSvgPath(IReadOnlyList<Vector2> shape, float scale, string color)
-        {
-            var builder = new StringBuilder("<path fill=\"none\" stroke=\"" + color + "\" d=\"");
-
-            builder.Append(string.Format("M {0} {1} ", shape[0].X * scale, shape[0].Y * scale));
-            for (var i = 1; i < shape.Count; i++)
-                builder.Append(string.Format("L {0} {1} ", shape[i].X * scale, shape[i].Y * scale));
-
-            builder.Append("Z\"></path>");
-
-            return builder.ToString();
-        }
+        //private static void DrawSkeleton(IEnumerable<Edge> edges)
+        //{
+        //    var svg = new StringBuilder();
+        //    svg.Append("<svg width=\"1000\" height=\"1000\"><g transform=\"translate(210, 210)\">");
+        //    svg.Append(string.Join("", ToOpenSvgPaths(edges.Where(e => e.Type == EdgeType.Border), 10, "blue")));
+        //    svg.Append(string.Join("", ToOpenSvgPaths(edges.Where(e => e.Type == EdgeType.Spoke), 10, "red")));
+        //    svg.Append(string.Join("", ToOpenSvgPaths(edges.Where(e => e.Type == EdgeType.Skeleton), 10, "green")));
+        //    Console.WriteLine(svg);
+        //}
         #endregion
     }
 }

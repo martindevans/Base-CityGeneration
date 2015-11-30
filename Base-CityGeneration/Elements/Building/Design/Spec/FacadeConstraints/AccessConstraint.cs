@@ -1,8 +1,8 @@
-﻿using EpimetheusPlugins.Procedural.Utilities;
-using SwizzleMyVectors;
+﻿using SwizzleMyVectors;
 using System;
 using System.Linq;
 using System.Numerics;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
 {
@@ -23,19 +23,19 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
 
             foreach (var side in sides)
             {
-                var sideLine = new Line2D(side.EdgeStart, side.EdgeEnd - side.EdgeStart);
+                var sideLine = new Ray2(side.EdgeStart, side.EdgeEnd - side.EdgeStart);
 
                 //Project out edgeStart/edgeEnd perpendicular and convert to distance along edge
-                var iStart = Geometry2D.LineLineIntersection(new Line2D(edgeStart, eDir.Perpendicular()), sideLine);
-                var iEnd = Geometry2D.LineLineIntersection(new Line2D(edgeEnd, eDir.Perpendicular()), sideLine);
+                var iStart = new Ray2(edgeStart, eDir.Perpendicular()).Intersects(sideLine);
+                var iEnd = new Ray2(edgeEnd, eDir.Perpendicular()).Intersects(sideLine);
 
                 //No intersections means we have nothing to do with this neighbour
                 if (!iStart.HasValue || !iEnd.HasValue)
                     continue;
 
                 //Extract start and end distances along side
-                var st = Math.Min(iStart.Value.DistanceAlongLineB, iEnd.Value.DistanceAlongLineB);
-                var et = Math.Max(iStart.Value.DistanceAlongLineB, iEnd.Value.DistanceAlongLineB);
+                var st = Math.Min(iStart.Value.DistanceAlongB, iEnd.Value.DistanceAlongB);
+                var et = Math.Max(iStart.Value.DistanceAlongB, iEnd.Value.DistanceAlongB);
 
                 //We can select a subsection of the neighbour edge (distances along edge B)
                 //Check if all of the neighbours along that subsection have the resource we're looking for

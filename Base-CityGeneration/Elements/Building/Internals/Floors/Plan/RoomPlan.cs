@@ -6,7 +6,7 @@ using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using System.Numerics;
-
+using SwizzleMyVectors.Geometry;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
@@ -127,7 +127,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 var adjustedD = neighbour.D;
                 if (neighbour.At < startT || neighbour.At > (1 - endT))
                 {
-                    var intersection = Geometry2D.LineLineIntersection(new LineSegment2D(otherRoomInnerA, otherRoomInnerB).Line(), new Line2D(a, neighbour.D - neighbour.A));
+                    var intersection = new LineSegment2(otherRoomInnerA, otherRoomInnerB).Line.Intersects(new Ray2(a, neighbour.D - neighbour.A));
                     if (!intersection.HasValue)
                         throw new InvalidOperationException("lines are parallel, this should never happen. (famous last words)");
                     adjustedD = intersection.Value.Position;
@@ -136,7 +136,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 var adjustedC = neighbour.C;
                 if (neighbour.Bt < startT || neighbour.Bt > (1 - endT))
                 {
-                    var intersection = Geometry2D.LineLineIntersection(new LineSegment2D(otherRoomInnerA, otherRoomInnerB).Line(), new Line2D(b, neighbour.C - neighbour.B));
+                    var intersection = new LineSegment2(otherRoomInnerA, otherRoomInnerB).Line.Intersects(new Ray2(b, neighbour.C - neighbour.B));
                     if (!intersection.HasValue)
                         throw new InvalidOperationException("lines are parallel, this should never happen. (famous last words)");
                     adjustedC = intersection.Value.Position;
@@ -147,30 +147,30 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
                 // 3. Clamp points on other room
                 var otherRoomInnerAB = otherRoomInnerB - otherRoomInnerA;
-                var clampedAdjustedCT = MathHelper.Clamp(Geometry2D.ClosestPointDistanceAlongLine(new Line2D(otherRoomInnerA, otherRoomInnerAB), adjustedC), 0, 1);
-                var clampedAdjustedDT = MathHelper.Clamp(Geometry2D.ClosestPointDistanceAlongLine(new Line2D(otherRoomInnerA, otherRoomInnerAB), adjustedD), 0, 1);
+                var clampedAdjustedCT = MathHelper.Clamp(new Ray2(otherRoomInnerA, otherRoomInnerAB).ClosestPointDistanceAlongLine(adjustedC), 0, 1);
+                var clampedAdjustedDT = MathHelper.Clamp(new Ray2(otherRoomInnerA, otherRoomInnerAB).ClosestPointDistanceAlongLine(adjustedD), 0, 1);
 
                 var c = otherRoomInnerA + otherRoomInnerAB * clampedAdjustedCT;
                 var d = otherRoomInnerA + otherRoomInnerAB * clampedAdjustedDT;
 
                 // 4. Projected clamped/projected points back to this room
-                var intersectionABDA = Geometry2D.LineLineIntersection(new LineSegment2D(section.B, section.A).Line(), new Line2D(d, neighbour.D - neighbour.A));
+                var intersectionABDA = new LineSegment2(section.B, section.A).Line.Intersects(new Ray2(d, neighbour.D - neighbour.A));
                 if (!intersectionABDA.HasValue)
                     throw new InvalidOperationException("lines are parallel, this should never happen. (famous last words)");
                 var reprojectedA = intersectionABDA.Value.Position;
-                var reprojectedAT = intersectionABDA.Value.DistanceAlongLineA / section.Width;
+                var reprojectedAT = intersectionABDA.Value.DistanceAlongA / section.Width;
 
-                var intersectionABCB = Geometry2D.LineLineIntersection(new LineSegment2D(section.B, section.A).Line(), new Line2D(c, neighbour.C - neighbour.B));
+                var intersectionABCB = new LineSegment2(section.B, section.A).Line.Intersects(new Ray2(c, neighbour.C - neighbour.B));
                 if (!intersectionABCB.HasValue)
                     throw new InvalidOperationException("lines are parallel, this should never happen. (famous last words)");
                 var reprojectedB = intersectionABCB.Value.Position;
-                var reprojectedBT = intersectionABCB.Value.DistanceAlongLineA / section.Width;
+                var reprojectedBT = intersectionABCB.Value.DistanceAlongA / section.Width;
 
                 //Create section from last neighbour to edge of this one
                 if (Math.Abs(reprojectedAT - previousMax) * section.Width > NeighbourData.SAME_POINT_EPSILON)
                 {
                     var sA = section.B - section.Along * section.Width * previousMax;
-                    var sC = Geometry2D.ClosestPointOnLineSegment(new LineSegment2D(section.C, section.D), reprojectedA);
+                    var sC = new LineSegment2(section.C, section.D).ClosestPoint(reprojectedA);
                     var sD = section.C - section.Along * section.Width * previousMax;
 
                     result.Add(new Facade(null, false, new Walls.Section(false, sA, reprojectedA, sC, sD)));
@@ -184,7 +184,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 {
                     var eB = section.B - section.Along * section.Width * 1;
                     var eC = section.C - section.Along * section.Width * 1;
-                    var eD = Geometry2D.ClosestPointOnLineSegment(new LineSegment2D(section.C, section.D), reprojectedB);
+                    var eD = new LineSegment2(section.C, section.D).ClosestPoint(reprojectedB);
 
                     //Since this is the last section, create a section to the end
                     result.Add(new Facade(null, false, new Walls.Section(false, reprojectedB, eB, eC, eD)));
@@ -230,16 +230,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             {
                 var segmentSelf = n.Segment(this);
 
-                var innerEdge = new Line2D(section.C, section.D - section.C);
+                var innerEdge = new Ray2(section.C, section.D - section.C);
 
-                Geometry2D.Parallelism parallelism;
-                Geometry2D.LineLineIntersection(innerEdge, new Line2D(segmentSelf.Start, segmentSelf.End - segmentSelf.Start), out parallelism);
+                Parallelism parallelism;
+                innerEdge.Intersects(new Ray2(segmentSelf.Start, segmentSelf.End - segmentSelf.Start), out parallelism);
 
-                return parallelism == Geometry2D.Parallelism.Collinear;
+                return parallelism == Parallelism.Collinear;
             }).Where(n =>
             {
-                var d1 = Geometry2D.ClosestPointDistanceAlongLine(section.ExternalLineSegment.LongLine(), n.A);
-                var d2 = Geometry2D.ClosestPointDistanceAlongLine(section.ExternalLineSegment.LongLine(), n.B);
+                var d1 = section.ExternalLineSegment.LongLine.ClosestPointDistanceAlongLine(n.A);
+                var d2 = section.ExternalLineSegment.LongLine.ClosestPointDistanceAlongLine(n.B);
 
                 return Math.Min(d1, d2) <= 1 && Math.Max(d1, d2) >= 0;
             }).ToArray();
@@ -253,8 +253,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             {
                 //Corner sections have 2 edges which may be external, A->B and B->C
                 return
-                    IsExternalLineSegment(new LineSegment2D(section.A, section.B)) ||
-                    IsExternalLineSegment(new LineSegment2D(section.B, section.C));
+                    IsExternalLineSegment(new LineSegment2(section.A, section.B)) ||
+                    IsExternalLineSegment(new LineSegment2(section.B, section.C));
             }
             else
             {
@@ -262,28 +262,28 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             }
         }
 
-        private bool IsExternalLineSegment(LineSegment2D segment)
+        private bool IsExternalLineSegment(LineSegment2 segment)
         {
-            var externalLines = Edges(_plan.ExternalFootprint.ToArray()).Select(edge => new LineSegment2D(edge.Start, edge.End));
+            var externalLines = Edges(_plan.ExternalFootprint.ToArray()).Select(edge => new LineSegment2(edge.Start, edge.End));
 
             return externalLines.Any(l =>
             {
-                var edgeDirection = l.Line().Direction;
-                var segmentDirection = segment.Line().Direction;
+                var edgeDirection = l.Line.Direction;
+                var segmentDirection = segment.Line.Direction;
 
                 if (Math.Abs(Vector2.Dot(edgeDirection, segmentDirection)) < 0.99619469809f) //Allow 5 degrees difference
                     return false;
 
                 return
-                    Geometry2D.DistanceFromPointToLineSegment(segment.Start, l) < (WallThickness * 2) &&
-                    Geometry2D.DistanceFromPointToLineSegment(segment.End, l) < (WallThickness * 2);
+                    l.DistanceToPoint(segment.Start) < (WallThickness * 2) &&
+                    l.DistanceToPoint(segment.End) < (WallThickness * 2);
             });
         }
 
-        private static IEnumerable<LineSegment2D> Edges(IList<Vector2> array)
+        private static IEnumerable<LineSegment2> Edges(IList<Vector2> array)
         {
             return array
-                .Select((t, i) => new LineSegment2D(t, array[(i + 1) % array.Count]));
+                .Select((t, i) => new LineSegment2(t, array[(i + 1) % array.Count]));
         }
 
         private Vector2[] Footprint()
@@ -291,17 +291,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return OuterFootprint;
         }
 
-        internal IEnumerable<LineSegment2D> Edges()
+        internal IEnumerable<LineSegment2> Edges()
         {
             for (uint i = 0; i < Footprint().Length; i++)
                 yield return GetEdge(i);
         }
 
-        internal LineSegment2D GetEdge(uint index)
+        internal LineSegment2 GetEdge(uint index)
         {
             var f = Footprint();
             index %= (uint)f.Length;
-            return new LineSegment2D(f[index], f[(index + 1) % f.Length]);
+            return new LineSegment2(f[index], f[(index + 1) % f.Length]);
         }
 
         public class Facade

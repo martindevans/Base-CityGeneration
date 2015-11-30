@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using EpimetheusPlugins.Procedural.Utilities;
 using SwizzleMyVectors;
 using System.Numerics;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
 {
@@ -35,23 +35,23 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
                 if (!side.Neighbours.Any())
                     continue;
 
-                var sideLine = new Line2D(side.EdgeStart, side.EdgeEnd - side.EdgeStart);
+                var sideLine = new Ray2(side.EdgeStart, side.EdgeEnd - side.EdgeStart);
 
                 //Project out edgeStart/edgeEnd perpendicular and convert to distance along edge
-                var iStart = Geometry2D.LineLineIntersection(new Line2D(edgeStart, -eDir.Perpendicular()), sideLine);
-                var iEnd = Geometry2D.LineLineIntersection(new Line2D(edgeEnd, -eDir.Perpendicular()), sideLine);
+                var iStart = new Ray2(edgeStart, -eDir.Perpendicular()).Intersects(sideLine);
+                var iEnd = new Ray2(edgeEnd, -eDir.Perpendicular()).Intersects(sideLine);
 
                 //No intersections means we can't possibly be obscured by this neighbour
                 if (!iStart.HasValue || !iEnd.HasValue)
                     continue;
 
                 //If the intersection is to the wrong side of this line, skip it
-                if (iStart.Value.DistanceAlongLineA < 0 || iEnd.Value.DistanceAlongLineA < 0)
+                if (iStart.Value.DistanceAlongA < 0 || iEnd.Value.DistanceAlongA < 0)
                     continue;
 
                 //Extract start and end distances along side
-                var st = Math.Min(iStart.Value.DistanceAlongLineB, iEnd.Value.DistanceAlongLineB);
-                var et = Math.Max(iStart.Value.DistanceAlongLineB, iEnd.Value.DistanceAlongLineB);
+                var st = Math.Min(iStart.Value.DistanceAlongB, iEnd.Value.DistanceAlongB);
+                var et = Math.Max(iStart.Value.DistanceAlongB, iEnd.Value.DistanceAlongB);
 
                 //We can select a subsection of the neighbour edge (distances along edge B)
                 //Check if any of the buildings along that subsection break the clearance constraint
@@ -70,12 +70,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
 
                     //Distance from the start point of this neighbour, to the closest point on the edge of this facade section
                     bool cont;
-                    var startClear = MeasureClearance(out cont, sideLine, sideLine.Point + sideLine.Direction * ns, new LineSegment2D(edgeStart, edgeEnd), eDir);
+                    var startClear = MeasureClearance(out cont, sideLine, sideLine.Position + sideLine.Direction * ns, new LineSegment2(edgeStart, edgeEnd), eDir);
                     if (cont)
                         continue;
 
                     //Distance from the end point of this neighbour, to the closest point on the edge of this facade section
-                    var endClear = MeasureClearance(out cont, sideLine, sideLine.Point + sideLine.Direction * ne, new LineSegment2D(edgeStart, edgeEnd), eDir);
+                    var endClear = MeasureClearance(out cont, sideLine, sideLine.Position + sideLine.Direction * ne, new LineSegment2(edgeStart, edgeEnd), eDir);
                     if (cont)
                         continue;
 
@@ -88,10 +88,10 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
             return true;
         }
 
-        private static float MeasureClearance(out bool skip, Line2D sideLine, Vector2 point, LineSegment2D edgeSeg, Vector2 edgeDir)
+        private static float MeasureClearance(out bool skip, Ray2 sideLine, Vector2 point, LineSegment2 edgeSeg, Vector2 edgeDir)
         {
-            var startSegPoint = Geometry2D.ClosestPointOnLineSegment(edgeSeg, point);
-            var sidePoint = Geometry2D.LineLineIntersection(new Line2D(startSegPoint, edgeDir.Perpendicular()), sideLine);
+            var startSegPoint = edgeSeg.ClosestPoint(point);
+            var sidePoint = new Ray2(startSegPoint, edgeDir.Perpendicular()).Intersects(sideLine);
 
             if (!sidePoint.HasValue)
             {
@@ -100,7 +100,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
             }
 
             skip = false;
-            return sidePoint.Value.DistanceAlongLineA;
+            return sidePoint.Value.DistanceAlongA;
         }
 
         internal class Container

@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Numerics;
 using System;
 using System.Linq;
+using Base_CityGeneration.Datastructures;
 
 namespace Base_CityGeneration.Test.Parcelling
 {
@@ -34,7 +35,20 @@ namespace Base_CityGeneration.Test.Parcelling
 
             Assert.IsTrue(parcels.All(a => a.Area() <= 50));
 
-            AssertParcel(new[] { new Vector2(5, 0), new Vector2(5, 5), new Vector2(0, 5), new Vector2(0, 0) }, parcels[1].Points());
+            foreach (var parcel in parcels)
+            {
+                foreach (var parcel1 in parcels)
+                {
+                    if (parcel1.Equals(parcel))
+                        continue;
+
+                    //Test intersection (shrink them a tiny bit, to ensure they don't touch at a corner)
+                    if (!SeparatingAxisTester.Intersects(parcel1.Points().Shrink(0.01f).ToArray(), parcel.Points().Shrink(0.01f).ToArray()))
+                        continue;
+
+                    Assert.Fail("Intersecting parcels");
+                }
+            }
         }
 
         private static void AssertParcel(Vector2[] expected, Vector2[] actual)
@@ -44,12 +58,13 @@ namespace Base_CityGeneration.Test.Parcelling
             Walls.MatchUp(expected, actual);
             for (int i = 0; i < expected.Length; i++)
             {
-                Assert.AreEqual(expected[i], actual[i]);
+                Assert.AreEqual(expected[i].X, actual[i].X, 0.001f);
+                Assert.AreEqual(expected[i].Y, actual[i].Y, 0.001f);
             }
         }
 
         [TestMethod]
-        public void ParcellerCCW()
+        public void ParcellerCW()
         {
             _parceller.AddTerminationRule(new AreaRule(15, 50, 0.5f));
             _parceller.AddTerminationRule(new AccessRule("edge", 0.5f));
@@ -57,7 +72,7 @@ namespace Base_CityGeneration.Test.Parcelling
 
             Assert.IsTrue(parcels.All(a => a.Area() <= 50));
 
-            AssertParcel(new[] { new Vector2(5, 0), new Vector2(5, 5), new Vector2(0, 5), new Vector2(0, 0) }, parcels[1].Points());
+            AssertParcel(new[] { new Vector2(0, 0), new Vector2(0, 5), new Vector2(5, 5), new Vector2(5, 0) }, parcels[1].Points());
         }
     }
 }

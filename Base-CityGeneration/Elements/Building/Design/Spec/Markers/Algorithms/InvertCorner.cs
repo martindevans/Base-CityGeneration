@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Base_CityGeneration.Utilities.Numbers;
-using EpimetheusPlugins.Procedural.Utilities;
 using Myre.Collections;
 using SwizzleMyVectors;
+using SwizzleMyVectors.Geometry;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
@@ -81,7 +81,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
                 var b2 = b + (bc / bcLength) * distance;
 
                 //Peak of incut
-                var intersect = new Line2D(b1, bc).Intersection(new Line2D(b2, ab));
+                var intersect = new Ray2(b1, bc).Intersects(new Ray2(b2, ab));
                 if (!intersect.HasValue)
                 {
                     //Can't find a peak for this incut, just skip over this and leave this corner unchanged

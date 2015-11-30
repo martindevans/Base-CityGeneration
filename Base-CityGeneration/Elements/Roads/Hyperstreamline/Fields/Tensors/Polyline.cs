@@ -1,8 +1,7 @@
 ﻿using System;
-using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
 using Myre.Collections;
-
+using SwizzleMyVectors.Geometry;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
@@ -32,7 +31,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
                 var angle = Math.Atan2(dir.Y, dir.X) + MathHelper.PiOver2;
                 var tensor = Tensor.Normalize(Tensor.FromRTheta(1, angle));
 
-                var dist = Geometry2D.DistanceFromPointToLineSegment(position, new LineSegment2D(start, end));
+                var dist = new LineSegment2(start, end).DistanceToPoint(position);
                 var decay = PointDistanceDecayField.DistanceDecay(dist * dist, _decay);
 
                 result += decay * tensor;

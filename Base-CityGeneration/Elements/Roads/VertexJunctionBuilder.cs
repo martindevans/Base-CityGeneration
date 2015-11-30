@@ -2,7 +2,6 @@
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
-using Myre.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,7 +15,7 @@ namespace Base_CityGeneration.Elements.Roads
     {
         private readonly Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> _vertex;
 
-        private ReadOnlyCollection<Vector2> _footprint = null;
+        private ReadOnlyCollection<Vector2> _footprint;
         public ReadOnlyCollection<Vector2> Shape
         {
             get
@@ -48,11 +47,11 @@ namespace Base_CityGeneration.Elements.Roads
             //Get the builder for the edge ending at _vertex
             var b = a.BuilderEndingWith(_vertex);
 
-            var ld = Geometry2D.ClosestPointDistanceAlongLine(b.Left, _vertex.Position);
-            b.LeftEnd = b.Left.Point + b.Left.Direction * ld;
+            var ld = b.Left.ClosestPointDistanceAlongLine(_vertex.Position);
+            b.LeftEnd = b.Left.Position + b.Left.Direction * ld;
 
-            var rd = Geometry2D.ClosestPointDistanceAlongLine(b.Right, _vertex.Position);
-            b.RightEnd = b.Right.Point + b.Right.Direction * rd;
+            var rd = b.Right.ClosestPointDistanceAlongLine(_vertex.Position);
+            b.RightEnd = b.Right.Position + b.Right.Direction * rd;
 
             //Dead ends do not create *any* junction, so return null for the junction shape
             return null;
@@ -75,7 +74,7 @@ namespace Base_CityGeneration.Elements.Roads
 
             //Extract junction shape
             return new ReadOnlyCollection<Vector2>(orderedEdges
-                .SelectMany(e => e.AllPoints).Quickhull2D().ToArray()
+                .SelectMany(e => e.AllPoints).ConvexHull().ToArray()
             );
         }
 
@@ -85,10 +84,10 @@ namespace Base_CityGeneration.Elements.Roads
             var bt = left.Builder;
 
             //Find intersection points between both sides of both roads
-            var lrIntersect = Geometry2D.LineLineIntersection(at.Left, bt.Right);
-            var rlIntersect = Geometry2D.LineLineIntersection(at.Right, bt.Left);
-            var rrIntersect = Geometry2D.LineLineIntersection(at.Right, bt.Right);
-            var llIntersect = Geometry2D.LineLineIntersection(at.Left, bt.Left);
+            var lrIntersect = at.Left.Intersects(bt.Right);
+            var rlIntersect = at.Right.Intersects(bt.Left);
+            var rrIntersect = at.Right.Intersects(bt.Right);
+            var llIntersect = at.Left.Intersects(bt.Left);
 
             //Check if roads are totally parallel
             if (!lrIntersect.HasValue || !rlIntersect.HasValue || !rrIntersect.HasValue || !llIntersect.HasValue)
@@ -109,7 +108,7 @@ namespace Base_CityGeneration.Elements.Roads
             // Right config: llt < lrt
 
             //Assign road positions, and pass out data about the point of the junction in these variables
-            if (llIntersect.Value.DistanceAlongLineA > lrIntersect.Value.DistanceAlongLineA) {
+            if (llIntersect.Value.DistanceAlongA > lrIntersect.Value.DistanceAlongA) {
                 at.LeftEnd = lrIntersect.Value.Position;
                 bt.RightEnd = lrIntersect.Value.Position;
 

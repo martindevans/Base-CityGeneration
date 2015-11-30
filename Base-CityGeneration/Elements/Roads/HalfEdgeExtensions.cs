@@ -1,10 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using Base_CityGeneration.Datastructures.HalfEdge;
-using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
-using Myre.Extensions;
 using System;
 using SwizzleMyVectors;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Roads
 {
@@ -49,8 +48,8 @@ namespace Base_CityGeneration.Elements.Roads
                 _tag = tag;
 
                 var n = Direction.Perpendicular() * Width * 0.5f;
-                _left = new Line2D(HalfEdge.EndVertex.Position - n, Direction);
-                _right = new Line2D(HalfEdge.EndVertex.Position + n, Direction);
+                _left = new Ray2(HalfEdge.EndVertex.Position - n, Direction);
+                _right = new Ray2(HalfEdge.EndVertex.Position + n, Direction);
             }
 
             public HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> HalfEdge
@@ -63,11 +62,11 @@ namespace Base_CityGeneration.Elements.Roads
                 get { return _tag.Shape; }
             }
 
-            private readonly Line2D _left;
-            public Line2D Left { get { return _left; } }
+            private readonly Ray2 _left;
+            public Ray2 Left { get { return _left; } }
 
-            private readonly Line2D _right;
-            public Line2D Right { get { return _right; } }
+            private readonly Ray2 _right;
+            public Ray2 Right { get { return _right; } }
 
             public float Width
             {

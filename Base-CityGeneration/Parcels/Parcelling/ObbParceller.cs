@@ -2,11 +2,12 @@
 using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
 using Myre.Collections;
-using Myre.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Base_CityGeneration.Datastructures;
 using SwizzleMyVectors;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Parcels.Parcelling
 {
@@ -57,7 +58,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
             if (accumulator / _terminators.Count >= random())
                 return new[] { parcel };
 
-            OABB oabb = FitOabb(parcel, NonOptimalOabbChance, NonOptimalOabbMaxRatio, random);
+            OABR oabb = FitOabb(parcel, NonOptimalOabbChance, NonOptimalOabbMaxRatio, random);
 
             var splitLine = oabb.SplitDirection();
             var children = Split(parcel, oabb, splitLine, random, metadata).ToArray();
@@ -78,11 +79,11 @@ namespace Base_CityGeneration.Parcels.Parcelling
         }
 
         #region static helpers
-        private IEnumerable<Parcel> Split(Parcel parcel, OABB oabb, Vector2 sliceDirection, Func<double> random, INamedDataCollection metadata)
+        private IEnumerable<Parcel> Split(Parcel parcel, OABR oabb, Vector2 sliceDirection, Func<double> random, INamedDataCollection metadata)
         {
             var point = oabb.Middle + Math.Max(oabb.Extents.X, oabb.Extents.Y) * sliceDirection.Perpendicular() * SplitPointGenerator.SelectFloatValue(random, metadata);
 
-            var slices = parcel.Points().SlicePolygon(new Line2D(point, sliceDirection));
+            var slices = parcel.Points().SlicePolygon(new Ray2(point, sliceDirection));
 
             return slices.Select(a => ToParcel(parcel, a));
         }
@@ -107,8 +108,8 @@ namespace Base_CityGeneration.Parcels.Parcelling
                 {
                     var childEdge = edges[j];
 
-                    var s = Math.Abs(Geometry2D.DistanceFromPointToLine(childEdge.Start, new Line2D(parentEdge.Start, parentDirection)));
-                    var e = Math.Abs(Geometry2D.DistanceFromPointToLine(childEdge.End, new Line2D(parentEdge.Start, parentDirection)));
+                    var s = Math.Abs(new Ray2(parentEdge.Start, parentDirection).DistanceToPoint(childEdge.Start));
+                    var e = Math.Abs(new Ray2(parentEdge.Start, parentDirection).DistanceToPoint(childEdge.End));
 
                     if (s < 0.01 && e < 0.01) //Pretty massive threshold, but it's only really 1cm, so close enough when we're talking about entire city blocks!
                     {
@@ -121,46 +122,10 @@ namespace Base_CityGeneration.Parcels.Parcelling
             return new Parcel(edges);
         }
 
-        internal static OABB FitOabb(Parcel parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)
+        internal static OABR FitOabb(Parcel parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)
         {
-            //Finding the OABB of the hull is the same as finding the OABB of the parcel, but is quicker
-            var hull = parcel.Points().Quickhull2D().ToArray();
-
-            //Find middle of hull
-            Vector2 middle = hull.Aggregate(Vector2.Zero, (current, t) => current + t / hull.Length);
-
-            //Generate ordered list of all OABBs (each aligned with an edge of the convex hull)
-            var oabbs = Enumerable
-                .Range(0, hull.Length)
-                .Select(i =>
-                {
-                    var a = hull[i];
-                    var b = hull[(i + 1) % hull.Length];
-
-                    //Get the angle of this edge from the vertical
-                    var angle = (float) Math.Atan2(b.X - a.X, b.Y - a.Y);
-
-                    //Find the bounding box for this orientation
-                    Vector2 min = new Vector2(float.MaxValue);
-                    Vector2 max = new Vector2(float.MinValue);
-                    foreach (var rotated in hull.Select(v => RotateAround(v, middle, -angle)))
-                    {
-                        min.X = Math.Min(min.X, rotated.X);
-                        min.Y = Math.Min(min.Y, rotated.Y);
-                        max.X = Math.Max(max.X, rotated.X);
-                        max.Y = Math.Max(max.Y, rotated.Y);
-                    }
-
-                    var extents = (max - min) / 2;
-                    return new OABB
-                    {
-                        Middle = middle,
-                        Rotation = -angle,
-                        Extents = extents,
-                        Area = extents.X * extents.Y * 4
-                    };
-                })
-                .OrderBy(a => a.Extents.X * a.Extents.Y * 4).ToArray();
+            //Generate a set of OABBs, order by size
+            var oabbs = OABR.Fittings(parcel.Points()).OrderBy(a => a.Extents.X * a.Extents.Y * 4).ToArray();
 
             //Now select an OABB from this list, with the first (smallest) being the most likely
             int selected = 0;
@@ -189,21 +154,5 @@ namespace Base_CityGeneration.Parcels.Parcelling
             );
         }
         #endregion
-
-        internal struct OABB
-        {
-            public Vector2 Middle;
-            public float Rotation;
-            public Vector2 Extents;
-            public float Area;
-
-            public Vector2 SplitDirection()
-            {
-                var sin = (float)Math.Sin(Rotation);
-                var cos = (float)Math.Cos(Rotation);
-
-                return Vector2.Normalize((Extents.X < Extents.Y) ? new Vector2(cos, sin) : new Vector2(sin, cos));
-            }
-        }
     }
 }

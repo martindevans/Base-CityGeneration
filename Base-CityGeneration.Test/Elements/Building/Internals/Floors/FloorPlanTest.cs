@@ -8,13 +8,12 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Styles;
 using Base_CityGeneration.TestHelpers;
 using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Numerics;
 using Myre.Collections;
-using Myre.Extensions;
 using SwizzleMyVectors;
+using SwizzleMyVectors.Geometry;
 using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
 namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
@@ -167,12 +166,12 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Check that points C and D lies on the edge of low room
             var n = wideNeighbours.Single(a => a.RoomCD == low);
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.C, new Line2D(new Vector2(-10, -90f), new Vector2(1, 0))) < 0.1f);
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.D, new Line2D(new Vector2(-10, -90f), new Vector2(1, 0))) < 0.1f);
+            Assert.IsTrue(Math.Abs(new Ray2(new Vector2(-10, -90f), new Vector2(1, 0)).DistanceToPoint(n.C)) < 0.1f);
+            Assert.IsTrue(Math.Abs(new Ray2(new Vector2(-10, -90f), new Vector2(1, 0)).DistanceToPoint(n.D)) < 0.1f);
 
             //Check that points A and B lie on the edge of wide room
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.A, new Line2D(new Vector2(-10, -10f), new Vector2(1, 0))) < 0.1f);
-            Assert.IsTrue(Geometry2D.DistanceFromPointToLine(n.B, new Line2D(new Vector2(-10, -10f), new Vector2(1, 0))) < 0.1f);
+            Assert.IsTrue(Math.Abs(new Ray2(new Vector2(-10, -10f), new Vector2(1, 0)).DistanceToPoint(n.A)) < 0.1f);
+            Assert.IsTrue(Math.Abs(new Ray2(new Vector2(-10, -10f), new Vector2(1, 0)).DistanceToPoint(n.B)) < 0.1f);
 
             //Check that neighbour data is the same going the other direction
             var lowNeighbours = _plan.GetNeighbours(low);
@@ -180,15 +179,15 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             Assert.IsTrue(lowNeighbours.Any(a => a.RoomCD == wide));
 
             //Check that point is close to the edge it is supposed to lie on
-            var segment = new LineSegment2D(wide.OuterFootprint[n.EdgeIndexRoomAB], wide.OuterFootprint[(n.EdgeIndexRoomAB + 1) % wide.OuterFootprint.Length]);
-            var line = segment.Line();
-            var dist = Geometry2D.DistanceFromPointToLine(n.A, line);
+            var segment = new LineSegment2(wide.OuterFootprint[n.EdgeIndexRoomAB], wide.OuterFootprint[(n.EdgeIndexRoomAB + 1) % wide.OuterFootprint.Length]);
+            var line = segment.Line;
+            var dist = line.DistanceToPoint(n.A);
             Assert.IsTrue(dist < 0.01f);
 
             //Check that point is close to the edge it is supposed to lie on
-            var segment2 = new LineSegment2D(low.OuterFootprint[n.EdgeIndexRoomCD], low.OuterFootprint[(n.EdgeIndexRoomCD + 1) % low.OuterFootprint.Length]);
-            var line2 = segment2.Line();
-            var dist2 = Geometry2D.DistanceFromPointToLine(n.C, line2);
+            var segment2 = new LineSegment2(low.OuterFootprint[n.EdgeIndexRoomCD], low.OuterFootprint[(n.EdgeIndexRoomCD + 1) % low.OuterFootprint.Length]);
+            var line2 = segment2.Line;
+            var dist2 = line2.DistanceToPoint(n.C);
             Assert.IsTrue(dist2 < 0.01f);
 
             //Check that distance along edge is correct for points
@@ -417,7 +416,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             var facades = room.GetFacades().ToArray();
 
-            Assert.AreEqual(8, facades.Count());
+            Assert.AreEqual(8, facades.Length);
             Assert.AreEqual(4, facades.Count(f => f.Section.IsCorner));
             Assert.AreEqual(4, facades.Count(f => !f.Section.IsCorner));
             Assert.IsTrue(facades.All(f => f.IsExternal));
@@ -462,12 +461,12 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             var internalFacades = facades.Where(f => !f.IsExternal).ToArray();
 
             Assert.AreEqual(1, internalFacades.Count(f => f.NeighbouringRoom == roomB));
-            Assert.AreEqual(3, internalFacades.Count());
+            Assert.AreEqual(3, internalFacades.Length);
 
             //Check that the neighbour section has points lying on both rooms
             var n = internalFacades.Single(f => f.NeighbouringRoom == roomB);
-            Assert.IsTrue(roomB.Edges().Any(e => Geometry2D.DistanceFromPointToLineSegment(n.Section.C, e) <= roomB.WallThickness));
-            Assert.IsTrue(roomA.Edges().Any(e => Geometry2D.DistanceFromPointToLineSegment(n.Section.A, e) <= roomA.WallThickness));
+            Assert.IsTrue(roomB.Edges().Any(e => e.DistanceToPoint(n.Section.C) <= roomB.WallThickness));
+            Assert.IsTrue(roomA.Edges().Any(e => e.DistanceToPoint(n.Section.A) <= roomA.WallThickness));
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
@@ -485,14 +484,14 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
         private void AssertAllSections()
         {
-            Func<RoomPlan, LineSegment2D[]> edges = r => r.OuterFootprint.Select((a, i) => new LineSegment2D(a, r.OuterFootprint[(i + 1) % r.OuterFootprint.Length])).ToArray();
+            Func<RoomPlan, LineSegment2[]> edges = r => r.OuterFootprint.Select((a, i) => new LineSegment2(a, r.OuterFootprint[(i + 1) % r.OuterFootprint.Length])).ToArray();
 
             foreach (var neighbour in _plan.Rooms.SelectMany(roomInfo => _plan.GetNeighbours(roomInfo)))
             {
-                Assert.IsTrue(edges(neighbour.RoomAB).Any(e => Geometry2D.DistanceFromPointToLineSegment(neighbour.A, e) < 0.1f));
-                Assert.IsTrue(edges(neighbour.RoomAB).Any(e => Geometry2D.DistanceFromPointToLineSegment(neighbour.B, e) < 0.1f));
-                Assert.IsTrue(edges(neighbour.RoomCD).Any(e => Geometry2D.DistanceFromPointToLineSegment(neighbour.C, e) < 0.1f));
-                Assert.IsTrue(edges(neighbour.RoomCD).Any(e => Geometry2D.DistanceFromPointToLineSegment(neighbour.D, e) < 0.1f));
+                Assert.IsTrue(edges(neighbour.RoomAB).Any(e => e.DistanceToPoint(neighbour.A) < 0.1f));
+                Assert.IsTrue(edges(neighbour.RoomAB).Any(e => e.DistanceToPoint(neighbour.B) < 0.1f));
+                Assert.IsTrue(edges(neighbour.RoomCD).Any(e => e.DistanceToPoint(neighbour.C) < 0.1f));
+                Assert.IsTrue(edges(neighbour.RoomCD).Any(e => e.DistanceToPoint(neighbour.D) < 0.1f));
             }
         }
 
@@ -908,8 +907,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             var r = new Random();
             Func<double> Random = r.NextDouble;
 
-            const int Length = 60;
-            const int Width = 20;
+            const float Length = 60;
+            const float Width = 20;
 
             Func<Vector2, float, float, Vector2> Offset = (start, length, width) => start + new Vector2(Length * length, -Width * width);
 
@@ -1263,7 +1262,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         }
 
         [TestMethod]
-        public void RegressioTest_MissingFacadeStartSections()
+        public void RegressionTest_MissingFacadeStartSections()
         {
             // This is a test case found when designing trains
             // The start of a wall (from wall start -> start of first neighbour) didn't generate, now it does.

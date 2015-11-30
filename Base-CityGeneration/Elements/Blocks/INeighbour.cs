@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Procedural.Utilities;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Blocks
 {
@@ -19,15 +19,15 @@ namespace Base_CityGeneration.Elements.Blocks
     {
         public readonly ISubdivisionContext Neighbour;
 
-        public readonly LineSegment2D NeighbourSegment;
+        public readonly LineSegment2 NeighbourSegment;
         public readonly float NeighbourStart;
         public readonly float NeighbourEnd;
 
-        public readonly LineSegment2D Segment;
+        public readonly LineSegment2 Segment;
         public readonly float Start;
         public readonly float End;
 
-        public NeighbourInfo(ISubdivisionContext neighbour, LineSegment2D neighbourSegment, float neighbourStart, float neighbourEnd, LineSegment2D segment, float start, float end)
+        public NeighbourInfo(ISubdivisionContext neighbour, LineSegment2 neighbourSegment, float neighbourStart, float neighbourEnd, LineSegment2 segment, float start, float end)
         {
             Neighbour = neighbour;
 
