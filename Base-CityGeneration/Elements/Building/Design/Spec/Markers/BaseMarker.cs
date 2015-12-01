@@ -60,7 +60,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 
             //Create a list with the points in
             var p = new Point2DList();
-            p.AddRange(footprint.Append(footprint[0]).Select(a => new Point2D(a.X, a.Y)).ToArray());
+            p.AddRange(footprint.Select(a => new Point2D(a.X, a.Y)).ToArray());
 
             //If two consecutive points are in the same position, remove one
             p.RemoveDuplicateNeighborPoints();

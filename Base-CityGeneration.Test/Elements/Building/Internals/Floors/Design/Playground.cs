@@ -212,11 +212,12 @@ Rooms:
 
             var hull = points.ConvexHull().ToArray();
 
-            var oabr = OABR.Fit(hull);
+            var oabrs = OABR.Fittings(hull);
 
             var svg = new SvgRenderer(2);
             svg.AddOutline(hull, "red");
-            svg.AddOutline((IReadOnlyList<Vector2>)oabr.Points(new Vector2[4]));
+            foreach (var oabr in oabrs)
+                svg.AddOutline((IReadOnlyList<Vector2>)oabr.Points(new Vector2[4]));
             Console.WriteLine(svg.Render());
         }
     }

@@ -87,9 +87,11 @@ namespace Base_CityGeneration.Parcels.Parcelling
         public float AspectRatio()
         {
             var oabb = ObbParceller.FitOabb(this, 0, 0, null);
-            var ratio = Math.Max(oabb.Extents.X, oabb.Extents.Y) / Math.Min(oabb.Extents.X, oabb.Extents.Y);
+            //var ratio = Math.Max(oabb.Extents.X, oabb.Extents.Y) / Math.Min(oabb.Extents.X, oabb.Extents.Y);
 
-            return ratio;
+            throw new NotImplementedException();
+
+            //return ratio;
         }
 
         /// <summary>

@@ -27,6 +27,19 @@ namespace Base_CityGeneration.Utilities.SVG
             _max = Vector2.Max(_max, shape.Aggregate(Vector2.Max));
         }
 
+        public void AddCircle(Vector2 center, float radius, string fill = "blue")
+        {
+            _parts.Add(string.Format("<circle cx=\"{0}\" cy=\"{1}\" r=\"{2}\" fill=\"{3}\"></circle>",
+                center.X * _scale,
+                center.Y * _scale,
+                radius * _scale,
+                fill
+            ));
+
+            _min = Vector2.Min(_min, center - new Vector2(radius));
+            _max = Vector2.Max(_max, center + new Vector2(radius));
+        }
+
         private static string ToSvgPath(IReadOnlyList<Vector2> shape, float scale, string color, bool closed)
         {
             var builder = new StringBuilder("<path fill=\"none\" stroke=\"" + color + "\" d=\"");

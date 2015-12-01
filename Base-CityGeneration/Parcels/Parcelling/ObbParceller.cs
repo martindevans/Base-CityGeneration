@@ -81,7 +81,8 @@ namespace Base_CityGeneration.Parcels.Parcelling
         #region static helpers
         private IEnumerable<Parcel> Split(Parcel parcel, OABR oabb, Vector2 sliceDirection, Func<double> random, INamedDataCollection metadata)
         {
-            var point = oabb.Middle + Math.Max(oabb.Extents.X, oabb.Extents.Y) * sliceDirection.Perpendicular() * SplitPointGenerator.SelectFloatValue(random, metadata);
+            var extent = (oabb.Max - oabb.Min);
+            var point = oabb.Middle + Math.Max(extent.X, extent.Y) * sliceDirection.Perpendicular() * SplitPointGenerator.SelectFloatValue(random, metadata);
 
             var slices = parcel.Points().SlicePolygon(new Ray2(point, sliceDirection));
 
@@ -125,11 +126,11 @@ namespace Base_CityGeneration.Parcels.Parcelling
         internal static OABR FitOabb(Parcel parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)
         {
             //Generate a set of OABBs, order by size
-            var oabbs = OABR.Fittings(parcel.Points()).OrderBy(a => a.Extents.X * a.Extents.Y * 4).ToArray();
+            var oabbs = OABR.Fittings(parcel.Points()).OrderBy(a =>  a.Area).ToArray();
 
             //Now select an OABB from this list, with the first (smallest) being the most likely
-            int selected = 0;
-            for (int i = 1; i < oabbs.Length; i++)
+            var selected = 0;
+            for (var i = 1; i < oabbs.Length; i++)
             {
                 //Do not allow the area ratio between optimal and selected to go over the non optimality limit
                 if (oabbs[i].Area / (oabbs[0]).Area > maximumNonOptimality)
