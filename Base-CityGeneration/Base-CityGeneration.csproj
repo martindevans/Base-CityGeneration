@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{A2F1FE85-F0C2-4CFF-BAED-CBAAD4617592}</ProjectGuid>
@@ -138,8 +138,8 @@
       <HintPath>..\packages\Placeholder.Audio2.5.2.4.0\lib\net46\Placeholder.Audio2.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=11.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.11.0.0.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
+    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=11.1.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.11.1.0.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Entities, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">

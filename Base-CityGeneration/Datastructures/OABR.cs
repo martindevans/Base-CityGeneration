@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using EpimetheusPlugins.Procedural.Utilities;
-using Vector2 = System.Numerics.Vector2;
+using SwizzleMyVectors;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Datastructures
 {
@@ -16,23 +18,41 @@ namespace Base_CityGeneration.Datastructures
         /// </summary>
         public readonly Vector2 Middle;
 
-        /// <summary>
-        /// Rotation from BB -> World space
-        /// </summary>
-        public readonly float Rotation;
+        public readonly Vector2 Axis;
+
+        public readonly Vector2 Min;
+
+        public readonly Vector2 Max;
 
         /// <summary>
-        /// Size of the bounding rectangle
+        /// Total area of this OABR
         /// </summary>
-        public readonly Vector2 Extents;
         public readonly float Area;
 
-        public OABR(Vector2 middle, float rotation, Vector2 extents)
+        public OABR(Vector2 middle, Vector2 primaryAxis, Vector2 min, Vector2 max)
         {
             Middle = middle;
-            Rotation = rotation;
-            Extents = extents;
-            Area = extents.X * extents.Y * 4;
+            Axis = primaryAxis;
+            Min = min;
+            Max = max;
+
+            var sz = Max - Min;
+            Area = sz.X * sz.Y;
+        }
+
+        public bool Contains(Vector2 point)
+        {
+            //Transform the point back towards the middle
+            point -= Middle;
+
+            //Calculate projection axes (along and across)
+            var primary = Axis;
+            var secondary = primary.Perpendicular();
+
+            var pd = new Ray2(Vector2.Zero, primary).ClosestPointDistanceAlongLine(point);
+            var sd = new Ray2(Vector2.Zero, secondary).ClosestPointDistanceAlongLine(point);
+
+            return new BoundingRectangle(Min, Max).Contains(new Vector2(pd, sd));
         }
 
         /// <summary>
@@ -41,10 +61,12 @@ namespace Base_CityGeneration.Datastructures
         /// <returns></returns>
         internal Vector2 SplitDirection()
         {
-            var sin = (float)Math.Sin(Rotation);
-            var cos = (float)Math.Cos(Rotation);
+            var size = Max - Min;
 
-            return (Extents.X < Extents.Y) ? new Vector2(cos, sin) : new Vector2(sin, cos);
+            if (size.X > size.Y)
+                return Axis;
+            else
+                return Axis.Perpendicular();
         }
 
         /// <summary>
@@ -60,6 +82,10 @@ namespace Base_CityGeneration.Datastructures
             //Find middle of hull
             var middle = hull.Aggregate(Vector2.Zero, (current, t) => current + t / hull.Length);
 
+            //Move all the points to be around the origin
+            for (var i = 0; i < hull.Length; i++)
+                hull[i] -= middle;
+
             //Generate ordered list of all OABBs (each aligned with an edge of the convex hull)
             return Enumerable
                 .Range(0, hull.Length)
@@ -67,20 +93,23 @@ namespace Base_CityGeneration.Datastructures
                     var a = hull[i];
                     var b = hull[(i + 1) % hull.Length];
 
-                    //Get the angle of this edge from the vertical
-                    var angle = (float)Math.Atan2(b.X - a.X, b.Y - a.Y);
+                    //Calculate projection axes (along and across)
+                    var primary = Vector2.Normalize(b - a);
+                    var secondary = primary.Perpendicular();
 
-                    //Find the bounding box for this orientation
-                    var min = new Vector2(float.MaxValue);
-                    var max = new Vector2(float.MinValue);
-                    foreach (var rotated in hull.Select(v => RotateAround(v, middle, -angle)))
+                    //Project points on axes and measure size
+                    var min = new Vector2(float.PositiveInfinity);
+                    var max = new Vector2(float.NegativeInfinity);
+                    foreach (var vertex in hull)
                     {
-                        min = Vector2.Min(min, rotated);
-                        max = Vector2.Max(max, rotated);
+                        var pd = new Ray2(Vector2.Zero, primary).ClosestPointDistanceAlongLine(vertex);
+                        var sd = new Ray2(Vector2.Zero, secondary).ClosestPointDistanceAlongLine(vertex);
+
+                        min = Vector2.Min(min, new Vector2(pd, sd));
+                        max = Vector2.Max(max, new Vector2(pd, sd));
                     }
 
-                    var extents = (max - min) / 2;
-                    return new OABR(middle, angle, extents);
+                    return new OABR(middle, primary, min, max);
                 });
         }
 
@@ -94,23 +123,12 @@ namespace Base_CityGeneration.Datastructures
             return Fittings(shape).Aggregate((a, b) => a.Area < b.Area ? a : b);
         }
 
-        private static Vector2 RotateAround(Vector2 point, Vector2 origin, float angle)
-        {
-            var c = (float)Math.Cos(angle);
-            var s = (float)Math.Sin(angle);
-
-            return new Vector2(
-                c * (point.X - origin.X) - s * (point.Y - origin.Y) + origin.X,
-                s * (point.X - origin.X) + c * (point.Y - origin.Y) + origin.Y
-            );
-        }
-
         public void Points(out Vector2 a, out Vector2 b, out Vector2 c, out Vector2 d)
         {
-            a = RotateAround(Middle + Extents * new Vector2(-1, 1), Middle, Rotation);
-            b = RotateAround(Middle + Extents * new Vector2(1, 1), Middle, Rotation);
-            c = RotateAround(Middle + Extents * new Vector2(1, -1), Middle, Rotation);
-            d = RotateAround(Middle + Extents * new Vector2(-1, -1), Middle, Rotation);
+            a = Middle + Axis * Max.X + Axis.Perpendicular() * Max.Y;
+            b = Middle + Axis * Max.X + Axis.Perpendicular() * Min.Y;
+            c = Middle + Axis * Min.X + Axis.Perpendicular() * Min.Y;
+            d = Middle + Axis * Min.X + Axis.Perpendicular() * Max.Y;
         }
 
         public IList<Vector2> Points(IList<Vector2> output)
