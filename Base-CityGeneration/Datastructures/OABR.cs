@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using EpimetheusPlugins.Procedural.Utilities;
+using JetBrains.Annotations;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
 
@@ -40,6 +41,7 @@ namespace Base_CityGeneration.Datastructures
             Area = sz.X * sz.Y;
         }
 
+        [Pure]
         public bool Contains(Vector2 point)
         {
             //Transform the point back towards the middle
@@ -59,6 +61,7 @@ namespace Base_CityGeneration.Datastructures
         /// Get a vector pointing along the shortest axis (i.e. across the longest axis)
         /// </summary>
         /// <returns></returns>
+        [Pure]
         internal Vector2 SplitDirection()
         {
             var size = Max - Min;

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Datastructures;
-using Base_CityGeneration.Utilities.SVG;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Myre.Extensions;
 using Placeholder.ConstructiveSolidGeometry;
+using PrimitiveSvgBuilder;
 using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Test.Datastructures
@@ -26,13 +26,13 @@ namespace Base_CityGeneration.Test.Datastructures
             var oabr = OABR.Fit(points);
 
             //Draw it
-            var svg = new SvgRenderer(2);
+            var svg = new SvgBuilder(2);
             var hull = points.ConvexHull().ToArray();
-            svg.AddOutline(hull, "green");
-                svg.AddOutline((IReadOnlyList<Vector2>)oabr.Points(new Vector2[4]));
+            svg.Outline(hull, "green");
+            svg.Outline((IReadOnlyList<Vector2>)oabr.Points(new Vector2[4]));
             foreach (var vector2 in points)
-                svg.AddCircle(vector2, 1, oabr.Contains(vector2) ? "red" : "blue");
-            Console.WriteLine(svg.Render());
+                svg.Circle(vector2, 1, oabr.Contains(vector2) ? "red" : "blue");
+            Console.WriteLine(svg.ToString());
 
             //Assert
             Assert.IsTrue(points.All(p => oabr.Contains(p)));

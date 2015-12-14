@@ -1,5 +1,6 @@
 ﻿using System;
 using EpimetheusPlugins.Procedural;
+using JetBrains.Annotations;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Utilities.Numbers
@@ -7,13 +8,13 @@ namespace Base_CityGeneration.Utilities.Numbers
     public class UniformlyDistributedValue
         : BaseValueGenerator
     {
-        public UniformlyDistributedValue(float min, float max, bool vary = false)
-            : base(new ConstantValue(min), new ConstantValue(max), vary)
+        public UniformlyDistributedValue(float min, float max)
+            : base(new ConstantValue(min), new ConstantValue(max))
         {
         }
 
-        public UniformlyDistributedValue(IValueGenerator min, IValueGenerator max, bool vary = false)
-            : base(min, max, vary)
+        public UniformlyDistributedValue(IValueGenerator min, IValueGenerator max)
+            : base(min, max)
         {
         }
 
@@ -25,13 +26,13 @@ namespace Base_CityGeneration.Utilities.Numbers
         internal class Container
             : BaseValueGeneratorContainer
         {
-            public float Min { get; set; }
-            public float Max { get; set; }
-            public bool Vary { get; set; }
+            public float Min { get; [UsedImplicitly]set; }
+            public float Max { get; [UsedImplicitly]set; }
+            public bool Vary { get; [UsedImplicitly]set; }
 
             protected override IValueGenerator UnwrapImpl()
             {
-                return new UniformlyDistributedValue(Min, Max, Vary);
+                return new UniformlyDistributedValue(Min, Max).Transform(vary: Vary);
             }
         }
     }

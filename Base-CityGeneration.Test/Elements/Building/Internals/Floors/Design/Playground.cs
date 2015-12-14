@@ -6,7 +6,6 @@ using System.Numerics;
 using Base_CityGeneration.Datastructures;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
 using Base_CityGeneration.TestHelpers;
-using Base_CityGeneration.Utilities.SVG;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -40,6 +39,7 @@ Aliases:
       Constraints:
          - { Strength: 1,    Req: !Exterior { Window: true } }
          - { Strength: 0.5,  Req: !Exterior { Door: false } }
+         - { Strength: 0.5,  Req: !Area { Min: 16 } }
       # Constraints on the connections between this room and other rooms
       # Lounge can be used as a corridor to access other rooms
       Walkthrough: true
@@ -199,26 +199,5 @@ Rooms:
 //    - 
 //"));
 //        }
-
-        [TestMethod]
-        public void MethodName()
-        {
-            Random r = new Random(1);
-            Func<double> rand = r.NextDouble;
-
-            var points = new List<Vector2>();
-            for (int i = 0; i < 100; i++)
-                points.Add(new Vector2(rand.NormallyDistributedSingle(25, 0), rand.NormallyDistributedSingle(25, 0)));
-
-            var hull = points.ConvexHull().ToArray();
-
-            var oabrs = OABR.Fittings(hull);
-
-            var svg = new SvgRenderer(2);
-            svg.AddOutline(hull, "red");
-            foreach (var oabr in oabrs)
-                svg.AddOutline((IReadOnlyList<Vector2>)oabr.Points(new Vector2[4]));
-            Console.WriteLine(svg.Render());
-        }
     }
 }

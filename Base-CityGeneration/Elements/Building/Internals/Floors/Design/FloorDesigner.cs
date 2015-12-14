@@ -17,7 +17,7 @@ using Myre.Collections;
 using SharpYaml.Serialization;
 using SwizzleMyVectors.Geometry;
 #if DEBUG
-using Base_CityGeneration.Utilities.SVG;
+using PrimitiveSvgBuilder;
 #endif
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
@@ -55,28 +55,29 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         public FloorPlan Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<Vector2> footprint)
         {
 #if DEBUG
-            var svg = new SvgRenderer(10);
+            var svg = new SvgBuilder(10);
 #endif
 
             //Generate set of required spaces
-            var requiredSpecs = _rooms.SelectMany(r => r.Produce(true, random, metadata));
+            var requiredSpecs = _rooms.SelectMany(r => r.Produce(true, random, metadata)).ToArray();
 
-            FloorPlan result = new FloorPlan(footprint);
-
-            
             //Generate a floor skeleton to lay hallways along and subdivide the floor into regions
-            var regions = GenerateRegions(footprint, random, metadata);
+            var regions = GenerateRegions(footprint, random, metadata, 10).ToArray(); //TODO: Parameterize error!
+
+            //Assign rooms to the regions they are most likely to be satisfied in
+            AssignRooms(requiredSpecs, regions, random, metadata);
 
 #if DEBUG
             foreach (var region in regions)
             {
-                svg.AddOutline(region.Shape);
+                svg.Outline(region.Shape);
 
-                var oabb = (Vector2[])region.OABB.Points(new Vector2[4]);
-                svg.AddOutline(oabb, "red");
+                var oabb = (Vector2[])region.OABR.Points(new Vector2[4]);
+                svg.Outline(oabb, "red");
             }
 #endif
 
+            
             //Connect external doors to hallway
             //Connect vertical features to hallway
             //  - Either create them on the corridor
@@ -89,13 +90,40 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             //If a space is passthrough merge it into adjacent hallways and expand it to fill space
 
 #if DEBUG
-            Console.WriteLine(svg.Render());
+            Console.WriteLine(svg.ToString());
 #endif
 
-            return result;
+            return new FloorPlan(footprint);
         }
 
-        private IEnumerable<FloorplanRegion> GenerateRegions(IReadOnlyList<Vector2> footprint, Func<double> random, INamedDataCollection metadata)
+        private static void AssignRooms(IEnumerable<BaseSpaceSpec> requiredSpecs, IEnumerable<FloorplanRegion> regions, Func<double> random, INamedDataCollection metadata)
+        {
+            //Assign every space spec to a region of space
+            foreach (var spec in requiredSpecs)
+            {
+                //Find the "best" region to place this spec in (best guess)
+                var bestRegion = regions
+                    .Select(r => new KeyValuePair<float, FloorplanRegion>(ScoreRegionForSpec(r, spec), r))
+                    .Aggregate((a, b) => a.Key > b.Key ? a : b)
+                    .Value;
+                bestRegion.Add(spec, random, metadata);
+            }
+        }
+
+        private static float ScoreRegionForSpec(FloorplanRegion region, BaseSpaceSpec spec)
+        {
+            return 1;
+        }
+
+        /// <summary>
+        /// Split the floor up into regions of space
+        /// </summary>
+        /// <param name="footprint"></param>
+        /// <param name="random"></param>
+        /// <param name="metadata"></param>
+        /// <param name="areaErrorTolerance"></param>
+        /// <returns></returns>
+        private IEnumerable<FloorplanRegion> GenerateRegions(IReadOnlyList<Vector2> footprint, Func<double> random, INamedDataCollection metadata, float areaErrorTolerance)
         {
             using (var straightSkeleton = StraightSkeleton.Generate(footprint))
             {
@@ -118,7 +146,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     parts = wip;
                 }
 
-                return parts.Select(a => new FloorplanRegion(a));
+                return parts
+                    .Select(a => new FloorplanRegion(a))
+                    .SelectMany(a => a.ReduceError(areaErrorTolerance));
             }
         }
 
@@ -185,30 +215,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                 );
             }
         }
-        #endregion
-
-        #region Visualisation
-        
-
-        //private static void DrawSkeleton(IEnumerable<Edge> borders, IEnumerable<Edge> spokes, IEnumerable<Edge> skeleton)
-        //{
-        //    var svg = new StringBuilder();
-        //    svg.Append("<svg width=\"1000\" height=\"1000\"><g transform=\"translate(210, 210)\">");
-        //    svg.Append(string.Join("", ToOpenSvgPaths(borders, 10, "blue")));
-        //    svg.Append(string.Join("", ToOpenSvgPaths(spokes, 10, "red")));
-        //    svg.Append(string.Join("", ToOpenSvgPaths(skeleton, 10, "green")));
-        //    Console.WriteLine(svg);
-        //}
-
-        //private static void DrawSkeleton(IEnumerable<Edge> edges)
-        //{
-        //    var svg = new StringBuilder();
-        //    svg.Append("<svg width=\"1000\" height=\"1000\"><g transform=\"translate(210, 210)\">");
-        //    svg.Append(string.Join("", ToOpenSvgPaths(edges.Where(e => e.Type == EdgeType.Border), 10, "blue")));
-        //    svg.Append(string.Join("", ToOpenSvgPaths(edges.Where(e => e.Type == EdgeType.Spoke), 10, "red")));
-        //    svg.Append(string.Join("", ToOpenSvgPaths(edges.Where(e => e.Type == EdgeType.Skeleton), 10, "green")));
-        //    Console.WriteLine(svg);
-        //}
         #endregion
     }
 }

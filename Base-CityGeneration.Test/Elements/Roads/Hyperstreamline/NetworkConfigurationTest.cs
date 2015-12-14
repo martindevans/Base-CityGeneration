@@ -45,7 +45,10 @@ Major:
             Assert.AreEqual(22.5f, MathHelper.ToDegrees(c.SearchConeAngle), 0.001f);
             Assert.AreEqual(25f, c.MergeDistance);
             Assert.AreEqual(10f, c.SegmentLength);
-            Assert.IsInstanceOfType(c.RoadWidth, typeof(UniformlyDistributedValue));
+
+            var w = c.RoadWidth.SelectFloatValue(() => 1, null);
+            Assert.IsTrue(w >= 1 && w <= 3);
+
             Assert.IsInstanceOfType(c.PriorityField, typeof(Constant));
             Assert.IsInstanceOfType(c.SeparationField, typeof(Constant));
         }
@@ -82,7 +85,10 @@ Major:
             Assert.AreEqual(22.5f, MathHelper.ToDegrees(c.SearchConeAngle), 0.001f);
             Assert.AreEqual(25f, c.MergeDistance);
             Assert.AreEqual(10f, c.SegmentLength);
-            Assert.IsInstanceOfType(c.RoadWidth, typeof(UniformlyDistributedValue));
+
+            var w = c.RoadWidth.SelectFloatValue(() => 1, null);
+            Assert.IsTrue(w >= 1 && w <= 3);
+
             Assert.IsInstanceOfType(c.PriorityField, typeof(Constant));
             Assert.IsInstanceOfType(c.SeparationField, typeof(Constant));
         }

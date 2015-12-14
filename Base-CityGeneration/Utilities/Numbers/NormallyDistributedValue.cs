@@ -25,15 +25,15 @@ namespace Base_CityGeneration.Utilities.Numbers
             }
         }
 
-        public NormallyDistributedValue(float min, float mean, float max, float deviation, bool vary = false)
-            : base(new ConstantValue(min), new ConstantValue(max), vary)
+        public NormallyDistributedValue(float min, float mean, float max, float deviation)
+            : base(new ConstantValue(min), new ConstantValue(max))
         {
             _mean = new ConstantValue(mean);
             _deviation = new ConstantValue(deviation);
         }
 
-        public NormallyDistributedValue(IValueGenerator min, IValueGenerator mean, IValueGenerator max, IValueGenerator deviation, bool vary = false)
-            : base(min, max, vary)
+        public NormallyDistributedValue(IValueGenerator min, IValueGenerator mean, IValueGenerator max, IValueGenerator deviation)
+            : base(min, max)
         {
             _mean = mean;
             _deviation = deviation;
@@ -61,10 +61,10 @@ namespace Base_CityGeneration.Utilities.Numbers
             protected override IValueGenerator UnwrapImpl()
             {
 
-                var mean = Mean.HasValue ? Mean.Value : MeanCalc(Min, Max);
-                var deviation = Deviation.HasValue ? Deviation.Value : DeviationCalc(Min, Max);
+                var mean = Mean ?? MeanCalc(Min, Max);
+                var deviation = Deviation ?? DeviationCalc(Min, Max);
 
-                return new NormallyDistributedValue(Min, mean, Max, deviation, Vary);
+                return new NormallyDistributedValue(Min, mean, Max, deviation).Transform(vary: Vary);
             }
 
             private static float MeanCalc(float min, float max)

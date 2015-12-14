@@ -17,7 +17,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
             var range = new FloorRangeSpec(new[] {
                 new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, KeyValuePair<string, string>[]>(1, new [] { new KeyValuePair<string, string>("tag", "tag")
                 }) }, null)
-            }, new NormallyDistributedValue(1, 2, 3, 1, false));
+            }, new NormallyDistributedValue(1, 2, 3, 1).Transform(vary: false));
 
             var selected = range.Select(() => 0.5, null, (a, b) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
@@ -52,7 +52,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
                 new FloorRangeIncludeSpec("id", new NormallyDistributedValue(20, 30, 40, 10), false, false, new[] {
                     new KeyValuePair<float, KeyValuePair<string, string>[]>(1, new [] { new KeyValuePair<string, string>("key", "interrupt") })
                 }, null)
-            }, new NormallyDistributedValue(1, 2, 3, 1, false));
+            }, new NormallyDistributedValue(1, 2, 3, 1).Transform(vary: false));
 
             Random r = new Random();
             var selected = range.Select(r.NextDouble, null, (a, b) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a))).ToArray();

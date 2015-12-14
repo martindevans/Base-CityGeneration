@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using Base_CityGeneration.Utilities;
 using JetBrains.Annotations;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 {
@@ -18,6 +20,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             Tags = tags;
         }
 
+        public override float MinArea(Func<double> random, INamedDataCollection metadata)
+        {
+            return ((Area)Constraints.Single(a => a.Requirement is Area).Requirement).Minimum.SelectFloatValue(random, metadata);
+        }
+
         internal class Container
             : BaseContainer
         {
@@ -26,6 +33,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 
             internal override BaseSpaceSpec Unwrap()
             {
+                if (!Constraints.Any(a => a.Req is Area.Container))
+                    throw new SharpYaml.SemanticErrorException(string.Format("Room spec \"{0}\" must specify an Area constraint", Id));
+
                 return new RoomSpec(
                     Tags.Unwrap().ToArray(),
                     Id,

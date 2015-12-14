@@ -17,6 +17,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
         public IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> Constraints { get; private set; }
         public IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> Connections { get; private set; }
 
+        /// <summary>
+        /// Get the minimum area this space may occupy
+        /// </summary>
+        public abstract float MinArea(Func<double> random, INamedDataCollection metadata);
+
         protected BaseSpaceSpec(string id, bool walkthrough, IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> constraints, IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> connections)
         {
             Id = id;

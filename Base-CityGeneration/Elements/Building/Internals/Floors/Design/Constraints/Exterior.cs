@@ -1,35 +1,36 @@
-﻿using Base_CityGeneration.Utilities.Numbers;
-
-namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints
+﻿namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints
 {
     /// <summary>
-    /// Indicates that this space must have a certain area
+    /// Indicates that this space must border an exterior wall
     /// </summary>
-    public class Area
+    public class Exterior
         : BaseSpaceConstraintSpec
     {
-        public IValueGenerator Minimum { get; private set; }
+        /// <summary>
+        /// If not null - indicates that this space *must* or *must not* have an exterior door
+        /// </summary>
+        public bool? Door { get; private set; }
 
-        public IValueGenerator Maximum { get; private set; }
+        /// <summary>
+        /// If not null - indicates that this space *must* or *must not* have an exterior window
+        /// </summary>
+        public bool? Window { get; private set; }
 
-        private Area(IValueGenerator min = null, IValueGenerator max = null)
+        private Exterior(bool? door = null, bool? window = null)
         {
-            Minimum = min ?? new ConstantValue(1);
-            Maximum = max ?? new ConstantValue(float.PositiveInfinity);
+            Door = door;
+            Window = window;
         }
 
         internal class Container
             : BaseContainer
         {
-            public object Min { get; set; }
-            public object Max { get; set; }
+            public bool? Door { get; set; }
+            public bool? Window { get; set; }
 
             public override BaseSpaceConstraintSpec Unwrap()
             {
-                return new Area(
-                    BaseValueGeneratorContainer.FromObject(Min),
-                    BaseValueGeneratorContainer.FromObject(Max)
-                );
+                return new Exterior(Door, Window);
             }
         }
     }
