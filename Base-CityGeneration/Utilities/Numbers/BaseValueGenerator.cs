@@ -26,57 +26,31 @@ namespace Base_CityGeneration.Utilities.Numbers
             }
         }
 
-        private readonly bool _vary;
-        public bool Vary
-        {
-            get
-            {
-                return _vary;
-            }
-        }
-
         public float MaxValue
         {
             get { return _max.MaxValue; }
         }
-
         public float MinValue
         {
             get { return _min.MinValue; }
         }
 
-        private int? _intCache;
-        private float? _singleCache;
-
-        protected BaseValueGenerator(IValueGenerator min, IValueGenerator max, bool vary)
+        protected BaseValueGenerator(IValueGenerator min, IValueGenerator max)
         {
             _min = min;
             _max = max;
-            _vary = vary;
         }
 
         public float SelectFloatValue(Func<double> random, INamedDataCollection data)
         {
-            if (_singleCache.HasValue)
-                return _singleCache.Value;
-
-            var f = GenerateFloatValue(random, data);
-            if (!Vary)
-                _singleCache = f;
-            return f;
+            return GenerateFloatValue(random, data);
         }
 
         protected abstract float GenerateFloatValue(Func<double> random, INamedDataCollection data);
 
         public int SelectIntValue(Func<double> random, INamedDataCollection data)
         {
-            if (_intCache.HasValue)
-                return _intCache.Value;
-
-            var i = GenerateIntValue(random, data);
-            if (!Vary)
-                _intCache = i;
-            return i;
+            return GenerateIntValue(random, data);
         }
 
         private int GenerateIntValue(Func<double> random, INamedDataCollection data)
@@ -103,15 +77,19 @@ namespace Base_CityGeneration.Utilities.Numbers
 
     public static class IValueGeneratorExtensions
     {
-        public static IValueGenerator Transform(this IValueGenerator gen, Func<float, float> func)
+        public static IValueGenerator Transform(this IValueGenerator gen, Func<float, float> func = null, bool vary = true)
         {
-            return new WrapperBaseValue(gen, func);
+            //If we're not transforming the value, and we're not making it unvarying this method has no effect!
+            if (func == null && vary)
+                return gen;
+
+            return new WrapperBaseValue(gen, func ?? (a => a), vary);
         }
     }
 
     internal abstract class BaseValueGeneratorContainer
     {
-        IValueGenerator Unwrapped { get; set; }
+        private IValueGenerator Unwrapped { get; set; }
 
         public IValueGenerator Unwrap()
         {
@@ -137,13 +115,21 @@ namespace Base_CityGeneration.Utilities.Numbers
             return new ConstantValue.Container { Value = v };
         }
 
-        public static IValueGenerator FromObject(object v)
+        public static IValueGenerator FromObject(object v, float? defaultValue = null)
         {
             var @explicit = v as BaseValueGeneratorContainer;
             if (@explicit != null)
                 return @explicit.Unwrap();
 
-            float f = Convert.ToSingle(v);
+            if (v == null)
+            {
+                if (defaultValue.HasValue)
+                    v = defaultValue.Value;
+                else
+                    throw new ArgumentException("Value is null (and no default value was provided", "v");
+            }
+
+            var f = Convert.ToSingle(v);
             return ((BaseValueGeneratorContainer)f).Unwrap();
         }
     }

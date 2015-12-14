@@ -52,11 +52,9 @@ Floors:
             Assert.AreEqual(1, b.FloorSelectors.Count());
             var spec = (FloorSpec)b.FloorSelectors.Single();
 
-            var h = (NormallyDistributedValue) spec.Height;
-            Assert.AreEqual(new ConstantValue(1), h.Min);
-            Assert.AreEqual(new ConstantValue(5), h.Max);
-            Assert.AreEqual(new ConstantValue(3), h.Mean);
-            Assert.AreEqual(new ConstantValue(2), h.Deviation);
+            var h = spec.Height;
+            Assert.AreEqual(1, h.MinValue);
+            Assert.AreEqual(5, h.MaxValue);
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
             Assert.AreEqual(new KeyValuePair<string, string>("tag", "a"), spec.Tags.Single(a => a.Key == 1).Value.Single());

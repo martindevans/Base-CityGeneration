@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using JetBrains.Annotations;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 {
@@ -15,6 +17,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             : base(id, walkthrough, constraints, connections)
         {
             Rooms = rooms;
+        }
+
+        public override float MinArea(Func<double> random, INamedDataCollection metadata)
+        {
+            return Rooms.Select(r => r.MinArea(random, metadata)).Sum();
         }
 
         internal class Container

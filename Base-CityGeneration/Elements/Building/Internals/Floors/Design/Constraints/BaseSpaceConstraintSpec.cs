@@ -1,4 +1,7 @@
-﻿namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints
+﻿using System;
+using Myre.Collections;
+
+namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints
 {
     public abstract class BaseSpaceConstraintSpec
     {

@@ -10,7 +10,7 @@ namespace Base_CityGeneration.Test.Utilities.Numbers
         [TestMethod]
         public void AssertThat_SelectFloatValue_IsWithinRange()
         {
-            NormallyDistributedValue spec = new NormallyDistributedValue(9.5f, 20, 30.5f, 10, true);
+            NormallyDistributedValue spec = new NormallyDistributedValue(9.5f, 20, 30.5f, 10);
 
             Random r = new Random();
             for (int i = 0; i < 1000; i++)
@@ -25,7 +25,7 @@ namespace Base_CityGeneration.Test.Utilities.Numbers
         [TestMethod]
         public void AssertThat_SelectIntValue_IsWithinRange()
         {
-            NormallyDistributedValue spec = new NormallyDistributedValue(9.5f, 20, 30.5f, 10, true);
+            NormallyDistributedValue spec = new NormallyDistributedValue(9.5f, 20, 30.5f, 10);
 
             Random r = new Random();
             for (int i = 0; i < 1000; i++)

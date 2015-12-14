@@ -28,13 +28,22 @@ namespace Base_CityGeneration.Test.Parcelling
         }
 
         [TestMethod]
+        public void ParcellingRespectsAreaRule()
+        {
+            _parceller.AddTerminationRule(new AreaRule(15, 50, 0f));
+            var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] { new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10) }, new string[] { "edge" }), _random.NextDouble, null).ToArray();
+
+            Assert.IsTrue(parcels.All(a => a.Area() <= 50));
+        }
+
+        [TestMethod]
         public void ParcellingDoesNotProduceOverlaps()
         {
-            _parceller.AddTerminationRule(new AreaRule(15, 50, 0.5f));
+            _parceller.AddTerminationRule(new AreaRule(15, 50, 0f));
             _parceller.AddTerminationRule(new AccessRule("edge", 0.5f));
             var parcels = _parceller.GenerateParcels(new Parcel(new Vector2[] {new Vector2(0, 0), new Vector2(10, 0), new Vector2(10, 10), new Vector2(0, 10)}, new string[] {"edge"}), _random.NextDouble, null).ToArray();
 
-            Assert.IsTrue(parcels.All(a => a.Area() <= 50));
+            //Assert.IsTrue(parcels.All(a => a.Area() <= 50));
 
             foreach (var parcel in parcels)
             {

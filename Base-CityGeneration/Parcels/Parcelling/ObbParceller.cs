@@ -26,7 +26,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
 
         public ObbParceller()
         {
-            SplitPointGenerator = new NormallyDistributedValue(-0.35f, 0.0f, 0.35f, 0.2f, true);
+            SplitPointGenerator = new NormallyDistributedValue(-0.35f, 0.0f, 0.35f, 0.2f);
         }
 
         public void AddTerminationRule(ITerminationRule rule)
