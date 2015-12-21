@@ -14,13 +14,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 
         public bool Walkthrough { get; private set; }
 
-        public IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> Constraints { get; private set; }
-        public IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> Connections { get; private set; }
-
-        /// <summary>
-        /// Get the minimum area this space may occupy
-        /// </summary>
-        public abstract float MinArea(Func<double> random, INamedDataCollection metadata);
+        public virtual IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> Constraints { get; private set; }
+        public virtual IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> Connections { get; private set; }
 
         protected BaseSpaceSpec(string id, bool walkthrough, IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> constraints, IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> connections)
         {
@@ -33,9 +28,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 
         IEnumerable<BaseSpaceSpec> ISpaceSpecProducer.Produce(bool required, Func<double> random, INamedDataCollection metadata)
         {
-            if (required)
-                yield return this;
+            yield return this;
         }
+
+        /// <summary>
+        /// Get the minimum area this space may occupy
+        /// </summary>
+        public abstract float MinArea(Func<double> random, INamedDataCollection metadata);
 
         internal abstract class BaseContainer
             : ISpaceSpecProducerContainer

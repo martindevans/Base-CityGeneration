@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Numerics;
-using Base_CityGeneration.Datastructures;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
-using Base_CityGeneration.TestHelpers;
-using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Procedural.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Myre.Collections;
 
@@ -37,17 +31,17 @@ Aliases:
         1: { Type: Residential, Style: Modern, Class: LivingRoom }
       # Constraints on the placement of the room
       Constraints:
-         - { Strength: 1,    Req: !Exterior { Window: true } }
-         - { Strength: 0.5,  Req: !Exterior { Door: false } }
+         - { Strength: 1,    Req: !ExteriorWindow { } }
+         - { Strength: 0.5,  Req: !ExteriorDoor { Deny: true } }
          - { Strength: 0.5,  Req: !Area { Min: 16 } }
       # Constraints on the connections between this room and other rooms
       # Lounge can be used as a corridor to access other rooms
       Walkthrough: true
       Connections:
-        - { Strength: 1,    Req: !IdRef { Id: Hallway } }
+        - { Strength: 0.75, Req: !IdRef { Id: Hallway } }
         - { Strength: 0.5,  Req: !Either { A: !IdRef { Id: DiningRoom }, B: !RegexIdRef { Pattern: Kitchen }, Exclusive: false } }
-        - { Strength: -1,   Req: !IdRef { Id: Cloakroom } }
-        - { Strength: -1,   Req: !IdRef { Id: Bathroom } }
+        - { Strength: 1,    Req: !Not { Inner: !IdRef { Id: Cloakroom } } }
+        - { Strength: 1,    Req: !Not { Inner: !IdRef { Id: Bathroom } } }
 
     # Another room
     - &kitchen !Room
@@ -85,10 +79,9 @@ Aliases:
 #    SplitDistance: !UniformValue { Min: 10, Max: 15 }
 
 Rooms:
-    - *apartment
     - !Repeat
-      Required: !UniformValue { Min: 1, Max: 3 }
-      Optional: !UniformValue { Min: 1, Max: 3 }
+      Required: 1
+      Optional: 10
       Room: *apartment
 "));
 
@@ -109,13 +102,13 @@ Rooms:
             //});
 
             //Corner shape
-            var floorplan = designer.Design(random, meta, null, new Vector2[] {
-                new Vector2(5,  5),
-                new Vector2(5,  -6),
-                new Vector2(0,  -6),
-                new Vector2(0,  0),
-                new Vector2(-4, 0),
-                new Vector2(-4, 5),
+            var floorplan = designer.Design(random, meta, null, new[] {
+                new FloorplanRegion.Side(new Section[0], new Vector2(5, 5), new Vector2(5, -6)),
+                new FloorplanRegion.Side(new Section[] { new Section(0, 1, Section.Types.Window) }, new Vector2(5, -6), new Vector2(0, -6)),
+                new FloorplanRegion.Side(new Section[0], new Vector2(0, -6), new Vector2(0, 0)),
+                new FloorplanRegion.Side(new Section[0], new Vector2(0, 0), new Vector2(-4, 0)),
+                new FloorplanRegion.Side(new Section[0], new Vector2(-4, 0), new Vector2(-4, 5)),
+                new FloorplanRegion.Side(new Section[0], new Vector2(-4, 5), new Vector2(5, 5)),
             });
 
             ////Weird spikey shape (unlikely to be generated)

@@ -3,7 +3,7 @@ using Myre.Collections;
 
 namespace Base_CityGeneration.Utilities.Numbers
 {
-    public class WrapperBaseValue
+    public class WrapperValue
         : IValueGenerator
     {
         private readonly IValueGenerator _basis;
@@ -21,10 +21,9 @@ namespace Base_CityGeneration.Utilities.Numbers
         private readonly bool _vary;
         public bool Vary { get { return _vary; } }
 
-        private int? _intCache;
         private float? _singleCache;
 
-        public WrapperBaseValue(IValueGenerator basis, Func<float, float> transform, bool vary = true)
+        public WrapperValue(IValueGenerator basis, Func<float, float> transform, bool vary = true)
         {
             _basis = basis;
             _transform = transform;
@@ -38,15 +37,6 @@ namespace Base_CityGeneration.Utilities.Numbers
 
             _singleCache = _transform(_basis.SelectFloatValue(random, data));
             return _singleCache.Value;
-        }
-
-        public int SelectIntValue(Func<double> random, INamedDataCollection data)
-        {
-            if (_intCache.HasValue && !_vary)
-                return _intCache.Value;
-
-            _intCache = (int)Math.Round(_transform(_basis.SelectIntValue(random, data)));
-            return _intCache.Value;
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Numerics;
 using Base_CityGeneration.Datastructures;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural.Utilities;
+using HandyCollections.Geometry;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
@@ -14,17 +15,26 @@ namespace Base_CityGeneration.Utilities
     /// <summary>
     /// Base class for regions of space defined by a polygon
     /// </summary>
-    public abstract class BasePolygonRegion<TSelf>
-        where TSelf : BasePolygonRegion<TSelf>
+    public abstract class BasePolygonRegion<TSelf, TSection>
+        where TSelf : BasePolygonRegion<TSelf, TSection>
+        where TSection : class, BasePolygonRegion<TSelf, TSection>.Side.ISection
     {
         #region fields and properties
-        private readonly IReadOnlyList<Vector2> _shape;
+        private readonly IReadOnlyList<Side> _shape;
         /// <summary>
         /// The shape of this region
         /// </summary>
-        public IReadOnlyList<Vector2> Shape
+        public IReadOnlyList<Side> Shape
         {
             get { return _shape; }
+        }
+
+        /// <summary>
+        /// The points which form the polgon around this region
+        /// </summary>
+        public IEnumerable<Vector2> Points
+        {
+            get { return Shape.Select(a => a.Start); }
         }
 
         private readonly BoundingRectangle _bounds;
@@ -44,23 +54,181 @@ namespace Base_CityGeneration.Utilities
         {
             get { return _oabr; }
         }
+
+        public float Area { get; private set; }
+
+        private float OabrAreaError { get; set; }
         #endregion
 
         #region construction
-        protected BasePolygonRegion(IReadOnlyList<Vector2> shape, OABR oabr)
+        protected BasePolygonRegion(IReadOnlyList<Side> shape, OABR oabr)
         {
             _shape = shape;
 
-            _bounds = BoundingRectangle.CreateFromPoints(shape);
+            _bounds = BoundingRectangle.CreateFromPoints(Points);
             _oabr = oabr;
+
+            Area = Points.Area();
+            OabrAreaError = _oabr.Area - Area;
         }
 
-        protected abstract TSelf Construct(IReadOnlyList<Vector2> shape, OABR oabr);
-
-        public TSelf Construct(IReadOnlyList<Vector2> shape)
+        protected BasePolygonRegion(IReadOnlyList<Side> shape)
+            : this(shape, OABR.Fit(shape.Select(a => a.Start)))
         {
-            return Construct(shape, OABR.Fit(shape));
         }
+
+        protected abstract TSelf Construct(IReadOnlyList<Side> shape);
+        #endregion
+
+        #region slicing
+        internal IEnumerable<TSelf> Slice(Ray2 sliceLine)
+        {
+            //Basic polygon slicing, now we need to re-establish Side information for these polygon
+            var sliced = Points.SlicePolygon(sliceLine);
+
+            //spatially index sides so we can find applicable edges faster later
+            var sides = new Quadtree<Side>(Bounds, 4);
+            foreach (var side in _shape)
+                sides.Insert(new BoundingRectangle(Vector2.Min(side.Start, side.End) - new Vector2(0.01f), Vector2.Max(side.Start, side.End) + new Vector2(0.01f)), side);
+
+            //Construct a region for each part of the result
+            var internalSides = new List<KeyValuePair<TSelf, Side>>();
+            var regions = (from polygon in sliced select ConstructFromSlicePart(polygon, sides, sliceLine, internalSides)).ToArray();
+
+            if (internalSides.Count % 2 != 0)
+                throw new InvalidOperationException("Uneven number of internal sides");
+
+            //Fixup neighbour sections
+            while (internalSides.Count > 0)
+            {
+                //Find the other half of this neighbour relationship
+                int j;
+                for (j = 0; j < internalSides.Count; j++)
+                {
+                    if (internalSides[0].Value.Start == internalSides[j].Value.End && internalSides[0].Value.End == internalSides[j].Value.Start)
+                        break;
+                }
+
+                var ab = internalSides[0];
+                var ba = internalSides[j];
+
+                ab.Value.Sections = new[] { ConstructNeighbourSection(ba.Key) };
+                ba.Value.Sections = new[] { ConstructNeighbourSection(ab.Key) };
+
+                internalSides.RemoveAt(j);
+                internalSides.RemoveAt(0);
+            }
+
+            return regions;
+        }
+
+        protected abstract TSection ConstructNeighbourSection(TSelf neighbour);
+
+        private TSelf ConstructFromSlicePart(IReadOnlyList<Vector2> polygon, Quadtree<Side> inputSidesQuad, Ray2 sliceLine, List<KeyValuePair<TSelf, Side>> outInternalSides)
+        {
+            var outputSides = new List<Side>();
+            var internalSides = new List<Side>();
+
+            for (var i = 0; i < polygon.Count; i++)
+            {
+                var a = polygon[i];
+                var b = polygon[(i + 1) % polygon.Count];
+                var ab = new LineSegment2(a, b).LongLine;
+
+                //Find all sides from the input which overlap this line. Slightly expand the box to handle a perfectly flat line (which would create an empty box and select nothing)
+                var candidates = inputSidesQuad
+                    .Intersects(new BoundingRectangle(Vector2.Min(a, b) - new Vector2(0.01f), Vector2.Max(a, b) + new Vector2(0.01f)))
+                    //.Where(c => c.Start == a || c.End == b)
+                    ;
+                //There are three types of edge in the sliced shapes:
+                // - unchanged edges. start and end in the same place as an existing side
+                // - sliced edges. start or end at the same place as an existing edge and co-linear with it
+                // - dividing edge. co-linear with slice line
+
+                var unchanged = candidates.SingleOrDefault(c => c.Start.Equals(a) && c.End.Equals(b));
+                if (unchanged != null)
+                {
+                    //Side completely unchanged, simply copy across the data
+                    outputSides.Add(new Side(unchanged.Sections, a, b));
+                    continue;
+                }
+
+                var slicedStart = candidates.SingleOrDefault(c => c.Start.Equals(a) && new LineSegment2(c.Start, c.End).LongLine.Parallelism(ab) == Parallelism.Collinear && new LineSegment2(c.Start, c.End).DistanceToPoint(b) <= 0.01f);
+                if (slicedStart != null)
+                {
+                    //Side overlapping at start, select the correct sections from OverlapPoint -> 0 (Start)
+                    outputSides.Add(new Side(SelectSections(slicedStart, a, 0), a, b));
+                    continue;
+                }
+
+                var slicedEnd = candidates.SingleOrDefault(c => c.End.Equals(b) && new LineSegment2(c.Start, c.End).LongLine.Parallelism(ab) == Parallelism.Collinear && new LineSegment2(c.Start, c.End).DistanceToPoint(a) <= 0.01f);
+                if (slicedEnd != null)
+                {
+                    //Side overlapping at end, select the correct sections from OverlapPoint -> 1 (End)
+                    outputSides.Add(new Side(SelectSections(slicedEnd, a, 1), a, b));
+                    continue;
+                }
+
+                if (sliceLine.Parallelism(ab) == Parallelism.Collinear)
+                {
+                    //this is the slice line, need to add a neighbour section
+                    //But which section is the neighbour? we can't know yet because not all sections exist yet!
+                    //Create a side with a null section, we'll fix this up later
+                    var s = new Side(null, a, b);
+                    internalSides.Add(s);
+                    outputSides.Add(s);
+                    continue;
+                }
+
+                throw new InvalidOperationException("Failed to match up sides when slicing polygon region");
+            }
+
+            var region = Construct(outputSides);
+            outInternalSides.AddRange(internalSides.Select(a => new KeyValuePair<TSelf, Side>(region, a)));
+            return region;
+        }
+
+        private IReadOnlyList<TSection> SelectSections(Side side, Vector2 startPoint, float tEnd)
+        {
+            //Project startPoint onto side to find where it lies along the end
+            //We want all the sections from the input side which lie between startPoint and end
+            var tStart = new LineSegment2(side.Start, side.End).Line.ClosestPointDistanceAlongLine(startPoint);
+
+            return SelectSections(side, tStart, tEnd);
+        }
+
+        private IReadOnlyList<TSection> SelectSections(Side side, float tStart, float tEnd)
+        {
+            //Ensure tStart < tEnd
+            var tmp = tStart;
+            tStart = Math.Min(tStart, tEnd);
+            tEnd = Math.Max(tmp, tEnd);
+
+            var sections = new List<TSection>();
+            foreach (var section in side.Sections)
+            {
+                if (section.Start < tEnd && section.End > tStart)
+                {
+                    //Does the section *entirely* overlap this new section?
+                    //If so just copy it over
+                    if (section.Start >= tStart && section.End <= tEnd)
+                        sections.Add(section);
+                    else
+                        sections.Add(Subsection(section, tStart, tEnd));
+                }
+            }
+
+            return sections;
+        }
+
+        /// <summary>
+        /// Cut a subsection out of a section
+        /// </summary>
+        /// <param name="section">The section to cut a part out of</param>
+        /// <param name="tStart">The start of the subsection (0-1 specifying distance *along edge*, not along section)</param>
+        /// <param name="tEnd">The end of the subsection (0-1 specifying distance *along edge*, not along section)</param>
+        /// <returns></returns>
+        protected abstract TSection Subsection(TSection section, float tStart, float tEnd);
         #endregion
 
         #region error reduction
@@ -102,7 +270,7 @@ namespace Base_CityGeneration.Utilities
         private bool ReduceError(float tolerance, List<TSelf> result)
         {
             //Base case: error is acceptable
-            if (MeasureOabrError() < tolerance)
+            if (OabrAreaError <= tolerance)
             {
                 result.Add((TSelf)this);
                 return false;
@@ -117,9 +285,9 @@ namespace Base_CityGeneration.Utilities
             for (var i = 0; i < _shape.Count; i++)
             {
                 //Get three points forming a corner
-                var a = _shape[i];
-                var b = _shape[(i + 1) % _shape.Count];
-                var c = _shape[(i + 2) % _shape.Count];
+                var a = _shape[i].Start;
+                var b = _shape[(i + 1) % _shape.Count].Start;
+                var c = _shape[(i + 2) % _shape.Count].Start;
 
                 //Get vectors into and out of corner
                 var ab = b - a;
@@ -147,29 +315,28 @@ namespace Base_CityGeneration.Utilities
             if (index == -1)
             {
                 //Concave (no convex corners found) - Slice down the center of the short axis
-                var parts = _shape.SlicePolygon(new Ray2(_oabr.Middle, _oabr.SplitDirection()));
-                result.AddRange(parts.Select(Construct));
+                result.AddRange(Slice(new Ray2(_oabr.Middle, _oabr.SplitDirection())));
             }
             else
             {
                 //Slice this shape along the most concave split line
 
                 //Get three points forming the corner
-                var a = _shape[index];
-                var b = _shape[(index + 1) % _shape.Count];
-                var c = _shape[(index + 2) % _shape.Count];
+                var a = _shape[index].Start;
+                var b = _shape[(index + 1) % _shape.Count].Start;
+                var c = _shape[(index + 2) % _shape.Count].Start;
 
                 //Get vectors into and out of corner
                 var ab = b - a;
                 var bc = c - b;
 
                 //Slice along both the lines
-                var slicedAB = _shape.SlicePolygon(new Ray2(b, ab)).Select(Construct);
-                var slicedBC = _shape.SlicePolygon(new Ray2(b, bc)).Select(Construct);
+                var slicedAB = Slice(new Ray2(b, ab));
+                var slicedBC = Slice(new Ray2(b, bc));
 
                 //Select the largest error in each set
-                var abMin = slicedAB.Select(x => MeasureOabrError(x.Shape, x.OABR)).Max();
-                var bcMin = slicedBC.Select(x => MeasureOabrError(x.Shape, x.OABR)).Max();
+                var abMin = slicedAB.Select(x => x.OabrAreaError).Max();
+                var bcMin = slicedBC.Select(x => x.OabrAreaError).Max();
                 var best = abMin <= bcMin ? slicedAB : slicedBC;
 
                 //Output the set with the smallest largest error
@@ -178,19 +345,41 @@ namespace Base_CityGeneration.Utilities
 
             return true;
         }
-
-        private float MeasureOabrError()
-        {
-            return MeasureOabrError(_shape, _oabr);
-        }
-
-        private static float MeasureOabrError(IReadOnlyList<Vector2> shape, OABR bounds)
-        {
-            var area = shape.Area();
-            var rectArea = bounds.Area;
-
-            return rectArea - area;
-        }
         #endregion
+
+        /// <summary>
+        /// A single edge of a region
+        /// </summary>
+        public class Side
+        {
+            public Vector2 Start { get; private set; }
+            public Vector2 End { get; private set; }
+
+            public IReadOnlyList<TSection> Sections { get; internal set; }
+
+            public Side(IReadOnlyList<TSection> sections, Vector2 start, Vector2 end)
+            {
+                Sections = sections;
+
+                End = end;
+                Start = start;
+            }
+
+            /// <summary>
+            /// A section of a side
+            /// </summary>
+            public interface ISection
+            {
+                /// <summary>
+                /// the start point of this section (distance along side in units of side length)
+                /// </summary>
+                float Start { get; }
+
+                /// <summary>
+                /// the end point of this section (distance along side in units of side length)
+                /// </summary>
+                float End { get; }
+            }
+        }
     }
 }

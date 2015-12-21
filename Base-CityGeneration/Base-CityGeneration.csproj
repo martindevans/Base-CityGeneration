@@ -73,8 +73,8 @@
       <HintPath>..\packages\CGAL_StraightSkeleton_Dotnet.3.0.0.0\lib\net46\CGAL_StraightSkeleton_Dotnet.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5821.35740, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5821.35740\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5830.30875, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5830.30875\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FortuneVoronoi, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -138,8 +138,8 @@
       <HintPath>..\packages\Placeholder.Audio2.5.2.4.0\lib\net46\Placeholder.Audio2.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=11.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.11.1.0.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
+    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=11.1.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.11.1.1.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Entities, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">
@@ -158,8 +158,8 @@
       <HintPath>..\packages\Poly2Tri.1.0.1.0\lib\net35-Client\Poly2Tri.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="PrimitiveSvgBuilder, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\PrimitiveSvgBuilder.1.1.0.0\lib\net46\PrimitiveSvgBuilder.dll</HintPath>
+    <Reference Include="PrimitiveSvgBuilder, Version=1.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PrimitiveSvgBuilder.1.2.1.0\lib\net46\PrimitiveSvgBuilder.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SharpYaml, Version=1.5.2.17255, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">
@@ -283,6 +283,8 @@
     <Compile Include="Elements\Building\Design\Spec\Ref\SearchDirection.cs" />
     <Compile Include="Elements\Building\Design\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Design\Spec\RepeatSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\ExteriorDoor.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\ExteriorWindow.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\FloorplanRegion.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\BaseSpaceSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Connections\Either.cs" />
@@ -291,7 +293,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Design\Connections\TaggedRef.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\BaseSpaceConstraintSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Connections\BaseSpaceConnectionSpec.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\Exterior.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\BaseExterior.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\Area.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\FloorDesigner.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\ISpaceSpecProducer.cs" />
@@ -308,6 +310,8 @@
     <Compile Include="Parcels\Parcelling\Rules\AspectRatioRule.cs" />
     <Compile Include="Styles\InternalWalls.cs" />
     <Compile Include="Utilities\BasePolygonRegion.cs" />
+    <Compile Include="Utilities\Extensions\IEnumerableVector2Extensions.cs" />
+    <Compile Include="Utilities\Numbers\FuncValue.cs" />
     <Compile Include="Utilities\Numbers\IValueGenerator.cs" />
     <Compile Include="Utilities\Numbers\MetaValue.cs" />
     <Compile Include="Utilities\TagContainer.cs" />
@@ -405,7 +409,7 @@
     <Compile Include="Styles\ExternalWalls.cs" />
     <Compile Include="TreeSearch.cs" />
     <Compile Include="Utilities\Numbers\NormallyDistributedValue.cs" />
-    <Compile Include="Utilities\Numbers\WrapperBaseValue.cs" />
+    <Compile Include="Utilities\Numbers\WrapperValue.cs" />
     <Compile Include="Utilities\Vector2Container.cs" />
   </ItemGroup>
   <ItemGroup>

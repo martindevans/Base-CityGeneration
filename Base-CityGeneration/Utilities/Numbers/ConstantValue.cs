@@ -28,11 +28,6 @@ namespace Base_CityGeneration.Utilities.Numbers
             return _value;
         }
 
-        public int SelectIntValue(Func<double> random, INamedDataCollection data)
-        {
-            return (int)Math.Round(_value);
-        }
-
         internal class Container
             : BaseValueGeneratorContainer
         {
