@@ -25,16 +25,7 @@
 //                () => _defaultValue.SelectFloatValue(random, data)
 //            );
 //        }
-
-//        public int SelectIntValue(Func<double> random, INamedDataCollection data)
-//        {
-//            return data.DetermineHierarchicalValue(
-//                new TypedName<int>(_name),
-//                old => old,
-//                () => _defaultValue.SelectIntValue(random, data)
-//            );
-//        }
-
+//
 //        internal class Container
 //            : BaseValueGeneratorContainer
 //        {

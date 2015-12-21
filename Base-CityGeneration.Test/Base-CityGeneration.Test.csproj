@@ -58,12 +58,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5821.35740, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5821.35741\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5830.30875, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5830.30877\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5821.35741, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5821.35741\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
+    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5830.30877, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5830.30877\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -124,8 +124,8 @@
       <HintPath>..\packages\Placeholder.Audio2.5.2.4.0\lib\net46\Placeholder.Audio2.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=11.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.11.1.0.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
+    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=11.1.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.11.1.1.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Entities, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">
@@ -144,8 +144,8 @@
       <HintPath>..\packages\Poly2Tri.1.0.1.0\lib\net35-Client\Poly2Tri.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="PrimitiveSvgBuilder, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\PrimitiveSvgBuilder.1.1.0.0\lib\net46\PrimitiveSvgBuilder.dll</HintPath>
+    <Reference Include="PrimitiveSvgBuilder, Version=1.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PrimitiveSvgBuilder.1.2.1.0\lib\net46\PrimitiveSvgBuilder.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SharpYaml, Version=1.5.2.17255, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">

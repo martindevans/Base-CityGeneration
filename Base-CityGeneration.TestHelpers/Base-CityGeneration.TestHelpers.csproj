@@ -58,8 +58,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5821.35740, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5821.35740\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5830.30875, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5830.30875\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -120,8 +120,8 @@
       <HintPath>..\packages\Placeholder.Audio2.5.2.4.0\lib\net46\Placeholder.Audio2.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=11.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.11.1.0.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
+    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=11.1.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.11.1.1.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Entities, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">

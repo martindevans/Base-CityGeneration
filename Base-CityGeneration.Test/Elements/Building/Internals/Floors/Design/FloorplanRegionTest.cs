@@ -1,9 +1,6 @@
 ﻿using System.Numerics;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Poly2Tri.Triangulation;
-using Poly2Tri.Triangulation.Delaunay;
-using Poly2Tri.Triangulation.Polygon;
 
 namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Design
 {
@@ -11,11 +8,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Design
     public class FloorplanRegionTest
     {
         private readonly FloorplanRegion _region = new FloorplanRegion(new[] {
-            new Vector2(-5, 5),
-            new Vector2(5, 5),
-            new Vector2(5, 0),
-            new Vector2(5, -5),
-            new Vector2(-5, -5),
+            new FloorplanRegion.Side(new Section[0], new Vector2(-5, 5), new Vector2(5, 5)),
+            new FloorplanRegion.Side(new Section[0], new Vector2(5, 5), new Vector2(5, 0)),
+            new FloorplanRegion.Side(new Section[0], new Vector2(5, 0), new Vector2(5, -5)),
+            new FloorplanRegion.Side(new Section[0], new Vector2(5, -5), new Vector2(-5, -5)),
         });
 
         //[TestMethod]

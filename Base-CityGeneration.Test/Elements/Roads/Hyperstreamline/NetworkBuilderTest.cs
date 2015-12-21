@@ -161,5 +161,42 @@ Major:
 
             var maj = c.Major(r.NextDouble, m);
         }
+
+        [TestMethod]
+        public void Demo()
+        {
+            var c = NetworkDescriptor.Deserialize(new StringReader(@"
+!Network
+Major:
+    MergeSearchAngle: 22.5
+    MergeDistance: 25
+    SegmentLength: 10
+    RoadWidth: !NormalValue { Min: 1, Max: 1, Vary: false }
+    PriorityField: !ConstantScalars { Value: 1 }
+    SeparationField: !ConstantScalars { Value: 50 }
+    TensorField:
+        !AddTensors
+        Tensors:
+            - !Polyline
+                Decay: 7
+                Points:
+                - { X: 0.3, Y: 0 }
+                - { X: 0.1, Y: 0.33 }
+                - { X: 0.5, Y: 0.66 }
+                - { X: 0.2, Y: 1 }
+"));
+
+            NetworkBuilder b = new NetworkBuilder();
+
+            Random r = new Random(24);
+            var m = new NamedBoxCollection();
+
+            b.Build(c.Major(r.NextDouble, m), r.NextDouble, m, new Vector2(0, 0), new Vector2(500, 500));
+            b.Reduce();
+
+            var regions = b.Regions();
+
+            Console.WriteLine(b.Result.ToSvg(regions));
+        }
     }
 }

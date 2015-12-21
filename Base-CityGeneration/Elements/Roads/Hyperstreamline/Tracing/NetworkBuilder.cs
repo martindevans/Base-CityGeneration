@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Instrumentation;
+using Base_CityGeneration.Utilities.Numbers;
 using Myre.Collections;
 using SwizzleMyVectors.Geometry;
 

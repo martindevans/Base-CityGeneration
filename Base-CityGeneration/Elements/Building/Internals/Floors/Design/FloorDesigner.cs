@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
+using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using CGAL_StraightSkeleton_Dotnet;
-using EpimetheusPlugins.Extensions;
-using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using JetBrains.Annotations;
 using Myre.Collections;
@@ -52,28 +52,27 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             _minimumRegionSize = minimumRegionSize;
         }
 
-        public FloorPlan Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<Vector2> footprint)
+        public FloorPlan Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<FloorplanRegion.Side> footprint)
         {
 #if DEBUG
             var svg = new SvgBuilder(10);
 #endif
 
-            //Generate set of required spaces
-            var requiredSpecs = _rooms.SelectMany(r => r.Produce(true, random, metadata)).ToArray();
-
             //Generate a floor skeleton to lay hallways along and subdivide the floor into regions
-            var regions = GenerateRegions(footprint, random, metadata, 10).ToArray(); //TODO: Parameterize error!
+            var regions = GenerateRegions(footprint, random, metadata, 10).ToArray(); //TODO: [Floorplan] Parameterize error!
 
-            //Assign rooms to the regions they are most likely to be satisfied in
-            AssignRooms(requiredSpecs, regions, random, metadata);
+            //Assign *required* rooms to the regions they are most likely to be satisfied in
+            AssignRooms(_rooms.SelectMany(r => r.Produce(true, random, metadata)).ToArray(), regions, random, metadata, true);
+            AssignRooms(_rooms.SelectMany(r => r.Produce(false, random, metadata)).ToArray(), regions, random, metadata, false);
 
 #if DEBUG
             foreach (var region in regions)
             {
-                svg.Outline(region.Shape);
+                svg.Outline(region.Points.ToArray());
 
                 var oabb = (Vector2[])region.OABR.Points(new Vector2[4]);
                 svg.Outline(oabb, "red");
+                svg.Text(region.AssignedSpaces.Count.ToString(), region.Points.Aggregate((a, b) => a + b) / region.Shape.Count);
             }
 #endif
 
@@ -93,26 +92,61 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             Console.WriteLine(svg.ToString());
 #endif
 
-            return new FloorPlan(footprint);
+            return null;
         }
 
-        private static void AssignRooms(IEnumerable<BaseSpaceSpec> requiredSpecs, IEnumerable<FloorplanRegion> regions, Func<double> random, INamedDataCollection metadata)
+        private static void AssignRooms(IEnumerable<BaseSpaceSpec> requiredSpecs, IEnumerable<FloorplanRegion> regions, Func<double> random, INamedDataCollection metadata, bool required)
         {
             //Assign every space spec to a region of space
             foreach (var spec in requiredSpecs)
             {
                 //Find the "best" region to place this spec in (best guess)
                 var bestRegion = regions
-                    .Select(r => new KeyValuePair<float, FloorplanRegion>(ScoreRegionForSpec(r, spec), r))
-                    .Aggregate((a, b) => a.Key > b.Key ? a : b)
-                    .Value;
-                bestRegion.Add(spec, random, metadata);
+
+                    //Calculate score for each region
+                    .Select(r => new KeyValuePair<float, FloorplanRegion>(ScoreRegionForSpec(r, spec, random, metadata), r))
+
+                    //Order by area (descending). If we have a tie in scores we will take the region with the largest unassigned area
+                    .OrderBy(r => -r.Value.UnassignedArea)
+
+                    //We must consider the possibility no region can handle this spec, so we use nullables
+                    .Cast<KeyValuePair<float, FloorplanRegion>?>()
+
+                    //Aggregate the best spec
+                    .Aggregate(default(KeyValuePair<float, FloorplanRegion>?), (a, b) => (a.HasValue && b.HasValue && a.Value.Key > b.Value.Key) ? a : b);
+
+                //If no region has been selected either throw (required region) or continue (optional region)
+                if (!bestRegion.HasValue || bestRegion.Value.Key <= 0.01f)
+                {
+                    if (!required)
+                        continue;
+                    throw new DesignFailedException(string.Format("Cannot find a region which satisfies all constraints \"{0}\" to", spec.Id));
+                }
+
+                //Sanity check
+                if (float.IsNaN(bestRegion.Value.Key))
+                    throw new InvalidOperationException("Heuristic score for floorplan region is NaN");
+
+                bestRegion.Value.Value.Add(spec, random, metadata);
             }
         }
 
-        private static float ScoreRegionForSpec(FloorplanRegion region, BaseSpaceSpec spec)
+        private static float ScoreRegionForSpec(FloorplanRegion region, BaseSpaceSpec spec, Func<double> random, INamedDataCollection metadata)
         {
-            return 1;
+            //Sum up the total strength of all constraints
+            var totalStrength = spec.Constraints.Sum(a => a.Strength.SelectFloatValue(random, metadata));
+
+            //Sum up the total chance of constraints being satisfied
+            //Square the probability, to add more weight to low probabilities
+            //Multiply by strength to form a weighted average
+            var totalChance = (from constraint in spec.Constraints
+                               let strength = constraint.Strength.SelectFloatValue(random, metadata)
+                               let probability = constraint.Requirement.AssessSatisfactionProbability(region, random, metadata)
+                               select probability * probability * strength)
+                .Aggregate((a, b) => a * b);
+
+            //Normalize weighted average
+            return totalChance / totalStrength;
         }
 
         /// <summary>
@@ -123,32 +157,37 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         /// <param name="metadata"></param>
         /// <param name="areaErrorTolerance"></param>
         /// <returns></returns>
-        private IEnumerable<FloorplanRegion> GenerateRegions(IReadOnlyList<Vector2> footprint, Func<double> random, INamedDataCollection metadata, float areaErrorTolerance)
+        private IEnumerable<FloorplanRegion> GenerateRegions(IReadOnlyList<FloorplanRegion.Side> footprint, Func<double> random, INamedDataCollection metadata, float areaErrorTolerance)
         {
-            using (var straightSkeleton = StraightSkeleton.Generate(footprint))
+            var root = new FloorplanRegion(footprint);
+
+            using (var straightSkeleton = StraightSkeleton.Generate(root.Points.ToArray()))
             {
                 //Slice the floorplan up by the lines of the straight skeleton, do not allow any polygons which are smaller than the limit
-                var parts = new List<IReadOnlyList<Vector2>> { footprint };
-                foreach (var edge in straightSkeleton.Skeleton)
+                var regions = new List<FloorplanRegion> { root };
+                foreach (var edge in straightSkeleton.Skeleton.OrderByPoint(a => a.Start.Position).ThenByPoint(a => a.End.Position))
                 {
                     var sliceLine = new Ray2(edge.Start.Position, edge.End.Position - edge.Start.Position);
 
-                    var wip = new List<IReadOnlyList<Vector2>>();
-                    foreach (var part in parts)
+                    //slice each region by each skeleton corner
+                    var wip = new List<FloorplanRegion>();
+                    foreach (var region in regions)
                     {
-                        var sliced = part.SlicePolygon(sliceLine);
-                        if (sliced.Any(a => a.Area() < _minimumRegionSize.SelectFloatValue(random, metadata)))
-                            wip.Add(part);
+                        //todo: throw new NotImplementedException("Prefer cut which does not intersect a window, do not allow cuts which intersect a door");
+
+                        var sliced = region.Slice(sliceLine);
+                        if (sliced.Any(a => a.Area < _minimumRegionSize.SelectFloatValue(random, metadata)))
+                            wip.Add(region);
                         else
                             wip.AddRange(sliced);
                     }
 
-                    parts = wip;
+                    regions = wip;
                 }
 
-                return parts
-                    .Select(a => new FloorplanRegion(a))
-                    .SelectMany(a => a.ReduceError(areaErrorTolerance));
+
+                return regions
+                    .SelectMany(a => a.RecursiveReduceError(areaErrorTolerance));
             }
         }
 
@@ -168,7 +207,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             serializer.Settings.RegisterTagMapping("Repeat", typeof(RepeatSpec.Container));
 
             //Constraints
-            serializer.Settings.RegisterTagMapping("Exterior", typeof(Exterior.Container));
+            serializer.Settings.RegisterTagMapping("ExteriorDoor", typeof(ExteriorDoor.Container));
+            serializer.Settings.RegisterTagMapping("ExteriorWindow", typeof(ExteriorWindow.Container));
             serializer.Settings.RegisterTagMapping("Area", typeof(Area.Container));
 
             //Connections
