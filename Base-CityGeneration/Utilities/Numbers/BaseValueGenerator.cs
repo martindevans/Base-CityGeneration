@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Utilities.Numbers

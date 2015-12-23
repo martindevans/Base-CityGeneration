@@ -25,6 +25,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             return Rooms.Select(r => r.MinArea(random, metadata)).Sum();
         }
 
+        public override float MaxArea(Func<double> random, INamedDataCollection metadata)
+        {
+            return Rooms.Select(r => r.MaxArea(random, metadata)).Sum();
+        }
+
         public override IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> Constraints
         {
             //We override the constraints property and return the union of all the constraints of the child rooms
@@ -37,6 +42,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
                         select grouped.Aggregate(Union)
                 ).ToArray();
             }
+        }
+
+        public override IEnumerable<BaseSpaceSpec> Produce(bool required, Func<double> random, INamedDataCollection metadata)
+        {
+            yield return this;
         }
 
         private static RequirementStrength<T> Union<T>(RequirementStrength<T> a, RequirementStrength<T> b)

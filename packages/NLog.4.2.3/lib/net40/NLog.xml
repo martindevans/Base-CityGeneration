@@ -2764,61 +2764,6 @@
             </summary>
             <docgen category='Filtering Options' order='10' />
         </member>
-        <member name="T:NLog.Fluent.Log">
-            <summary>
-            A global logging class using caller info to find the logger.
-            </summary>
-        </member>
-        <member name="M:NLog.Fluent.Log.Level(NLog.LogLevel,System.String)">
-            <summary>
-            Starts building a log event with the specified <see cref="T:NLog.LogLevel"/>.
-            </summary>
-            <param name="logLevel">The log level.</param>
-            <param name="callerFilePath">The full path of the source file that contains the caller. This is the file path at the time of compile.</param>
-            <returns>An instance of the fluent <see cref="T:NLog.Fluent.LogBuilder"/>.</returns>
-        </member>
-        <member name="M:NLog.Fluent.Log.Trace(System.String)">
-            <summary>
-            Starts building a log event at the <c>Trace</c> level.
-            </summary>
-            <param name="callerFilePath">The full path of the source file that contains the caller. This is the file path at the time of compile.</param>
-            <returns>An instance of the fluent <see cref="T:NLog.Fluent.LogBuilder"/>.</returns>
-        </member>
-        <member name="M:NLog.Fluent.Log.Debug(System.String)">
-            <summary>
-            Starts building a log event at the <c>Debug</c> level.
-            </summary>
-            <param name="callerFilePath">The full path of the source file that contains the caller. This is the file path at the time of compile.</param>
-            <returns>An instance of the fluent <see cref="T:NLog.Fluent.LogBuilder"/>.</returns>
-        </member>
-        <member name="M:NLog.Fluent.Log.Info(System.String)">
-            <summary>
-            Starts building a log event at the <c>Info</c> level.
-            </summary>
-            <param name="callerFilePath">The full path of the source file that contains the caller. This is the file path at the time of compile.</param>
-            <returns>An instance of the fluent <see cref="T:NLog.Fluent.LogBuilder"/>.</returns>
-        </member>
-        <member name="M:NLog.Fluent.Log.Warn(System.String)">
-            <summary>
-            Starts building a log event at the <c>Warn</c> level.
-            </summary>
-            <param name="callerFilePath">The full path of the source file that contains the caller. This is the file path at the time of compile.</param>
-            <returns>An instance of the fluent <see cref="T:NLog.Fluent.LogBuilder"/>.</returns>
-        </member>
-        <member name="M:NLog.Fluent.Log.Error(System.String)">
-            <summary>
-            Starts building a log event at the <c>Error</c> level.
-            </summary>
-            <param name="callerFilePath">The full path of the source file that contains the caller. This is the file path at the time of compile.</param>
-            <returns>An instance of the fluent <see cref="T:NLog.Fluent.LogBuilder"/>.</returns>
-        </member>
-        <member name="M:NLog.Fluent.Log.Fatal(System.String)">
-            <summary>
-            Starts building a log event at the <c>Fatal</c> level.
-            </summary>
-            <param name="callerFilePath">The full path of the source file that contains the caller. This is the file path at the time of compile.</param>
-            <returns>An instance of the fluent <see cref="T:NLog.Fluent.LogBuilder"/>.</returns>
-        </member>
         <member name="T:NLog.Fluent.LogBuilder">
             <summary>
             A fluent class to build log events for NLog.
@@ -2950,31 +2895,22 @@
             <param name="userStackFrame">Index of the first user stack frame within the stack trace.</param>
             <returns></returns>
         </member>
-        <member name="M:NLog.Fluent.LogBuilder.Write(System.String,System.String,System.Int32)">
+        <member name="M:NLog.Fluent.LogBuilder.Write">
             <summary>
             Writes the log event to the underlying logger.
             </summary>
-            <param name="callerMemberName">The method or property name of the caller to the method. This is set at by the compiler.</param>
-            <param name="callerFilePath">The full path of the source file that contains the caller. This is set at by the compiler.</param>
-            <param name="callerLineNumber">The line number in the source file at which the method is called. This is set at by the compiler.</param>
         </member>
-        <member name="M:NLog.Fluent.LogBuilder.WriteIf(System.Func{System.Boolean},System.String,System.String,System.Int32)">
+        <member name="M:NLog.Fluent.LogBuilder.WriteIf(System.Func{System.Boolean})">
             <summary>
-            Writes the log event to the underlying logger if the condition delegate is true.
+            Writes the log event to the underlying logger.
             </summary>
             <param name="condition">If condition is true, write log event; otherwise ignore event.</param>
-            <param name="callerMemberName">The method or property name of the caller to the method. This is set at by the compiler.</param>
-            <param name="callerFilePath">The full path of the source file that contains the caller. This is set at by the compiler.</param>
-            <param name="callerLineNumber">The line number in the source file at which the method is called. This is set at by the compiler.</param>
         </member>
-        <member name="M:NLog.Fluent.LogBuilder.WriteIf(System.Boolean,System.String,System.String,System.Int32)">
+        <member name="M:NLog.Fluent.LogBuilder.WriteIf(System.Boolean)">
             <summary>
-            Writes the log event to the underlying logger if the condition is true.
+            Writes the log event to the underlying logger.
             </summary>
             <param name="condition">If condition is true, write log event; otherwise ignore event.</param>
-            <param name="callerMemberName">The method or property name of the caller to the method. This is set at by the compiler.</param>
-            <param name="callerFilePath">The full path of the source file that contains the caller. This is set at by the compiler.</param>
-            <param name="callerLineNumber">The line number in the source file at which the method is called. This is set at by the compiler.</param>
         </member>
         <member name="P:NLog.Fluent.LogBuilder.LogEventInfo">
             <summary>
@@ -3637,38 +3573,6 @@
             <param name="func">Function to run.</param>
             <param name="fallback">Fallback value to return in case of exception.</param>
             <returns>Result returned by the provided function or fallback value in case of exception.</returns>
-        </member>
-        <member name="M:NLog.ISuppress.SwallowAsync(System.Threading.Tasks.Task)">
-            <summary>
-            Returns a task that completes when a specified task to completes. If the task does not run to completion, an exception is logged at <c>Error</c> level. The returned task always runs to completion.
-            </summary>
-            <param name="task">The task for which to log an error if it does not run to completion.</param>
-            <returns>A task that completes in the <see cref="F:System.Threading.Tasks.TaskStatus.RanToCompletion"/> state when when <paramref name="task"/> completes.</returns>
-        </member>
-        <member name="M:NLog.ISuppress.SwallowAsync(System.Func{System.Threading.Tasks.Task})">
-            <summary>
-            Runs async action. If the action throws, the exception is logged at <c>Error</c> level. The exception is not propagated outside of this method.
-            </summary>
-            <param name="asyncAction">Async action to execute.</param>
-        </member>
-        <member name="M:NLog.ISuppress.SwallowAsync``1(System.Func{System.Threading.Tasks.Task{``0}})">
-            <summary>
-            Runs the provided async function and returns its result. If the task does not run to completion, an exception is logged at <c>Error</c> level.
-            The exception is not propagated outside of this method; a default value is returned instead.
-            </summary>
-            <typeparam name="TResult">Return type of the provided function.</typeparam>
-            <param name="asyncFunc">Async function to run.</param>
-            <returns>A task that represents the completion of the supplied task. If the supplied task ends in the <see cref="F:System.Threading.Tasks.TaskStatus.RanToCompletion"/> state, the result of the new task will be the result of the supplied task; otherwise, the result of the new task will be the default value of type <typeparamref name="TResult"/>.</returns>
-        </member>
-        <member name="M:NLog.ISuppress.SwallowAsync``1(System.Func{System.Threading.Tasks.Task{``0}},``0)">
-            <summary>
-            Runs the provided async function and returns its result. If the task does not run to completion, an exception is logged at <c>Error</c> level.
-            The exception is not propagated outside of this method; a fallback value is returned instead.
-            </summary>
-            <typeparam name="TResult">Return type of the provided function.</typeparam>
-            <param name="asyncFunc">Async function to run.</param>
-            <param name="fallback">Fallback value to return if the task does not end in the <see cref="F:System.Threading.Tasks.TaskStatus.RanToCompletion"/> state.</param>
-            <returns>A task that represents the completion of the supplied task. If the supplied task ends in the <see cref="F:System.Threading.Tasks.TaskStatus.RanToCompletion"/> state, the result of the new task will be the result of the supplied task; otherwise, the result of the new task will be the fallback value.</returns>
         </member>
         <member name="M:NLog.ILogger.Trace``1(``0)">
             <overloads>
@@ -7778,32 +7682,11 @@
             <param name="builder">The <see cref="T:System.Text.StringBuilder"/> to append the rendered data to.</param>
             <param name="logEvent">Logging event.</param>
         </member>
-        <member name="F:NLog.LayoutRenderers.AllEventPropertiesLayoutRenderer.CallerInformationAttributeNames">
-            <summary>
-            The names of caller information attributes.
-            https://msdn.microsoft.com/en-us/library/hh534540.aspx
-            </summary>
-        </member>
-        <member name="M:NLog.LayoutRenderers.AllEventPropertiesLayoutRenderer.GetProperties(NLog.LogEventInfo)">
-            <summary>
-            Also render the call attributes? (<see cref="T:System.Runtime.CompilerServices.CallerMemberNameAttribute"/>,
-            <see cref="T:System.Runtime.CompilerServices.CallerFilePathAttribute"/>, <see cref="T:System.Runtime.CompilerServices.CallerLineNumberAttribute"/>). 
-            </summary>
-            
-        </member>
         <member name="P:NLog.LayoutRenderers.AllEventPropertiesLayoutRenderer.Separator">
             <summary>
             Gets or sets string that will be used to separate key/value pairs.
             </summary>
             <docgen category='Rendering Options' order='10' />
-        </member>
-        <member name="P:NLog.LayoutRenderers.AllEventPropertiesLayoutRenderer.IncludeCallerInformation">
-            <summary>
-            Also render the caller information attributes? (<see cref="T:System.Runtime.CompilerServices.CallerMemberNameAttribute"/>,
-            <see cref="T:System.Runtime.CompilerServices.CallerFilePathAttribute"/>, <see cref="T:System.Runtime.CompilerServices.CallerLineNumberAttribute"/>). 
-            
-            See https://msdn.microsoft.com/en-us/library/hh534540.aspx
-            </summary>
         </member>
         <member name="P:NLog.LayoutRenderers.AllEventPropertiesLayoutRenderer.Format">
             <summary>
@@ -11303,38 +11186,6 @@
             <param name="func">Function to run.</param>
             <param name="fallback">Fallback value to return in case of exception.</param>
             <returns>Result returned by the provided function or fallback value in case of exception.</returns>
-        </member>
-        <member name="M:NLog.Logger.SwallowAsync(System.Threading.Tasks.Task)">
-            <summary>
-            Returns a task that completes when a specified task to completes. If the task does not run to completion, an exception is logged at <c>Error</c> level. The returned task always runs to completion.
-            </summary>
-            <param name="task">The task for which to log an error if it does not run to completion.</param>
-            <returns>A task that completes in the <see cref="F:System.Threading.Tasks.TaskStatus.RanToCompletion"/> state when when <paramref name="task"/> completes.</returns>
-        </member>
-        <member name="M:NLog.Logger.SwallowAsync(System.Func{System.Threading.Tasks.Task})">
-            <summary>
-            Runs async action. If the action throws, the exception is logged at <c>Error</c> level. The exception is not propagated outside of this method.
-            </summary>
-            <param name="asyncAction">Async action to execute.</param>
-        </member>
-        <member name="M:NLog.Logger.SwallowAsync``1(System.Func{System.Threading.Tasks.Task{``0}})">
-            <summary>
-            Runs the provided async function and returns its result. If the task does not run to completion, an exception is logged at <c>Error</c> level.
-            The exception is not propagated outside of this method; a default value is returned instead.
-            </summary>
-            <typeparam name="TResult">Return type of the provided function.</typeparam>
-            <param name="asyncFunc">Async function to run.</param>
-            <returns>A task that represents the completion of the supplied task. If the supplied task ends in the <see cref="F:System.Threading.Tasks.TaskStatus.RanToCompletion"/> state, the result of the new task will be the result of the supplied task; otherwise, the result of the new task will be the default value of type <typeparamref name="TResult"/>.</returns>
-        </member>
-        <member name="M:NLog.Logger.SwallowAsync``1(System.Func{System.Threading.Tasks.Task{``0}},``0)">
-            <summary>
-            Runs the provided async function and returns its result. If the task does not run to completion, an exception is logged at <c>Error</c> level.
-            The exception is not propagated outside of this method; a fallback value is returned instead.
-            </summary>
-            <typeparam name="TResult">Return type of the provided function.</typeparam>
-            <param name="asyncFunc">Async function to run.</param>
-            <param name="fallback">Fallback value to return if the task does not end in the <see cref="F:System.Threading.Tasks.TaskStatus.RanToCompletion"/> state.</param>
-            <returns>A task that represents the completion of the supplied task. If the supplied task ends in the <see cref="F:System.Threading.Tasks.TaskStatus.RanToCompletion"/> state, the result of the new task will be the result of the supplied task; otherwise, the result of the new task will be the fallback value.</returns>
         </member>
         <member name="M:NLog.Logger.Trace``1(``0)">
             <overloads>
@@ -15038,12 +14889,6 @@
             Gets the target endpoint for the service to which the WCF client can connect.
             </summary>
         </member>
-        <member name="P:NLog.LogReceiverService.IWcfLogReceiverClient.CookieContainer">
-            <summary>
-            Gets or sets the cookie container.
-            </summary>
-            <value>The cookie container.</value>
-        </member>
         <member name="T:NLog.LogReceiverService.LogReceiverForwardingService">
             <summary>
             Implementation of <see cref="T:NLog.LogReceiverService.ILogReceiverServer"/> which forwards received logs through <see cref="T:NLog.LogManager"/> or a given <see cref="T:NLog.LogFactory"/>.
@@ -15310,12 +15155,6 @@
             <summary>
             Occurs when Close operation has completed.
             </summary>
-        </member>
-        <member name="P:NLog.LogReceiverService.WcfLogReceiverClientBase`1.CookieContainer">
-            <summary>
-            Gets or sets the cookie container.
-            </summary>
-            <value>The cookie container.</value>
         </member>
         <member name="M:NLog.LogReceiverService.WcfILogReceiverClient.#ctor">
             <summary>
@@ -15584,12 +15423,6 @@
             <summary>
             Occurs when the communication object first enters the closing state.
             </summary>
-        </member>
-        <member name="P:NLog.LogReceiverService.WcfLogReceiverClient.CookieContainer">
-            <summary>
-            Gets or sets the cookie container.
-            </summary>
-            <value>The cookie container.</value>
         </member>
         <member name="P:NLog.LogReceiverService.WcfLogReceiverClient.Endpoint">
             <summary>
@@ -17814,6 +17647,21 @@
             This value disables file archiving based on the size. 
             </summary>
         </member>
+        <member name="F:NLog.Targets.FileTarget.EnableArchiveFileCompression">
+            <summary>
+            Gets or sets a value indicating whether to compress archive files into the zip archive format.
+            </summary>
+        </member>
+        <member name="F:NLog.Targets.FileTarget.DirectorySeparatorChars">
+            <summary>
+            Cached directory separator char array to avoid memory allocation on each method call.
+            </summary>
+        </member>
+        <member name="F:NLog.Targets.FileTarget.InvalidFileNameChars">
+            <summary>
+            Cached invalid filenames char array to avoid memory allocation everytime Path.GetInvalidFileNameChars() is called.
+            </summary>
+        </member>
         <member name="F:NLog.Targets.FileTarget.initializedFiles">
             <summary>
             Holds the initialised files each given time by the <see cref="T:NLog.Targets.FileTarget"/> instance. Against each file, the last write time is stored. 
@@ -17845,6 +17693,16 @@
             <summary>
             It holds the file names of existing archives in order for the oldest archives to be removed when the list of
             filenames becomes too long.
+            </summary>
+        </member>
+        <member name="F:NLog.Targets.FileTarget.fileName">
+            <summary>
+            The filename as target
+            </summary>
+        </member>
+        <member name="F:NLog.Targets.FileTarget.cachedCleanedFileNamed">
+            <summary>
+            The filename if <see cref="P:NLog.Targets.FileTarget.FileName"/> is a fixed string
             </summary>
         </member>
         <member name="M:NLog.Targets.FileTarget.#ctor">
@@ -18230,6 +18088,12 @@
             </example>
             <docgen category='Output Options' order='1' />
         </member>
+        <member name="P:NLog.Targets.FileTarget.CleanupFileName">
+            <summary>
+            Cleanup invalid values in a filename, e.g. slashes in a filename. If set to <c>true</c>, this can impact the performance of massive writes. 
+            If set to <c>false</c>, nothing gets written when the filename is wrong.
+            </summary>
+        </member>
         <member name="P:NLog.Targets.FileTarget.CreateDirs">
             <summary>
             Gets or sets a value indicating whether to create directories if they do not exist.
@@ -18450,12 +18314,6 @@
         <member name="P:NLog.Targets.FileTarget.ArchiveNumbering">
             <summary>
             Gets or sets the way file archives are numbered. 
-            </summary>
-            <docgen category='Archival Options' order='10' />
-        </member>
-        <member name="P:NLog.Targets.FileTarget.EnableArchiveFileCompression">
-            <summary>
-            Gets or sets a value indicating whether to compress archive files into the zip archive format.
             </summary>
             <docgen category='Archival Options' order='10' />
         </member>

@@ -32,8 +32,8 @@ Aliases:
       # Constraints on the placement of the room
       Constraints:
          - { Strength: 1,    Req: !ExteriorWindow { } }
-         - { Strength: 0.5,  Req: !ExteriorDoor { Deny: true } }
-         - { Strength: 0.5,  Req: !Area { Min: 16 } }
+#         - { Strength: 0.5,  Req: !ExteriorDoor { Deny: true } }
+         - { Strength: 0.5,  Req: !Area { Min: 13 } }
       # Constraints on the connections between this room and other rooms
       # Lounge can be used as a corridor to access other rooms
       Walkthrough: true
@@ -49,13 +49,34 @@ Aliases:
       Tags:
         1: { Type: Residential, Style: Modern, Class: Kitchen }
       Constraints:
-        - { Strength: 1,    Req: !Area { Min: 9 } }
+        - { Strength: 1,    Req: !Area { Min: 8 } }
+        
+    # Another room
+    - &bedroom !Room
+      Id: Bedroom
+      Tags:
+        1: { Type: Residential, Style: Modern, Class: Bedroom }
+      Constraints:
+#        - { Strength: 1,  Req: !ExteriorDoor { Deny: true } }
+        - { Strength: 0.5,    Req: !Area { Min: 10 } }
+        
+    # Another room
+    - &bathroom !Room
+      Id: Bathroom
+      Tags:
+        1: { Type: Residential, Style: Modern, Class: Bathroom }
+      Constraints:
+#        - { Strength: 1,  Req: !ExteriorDoor { Deny: true } }
+        - { Strength: 0.5,    Req: !Area { Min: 4.5 } }
 
     # A group is a group of rooms, it is laid out in exactly the same way as a single room, but itself contains further rooms (and thus has the union of all child rooms)
     - &apartment !Group
       Id: Apartment
       Rooms:
         - *lounge
+        - *kitchen
+        - *bedroom
+        - *bathroom
       # This example has no constraints, but this is just to demo that a group can have constraints just like rooms
       Constraints: []
       Connections:
@@ -81,7 +102,7 @@ Aliases:
 Rooms:
     - !Repeat
       Required: 1
-      Optional: 10
+      Optional: 1000
       Room: *apartment
 "));
 
@@ -103,12 +124,12 @@ Rooms:
 
             //Corner shape
             var floorplan = designer.Design(random, meta, null, new[] {
-                new FloorplanRegion.Side(new Section[0], new Vector2(5, 5), new Vector2(5, -6)),
-                new FloorplanRegion.Side(new Section[] { new Section(0, 1, Section.Types.Window) }, new Vector2(5, -6), new Vector2(0, -6)),
-                new FloorplanRegion.Side(new Section[0], new Vector2(0, -6), new Vector2(0, 0)),
-                new FloorplanRegion.Side(new Section[0], new Vector2(0, 0), new Vector2(-4, 0)),
-                new FloorplanRegion.Side(new Section[0], new Vector2(-4, 0), new Vector2(-4, 5)),
-                new FloorplanRegion.Side(new Section[0], new Vector2(-4, 5), new Vector2(5, 5)),
+                new FloorplanRegion.Side(new Vector2(6, 5), new Vector2(6, -6), new Section[]  { new Section(0, 1, Section.Types.Window) }),
+                new FloorplanRegion.Side(new Vector2(6, -6), new Vector2(0, -6), new Section[0]),
+                new FloorplanRegion.Side(new Vector2(0, -6), new Vector2(0, 0), new Section[0]),
+                new FloorplanRegion.Side(new Vector2(0, 0), new Vector2(-4, 0), new Section[0]),
+                new FloorplanRegion.Side(new Vector2(-4, 0), new Vector2(-4, 5), new Section[0]),
+                new FloorplanRegion.Side(new Vector2(-4, 5), new Vector2(6, 5), new Section[0]),
             });
 
             ////Weird spikey shape (unlikely to be generated)

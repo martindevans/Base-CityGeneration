@@ -26,15 +26,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             Connections = connections;
         }
 
-        IEnumerable<BaseSpaceSpec> ISpaceSpecProducer.Produce(bool required, Func<double> random, INamedDataCollection metadata)
-        {
-            yield return this;
-        }
-
         /// <summary>
         /// Get the minimum area this space may occupy
         /// </summary>
         public abstract float MinArea(Func<double> random, INamedDataCollection metadata);
+
+        /// <summary>
+        /// Get the minimum area this space may occupy
+        /// </summary>
+        public abstract float MaxArea(Func<double> random, INamedDataCollection metadata);
+
+        public abstract IEnumerable<BaseSpaceSpec> Produce(bool required, Func<double> random, INamedDataCollection metadata);
 
         internal abstract class BaseContainer
             : ISpaceSpecProducerContainer
