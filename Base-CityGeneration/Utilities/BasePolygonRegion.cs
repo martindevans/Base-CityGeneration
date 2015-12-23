@@ -149,7 +149,7 @@ namespace Base_CityGeneration.Utilities
                 if (unchanged != null)
                 {
                     //Side completely unchanged, simply copy across the data
-                    outputSides.Add(new Side(unchanged.Sections, a, b));
+                    outputSides.Add(new Side(a, b, unchanged.Sections));
                     continue;
                 }
 
@@ -157,7 +157,7 @@ namespace Base_CityGeneration.Utilities
                 if (slicedStart != null)
                 {
                     //Side overlapping at start, select the correct sections from OverlapPoint -> 0 (Start)
-                    outputSides.Add(new Side(SelectSections(slicedStart, a, 0), a, b));
+                    outputSides.Add(new Side(a, b, SelectSections(slicedStart, a, b)));
                     continue;
                 }
 
@@ -165,7 +165,7 @@ namespace Base_CityGeneration.Utilities
                 if (slicedEnd != null)
                 {
                     //Side overlapping at end, select the correct sections from OverlapPoint -> 1 (End)
-                    outputSides.Add(new Side(SelectSections(slicedEnd, a, 1), a, b));
+                    outputSides.Add(new Side(a, b, SelectSections(slicedEnd, a, b)));
                     continue;
                 }
 
@@ -174,7 +174,7 @@ namespace Base_CityGeneration.Utilities
                     //this is the slice line, need to add a neighbour section
                     //But which section is the neighbour? we can't know yet because not all sections exist yet!
                     //Create a side with a null section, we'll fix this up later
-                    var s = new Side(null, a, b);
+                    var s = new Side(a, b, null);
                     internalSides.Add(s);
                     outputSides.Add(s);
                     continue;
@@ -188,11 +188,10 @@ namespace Base_CityGeneration.Utilities
             return region;
         }
 
-        private IReadOnlyList<TSection> SelectSections(Side side, Vector2 startPoint, float tEnd)
+        private IReadOnlyList<TSection> SelectSections(Side side, Vector2 startPoint, Vector2 endPoint)
         {
-            //Project startPoint onto side to find where it lies along the end
-            //We want all the sections from the input side which lie between startPoint and end
-            var tStart = new LineSegment2(side.Start, side.End).Line.ClosestPointDistanceAlongLine(startPoint);
+            var tStart = new LineSegment2(side.Start, side.End).LongLine.ClosestPointDistanceAlongLine(startPoint);
+            var tEnd = new LineSegment2(side.Start, side.End).LongLine.ClosestPointDistanceAlongLine(endPoint);
 
             return SelectSections(side, tStart, tEnd);
         }
@@ -211,10 +210,16 @@ namespace Base_CityGeneration.Utilities
                 {
                     //Does the section *entirely* overlap this new section?
                     //If so just copy it over
+                    TSection s;
                     if (section.Start >= tStart && section.End <= tEnd)
-                        sections.Add(section);
+                        s = section;
                     else
-                        sections.Add(Subsection(section, tStart, tEnd));
+                        s = Subsection(section, tStart, tEnd);
+
+                    //tStart and tEnd are the start and end points of the new side we're creating
+                    //They're specific in the range of 0->1 indicating distance along *parent* edge
+                    //We need to remap subsections into the range of the new edge
+                    sections.Add(Subsection(s, s.Start - tStart, (s.End - s.Start) / (tEnd - tStart)));
                 }
             }
 
@@ -334,10 +339,16 @@ namespace Base_CityGeneration.Utilities
                 var slicedAB = Slice(new Ray2(b, ab));
                 var slicedBC = Slice(new Ray2(b, bc));
 
-                //Select the largest error in each set
-                var abMin = slicedAB.Select(x => x.OabrAreaError).Max();
-                var bcMin = slicedBC.Select(x => x.OabrAreaError).Max();
-                var best = abMin <= bcMin ? slicedAB : slicedBC;
+                ////Prefer the slice which produces the minimum OABB error
+                ////Select the largest error in each set
+                //var abMin = slicedAB.Select(x => x.OabrAreaError).Max();
+                //var bcMin = slicedBC.Select(x => x.OabrAreaError).Max();
+                //var best = abMin <= bcMin ? slicedAB : slicedBC;
+
+                //Prefer the slice which produces the largest smallest region
+                var abMin = slicedAB.Select(x => x.Area).Min();
+                var bcMin = slicedBC.Select(x => x.Area).Min();
+                var best = abMin <= bcMin ? slicedBC : slicedAB;
 
                 //Output the set with the smallest largest error
                 result.AddRange(best);
@@ -357,7 +368,7 @@ namespace Base_CityGeneration.Utilities
 
             public IReadOnlyList<TSection> Sections { get; internal set; }
 
-            public Side(IReadOnlyList<TSection> sections, Vector2 start, Vector2 end)
+            public Side(Vector2 start, Vector2 end, IReadOnlyList<TSection> sections)
             {
                 Sections = sections;
 

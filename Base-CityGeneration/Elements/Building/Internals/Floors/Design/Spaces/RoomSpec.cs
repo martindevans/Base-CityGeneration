@@ -25,6 +25,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             return ((Area)Constraints.Single(a => a.Requirement is Area).Requirement).Minimum.SelectFloatValue(random, metadata);
         }
 
+        public override float MaxArea(Func<double> random, INamedDataCollection metadata)
+        {
+            return ((Area)Constraints.Single(a => a.Requirement is Area).Requirement).Maximum.SelectFloatValue(random, metadata);
+        }
+
+        public override IEnumerable<BaseSpaceSpec> Produce(bool required, Func<double> random, INamedDataCollection metadata)
+        {
+            yield return this;
+        }
+
         internal class Container
             : BaseContainer
         {

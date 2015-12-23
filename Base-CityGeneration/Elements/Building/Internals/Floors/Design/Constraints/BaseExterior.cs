@@ -39,7 +39,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
             foreach (var assignedConstraints in exteriorConstraints)
             {
                 positiveRequirements += assignedConstraints._require ? 1 : 0;
-                negativeRequirements -= assignedConstraints._require ? 1 : 0;
+                negativeRequirements += !assignedConstraints._require ? 1 : 0;
             }
 
             //measure amount of available thing (whatever it is)

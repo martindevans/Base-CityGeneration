@@ -8,10 +8,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Design
     public class FloorplanRegionTest
     {
         private readonly FloorplanRegion _region = new FloorplanRegion(new[] {
-            new FloorplanRegion.Side(new Section[0], new Vector2(-5, 5), new Vector2(5, 5)),
-            new FloorplanRegion.Side(new Section[0], new Vector2(5, 5), new Vector2(5, 0)),
-            new FloorplanRegion.Side(new Section[0], new Vector2(5, 0), new Vector2(5, -5)),
-            new FloorplanRegion.Side(new Section[0], new Vector2(5, -5), new Vector2(-5, -5)),
+            new FloorplanRegion.Side(new Vector2(-5, 5), new Vector2(5, 5), new Section[0]),
+            new FloorplanRegion.Side(new Vector2(5, 5), new Vector2(5, 0), new Section[0]),
+            new FloorplanRegion.Side(new Vector2(5, 0), new Vector2(5, -5), new Section[0]),
+            new FloorplanRegion.Side(new Vector2(5, -5), new Vector2(-5, -5), new Section[0]),
         });
 
         //[TestMethod]
