@@ -240,17 +240,17 @@ namespace Base_CityGeneration.Utilities
         /// <summary>
         /// Reduce error until it is below tolerance (recursively for all results)
         /// </summary>
-        /// <param name="tolerance"></param>
+        /// <param name="toleranceMultiplier">What amount of the area may be error area (range from 0, perfect fit, to 1, all error)</param>
         /// <returns></returns>
-        public IEnumerable<TSelf> RecursiveReduceError(float tolerance)
+        public IEnumerable<TSelf> RecursiveReduceError(float toleranceMultiplier)
         {
             var result = new List<TSelf>();
 
-            if (ReduceError(tolerance, result))
+            if (ReduceError(toleranceMultiplier, result))
             {
                 //This shape was reduced, recurse to reduce error of the results
                 return (from shape in result
-                        from reduced in shape.RecursiveReduceError(tolerance)
+                        from reduced in shape.RecursiveReduceError(toleranceMultiplier)
                         select reduced).ToArray();
             }
             else
@@ -263,7 +263,7 @@ namespace Base_CityGeneration.Utilities
         /// <summary>
         /// Subdivide this region to reduce the areal difference between the OABR and the shape
         /// </summary>
-        /// <param name="tolerance">If error is below this tolerance then nothing will happen</param>
+        /// <param name="tolerance"></param>
         /// <returns></returns>
         public IEnumerable<TSelf> ReduceError(float tolerance)
         {
@@ -275,7 +275,7 @@ namespace Base_CityGeneration.Utilities
         private bool ReduceError(float tolerance, List<TSelf> result)
         {
             //Base case: error is acceptable
-            if (OabrAreaError <= tolerance)
+            if (OabrAreaError / Area <= tolerance)
             {
                 result.Add((TSelf)this);
                 return false;

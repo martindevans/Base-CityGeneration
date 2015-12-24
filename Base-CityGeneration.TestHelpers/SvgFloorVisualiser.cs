@@ -22,7 +22,7 @@ namespace Base_CityGeneration.TestHelpers
         {
             Random rand = new Random();
 
-            List<XObject> paths = new List<XObject>
+            var paths = new List<XObject>
             {
                 ToSvgPath(plan.ExternalFootprint.Select(a => a * scalePosition), "black", fill:"grey", opacity: 0.1f)
             };

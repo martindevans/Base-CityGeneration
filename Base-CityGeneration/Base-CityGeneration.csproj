@@ -162,20 +162,20 @@
       <HintPath>..\packages\PrimitiveSvgBuilder.1.2.1.0\lib\net46\PrimitiveSvgBuilder.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SharpYaml, Version=1.5.2.17255, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpYaml.1.5.2\lib\SharpYaml.dll</HintPath>
+    <Reference Include="SharpYaml, Version=1.5.3.20680, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpYaml.1.5.3\lib\SharpYaml.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SquarifiedTreemap, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SquarifiedTreemap.2.0.0.0\lib\net46\SquarifiedTreemap.dll</HintPath>
+    <Reference Include="SquarifiedTreemap, Version=2.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SquarifiedTreemap.2.0.1.0\lib\net46\SquarifiedTreemap.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SupersonicSound, Version=4.1.1.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>..\packages\SupersonicSound.4.1.1.0\lib\net46\SupersonicSound.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SwizzleMyVectors, Version=6.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SwizzleMyVectors.6.2.0.0\lib\net46\SwizzleMyVectors.dll</HintPath>
+    <Reference Include="SwizzleMyVectors, Version=6.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SwizzleMyVectors.6.3.0.0\lib\net46\SwizzleMyVectors.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -286,6 +286,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\ExteriorDoor.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\ExteriorWindow.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\FloorplanRegion.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\RegionSpaceMapper.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\BaseSpaceSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Connections\Either.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Connections\Invert.cs" />
@@ -313,7 +314,6 @@
     <Compile Include="Utilities\Extensions\IEnumerableVector2Extensions.cs" />
     <Compile Include="Utilities\Numbers\FuncValue.cs" />
     <Compile Include="Utilities\Numbers\IValueGenerator.cs" />
-    <Compile Include="Utilities\Numbers\MetaValue.cs" />
     <Compile Include="Utilities\TagContainer.cs" />
     <Compile Include="Elements\Roads\HalfEdgeExtensions.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\Fields\Eigens\ResampleAndRescale.cs" />

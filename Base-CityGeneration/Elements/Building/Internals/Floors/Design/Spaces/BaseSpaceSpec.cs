@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
+using Base_CityGeneration.Utilities.Numbers;
 using JetBrains.Annotations;
 using Myre.Collections;
 
@@ -48,6 +49,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             public string Id { get; [UsedImplicitly]set; }
 
             public bool Walkthrough { get; [UsedImplicitly]set; }
+
+            public object WallThickness { get; [UsedImplicitly]set; }
 
             public RequirementStrengthContainer<BaseSpaceConstraintSpec, BaseSpaceConstraintSpec.BaseContainer>[] Constraints { get; [UsedImplicitly]set; }
             public RequirementStrengthContainer<BaseSpaceConnectionSpec, BaseSpaceConnectionSpec.BaseContainer>[] Connections { get; [UsedImplicitly]set; }

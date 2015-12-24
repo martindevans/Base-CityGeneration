@@ -4,6 +4,7 @@ using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using Base_CityGeneration.Utilities;
+using Base_CityGeneration.Utilities.Numbers;
 using JetBrains.Annotations;
 using Myre.Collections;
 

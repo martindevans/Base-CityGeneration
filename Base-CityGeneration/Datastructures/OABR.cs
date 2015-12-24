@@ -21,6 +21,11 @@ namespace Base_CityGeneration.Datastructures
 
         public readonly Vector2 Axis;
 
+        private Vector2 Perpendicular
+        {
+            get { return -Axis.Perpendicular(); }
+        }
+
         public readonly Vector2 Min;
 
         public readonly Vector2 Max;
@@ -44,17 +49,7 @@ namespace Base_CityGeneration.Datastructures
         [Pure]
         public bool Contains(Vector2 point)
         {
-            //Transform the point back towards the middle
-            point -= Middle;
-
-            //Calculate projection axes (along and across)
-            var primary = Axis;
-            var secondary = primary.Perpendicular();
-
-            var pd = new Ray2(Vector2.Zero, primary).ClosestPointDistanceAlongLine(point);
-            var sd = new Ray2(Vector2.Zero, secondary).ClosestPointDistanceAlongLine(point);
-
-            return new BoundingRectangle(Min, Max).Contains(new Vector2(pd, sd));
+            return new BoundingRectangle(Min, Max).Contains(FromWorld(point));
         }
 
         /// <summary>
@@ -69,7 +64,7 @@ namespace Base_CityGeneration.Datastructures
             if (size.X > size.Y)
                 return Axis;
             else
-                return Axis.Perpendicular();
+                return Perpendicular;
         }
 
         /// <summary>
@@ -98,7 +93,7 @@ namespace Base_CityGeneration.Datastructures
 
                     //Calculate projection axes (along and across)
                     var primary = Vector2.Normalize(b - a);
-                    var secondary = primary.Perpendicular();
+                    var secondary = -primary.Perpendicular();
 
                     //Project points on axes and measure size
                     var min = new Vector2(float.PositiveInfinity);
@@ -128,16 +123,48 @@ namespace Base_CityGeneration.Datastructures
 
         public void Points(out Vector2 a, out Vector2 b, out Vector2 c, out Vector2 d)
         {
-            a = Middle + Axis * Max.X + Axis.Perpendicular() * Max.Y;
-            b = Middle + Axis * Max.X + Axis.Perpendicular() * Min.Y;
-            c = Middle + Axis * Min.X + Axis.Perpendicular() * Min.Y;
-            d = Middle + Axis * Min.X + Axis.Perpendicular() * Max.Y;
+            a = ToWorld(new Vector2(Max.X, Max.Y));
+            b = ToWorld(new Vector2(Max.X, Min.Y));
+            c = ToWorld(new Vector2(Min.X, Min.Y));
+            d = ToWorld(new Vector2(Min.X, Max.Y));
         }
 
-        public IList<Vector2> Points(IList<Vector2> output)
+        /// <summary>
+        /// Convert a point from OABR space to world space
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public Vector2 ToWorld(Vector2 point)
+        {
+            return Middle
+                + Axis * point.X
+                + Perpendicular * point.Y;
+        }
+
+        /// <summary>
+        /// Convert a point from world space to OABR space
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public Vector2 FromWorld(Vector2 point)
+        {
+            //Transform the point back towards the middle
+            point -= Middle;
+
+            //Calculate projection axes (along and across)
+            var primary = Axis;
+            var secondary = Perpendicular;
+
+            var pd = new Ray2(Vector2.Zero, primary).ClosestPointDistanceAlongLine(point);
+            var sd = new Ray2(Vector2.Zero, secondary).ClosestPointDistanceAlongLine(point);
+
+            return new Vector2(pd, sd);
+        }
+
+        public IList<Vector2> Points(IList<Vector2> output = null)
         {
             if (output == null)
-                throw new ArgumentNullException("output");
+                output = new Vector2[4];
             if (output.Count < 4)
                 throw new ArgumentException("Output array is too small", "output");
 

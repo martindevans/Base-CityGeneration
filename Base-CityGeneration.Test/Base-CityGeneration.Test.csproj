@@ -148,16 +148,16 @@
       <HintPath>..\packages\PrimitiveSvgBuilder.1.2.1.0\lib\net46\PrimitiveSvgBuilder.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SharpYaml, Version=1.5.2.17255, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpYaml.1.5.2\lib\SharpYaml.dll</HintPath>
+    <Reference Include="SharpYaml, Version=1.5.3.20680, Culture=neutral, PublicKeyToken=1ced8108e942bc02, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpYaml.1.5.3\lib\SharpYaml.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SupersonicSound, Version=4.1.1.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>..\packages\SupersonicSound.4.1.1.0\lib\net46\SupersonicSound.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SwizzleMyVectors, Version=6.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SwizzleMyVectors.6.2.0.0\lib\net46\SwizzleMyVectors.dll</HintPath>
+    <Reference Include="SwizzleMyVectors, Version=6.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SwizzleMyVectors.6.3.0.0\lib\net46\SwizzleMyVectors.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
