@@ -6,6 +6,7 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Utilities;
 using Myre.Collections;
 using System.Numerics;
+using System.Xml.Serialization;
 using SquarifiedTreemap.Model;
 using SquarifiedTreemap.Model.Input;
 using SquarifiedTreemap.Model.Output;
@@ -75,74 +76,57 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             return (required ? _requiredAssignedSpaces : _optionalAssignedSpaces).SelectMany(r => r.Produce(required, random, metadata));
         }
 
-        public IEnumerable<object> LayoutSpaces(Func<double> random, INamedDataCollection metadata)
+        public IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>> LayoutSpaces(Func<double> random, INamedDataCollection metadata)
         {
-            //Create nodes for all the rooms
-            var treemapInput = new Tree<RoomTreemapNode>.Node();
-            foreach (var assignedSpace in AssignedSpaces)
-                treemapInput.Add(new Tree<RoomTreemapNode>.Node(new RoomTreemapNode(assignedSpace, random, metadata)));
+            //Create a node to represent each space
+            var nodes = AssignedSpaces.Select(a => new RoomTreemapNode(a, random, metadata)).ToArray();
 
             //Assign extra space to rooms which are not yet max area
+            AssignAdditionalArea(nodes);
+
+            //Iteratively layout spaces to minimise aspect ratio
+            var treemap = new RegionSpaceMapper(new BoundingRectangle(OABR.Min, OABR.Max)).Map(nodes);
+
+            return from space in WalkTree(treemap.Root)
+                   select new KeyValuePair<BoundingRectangle, BaseSpaceSpec>(space.Bounds, space.Value.Space);
+        }
+
+        private static IEnumerable<Node<T>> WalkTree<T>(Node<T> root) where T : ITreemapNode
+        {
+            if (root.Value != null)
+                yield return root;
+
+            foreach (var node in root)
+                foreach (var child in WalkTree(node))
+                    yield return child;
+        }
+
+        private void AssignAdditionalArea(IReadOnlyList<RoomTreemapNode> nodes)
+        {
             var unassignedArea = UnassignedArea;
             while (unassignedArea > 0)
             {
                 //How many spaces can we assign more space to?
-                var candidates = treemapInput.Count(a => a.Value.Area < a.Value.MaxArea);
+                var candidates = nodes.Count(a => a.Area < a.MaxArea);
                 if (candidates == 0)
                     break;
 
                 //Increase the area of each space (make sure not to exceed max)
                 var step = unassignedArea / candidates;
-                foreach (var space in treemapInput.Where(a => a.Value.Area < a.Value.MaxArea))
+                foreach (var space in nodes.Where(a => a.Area < a.MaxArea))
                 {
-                    if (space.Value.Area + step > space.Value.MaxArea)
+                    if (space.Area + step > space.MaxArea)
                     {
-                        unassignedArea -= (space.Value.MaxArea - space.Value.Area);
-                        space.Value.Area = space.Value.MaxArea;
+                        unassignedArea -= (space.MaxArea - space.Area);
+                        space.Area = space.MaxArea;
                     }
                     else
                     {
                         unassignedArea -= step;
-                        space.Value.Area += step;
+                        space.Area += step;
                     }
                 }
             }
-
-            //Lay out rooms using treemapping algorithm (treemap is overkill since this is a one level tree, but who cares?)
-            var tree = Treemap<RoomTreemapNode>.Build(new BoundingRectangle(OABR.Min, OABR.Max), new Tree<RoomTreemapNode>(treemapInput));
-
-            foreach (var space in AssignedSpaces)
-            {
-                
-            }
-
-            throw new NotImplementedException();
-        }
-    }
-
-    internal class RoomTreemapNode
-        : ITreemapNode
-    {
-        public BaseSpaceSpec Space { get; private set; }
-
-        public float Area { get; set; }
-
-        public float MinArea { get; private set; }
-        public float MaxArea { get; private set; }
-
-        public RoomTreemapNode(BaseSpaceSpec assignedSpace, Func<double> random, INamedDataCollection metadata)
-        {
-            Space = assignedSpace;
-
-            MinArea = assignedSpace.MinArea(random, metadata);
-            MaxArea = assignedSpace.MaxArea(random, metadata);
-
-            Area = MinArea;
-        }
-
-        float? ITreemapNode.Area
-        {
-            get { return Area; }
         }
     }
 

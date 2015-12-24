@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Datastructures;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
+using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using CGAL_StraightSkeleton_Dotnet;
+using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using JetBrains.Annotations;
 using Myre.Collections;
@@ -37,30 +40,26 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             get { return _rooms; }
         }
 
-        private readonly IValueGenerator _minimumRegionSize;
-        public IValueGenerator MinimumRegionSize
+        private readonly IValueGenerator _regionErrorTolerance;
+        public IValueGenerator RegionErrorTolerance
         {
-            get { return _minimumRegionSize; }
+            get { return _regionErrorTolerance; }
         }
         #endregion
 
-        private FloorDesigner(Dictionary<string, string> tags, Guid id, string description, IReadOnlyCollection<ISpaceSpecProducer> rooms, IValueGenerator minimumRegionSize)
+        private FloorDesigner(Dictionary<string, string> tags, Guid id, string description, IReadOnlyCollection<ISpaceSpecProducer> rooms, IValueGenerator regionErrorTolerance)
         {
             Tags = tags;
             Id = id;
             Description = description;
 
             _rooms = rooms;
-            _minimumRegionSize = minimumRegionSize;
+            _regionErrorTolerance = regionErrorTolerance;
         }
 
-        public FloorPlan Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<FloorplanRegion.Side> footprint)
+        public FloorPlan Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<BasePolygonRegion<FloorplanRegion, Section>.Side> footprint, float wallThickness)
         {
             var plan = new FloorPlan(footprint.Select(a => a.Start).ToArray());
-
-#if DEBUG
-            var svg = new SvgBuilder(10);
-#endif
 
             //We will recursively subdivide this root node, assigning more spaces as we go
             var root = new FloorplanRegion(footprint);
@@ -70,54 +69,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             AssignRooms(_rooms.SelectMany(r => r.Produce(false, random, metadata)), new[] { root }, random, metadata, false);
 
             //Recursively layout the spaces in the root
-            var regions = DesignRegion(root, random, metadata, finder, plan);
-
-#if DEBUG
-            foreach (var region in regions)
-            {
-                svg.Outline(region.Points.ToArray());
-
-                var oabb = (Vector2[])region.OABR.Points(new Vector2[4]);
-                svg.Outline(oabb, "red");
-                svg.Text(region.AssignedSpaces.Count().ToString(), region.Points.Aggregate((a, b) => a + b) / region.Shape.Count);
-
-                foreach (var side in region.Shape)
-                {
-                    foreach (var section in side.Sections)
-                    {
-                        if (section.Type == Section.Types.Window)
-                        {
-                            var dir = side.End - side.Start;
-                            svg.Line(side.Start + dir * section.Start, side.Start + dir * section.End, 3, "blue");
-                        }
-                    }
-                }
-            }
-#endif
-
-            
-            //Connect external doors to hallway
-            //Connect vertical features to hallway
-            //  - Either create them on the corridor
-            //  - Or create a new corridor to the vertical
-
-            //Split space into regions (bounded by hallways)
-
-            //Place rooms and shuffle to maximise satisfied constraints (this may be a little complex!)
-
-            //If a space is passthrough merge it into adjacent hallways and expand it to fill space
-
-#if DEBUG
-            Console.WriteLine(svg.ToString());
-#endif
+            DesignRegion(root, random, metadata, finder, plan, wallThickness);
 
             return plan;
         }
 
-        private static IEnumerable<FloorplanRegion> DesignRegion(FloorplanRegion region, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorPlan plan)
+        private void DesignRegion(FloorplanRegion region, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorPlan plan, float wallThickness)
         {
             //Split region up into sub regions
-            var regions = GenerateRegions(region, random, metadata, 10).ToArray(); //TODO: [Floorplan] Parameterize error!
+            var regions = GenerateRegions(region, random, metadata, RegionErrorTolerance.SelectFloatValue(random, metadata)).ToArray();
 
             //Assign rooms to the regions they are most likely to be satisfied in
             //Required...
@@ -126,24 +86,47 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             AssignRooms(((ISpaceSpecProducer)region).Produce(false, random, metadata), regions, random, metadata, false);
 
             //Physically lay out rooms within each region
-            LayoutRegion(region, random, metadata, finder, plan);
-
-            //Lay the spaces out within their parent regions, then recurse on any group specs
-            //throw new NotImplementedException("Recurse");
-
-            return regions;
+            foreach (var childRegion in regions)
+                LayoutRegion(childRegion, random, metadata, finder, plan, wallThickness);
         }
 
-        private static void LayoutRegion(FloorplanRegion region, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorPlan plan)
+        private static void LayoutRegion(FloorplanRegion region, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorPlan plan, float wallThickness)
         {
             //Layout spaces in this region
             var spaces = region.LayoutSpaces(random, metadata);
 
-            //Add non-group rooms to plan
-            throw new NotImplementedException();
+            //At this point all spaces are either leaves (i.e. rooms) or inner nodes (i.e. groups of more spaces)
+            var rooms = spaces.Where(a => a.Value is RoomSpec);
+            var groups = spaces.Where(a => a.Value is GroupSpec);
 
-            //Expand groups and co-recurse to DesignRegion for that group
-            throw new NotImplementedException();
+            //Sanity check
+            if (spaces.Select(a => a.Value).Any(a => !(a is RoomSpec || a is GroupSpec)))
+                throw new InvalidOperationException();
+
+            //Add non-group rooms to plan
+            foreach (var room in rooms)
+                AddRoomToPlan(plan, room, region.OABR, wallThickness);
+
+            foreach (var group in groups)
+            {
+                ////TODO: [Floorplan] Expand groups and co-recurse to DesignRegion for that group
+                //DesignRegion(new FloorplanRegion(
+            }
+        }
+
+        /// <summary>
+        /// Given a room with a bounding box add it to the plan
+        /// </summary>
+        /// <param name="plan">Plan to put the room into</param>
+        /// <param name="room">Room information</param>
+        /// <param name="oabr">The OABR which is the basis of the room coordinates</param>
+        /// <param name="wallThickness"></param>
+        private static bool AddRoomToPlan(FloorPlan plan, KeyValuePair<BoundingRectangle, BaseSpaceSpec> room, OABR oabr, float wallThickness)
+        {
+            //Generate points in world space for the bounding box of this room
+            var points = room.Key.GetCorners().Select(oabr.ToWorld).ConvexHull();
+
+            return plan.AddRoom(points, wallThickness, new List<ScriptReference>()).Any();
         }
 
         private static void AssignRooms(IEnumerable<BaseSpaceSpec> requiredSpecs, IEnumerable<FloorplanRegion> regions, Func<double> random, INamedDataCollection metadata, bool required)
@@ -171,7 +154,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     break;
 
                 //If no region has been selected either throw (required region) or continue (optional region)
-                if (!bestRegion.HasValue || bestRegion.Value.Key <= 0.01f)
+                if (!bestRegion.HasValue || bestRegion.Value.Key <= 0.0001f)
                 {
                     if (!required)
                         continue;
@@ -234,7 +217,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             //        var wip = new List<FloorplanRegion>();
             //        foreach (var region in regions)
             //        {
-            //            //todo: throw new NotImplementedException("Prefer cut which does not intersect a window, do not allow cuts which intersect a door");
+            //            //TODO: [Floorplan] throw new NotImplementedException("Prefer cut which does not intersect a window, do not allow cuts which intersect a door");
 
             //            var sliced = region.Slice(sliceLine);
             //            if (sliced.Any(a => a.Area < _minimumRegionSize.SelectFloatValue(random, metadata)))
@@ -302,7 +285,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             public ISpaceSpecProducerContainer[] Rooms { get; [UsedImplicitly] set; }
 
-            public object MinimumRegionSize { get; [UsedImplicitly]set; }
+            public object RegionErrorTolerance { get; [UsedImplicitly]set; }
 
             public FloorDesigner Unwrap()
             {
@@ -311,7 +294,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     Guid.Parse(Id ?? Guid.NewGuid().ToString()),
                     Description,
                     Rooms.Select(a => a.Unwrap()).ToArray(),
-                    BaseValueGeneratorContainer.FromObject(MinimumRegionSize ?? 9)
+                    BaseValueGeneratorContainer.FromObject(RegionErrorTolerance ?? 0.25f)
                 );
             }
         }

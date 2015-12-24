@@ -1146,6 +1146,114 @@
               </li>
               </ul></remarks>
         </member>
+        <member name="T:SharpYaml.Serialization.DynamicMemberDescriptorBase">
+            <summary>
+            A dynamic member to allow to add dynamic members to objects (that could store additional properties outside of the instance).
+            </summary>
+        </member>
+        <member name="T:SharpYaml.Serialization.IMemberDescriptor">
+            <summary>
+            Describe a member of an object.
+            </summary>
+        </member>
+        <member name="M:SharpYaml.Serialization.IMemberDescriptor.Get(System.Object)">
+            <summary>
+            Gets the value of this memeber for the specified instance.
+            </summary>
+            <param name="thisObject">The this object to get the value from.</param>
+            <returns>Value of the member.</returns>
+        </member>
+        <member name="M:SharpYaml.Serialization.IMemberDescriptor.Set(System.Object,System.Object)">
+            <summary>
+            Sets a value of this memeber for the specified instance.
+            </summary>
+            <param name="thisObject">The this object.</param>
+            <param name="value">The value.</param>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Name">
+            <summary>
+            Gets the name.
+            </summary>
+            <value>The name.</value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.OriginalName">
+            <summary>
+            Gets the name.
+            </summary>
+            <value>The name.</value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.DefaultNameComparer">
+            <summary>
+            Gets the default name comparer.
+            </summary>
+            <value>The default name comparer.</value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Type">
+            <summary>
+            Gets the type.
+            </summary>
+            <value>The type.</value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Order">
+            <summary>
+            Gets the order of this member. 
+            Default is -1, meaning that it is using the alphabetical order 
+            based on the name of this property.
+            </summary>
+            <value>The order.</value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.SerializeMemberMode">
+            <summary>
+            Gets the mode of serialization for this member.
+            </summary>
+            <value>The mode.</value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.HasSet">
+            <summary>
+            Gets a value indicating whether this instance has set method.
+            </summary>
+            <value><c>true</c> if this instance has set method; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.IsPublic">
+            <summary>
+            Gets a value indicating whether this member is public.
+            </summary>
+            <value>
+              <c>true</c> if this member is public; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Mask">
+            <summary>
+            Gets the serialization mask, that will be checked against the context to know if this field needs to be serialized.
+            </summary>
+            <value>
+            The mask.
+            </value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Style">
+            <summary>
+            Gets the default style attached to this member.
+            </summary>
+            <value>The style.</value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.ShouldSerialize">
+            <summary>
+            Gets a value indicating whether this member should be serialized.
+            </summary>
+            <value><c>true</c> if [should serialize]; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.AlternativeNames">
+            <summary>
+            Gets the alternative names that will map back to this member (may be null).
+            </summary>
+            <value>The alternative names that will map back to this member (may be null).</value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Tag">
+            <summary>
+            Gets or sets a custom tag to associate with this object.
+            </summary>
+            <value>A custom tag object.</value>
+        </member>
         <member name="T:SharpYaml.Serialization.FlatNamingConvention">
             <summary>
             A naming convention where all members are transformed from`CamelCase` to `camel_case`.
@@ -2892,109 +3000,6 @@
             Base class for <see cref="T:SharpYaml.Serialization.IMemberDescriptor"/> for a <see cref="P:SharpYaml.Serialization.Descriptors.MemberDescriptorBase.MemberInfo"/>
             </summary>
         </member>
-        <member name="T:SharpYaml.Serialization.IMemberDescriptor">
-            <summary>
-            Describe a member of an object.
-            </summary>
-        </member>
-        <member name="M:SharpYaml.Serialization.IMemberDescriptor.Get(System.Object)">
-            <summary>
-            Gets the value of this memeber for the specified instance.
-            </summary>
-            <param name="thisObject">The this object to get the value from.</param>
-            <returns>Value of the member.</returns>
-        </member>
-        <member name="M:SharpYaml.Serialization.IMemberDescriptor.Set(System.Object,System.Object)">
-            <summary>
-            Sets a value of this memeber for the specified instance.
-            </summary>
-            <param name="thisObject">The this object.</param>
-            <param name="value">The value.</param>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Name">
-            <summary>
-            Gets the name.
-            </summary>
-            <value>The name.</value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.OriginalName">
-            <summary>
-            Gets the name.
-            </summary>
-            <value>The name.</value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.DefaultNameComparer">
-            <summary>
-            Gets the default name comparer.
-            </summary>
-            <value>The default name comparer.</value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Type">
-            <summary>
-            Gets the type.
-            </summary>
-            <value>The type.</value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Order">
-            <summary>
-            Gets the order of this member. 
-            Default is -1, meaning that it is using the alphabetical order 
-            based on the name of this property.
-            </summary>
-            <value>The order.</value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.SerializeMemberMode">
-            <summary>
-            Gets the mode of serialization for this member.
-            </summary>
-            <value>The mode.</value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.HasSet">
-            <summary>
-            Gets a value indicating whether this instance has set method.
-            </summary>
-            <value><c>true</c> if this instance has set method; otherwise, <c>false</c>.</value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.IsPublic">
-            <summary>
-            Gets a value indicating whether this member is public.
-            </summary>
-            <value>
-              <c>true</c> if this member is public; otherwise, <c>false</c>.
-            </value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Mask">
-            <summary>
-            Gets the serialization mask, that will be checked against the context to know if this field needs to be serialized.
-            </summary>
-            <value>
-            The mask.
-            </value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Style">
-            <summary>
-            Gets the default style attached to this member.
-            </summary>
-            <value>The style.</value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.ShouldSerialize">
-            <summary>
-            Gets a value indicating whether this member should be serialized.
-            </summary>
-            <value><c>true</c> if [should serialize]; otherwise, <c>false</c>.</value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.AlternativeNames">
-            <summary>
-            Gets the alternative names that will map back to this member (may be null).
-            </summary>
-            <value>The alternative names that will map back to this member (may be null).</value>
-        </member>
-        <member name="P:SharpYaml.Serialization.IMemberDescriptor.Tag">
-            <summary>
-            Gets or sets a custom tag to associate with this object.
-            </summary>
-            <value>A custom tag object.</value>
-        </member>
         <member name="M:SharpYaml.Serialization.Descriptors.MemberDescriptorBase.#ctor(System.Reflection.MemberInfo,System.StringComparer)">
             <summary>
             Initializes a new instance of the <see cref="T:SharpYaml.Serialization.Descriptors.MemberDescriptorBase"/> class.
@@ -3254,6 +3259,11 @@
             Gets or sets the attribute remapper. May be null
             </summary>
             <value>The remap attribute.</value>
+        </member>
+        <member name="P:SharpYaml.Serialization.IAttributeRegistry.PrepareMembersCallback">
+            <summary>
+            Gets or sets the prepare member callback.
+            </summary>
         </member>
         <member name="T:SharpYaml.Serialization.AttributeRegistryExtensions">
             <summary>
