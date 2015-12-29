@@ -167,19 +167,56 @@ Tags:
 Aliases:
     # A single room, with a set of constraints
     - &lounge !Room
+      Id: Lounge
       Tags:
         1: { Type: Residential, Style: Modern, Class: LivingRoom }
       # Constraints on the placement of the room
       Constraints:
-         - { Strength: 1,    Req: !ExteriorWindow { } }
+#         - { Strength: 1,    Req: !ExteriorWindow { } }
 #         - { Strength: 0.5,  Req: !ExteriorDoor { Deny: true } }
-         - { Strength: 0.5,  Req: !Area { Min: 13 } }
+         - { Strength: 0.5,  Req: !Area { Min: 11 } }
+
+    # Another room
+    - &kitchen !Room
+      Id: Kitchen
+      Tags:
+        1: { Type: Residential, Style: Modern, Class: Kitchen }
+      Constraints:
+        - { Strength: 1,    Req: !Area { Min: 8 } }
+        
+    # Another room
+    - &bedroom !Room
+      Id: Bedroom
+      Tags:
+        1: { Type: Residential, Style: Modern, Class: Bedroom }
+      Constraints:
+#        - { Strength: 1,  Req: !ExteriorDoor { Deny: true } }
+        - { Strength: 0.5,    Req: !Area { Min: 10 } }
+        
+    # Another room
+    - &bathroom !Room
+      Id: Bathroom
+      Tags:
+        1: { Type: Residential, Style: Modern, Class: Bathroom }
+      Constraints:
+#        - { Strength: 1,  Req: !ExteriorDoor { Deny: true } }
+        - { Strength: 0.5,    Req: !Area { Min: 4.5 } }
+
+    # A group of rooms
+    - &apartment !Group
+      Id: Apartment
+      Rooms:
+        - *lounge
+        - *kitchen
+        - *bathroom
+        - *bedroom
+        - *bedroom
 
 Rooms:
     - !Repeat
       Required: 1
-      Optional: 1000
-      Room: *lounge
+      Optional: 100
+      Room: *apartment
 "));
 
             var rnd = new Random(2);
@@ -200,12 +237,12 @@ Rooms:
 
             //Corner shape
             var floorplan = designer.Design(random, meta, null, new[] {
-                new FloorplanRegion.Side(new Vector2(6, 5), new Vector2(6, -6), new Section[]  { new Section(0, 1, Section.Types.Window) }),
-                new FloorplanRegion.Side(new Vector2(6, -6), new Vector2(0, -6), new Section[0]),
+                new FloorplanRegion.Side(new Vector2(9, 5), new Vector2(9, -6), new Section[]  { new Section(0, 1, Section.Types.Window) }),
+                new FloorplanRegion.Side(new Vector2(9, -6), new Vector2(0, -6), new Section[0]),
                 new FloorplanRegion.Side(new Vector2(0, -6), new Vector2(0, 0), new Section[0]),
                 new FloorplanRegion.Side(new Vector2(0, 0), new Vector2(-4, 0), new Section[0]),
                 new FloorplanRegion.Side(new Vector2(-4, 0), new Vector2(-4, 5), new Section[0]),
-                new FloorplanRegion.Side(new Vector2(-4, 5), new Vector2(6, 5), new Section[0]),
+                new FloorplanRegion.Side(new Vector2(-4, 5), new Vector2(9, 5), new Section[0]),
             }, 0.075f);
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 10));

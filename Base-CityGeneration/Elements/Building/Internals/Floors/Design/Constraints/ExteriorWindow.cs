@@ -16,7 +16,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
 
         internal override T Union<T>(T other)
         {
-            throw new NotImplementedException();
+            return Union(other as ExteriorWindow) as T;
+        }
+
+        private ExteriorWindow Union(ExteriorWindow other)
+        {
+            return new ExteriorWindow(Deny || other.Deny);
         }
 
         internal class Container

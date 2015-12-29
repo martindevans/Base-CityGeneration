@@ -4,7 +4,6 @@ using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using Base_CityGeneration.Utilities;
-using Base_CityGeneration.Utilities.Numbers;
 using JetBrains.Annotations;
 using Myre.Collections;
 
@@ -13,12 +12,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
     public class RoomSpec
         : BaseSpaceSpec
     {
+        public bool Optional { get; private set; }
+
         public IReadOnlyList<KeyValuePair<float, KeyValuePair<string, string>[]>> Tags { get; private set; }
 
-        public RoomSpec(IReadOnlyList<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, string id, bool walkthrough, IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> constraints, IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> connections)
+        public RoomSpec(IReadOnlyList<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, string id, bool walkthrough, IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> constraints, IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> connections, bool optional)
             : base(id, walkthrough, constraints, connections)
         {
             Tags = tags;
+            Optional = optional;
         }
 
         public override float MinArea(Func<double> random, INamedDataCollection metadata)
@@ -33,7 +35,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 
         public override IEnumerable<BaseSpaceSpec> Produce(bool required, Func<double> random, INamedDataCollection metadata)
         {
-            yield return this;
+            if (Optional != required)
+                yield return this;
         }
 
         internal class Container
@@ -41,6 +44,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
         {
             // ReSharper disable once CollectionNeverUpdated.Global
             public TagContainerContainer Tags { get; [UsedImplicitly] set; }
+
+            public bool Optional { get; [UsedImplicitly] private set; }
 
             internal override BaseSpaceSpec Unwrap()
             {
@@ -52,7 +57,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
                     Id,
                     Walkthrough,
                     (Constraints ?? NoConstraints).Select(a => a.Unwrap()).ToArray(),
-                    (Connections ?? NoConnections).Select(a => a.Unwrap()).ToArray()
+                    (Connections ?? NoConnections).Select(a => a.Unwrap()).ToArray(),
+                    Optional
                 );
             }
         }

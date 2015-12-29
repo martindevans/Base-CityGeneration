@@ -10,20 +10,14 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Utilities;
-using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
-using CGAL_StraightSkeleton_Dotnet;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
+using HandyCollections.Extensions;
 using JetBrains.Annotations;
 using Myre.Collections;
-using NLog.Layouts;
 using SharpYaml.Serialization;
-using SquarifiedTreemap.Model.Input;
 using SwizzleMyVectors.Geometry;
-#if DEBUG
-using PrimitiveSvgBuilder;
-#endif
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 {
@@ -69,15 +63,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             AssignRooms(_rooms.SelectMany(r => r.Produce(false, random, metadata)), new[] { root }, random, metadata, false);
 
             //Recursively layout the spaces in the root
-            DesignRegion(root, random, metadata, finder, plan, wallThickness);
+            DesignRegion(root, random, metadata, finder, plan, wallThickness, RegionErrorTolerance);
 
             return plan;
         }
 
-        private void DesignRegion(FloorplanRegion region, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorPlan plan, float wallThickness)
+        private static void DesignRegion(FloorplanRegion region, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorPlan plan, float wallThickness, IValueGenerator regionErrorTolerance)
         {
             //Split region up into sub regions
-            var regions = GenerateRegions(region, random, metadata, RegionErrorTolerance.SelectFloatValue(random, metadata)).ToArray();
+            var regions = GenerateRegions(region, random, metadata, regionErrorTolerance.SelectFloatValue(random, metadata)).ToArray();
 
             //Assign rooms to the regions they are most likely to be satisfied in
             //Required...
@@ -87,10 +81,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             //Physically lay out rooms within each region
             foreach (var childRegion in regions)
-                LayoutRegion(childRegion, random, metadata, finder, plan, wallThickness);
+                LayoutRegion(childRegion, random, metadata, finder, plan, wallThickness, regionErrorTolerance);
         }
 
-        private static void LayoutRegion(FloorplanRegion region, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorPlan plan, float wallThickness)
+        private static void LayoutRegion(FloorplanRegion region, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorPlan plan, float wallThickness, IValueGenerator regionErrorTolerance)
         {
             //Layout spaces in this region
             var spaces = region.LayoutSpaces(random, metadata);
@@ -104,29 +98,42 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                 throw new InvalidOperationException();
 
             //Add non-group rooms to plan
+            //TODO: [Floorplan] script references for rooms
             foreach (var room in rooms)
-                AddRoomToPlan(plan, room, region.OABR, wallThickness);
+            {
+                bool a = plan.AddRoom(RoomShape(room.Key, region.OABR), wallThickness, new List<ScriptReference>()).Any();
+                if (!a)
+                    Console.WriteLine("?");
+            }
 
             foreach (var group in groups)
             {
-                ////TODO: [Floorplan] Expand groups and co-recurse to DesignRegion for that group
-                //DesignRegion(new FloorplanRegion(
+                //Generate the shape of this region (as if it were a room)
+                var shape = plan.TestRoom(RoomShape(group.Key, region.OABR));
+                if (!shape.Any())
+                    throw new DesignFailedException(string.Format("Failed to create sub region for group \"{0}\"", group.Value.Id));
+
+                var sub = CreateSubRegion(region, shape.Single());
+                AssignRooms(((GroupSpec)group.Value).Rooms.SelectMany(r => r.Produce(true, random, metadata)), new[] { sub }, random, metadata, true);
+                AssignRooms(((GroupSpec)group.Value).Rooms.SelectMany(r => r.Produce(false, random, metadata)), new[] { sub }, random, metadata, false);
+
+                DesignRegion(sub, random, metadata, finder, plan, wallThickness, regionErrorTolerance);
             }
         }
 
-        /// <summary>
-        /// Given a room with a bounding box add it to the plan
-        /// </summary>
-        /// <param name="plan">Plan to put the room into</param>
-        /// <param name="room">Room information</param>
-        /// <param name="oabr">The OABR which is the basis of the room coordinates</param>
-        /// <param name="wallThickness"></param>
-        private static bool AddRoomToPlan(FloorPlan plan, KeyValuePair<BoundingRectangle, BaseSpaceSpec> room, OABR oabr, float wallThickness)
+        private static FloorplanRegion CreateSubRegion(FloorplanRegion parent, Vector2[] subRegionShape)
         {
-            //Generate points in world space for the bounding box of this room
-            var points = room.Key.GetCorners().Select(oabr.ToWorld).ConvexHull();
+            //TODO: [Floorplan] Properly extract side data from parent region
 
-            return plan.AddRoom(points, wallThickness, new List<ScriptReference>()).Any();
+            return new FloorplanRegion(subRegionShape.Zip(subRegionShape.Skip(1).Append(subRegionShape), (a, b) => new { a, b })
+                .Select(a => new FloorplanRegion.Side(a.a, a.b, new List<Section>()))
+                .ToArray()
+            );
+        }
+
+        private static IEnumerable<Vector2> RoomShape(BoundingRectangle key, OABR oabr)
+        {
+            return key.GetCorners().Select(oabr.ToWorld).ConvexHull();
         }
 
         private static void AssignRooms(IEnumerable<BaseSpaceSpec> requiredSpecs, IEnumerable<FloorplanRegion> regions, Func<double> random, INamedDataCollection metadata, bool required)
@@ -204,34 +211,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         /// <returns></returns>
         private static IEnumerable<FloorplanRegion> GenerateRegions(FloorplanRegion root, Func<double> random, INamedDataCollection metadata, float areaErrorTolerance)
         {
-            var regions = new List<FloorplanRegion> { root };
-
-            //using (var straightSkeleton = StraightSkeleton.Generate(root.Points.ToArray()))
-            //{
-            //    //Slice the floorplan up by the lines of the straight skeleton, do not allow any polygons which are smaller than the limit
-            //    foreach (var edge in straightSkeleton.Skeleton.OrderByPoint(a => a.Start.Position).ThenByPoint(a => a.End.Position))
-            //    {
-            //        var sliceLine = new Ray2(edge.Start.Position, edge.End.Position - edge.Start.Position);
-
-            //        //slice each region by each skeleton corner
-            //        var wip = new List<FloorplanRegion>();
-            //        foreach (var region in regions)
-            //        {
-            //            //TODO: [Floorplan] throw new NotImplementedException("Prefer cut which does not intersect a window, do not allow cuts which intersect a door");
-
-            //            var sliced = region.Slice(sliceLine);
-            //            if (sliced.Any(a => a.Area < _minimumRegionSize.SelectFloatValue(random, metadata)))
-            //                wip.Add(region);
-            //            else
-            //                wip.AddRange(sliced);
-            //        }
-
-            //        regions = wip;
-            //    }
-            //}
-
-            return regions
-                .SelectMany(a => a.RecursiveReduceError(areaErrorTolerance));
+            return new List<FloorplanRegion> { new FloorplanRegion(root.Shape, root.OABR) }
+                .SelectMany(a => a.RecursiveReduceError(areaErrorTolerance))
+                .ToArray();
         }
 
         #region serialization
@@ -294,7 +276,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     Guid.Parse(Id ?? Guid.NewGuid().ToString()),
                     Description,
                     Rooms.Select(a => a.Unwrap()).ToArray(),
-                    BaseValueGeneratorContainer.FromObject(RegionErrorTolerance ?? 0.25f)
+                    BaseValueGeneratorContainer.FromObject(RegionErrorTolerance ?? 0.05f)
                 );
             }
         }
