@@ -20,7 +20,7 @@ namespace Base_CityGeneration.TestHelpers
 
         public static XElement FloorplanToSvg(FloorPlan plan, float scalePosition = 1)
         {
-            Random rand = new Random();
+            var rand = new Random();
 
             var paths = new List<XObject>
             {

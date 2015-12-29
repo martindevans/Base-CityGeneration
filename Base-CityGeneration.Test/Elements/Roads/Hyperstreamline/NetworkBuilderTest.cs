@@ -163,27 +163,41 @@ Major:
         }
 
         [TestMethod]
+        [Timeout(60000)]
         public void Demo()
         {
             var c = NetworkDescriptor.Deserialize(new StringReader(@"
 !Network
+Aliases:
+    - &base-field !AddTensors
+      Tensors:
+        - !PointDistanceDecayTensors { Tensors: !Radial { Center: { X: 1, Y: 1 } }, Decay: 1.6, Center: { X: 0.45, Y: 0.45 } }
+        - !Polyline
+          Decay: 5
+          Points: [ { X: 0.3, Y: 0 }, { X: 0.1, Y: 0.33 }, { X: 0.5, Y: 0.66 }, { X: 0.2, Y: 1 } ]
+
 Major:
     MergeSearchAngle: 22.5
     MergeDistance: 25
     SegmentLength: 10
-    RoadWidth: !NormalValue { Min: 1, Max: 1, Vary: false }
+    RoadWidth: !NormalValue { Min: 2, Max: 3, Vary: false }
     PriorityField: !ConstantScalars { Value: 1 }
     SeparationField: !ConstantScalars { Value: 50 }
+    TensorField: *base-field
+
+Minor:
+    MergeSearchAngle: 12.5
+    MergeDistance: 2.5
+    SegmentLength: 2
+    RoadWidth: 1
+    PriorityField: !ConstantScalars { Value: 1 }
+    SeparationField: !ConstantScalars { Value: 15 }
     TensorField:
-        !AddTensors
+        !WeightedAverage
         Tensors:
-            - !Polyline
-                Decay: 7
-                Points:
-                - { X: 0.3, Y: 0 }
-                - { X: 0.1, Y: 0.33 }
-                - { X: 0.5, Y: 0.66 }
-                - { X: 0.2, Y: 1 }
+            0.9: *base-field
+            0.1: !Grid { Angle: !UniformValue { Min: 1, Max: 360, Vary: true } }
+
 "));
 
             NetworkBuilder b = new NetworkBuilder();
@@ -191,10 +205,12 @@ Major:
             Random r = new Random(24);
             var m = new NamedBoxCollection();
 
-            b.Build(c.Major(r.NextDouble, m), r.NextDouble, m, new Vector2(0, 0), new Vector2(500, 500));
+            b.Build(c.Major(r.NextDouble, m), r.NextDouble, m, new Vector2(0, 0), new Vector2(350, 350));
             b.Reduce();
 
             var regions = b.Regions();
+            foreach (var region in regions)
+                b.Build(c.Minor(r.NextDouble, m), r.NextDouble, m, region);
 
             Console.WriteLine(b.Result.ToSvg(regions));
         }

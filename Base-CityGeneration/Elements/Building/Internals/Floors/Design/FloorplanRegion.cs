@@ -6,9 +6,7 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Utilities;
 using Myre.Collections;
 using System.Numerics;
-using System.Xml.Serialization;
 using SquarifiedTreemap.Model;
-using SquarifiedTreemap.Model.Input;
 using SquarifiedTreemap.Model.Output;
 using SwizzleMyVectors.Geometry;
 
@@ -82,13 +80,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             var nodes = AssignedSpaces.Select(a => new RoomTreemapNode(a, random, metadata)).ToArray();
 
             //Assign extra space to rooms which are not yet max area
-            AssignAdditionalArea(nodes);
+            AssignAdditionalArea(nodes, UnassignedArea);
 
             //Iteratively layout spaces to minimise aspect ratio
-            var treemap = new RegionSpaceMapper(new BoundingRectangle(OABR.Min, OABR.Max)).Map(nodes);
-
-            return from space in WalkTree(treemap.Root)
-                   select new KeyValuePair<BoundingRectangle, BaseSpaceSpec>(space.Bounds, space.Value.Space);
+            return new RegionSpaceMapper(new BoundingRectangle(OABR.Min, OABR.Max)).Map(nodes);
         }
 
         private static IEnumerable<Node<T>> WalkTree<T>(Node<T> root) where T : ITreemapNode
@@ -101,10 +96,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     yield return child;
         }
 
-        private void AssignAdditionalArea(IReadOnlyList<RoomTreemapNode> nodes)
+        private static void AssignAdditionalArea(IReadOnlyList<RoomTreemapNode> nodes, double additionalArea)
         {
-            var unassignedArea = UnassignedArea;
-            while (unassignedArea > 0)
+            while (additionalArea > 0)
             {
                 //How many spaces can we assign more space to?
                 var candidates = nodes.Count(a => a.Area < a.MaxArea);
@@ -112,18 +106,18 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     break;
 
                 //Increase the area of each space (make sure not to exceed max)
-                var step = unassignedArea / candidates;
+                var step = additionalArea / candidates;
                 foreach (var space in nodes.Where(a => a.Area < a.MaxArea))
                 {
                     if (space.Area + step > space.MaxArea)
                     {
-                        unassignedArea -= (space.MaxArea - space.Area);
+                        additionalArea -= (space.MaxArea - space.Area);
                         space.Area = space.MaxArea;
                     }
                     else
                     {
-                        unassignedArea -= step;
-                        space.Area += step;
+                        additionalArea -= step;
+                        space.Area += (float)step;
                     }
                 }
             }

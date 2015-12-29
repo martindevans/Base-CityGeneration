@@ -49,11 +49,22 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private int _nextRoomId = 0;
 
-        public IEnumerable<RoomPlan> AddRoom(IEnumerable<Vector2> roomFootprint, float wallThickness, IEnumerable<ScriptReference> scripts, bool split = false)
+        public IReadOnlyList<Vector2[]> TestRoom(IEnumerable<Vector2> roomFootprint, bool split = false)
         {
-            if (_isFrozen)
-                throw new InvalidOperationException("Cannot add rooms to floorplan once it is frozen");
+            //Generate shapes for this room footprint, early exit if null
+            var solution = ShapesForRoom(roomFootprint, split);
+            if (solution == null)
+                return new Vector2[0][];
 
+            //Convert shapes into vector2 shapes (scale properly)
+            return solution
+                .Select(shape => shape.Select(ToVector2)
+                    .Shrink(SAFE_DISTANCE).ToArray()
+                ).ToList();
+        }
+
+        private List<List<IntPoint>> ShapesForRoom(IEnumerable<Vector2> roomFootprint, bool split = false)
+        {
             if (roomFootprint == null)
                 throw new ArgumentNullException("roomFootprint");
 
@@ -61,10 +72,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             if (Clipper.Orientation(clipperRoomFootprint))
                 throw new ArgumentException("Room footprint must be clockwise wound");
 
-            //Contains within floor out edge
+            //Contain within floor out edge
             var solution = ClipToFloor(clipperRoomFootprint, split);
             if (solution == null)
-                return new RoomPlan[0];
+                return null;
 
             //Clip against other rooms
             if (_rooms.Count > 0)
@@ -73,8 +84,25 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
                 solution = clips.SelectMany(a => a).ToList();
                 if (solution.Count > 1 && !split)
-                    return new RoomPlan[0];
+                    return null;
             }
+
+            //Ensure shapes are still clockwise wound (mutate in place to reverse)
+            foreach (var shape in solution)
+                if (Clipper.Orientation(shape))
+                    shape.Reverse();
+            
+            return solution;
+        }
+
+        public IReadOnlyList<RoomPlan> AddRoom(IEnumerable<Vector2> roomFootprint, float wallThickness, IEnumerable<ScriptReference> scripts, bool split = false)
+        {
+            if (_isFrozen)
+                throw new InvalidOperationException("Cannot add rooms to floorplan once it is frozen");
+
+            var solution = ShapesForRoom(roomFootprint, split);
+            if (solution == null)
+                return new RoomPlan[0];
 
             var s = scripts.ToArray();
 
