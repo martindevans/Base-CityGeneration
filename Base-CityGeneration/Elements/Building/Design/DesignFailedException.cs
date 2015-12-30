@@ -2,6 +2,7 @@
 
 namespace Base_CityGeneration.Elements.Building.Design
 {
+    [Serializable]
     public class DesignFailedException
         : InvalidOperationException
     {

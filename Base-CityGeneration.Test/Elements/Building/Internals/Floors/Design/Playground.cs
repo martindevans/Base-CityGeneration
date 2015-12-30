@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
+using Base_CityGeneration.Test.Elements.Building.Design;
 using Base_CityGeneration.TestHelpers;
+using EpimetheusPlugins.Scripts;
+using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Myre.Collections;
 
@@ -169,7 +174,7 @@ Aliases:
     - &lounge !Room
       Id: Lounge
       Tags:
-        1: { Type: Residential, Style: Modern, Class: LivingRoom }
+        1: { LivingRoom }
       # Constraints on the placement of the room
       Constraints:
 #         - { Strength: 1,    Req: !ExteriorWindow { } }
@@ -180,7 +185,7 @@ Aliases:
     - &kitchen !Room
       Id: Kitchen
       Tags:
-        1: { Type: Residential, Style: Modern, Class: Kitchen }
+        1: { Kitchen }
       Constraints:
         - { Strength: 1,    Req: !Area { Min: 8 } }
         
@@ -188,7 +193,7 @@ Aliases:
     - &bedroom !Room
       Id: Bedroom
       Tags:
-        1: { Type: Residential, Style: Modern, Class: Bedroom }
+        1: { Bedroom }
       Constraints:
 #        - { Strength: 1,  Req: !ExteriorDoor { Deny: true } }
         - { Strength: 0.5,    Req: !Area { Min: 10 } }
@@ -197,7 +202,7 @@ Aliases:
     - &bathroom !Room
       Id: Bathroom
       Tags:
-        1: { Type: Residential, Style: Modern, Class: Bathroom }
+        1: { Bathroom }
       Constraints:
 #        - { Strength: 1,  Req: !ExteriorDoor { Deny: true } }
         - { Strength: 0.5,    Req: !Area { Min: 4.5 } }
@@ -235,8 +240,18 @@ Rooms:
             //    new Vector2(-2, 4),
             //});
 
+            Func<IEnumerable<KeyValuePair<string, string>>, Type[], ScriptReference> finder = (tags, types) => {
+
+                var tagsClean = from tag in tags
+                                let k = string.IsNullOrEmpty(tag.Key)
+                                let v = string.IsNullOrEmpty(tag.Value)
+                                where !k || !v
+                                select (!k && !v) ? (tag.Key + ":" + tag.Value) : (k ? tag.Value : tag.Key);
+
+                return ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tagsClean));
+            };
             //Corner shape
-            var floorplan = designer.Design(random, meta, null, new[] {
+            var floorplan = designer.Design(random, meta, finder, new[] {
                 new FloorplanRegion.Side(new Vector2(9, 5), new Vector2(9, -6), new Section[]  { new Section(0, 1, Section.Types.Window) }),
                 new FloorplanRegion.Side(new Vector2(9, -6), new Vector2(0, -6), new Section[0]),
                 new FloorplanRegion.Side(new Vector2(0, -6), new Vector2(0, 0), new Section[0]),
@@ -245,7 +260,7 @@ Rooms:
                 new FloorplanRegion.Side(new Vector2(-4, 5), new Vector2(9, 5), new Section[0]),
             }, 0.075f);
 
-            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 10));
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 15));
 
             ////Weird spikey shape (unlikely to be generated)
             //var floorplan = designer.Design(random, meta, null, new Vector2[] {

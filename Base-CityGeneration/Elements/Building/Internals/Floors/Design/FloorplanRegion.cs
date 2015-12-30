@@ -60,6 +60,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         }
         #endregion
 
+        #region space layout
         public void Add(BaseSpaceSpec spec, bool required, Func<double> random, INamedDataCollection metadata)
         {
             //Save this space
@@ -98,7 +99,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         private static void AssignAdditionalArea(IReadOnlyList<RoomTreemapNode> nodes, double additionalArea)
         {
-            while (additionalArea > 0)
+            while (additionalArea > 0.01f)
             {
                 //How many spaces can we assign more space to?
                 var candidates = nodes.Count(a => a.Area < a.MaxArea);
@@ -122,6 +123,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                 }
             }
         }
+
+        #endregion
     }
 
     public class Side

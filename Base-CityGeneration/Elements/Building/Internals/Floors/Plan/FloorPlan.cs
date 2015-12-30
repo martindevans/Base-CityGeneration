@@ -49,7 +49,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private int _nextRoomId = 0;
 
-        public IReadOnlyList<Vector2[]> TestRoom(IEnumerable<Vector2> roomFootprint, bool split = false)
+        public IReadOnlyList<Vector2[]> TestRoom(IEnumerable<Vector2> roomFootprint, bool split = false, bool shrink = true)
         {
             //Generate shapes for this room footprint, early exit if null
             var solution = ShapesForRoom(roomFootprint, split);
@@ -59,7 +59,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             //Convert shapes into vector2 shapes (scale properly)
             return solution
                 .Select(shape => shape.Select(ToVector2)
-                    .Shrink(SAFE_DISTANCE).ToArray()
+                    .Shrink(shrink ? SAFE_DISTANCE : 0).ToArray()
                 ).ToList();
         }
 

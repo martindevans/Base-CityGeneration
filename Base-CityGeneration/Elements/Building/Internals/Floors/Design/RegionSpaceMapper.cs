@@ -22,24 +22,32 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         public IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>> Map(IEnumerable<RoomTreemapNode> spaces)
         {
-            var root = new Tree<RoomTreemapNode>.Node();
-
-            //The layout of the rooms in the tree map depends entirely upon the shape of the tree! Below are a load of methods for building the tree.
+            //The layout of the rooms in the tree map depends entirely upon the shape of the tree!
             //Simply through experimentation I have found balanced trees to be the best.
-
+            var root = new Tree<RoomTreemapNode>.Node();
             var orderedSpaces = spaces.OrderByDescending(a => a.Area);
-            //BasicBuildTree(orderedSpaces, root);
-            //RightRecursiveBuildTree(orderedSpaces, root);
-            //BuildLeftRecursiveTree(orderedSpaces, root);
             BuildBalancedBinaryTree(orderedSpaces, root);
-            //BuildAdaptiveTree(orderedSpaces, root, _bounds);
 
-            var treemap = Treemap<RoomTreemapNode>
-                .Build(_bounds, new Tree<RoomTreemapNode>(root));
+            //Build a treemap to assign spaces to the nodes of the tree
+            var treemap = Treemap<RoomTreemapNode>.Build(_bounds, new Tree<RoomTreemapNode>(root));
+
+            //Rearrange the treemap to satisfy constraints (where possible)
+            RearrangeImproveConstraints(treemap);
 
             return from space in WalkTree(treemap.Root)
                    select new KeyValuePair<BoundingRectangle, BaseSpaceSpec>(space.Bounds, space.Value.Space);
         }
+
+        #region improve constraints
+        /// <summary>
+        /// We can freely swap parts within the treemap around in an attempt to satisfy more constraints
+        /// </summary>
+        /// <param name="treemap"></param>
+        private static void RearrangeImproveConstraints(Treemap<RoomTreemapNode> treemap)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
 
         #region tree building
         private static void SanityCheckPreBuildTree(Tree<RoomTreemapNode>.Node root)
