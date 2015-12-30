@@ -9,6 +9,7 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
+using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Procedural.Utilities;
@@ -98,37 +99,27 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                 throw new InvalidOperationException();
 
             //Add non-group rooms to plan
-            //TODO: [Floorplan] script references for rooms
             foreach (var room in rooms)
             {
-                bool a = plan.AddRoom(RoomShape(room.Key, region.OABR), wallThickness, new List<ScriptReference>()).Any();
-                if (!a)
-                    Console.WriteLine("?");
+                KeyValuePair<string, string>[] tags;
+                var scripts = ((RoomSpec)room.Value).Tags.SelectScript(random, finder, out tags, typeof(IRoom));
+
+                plan.AddRoom(RoomShape(room.Key, region.OABR), wallThickness, new[] { scripts });
             }
 
             foreach (var group in groups)
             {
                 //Generate the shape of this region (as if it were a room)
-                var shape = plan.TestRoom(RoomShape(group.Key, region.OABR));
+                var shape = plan.TestRoom(RoomShape(group.Key, region.OABR), shrink: false);
                 if (!shape.Any())
                     throw new DesignFailedException(string.Format("Failed to create sub region for group \"{0}\"", group.Value.Id));
 
-                var sub = CreateSubRegion(region, shape.Single());
+                var sub = region.SubRegion(shape.Single());
                 AssignRooms(((GroupSpec)group.Value).Rooms.SelectMany(r => r.Produce(true, random, metadata)), new[] { sub }, random, metadata, true);
                 AssignRooms(((GroupSpec)group.Value).Rooms.SelectMany(r => r.Produce(false, random, metadata)), new[] { sub }, random, metadata, false);
 
                 DesignRegion(sub, random, metadata, finder, plan, wallThickness, regionErrorTolerance);
             }
-        }
-
-        private static FloorplanRegion CreateSubRegion(FloorplanRegion parent, Vector2[] subRegionShape)
-        {
-            //TODO: [Floorplan] Properly extract side data from parent region
-
-            return new FloorplanRegion(subRegionShape.Zip(subRegionShape.Skip(1).Append(subRegionShape), (a, b) => new { a, b })
-                .Select(a => new FloorplanRegion.Side(a.a, a.b, new List<Section>()))
-                .ToArray()
-            );
         }
 
         private static IEnumerable<Vector2> RoomShape(BoundingRectangle key, OABR oabr)

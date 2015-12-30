@@ -81,15 +81,21 @@ namespace Base_CityGeneration.Utilities
         #endregion
 
         #region slicing
+        private Quadtree<Side> ConstructSideQuadtree()
+        {
+            var sides = new Quadtree<Side>(Bounds, 4);
+            foreach (var side in _shape)
+                sides.Insert(new BoundingRectangle(Vector2.Min(side.Start, side.End) - new Vector2(0.01f), Vector2.Max(side.Start, side.End) + new Vector2(0.01f)), side);
+            return sides;
+        }
+
         internal IEnumerable<TSelf> Slice(Ray2 sliceLine)
         {
             //Basic polygon slicing, now we need to re-establish Side information for these polygon
             var sliced = Points.SlicePolygon(sliceLine);
 
             //spatially index sides so we can find applicable edges faster later
-            var sides = new Quadtree<Side>(Bounds, 4);
-            foreach (var side in _shape)
-                sides.Insert(new BoundingRectangle(Vector2.Min(side.Start, side.End) - new Vector2(0.01f), Vector2.Max(side.Start, side.End) + new Vector2(0.01f)), side);
+            var sides = ConstructSideQuadtree();
 
             //Construct a region for each part of the result
             var internalSides = new List<KeyValuePair<TSelf, Side>>();
@@ -124,7 +130,7 @@ namespace Base_CityGeneration.Utilities
 
         protected abstract TSection ConstructNeighbourSection(TSelf neighbour);
 
-        private TSelf ConstructFromSlicePart(IReadOnlyList<Vector2> polygon, Quadtree<Side> inputSidesQuad, Ray2 sliceLine, List<KeyValuePair<TSelf, Side>> outInternalSides)
+        private TSelf ConstructFromSlicePart(IReadOnlyList<Vector2> polygon, Quadtree<Side> inputSidesQuad, Ray2? sliceLine, List<KeyValuePair<TSelf, Side>> outInternalSides)
         {
             var outputSides = new List<Side>();
             var internalSides = new List<Side>();
@@ -169,18 +175,23 @@ namespace Base_CityGeneration.Utilities
                     continue;
                 }
 
-                if (sliceLine.Parallelism(ab) == Parallelism.Collinear)
+                if (!sliceLine.HasValue)
+                    outputSides.Add(new Side(a, b, new TSection[0]));
+                else
                 {
-                    //this is the slice line, need to add a neighbour section
-                    //But which section is the neighbour? we can't know yet because not all sections exist yet!
-                    //Create a side with a null section, we'll fix this up later
-                    var s = new Side(a, b, null);
-                    internalSides.Add(s);
-                    outputSides.Add(s);
-                    continue;
-                }
+                    if (sliceLine.Value.Parallelism(ab) == Parallelism.Collinear)
+                    {
+                        //this is the slice line, need to add a neighbour section
+                        //But which section is the neighbour? we can't know yet because not all sections exist yet!
+                        //Create a side with a null section, we'll fix this up later
+                        var s = new Side(a, b, null);
+                        internalSides.Add(s);
+                        outputSides.Add(s);
+                        continue;
+                    }
 
-                throw new InvalidOperationException("Failed to match up sides when slicing polygon region");
+                    throw new InvalidOperationException("Failed to match up sides when slicing polygon region");
+                }
             }
 
             var region = Construct(outputSides);
@@ -235,6 +246,14 @@ namespace Base_CityGeneration.Utilities
         /// <returns></returns>
         protected abstract TSection Subsection(TSection section, float tStart, float tEnd);
         #endregion
+
+        public TSelf SubRegion(Vector2[] shape)
+        {
+            var sides = ConstructSideQuadtree();
+
+            var internalSides = new List<KeyValuePair<TSelf, Side>>();
+            return ConstructFromSlicePart(shape, sides, null, internalSides);
+        }
 
         #region error reduction
         /// <summary>
