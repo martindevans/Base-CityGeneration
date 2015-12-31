@@ -3,6 +3,7 @@ using Base_CityGeneration.Datastructures;
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using SwizzleMyVectors;
 
@@ -20,6 +21,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
         IEnumerable<Parcel> GenerateParcels(Parcel root, Func<double> random, INamedDataCollection metadata);
     }
 
+    [ContractClass(typeof(ITerminatedRuleContracts))]
     public interface ITerminationRule
     {
         /// <summary>
@@ -38,6 +40,26 @@ namespace Base_CityGeneration.Parcels.Parcelling
         bool Discard(Parcel parcel, Func<double> random);
     }
 
+    [ContractClassFor(typeof(ITerminationRule))]
+    internal abstract class ITerminatedRuleContracts
+        : ITerminationRule
+    {
+        public float? TerminationChance(Parcel parcel)
+        {
+            Contract.Requires<ArgumentNullException>(parcel != null, "parcel");
+
+            return default(float?);
+        }
+
+        public bool Discard(Parcel parcel, Func<double> random)
+        {
+            Contract.Requires<ArgumentNullException>(parcel != null, "parcel");
+            Contract.Requires<ArgumentNullException>(random != null, "random");
+
+            return default(bool);
+        }
+    }
+
     public class Parcel
     {
         public readonly Rectangle Bounds;
@@ -46,6 +68,8 @@ namespace Base_CityGeneration.Parcels.Parcelling
 
         public Parcel(Edge[] edges)
         {
+            Contract.Requires<ArgumentNullException>(edges != null, "edges != null");
+
             Edges = edges;
 
             Bounds = Rectangle.FromPoints(Points());
@@ -58,13 +82,15 @@ namespace Base_CityGeneration.Parcels.Parcelling
         /// <param name="edgeResources"></param>
         public Parcel(IEnumerable<Vector2> footprint, string[] edgeResources)
         {
+            Contract.Requires<ArgumentNullException>(footprint != null, "footprint != null");
+
             var footprintArr = footprint.ToArray();
 
             if (footprintArr.Area() < 0)
                 Array.Reverse(footprintArr);
 
             Edges = new Edge[footprintArr.Length];
-            for (int i = 0; i < footprintArr.Length; i++)
+            for (var i = 0; i < footprintArr.Length; i++)
                 Edges[i] = new Edge { Start = footprintArr[i], End = footprintArr[(i + 1) % footprintArr.Length], Resources = edgeResources };
         }
 

@@ -2,6 +2,7 @@
 using Base_CityGeneration.Parcels.Parcelling.Rules;
 using Base_CityGeneration.Utilities.Numbers;
 using System;
+using System.Diagnostics.Contracts;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
@@ -14,6 +15,8 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
         private AccessRuleSpec(IValueGenerator terminationChance, string resource)
             : base(terminationChance)
         {
+            Contract.Requires<ArgumentNullException>(terminationChance != null, "terminationChance");
+
             _resource = resource;
         }
 

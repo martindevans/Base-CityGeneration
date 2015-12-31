@@ -2,6 +2,7 @@
 using Base_CityGeneration.Parcels.Parcelling.Rules;
 using Base_CityGeneration.Utilities.Numbers;
 using System;
+using System.Diagnostics.Contracts;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
@@ -15,6 +16,10 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
         private AreaRuleSpec(IValueGenerator min, IValueGenerator max, IValueGenerator terminationChance)
             : base(terminationChance)
         {
+            Contract.Requires<ArgumentNullException>(min != null, "min");
+            Contract.Requires<ArgumentNullException>(max != null, "max");
+            Contract.Requires<ArgumentNullException>(terminationChance != null, "terminationChance");
+
             _min = min;
             _max = max;
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using SwizzleMyVectors;
@@ -22,7 +23,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public IEnumerable<FloorPlan.Neighbour> this[RoomPlan key]
         {
-            get { return _neighbours[key]; }
+            get
+            {
+                Contract.Requires<ArgumentNullException>(key != null, "key != null");
+                Contract.Ensures(Contract.Result<IEnumerable<FloorPlan.Neighbour>>() != null);
+
+                List<FloorPlan.Neighbour> value;
+                if (!_neighbours.TryGetValue(key, out value) || value == null)
+                    throw new InvalidOperationException("Failed to find neighbour information for given room");
+
+                return value;
+            }
         }
         #endregion
 

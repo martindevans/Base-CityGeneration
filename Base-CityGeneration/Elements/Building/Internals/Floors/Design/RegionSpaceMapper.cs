@@ -32,20 +32,47 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             var treemap = Treemap<RoomTreemapNode>.Build(_bounds, new Tree<RoomTreemapNode>(root));
 
             //Rearrange the treemap to satisfy constraints (where possible)
-            RearrangeImproveConstraints(treemap);
+            ImproveConstraintSatisfaction(treemap);
+
+            //Rearrange the treemap to satisfy connections (where possible, without disrupting any constraints)
+            ImproveConnectionSatisfaction(treemap);
 
             return from space in WalkTree(treemap.Root)
                    select new KeyValuePair<BoundingRectangle, BaseSpaceSpec>(space.Bounds, space.Value.Space);
         }
+
+        
 
         #region improve constraints
         /// <summary>
         /// We can freely swap parts within the treemap around in an attempt to satisfy more constraints
         /// </summary>
         /// <param name="treemap"></param>
-        private static void RearrangeImproveConstraints(Treemap<RoomTreemapNode> treemap)
+        private static void ImproveConstraintSatisfaction(Treemap<RoomTreemapNode> treemap)
         {
-            throw new NotImplementedException();
+            //Measure the initial constraint satisfaction, we will iteratively improve this bound until we cannot improve any more
+            var sat = MeasureConstraintSat(treemap);
+
+            for (var i = 0; i < 128; i++)
+            {
+                
+            }
+
+            //throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// We can freely swap parts within the treemap around in an attempt to bring rooms next to one another
+        /// </summary>
+        /// <param name="treemap"></param>
+        private static void ImproveConnectionSatisfaction(Treemap<RoomTreemapNode> treemap)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private static float MeasureConstraintSat(Treemap<RoomTreemapNode> treemap)
+        {
+            return 0;
         }
         #endregion
 

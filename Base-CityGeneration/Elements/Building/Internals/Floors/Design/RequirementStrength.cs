@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using Base_CityGeneration.Utilities.Numbers;
 using JetBrains.Annotations;
 
@@ -12,13 +13,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         public RequirementStrength(T requirement, IValueGenerator strength)
             : this()
         {
-            Requirement = requirement;
+            Contract.Requires<ArgumentOutOfRangeException>(strength.MinValue >= -1, "Minimum strength must be >= -1");
+            Contract.Requires<ArgumentOutOfRangeException>(strength.MaxValue <= 1, "Maximum strength must be <= 1");
 
+            Requirement = requirement;
             Strength = strength;
-            if (Strength.MinValue < 0)
-                throw new ArgumentOutOfRangeException("strength", "Minimum strength must be >= 0");
-            if (Strength.MaxValue < 0)
-                throw new ArgumentOutOfRangeException("strength", "Maximum strength must be <= 1");
         }
     }
 

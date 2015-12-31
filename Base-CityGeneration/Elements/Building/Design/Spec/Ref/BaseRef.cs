@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
@@ -67,6 +68,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 
         private IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> FilterByMode(IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> zipped)
         {
+            Contract.Requires<ArgumentNullException>(zipped != null, "zipped");
+
             switch (Filter)
             {
                 case RefFilter.All:
