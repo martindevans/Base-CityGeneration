@@ -5,6 +5,7 @@ using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec
@@ -43,14 +44,18 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         /// </summary>
         public readonly BaseMarker Marker;
 
-        public FloorRun(FloorSelection[] floors, BaseMarker marker)
+        public FloorRun(IReadOnlyList<FloorSelection> floors, BaseMarker marker)
         {
+            Contract.Requires<ArgumentNullException>(floors != null, "floors != null");
+
             Selection = floors;
             Marker = marker;
         }
 
         public FloorRun Clone()
         {
+            Contract.Ensures(Contract.Result<FloorRun>() != null);
+
             return new FloorRun(
                 Selection.Select(a => a.Clone()).ToArray(),
                 Marker

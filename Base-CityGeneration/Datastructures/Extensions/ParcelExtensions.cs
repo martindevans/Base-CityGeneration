@@ -3,6 +3,7 @@ using Base_CityGeneration.Parcels.Parcelling;
 using System.Numerics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using SwizzleMyVectors.Geometry;
 
@@ -115,6 +116,8 @@ namespace Base_CityGeneration.Datastructures.Extensions
 
         private static void InsertVertices<TVertexTag, THalfEdge, TFaceTag>(this Mesh<TVertexTag, THalfEdge, TFaceTag> mesh, Face<TVertexTag, THalfEdge, TFaceTag> face, IEnumerable<Vertex<TVertexTag, THalfEdge, TFaceTag>> vertices)
         {
+            Contract.Requires<ArgumentNullException>(vertices != null, "vertices");
+
             foreach (var v in vertices)
             {
                 //If this vertex has edges then we don't care, it's already inserted

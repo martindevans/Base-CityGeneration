@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
@@ -97,6 +98,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public IReadOnlyList<RoomPlan> AddRoom(IEnumerable<Vector2> roomFootprint, float wallThickness, IEnumerable<ScriptReference> scripts, bool split = false)
         {
+            Contract.Requires<ArgumentNullException>(roomFootprint != null, "roomFootprint != null");
+            Contract.Requires<ArgumentNullException>(scripts != null, "scripts != null");
+            Contract.Ensures(Contract.Result<IReadOnlyList<RoomPlan>>() != null);
+
             if (_isFrozen)
                 throw new InvalidOperationException("Cannot add rooms to floorplan once it is frozen");
 
@@ -183,6 +188,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public IEnumerable<Neighbour> GetNeighbours(RoomPlan room)
         {
+            Contract.Requires<ArgumentNullException>(room != null, "room != null");
+            Contract.Ensures(Contract.Result<IEnumerable<Neighbour>>() != null);
+
             _neighbourhood.GenerateNeighbours();
             return _neighbourhood[room];
         }

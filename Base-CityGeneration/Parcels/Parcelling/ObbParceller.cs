@@ -4,6 +4,7 @@ using System.Numerics;
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Datastructures;
 using SwizzleMyVectors;
@@ -125,6 +126,9 @@ namespace Base_CityGeneration.Parcels.Parcelling
 
         internal static OABR FitOabb(Parcel parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)
         {
+            Contract.Requires<ArgumentNullException>(parcel != null, "parcel");
+            Contract.Requires<ArgumentNullException>(random != null, "random");
+
             //Generate a set of OABBs, order by size
             var oabbs = OABR.Fittings(parcel.Points()).OrderBy(a =>  a.Area).ToArray();
 

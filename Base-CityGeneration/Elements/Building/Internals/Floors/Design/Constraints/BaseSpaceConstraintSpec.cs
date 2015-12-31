@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints
 {
+    [ContractClass(typeof(BaseSpaceConstraintSpecContracts))]
     public abstract class BaseSpaceConstraintSpec
     {
         internal abstract T Union<T>(T other) where T : BaseSpaceConstraintSpec;
@@ -20,6 +22,27 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
             : IUnwrappable<BaseSpaceConstraintSpec>
         {
             public abstract BaseSpaceConstraintSpec Unwrap();
+        }
+    }
+
+    [ContractClassFor(typeof(BaseSpaceConstraintSpec))]
+    internal abstract class BaseSpaceConstraintSpecContracts
+        : BaseSpaceConstraintSpec
+    {
+        internal override T Union<T>(T other)
+        {
+            Contract.Requires<ArgumentNullException>(other != null, "other");
+
+            return default(T);
+        }
+
+        public override float AssessSatisfactionProbability(FloorplanRegion region, Func<double> random, INamedDataCollection metadata)
+        {
+            Contract.Requires<ArgumentNullException>(region != null, "region");
+            Contract.Requires<ArgumentNullException>(metadata != null, "metadata");
+            Contract.Requires<ArgumentNullException>(random != null, "random");
+
+            return default(float);
         }
     }
 }

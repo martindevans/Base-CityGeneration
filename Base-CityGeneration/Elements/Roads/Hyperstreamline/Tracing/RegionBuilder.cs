@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 
@@ -12,12 +13,16 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public RegionBuilder(IEnumerable<Vertex> vertices)
         {
+            Contract.Requires<ArgumentNullException>(vertices != null, "vertices");
+
             _unprocessed = new HashSet<Edge>(vertices.SelectMany(v => v.Edges));
         }
 
         public IEnumerable<Region> Regions()
         {
-            List<Region> regions = new List<Region>();
+            Contract.Ensures(Contract.Result<IEnumerable<Region>>() != null);
+
+            var regions = new List<Region>();
 
             //Empty out these two collections (it's larger, let's keep it as small as possible)
             while (_unprocessed.Count > 0 || _halfProcessed.Count > 0)
@@ -30,13 +35,11 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                     edge = e.Value;
                     direction = e.Key;
                 }
-                else if (_unprocessed.Count > 0)
+                else
                 {
                     edge = _unprocessed.First();
                     direction = true;
                 }
-                else
-                    break;
 
                 var boundary = WalkRegionBoundary(edge, direction, _unprocessed, _halfProcessed);
                 if (boundary != null)

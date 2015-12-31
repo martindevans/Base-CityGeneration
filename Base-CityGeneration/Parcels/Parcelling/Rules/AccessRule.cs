@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 
 namespace Base_CityGeneration.Parcels.Parcelling.Rules
 {

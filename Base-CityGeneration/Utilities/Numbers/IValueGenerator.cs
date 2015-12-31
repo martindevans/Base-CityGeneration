@@ -1,5 +1,6 @@
 ﻿using Myre.Collections;
 using System;
+using System.Diagnostics.Contracts;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Utilities.Numbers
@@ -51,6 +52,10 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         public static IValueGenerator Add(this IValueGenerator a, IValueGenerator b)
         {
+            Contract.Requires<ArgumentNullException>(a != null, "a");
+            Contract.Requires<ArgumentNullException>(b != null, "b");
+            Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+
             return new FuncValue(
                 (r, m) => a.SelectFloatValue(r, m) + b.SelectFloatValue(r, m),
                 a.MinValue + b.MinValue,

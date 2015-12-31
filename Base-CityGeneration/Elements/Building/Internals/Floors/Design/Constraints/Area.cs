@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using Base_CityGeneration.Utilities.Numbers;
 using JetBrains.Annotations;
 using Myre.Collections;
@@ -12,13 +13,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
     public class Area
         : BaseSpaceConstraintSpec
     {
-        public IValueGenerator Minimum { get; private set; }
-        public IValueGenerator Maximum { get; private set; }
+        private readonly IValueGenerator _minimum;
+        public IValueGenerator Minimum { get { return _minimum; } }
+
+        private readonly IValueGenerator _maximum;
+        public IValueGenerator Maximum { get { return _maximum; } }
 
         private Area(IValueGenerator min, IValueGenerator max)
         {
-            Minimum = min.Transform(vary: false);
-            Maximum = max.Transform(vary: false);
+            Contract.Requires<ArgumentNullException>(min != null, "min");
+            Contract.Requires<ArgumentNullException>(max != null, "max");
+
+            _minimum = min.Transform(vary: false);
+            _maximum = max.Transform(vary: false);
         }
 
         public override float AssessSatisfactionProbability(FloorplanRegion region, Func<double> random, INamedDataCollection metadata)
@@ -43,7 +50,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
 
         private Area Union(Area area)
         {
-            return new Area(Minimum.Add(area.Minimum), Maximum.Add(area.Maximum));
+            Contract.Requires<ArgumentNullException>(area != null, "area");
+
+            return new Area(_minimum.Add(area.Minimum), _maximum.Add(area.Maximum));
         }
 
         internal class Container

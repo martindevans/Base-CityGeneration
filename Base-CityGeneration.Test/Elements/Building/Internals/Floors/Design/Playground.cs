@@ -173,11 +173,11 @@ Aliases:
     # A single room, with a set of constraints
     - &lounge !Room
       Id: Lounge
+      Walkthrough: true
       Tags:
         1: { LivingRoom }
-      # Constraints on the placement of the room
       Constraints:
-#         - { Strength: 1,    Req: !ExteriorWindow { } }
+         - { Strength: 1,    Req: !ExteriorWindow { } }
 #         - { Strength: 0.5,  Req: !ExteriorDoor { Deny: true } }
          - { Strength: 0.5,  Req: !Area { Min: 11 } }
 
@@ -188,6 +188,9 @@ Aliases:
         1: { Kitchen }
       Constraints:
         - { Strength: 1,    Req: !Area { Min: 8 } }
+        - { Strength: 0.25, Req: !ExteriorWindow { } }
+      Connections:
+        - { Strength: 1,    Req: !IdRef { Id: Lounge } }
         
     # Another room
     - &bedroom !Room
@@ -197,6 +200,9 @@ Aliases:
       Constraints:
 #        - { Strength: 1,  Req: !ExteriorDoor { Deny: true } }
         - { Strength: 0.5,    Req: !Area { Min: 10 } }
+        - { Strength: 0.35,    Req: !ExteriorWindow { } }
+      Connections:
+        - { Strength: -1,    Req: !IdRef { Id: Bedroom } }
         
     # Another room
     - &bathroom !Room
@@ -206,6 +212,9 @@ Aliases:
       Constraints:
 #        - { Strength: 1,  Req: !ExteriorDoor { Deny: true } }
         - { Strength: 0.5,    Req: !Area { Min: 4.5 } }
+        - { Strength: 0.15,    Req: !ExteriorWindow { } }
+      Connections:
+        - { Strength: -1,    Req: !IdRef { Id: Kitchen } }
 
     # A group of rooms
     - &apartment !Group

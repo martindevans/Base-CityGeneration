@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using Myre.Collections;
 
@@ -87,6 +88,8 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         public static IValueGenerator FromObject(object v, float? defaultValue = null)
         {
+            Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+
             var @explicit = v as BaseValueGeneratorContainer;
             if (@explicit != null)
                 return @explicit.Unwrap();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -307,6 +308,9 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// <returns></returns>
         private IEnumerable<List<FloorSelection>> ConstrainRun(IEnumerable<FloorSelection> run, IEnumerable<BaseFacadeConstraint> constraints, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd)
         {
+            Contract.Requires<ArgumentNullException>(run != null, "run");
+            Contract.Requires<ArgumentNullException>(constraints != null, "constraints");
+
             // Check whether each floor individually passes this constraint
             var passed = (
                 from floor in run

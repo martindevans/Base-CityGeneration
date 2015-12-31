@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Diagnostics.Contracts;
 using Base_CityGeneration.Parcels.Parcelling;
 using Base_CityGeneration.Utilities.Numbers;
 using Myre.Collections;
@@ -12,6 +13,8 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
 
         protected BaseSubdividerRule(IValueGenerator terminationChance)
         {
+            Contract.Requires<ArgumentNullException>(terminationChance != null, "terminationChance");
+
             TerminationChance = terminationChance;
         }
 
