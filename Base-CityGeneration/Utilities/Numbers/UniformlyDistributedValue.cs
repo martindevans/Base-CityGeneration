@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using EpimetheusPlugins.Procedural;
 using JetBrains.Annotations;
 using Myre.Collections;
@@ -16,6 +17,8 @@ namespace Base_CityGeneration.Utilities.Numbers
         public UniformlyDistributedValue(IValueGenerator min, IValueGenerator max)
             : base(min, max)
         {
+            Contract.Requires<ArgumentNullException>(min != null, "min != null");
+            Contract.Requires<ArgumentNullException>(max != null, "max != null");
         }
 
         protected override float GenerateFloatValue(Func<double> random, INamedDataCollection data)

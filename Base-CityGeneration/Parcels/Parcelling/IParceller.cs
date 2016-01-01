@@ -63,7 +63,6 @@ namespace Base_CityGeneration.Parcels.Parcelling
     public class Parcel
     {
         public readonly Rectangle Bounds;
-
         public readonly Edge[] Edges;
 
         public Parcel(Edge[] edges)
@@ -73,6 +72,12 @@ namespace Base_CityGeneration.Parcels.Parcelling
             Edges = edges;
 
             Bounds = Rectangle.FromPoints(Points());
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(Edges != null);
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using EpimetheusPlugins.Scripts;
 using HandyCollections.Extensions;
 using Myre.Collections;
@@ -32,6 +33,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 
         protected BaseMarker(BaseFootprintAlgorithm[] footprintAlgorithms)
         {
+            Contract.Requires<ArgumentNullException>(footprintAlgorithms != null, "footprintAlgorithms != null");
+
             _footprintAlgorithms = footprintAlgorithms;
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using SwizzleMyVectors.Geometry;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
@@ -127,6 +128,8 @@ namespace Base_CityGeneration.Datastructures.Edges
 
         private List<KeyValuePair<LineSegment2, T>> GetList(float angle)
         {
+            Contract.Ensures(Contract.Result<List<KeyValuePair<LineSegment2, T>>>() != null);
+
             var key = ToKey(angle);
 
             List<KeyValuePair<LineSegment2, T>> list;

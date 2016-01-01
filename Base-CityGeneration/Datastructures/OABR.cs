@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using EpimetheusPlugins.Procedural.Utilities;
-using JetBrains.Annotations;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
 
@@ -46,7 +46,7 @@ namespace Base_CityGeneration.Datastructures
             Area = sz.X * sz.Y;
         }
 
-        [Pure]
+        [JetBrains.Annotations.Pure]
         public bool Contains(Vector2 point)
         {
             return new BoundingRectangle(Min, Max).Contains(FromWorld(point));
@@ -56,7 +56,7 @@ namespace Base_CityGeneration.Datastructures
         /// Get a vector pointing along the shortest axis (i.e. across the longest axis)
         /// </summary>
         /// <returns></returns>
-        [Pure]
+        [JetBrains.Annotations.Pure]
         internal Vector2 SplitDirection()
         {
             var size = Max - Min;
@@ -74,6 +74,9 @@ namespace Base_CityGeneration.Datastructures
         /// <returns></returns>
         internal static IEnumerable<OABR> Fittings(IEnumerable<Vector2> shape)
         {
+            Contract.Requires<ArgumentNullException>(shape != null, "shape != null");
+            Contract.Ensures(Contract.Result<IEnumerable<OABR>>() != null);
+
             //Finding the OABB of the hull is the same as finding the OABB of the parcel, but is quicker
             var hull = shape.ConvexHull().ToArray();
 
@@ -118,6 +121,8 @@ namespace Base_CityGeneration.Datastructures
         /// <returns></returns>
         public static OABR Fit(IEnumerable<Vector2> shape)
         {
+            Contract.Requires<ArgumentNullException>(shape != null, "shape != null");
+
             return Fittings(shape).Aggregate((a, b) => a.Area < b.Area ? a : b);
         }
 
@@ -163,6 +168,8 @@ namespace Base_CityGeneration.Datastructures
 
         public IList<Vector2> Points(IList<Vector2> output = null)
         {
+            Contract.Ensures(Contract.Result<IList<Vector2>>() != null);
+
             if (output == null)
                 output = new Vector2[4];
             if (output.Count < 4)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using Myre.Collections;
 using SwizzleMyVectors.Geometry;
@@ -14,6 +15,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
         public Polyline(Vector2[] points, float decay)
         {
+            Contract.Requires<ArgumentNullException>(points != null, "points != null");
+
             _points = points;
             _decay = decay;
         }

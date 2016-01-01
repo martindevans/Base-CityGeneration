@@ -1,5 +1,6 @@
 ﻿using EpimetheusPlugins.Procedural;
 using System;
+using System.Diagnostics.Contracts;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Utilities.Numbers
@@ -35,6 +36,11 @@ namespace Base_CityGeneration.Utilities.Numbers
         public NormallyDistributedValue(IValueGenerator min, IValueGenerator mean, IValueGenerator max, IValueGenerator deviation)
             : base(min, max)
         {
+            Contract.Requires<ArgumentNullException>(min != null, "min != null");
+            Contract.Requires<ArgumentNullException>(mean != null, "mean != null");
+            Contract.Requires<ArgumentNullException>(max != null, "max != null");
+            Contract.Requires<ArgumentNullException>(deviation != null, "deviation != null");
+
             _mean = mean;
             _deviation = deviation;
         }
