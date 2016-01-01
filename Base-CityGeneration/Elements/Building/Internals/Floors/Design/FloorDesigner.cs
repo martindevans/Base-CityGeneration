@@ -166,9 +166,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     throw new DesignFailedException(string.Format("Unsatisfiable constraints for \"{0}\" - [{1}]", spec.Id, string.Join(",", unsat)));
                 }
 
-                //Sanity check
-                if (float.IsNaN(bestRegion.Value.Key))
-                    throw new InvalidOperationException("Heuristic score for floorplan region is NaN");
+                ////Sanity check
+                //if (float.IsNaN(bestRegion.Value.Key))
+                //    throw new InvalidOperationException("Heuristic score for floorplan region is NaN");
 
                 bestRegion.Value.Value.Add(spec, required, random, metadata);
             }

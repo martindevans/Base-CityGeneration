@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Test.Elements.Building.Design
 {
@@ -116,7 +117,8 @@ Floors:
             };
 
             Random r = new Random(10);
-            var selection = b.Internals(r.NextDouble, null, finder).Externals(r.NextDouble, null, finder, new BuildingSideInfo[] {
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, finder).Externals(r.NextDouble, d, finder, new BuildingSideInfo[] {
                 new BuildingSideInfo(lot[0], lot[1], new BuildingSideInfo.NeighbourInfo[0]),
                 new BuildingSideInfo(lot[1], lot[2], new BuildingSideInfo.NeighbourInfo[0]),
                 new BuildingSideInfo(lot[2], lot[3], new BuildingSideInfo.NeighbourInfo[0]),

@@ -92,6 +92,9 @@ namespace Base_CityGeneration.Parcels.Parcelling
 
         private static Parcel ToParcel(Parcel parent, IEnumerable<Vector2> child)
         {
+            Contract.Requires<ArgumentNullException>(parent != null, "parent != null");
+            Contract.Requires<ArgumentNullException>(child != null, "child != null");
+
             Vector2[] points = child.ToArray();
             if (points.Area() < 0)
                 Array.Reverse(points);

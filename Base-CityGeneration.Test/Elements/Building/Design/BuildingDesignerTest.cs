@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Test.Elements.Building.Design
 {
@@ -38,7 +39,7 @@ Floors:
     - !Ground []
 "));
 
-            var internals = b.Internals(new Random(1).NextDouble, null, Finder);
+            var internals = b.Internals(new Random(1).NextDouble, new NamedBoxCollection(), Finder);
 
             Assert.AreEqual(2, internals.Floors.GroupBy(a => a.Index).Count());
         }
@@ -61,7 +62,7 @@ Floors:
     - !Ground []
 "));
 
-            var internals = b.Internals(new Random(1).NextDouble, null, Finder);
+            var internals = b.Internals(new Random(1).NextDouble, new NamedBoxCollection(), Finder);
 
             Assert.AreEqual(internals.Floors.Count(), internals.Floors.GroupBy(a => a.Index).Count());
         }
@@ -90,7 +91,7 @@ Floors:
   - !Ground []
 "));
 
-            var internals = b.Internals(new Random(1).NextDouble, null, Finder);
+            var internals = b.Internals(new Random(1).NextDouble, new NamedBoxCollection(), Finder);
 
             Assert.AreEqual(internals.Floors.Count(), internals.Floors.GroupBy(a => a.Index).Count());
         }
@@ -115,7 +116,8 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Internals(r.NextDouble, null, Finder);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder);
 
             Assert.AreEqual(1, selection.AboveGroundFloors.Count());
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
@@ -150,7 +152,8 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Internals(r.NextDouble, null, Finder);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder);
 
             Assert.AreEqual(2, selection.AboveGroundFloors.Count());
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
@@ -178,7 +181,8 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Internals(r.NextDouble, null, Finder);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder);
 
             Assert.AreEqual(0, selection.AboveGroundFloors.Count());
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
@@ -208,7 +212,8 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random();
-            var selection = b.Internals(r.NextDouble, null, Finder);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder);
 
             Assert.IsTrue(selection.AboveGroundFloors.Any() && selection.AboveGroundFloors.Count() <= 5);
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
@@ -236,7 +241,8 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder).Externals(r.NextDouble, d, Finder, _noNeighbours);
 
             //One facade for each wall (4 walls)
             Assert.AreEqual(4, selection.Walls.SelectMany(a => a.Facades).Count());
@@ -269,7 +275,8 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
+            var d = new NamedBoxCollection();
+            b.Internals(r.NextDouble, d, Finder).Externals(r.NextDouble, d, Finder, _noNeighbours);
         }
 
         [TestMethod]
@@ -294,7 +301,8 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder).Externals(r.NextDouble, d, Finder, _noNeighbours);
 
             //4 sides, 4 walls
             Assert.AreEqual(4, selection.Walls.Count());
@@ -322,7 +330,8 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder);
 
             Assert.AreEqual(2, selection.Footprints.Count());
             Assert.IsTrue(selection.Footprints.Any(a => a.Index == 0));
@@ -361,7 +370,8 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder).Externals(r.NextDouble, d, Finder, _noNeighbours);
 
             var wall = selection.Walls.First();
 
@@ -411,7 +421,8 @@ Floors:
             };
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, neighbours);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder).Externals(r.NextDouble, d, Finder, neighbours);
 
             var wall = selection.Walls.First();
 
@@ -464,7 +475,8 @@ Floors:
             };
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, neighbours);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder).Externals(r.NextDouble, d, Finder, neighbours);
 
             var wall = selection.Walls.First();
 
@@ -498,7 +510,8 @@ Floors:
             Assert.IsNotNull(b);
 
             Random r = new Random(2);
-            var selection = b.Internals(r.NextDouble, null, Finder).Externals(r.NextDouble, null, Finder, _noNeighbours);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder).Externals(r.NextDouble, d, Finder, _noNeighbours);
 
             var facades = selection.Walls.SelectMany(a => a.Facades);
 
@@ -527,7 +540,8 @@ Floors:
 "));
 
             Random r = new Random();
-            var selection = b.Internals(r.NextDouble, null, Finder);
+            var d = new NamedBoxCollection();
+            var selection = b.Internals(r.NextDouble, d, Finder);
 
             Assert.AreEqual(3, selection.AboveGroundFloors.Count());
             Assert.AreEqual(1, selection.Verticals.Count());

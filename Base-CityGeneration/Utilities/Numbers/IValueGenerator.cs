@@ -5,12 +5,37 @@ using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Utilities.Numbers
 {
+    [ContractClass(typeof(IValueGeneratorContracts))]
     public interface IValueGenerator
     {
         float MaxValue { get; }
         float MinValue { get; }
 
         float SelectFloatValue(Func<double> random, INamedDataCollection data);
+    }
+
+    [ContractClassFor(typeof(IValueGenerator))]
+    internal abstract class IValueGeneratorContracts
+        : IValueGenerator
+    {
+
+        public float MaxValue
+        {
+            get { return default(float); }
+        }
+
+        public float MinValue
+        {
+            get { return default(float); }
+        }
+
+        public float SelectFloatValue(Func<double> random, INamedDataCollection data)
+        {
+            Contract.Requires<ArgumentNullException>(random != null, "random != null");
+            Contract.Requires<ArgumentNullException>(data != null, "data != null");
+
+            return default(float);
+        }
     }
 
     public static class IValueGeneratorExtensions

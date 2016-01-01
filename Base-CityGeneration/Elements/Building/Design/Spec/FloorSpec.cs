@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
@@ -48,10 +49,16 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         public FloorSpec(KeyValuePair<float, KeyValuePair<string, string>[]>[] tags, IValueGenerator height)
             : this(Guid.NewGuid().ToString(), tags, height)
         {
+            Contract.Requires<ArgumentNullException>(tags != null, "tags != null");
+            Contract.Requires<ArgumentNullException>(height != null, "height != null");
         }
 
         public FloorSpec(string id, KeyValuePair<float, KeyValuePair<string, string>[]>[] tags, IValueGenerator height)
         {
+            Contract.Requires<ArgumentNullException>(id != null, "id != null");
+            Contract.Requires<ArgumentNullException>(tags != null, "tags != null");
+            Contract.Requires<ArgumentNullException>(height != null, "height != null");
+
             _id = id;
             _tags = tags;
             _height = height;

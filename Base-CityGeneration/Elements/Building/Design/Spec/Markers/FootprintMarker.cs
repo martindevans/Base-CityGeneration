@@ -1,4 +1,6 @@
-﻿using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
+﻿using System;
+using System.Diagnostics.Contracts;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using System.Linq;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
@@ -9,6 +11,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
         public FootprintMarker(BaseFootprintAlgorithm[] algorithms)
             : base(algorithms)
         {
+            Contract.Requires<ArgumentNullException>(algorithms != null, "algorithms != null");
         }
 
         internal class Container

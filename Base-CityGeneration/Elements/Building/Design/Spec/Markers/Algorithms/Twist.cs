@@ -3,6 +3,7 @@ using Base_CityGeneration.Utilities.Numbers;
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using SwizzleMyVectors;
 
@@ -15,6 +16,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
 
         public Twist(IValueGenerator angle)
         {
+            Contract.Requires<ArgumentNullException>(angle != null, "angle != null");
+
             _angle = angle;
         }
 

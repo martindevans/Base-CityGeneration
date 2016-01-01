@@ -5,6 +5,7 @@ using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 
 namespace Base_CityGeneration.Elements.Building.Design
 {
@@ -59,7 +60,8 @@ namespace Base_CityGeneration.Elements.Building.Design
             }
         }
 
-        public IEnumerable<FootprintSelection> Footprints { get; private set; }
+        private readonly FootprintSelection[] _footprints;
+        public IEnumerable<FootprintSelection> Footprints { get { return _footprints; } }
 
         /// <summary>
         /// Vertical elements to place within this building
@@ -68,12 +70,17 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         internal Internals(BuildingDesigner designer, FloorSelection[][] aboveGroundFloors, FloorSelection[][] belowGroundFloors, FootprintSelection[] footprints)
         {
+            Contract.Requires<ArgumentNullException>(designer != null, "designer != null");
+            Contract.Requires<ArgumentNullException>(aboveGroundFloors != null, "aboveGroundFloors != null");
+            Contract.Requires<ArgumentNullException>(belowGroundFloors != null, "belowGroundFloors != null");
+            Contract.Requires<ArgumentNullException>(footprints != null, "footprints != null");
+
             _designer = designer;
 
             _aboveGroundFloorRuns = aboveGroundFloors;
             _belowGroundFloorRuns = belowGroundFloors;
 
-            Footprints = footprints;
+            _footprints = footprints;
         }
 
         public Design Externals(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, BuildingSideInfo[] sides)

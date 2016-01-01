@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using Myre.Collections;
 
@@ -12,6 +13,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
 
         protected BaseConditional(BaseFootprintAlgorithm action)
         {
+            Contract.Requires<ArgumentNullException>(action != null, "action != null");
+
             _action = action;
         }
 

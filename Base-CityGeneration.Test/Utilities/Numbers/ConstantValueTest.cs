@@ -1,6 +1,7 @@
 ﻿using System;
 using Base_CityGeneration.Utilities.Numbers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Test.Utilities.Numbers
 {
@@ -15,7 +16,7 @@ namespace Base_CityGeneration.Test.Utilities.Numbers
             Random r = new Random();
             for (int i = 0; i < 1000; i++)
             {
-                var v = spec.SelectFloatValue(r.NextDouble, null);
+                var v = spec.SelectFloatValue(r.NextDouble, new NamedBoxCollection());
 
                 Assert.AreEqual(56.7f, v);
             }
@@ -29,7 +30,7 @@ namespace Base_CityGeneration.Test.Utilities.Numbers
             Random r = new Random();
             for (int i = 0; i < 1000; i++)
             {
-                var v = spec.SelectIntValue(r.NextDouble, null);
+                var v = spec.SelectIntValue(r.NextDouble, new NamedBoxCollection());
 
                 Assert.AreEqual(57, v);
             }

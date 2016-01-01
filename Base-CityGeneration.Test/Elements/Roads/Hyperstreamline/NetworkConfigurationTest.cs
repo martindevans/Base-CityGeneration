@@ -4,7 +4,7 @@ using Base_CityGeneration.Utilities.Numbers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Numerics;
 using System.IO;
-
+using Myre.Collections;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Test.Elements.Roads.Hyperstreamline
@@ -40,13 +40,13 @@ Major:
                     - { X: 0.3, Y: 1 }
 "));
 
-            var c = d.Major(() => 1, null);
+            var c = d.Major(() => 1, new NamedBoxCollection());
 
             Assert.AreEqual(22.5f, MathHelper.ToDegrees(c.SearchConeAngle), 0.001f);
             Assert.AreEqual(25f, c.MergeDistance);
             Assert.AreEqual(10f, c.SegmentLength);
 
-            var w = c.RoadWidth.SelectFloatValue(() => 1, null);
+            var w = c.RoadWidth.SelectFloatValue(() => 1, new NamedBoxCollection());
             Assert.IsTrue(w >= 1 && w <= 3);
 
             Assert.IsInstanceOfType(c.PriorityField, typeof(Constant));
@@ -80,13 +80,13 @@ Major:
                     - { X: 0.1, Y: 0.45 }
                     - { X: 0.3, Y: 1 }
 "));
-            var c = d.Major(() => 1, null);
+            var c = d.Major(() => 1, new NamedBoxCollection());
 
             Assert.AreEqual(22.5f, MathHelper.ToDegrees(c.SearchConeAngle), 0.001f);
             Assert.AreEqual(25f, c.MergeDistance);
             Assert.AreEqual(10f, c.SegmentLength);
 
-            var w = c.RoadWidth.SelectFloatValue(() => 1, null);
+            var w = c.RoadWidth.SelectFloatValue(() => 1, new NamedBoxCollection());
             Assert.IsTrue(w >= 1 && w <= 3);
 
             Assert.IsInstanceOfType(c.PriorityField, typeof(Constant));

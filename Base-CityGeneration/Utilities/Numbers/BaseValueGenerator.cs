@@ -37,6 +37,9 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         protected BaseValueGenerator(IValueGenerator min, IValueGenerator max)
         {
+            Contract.Requires<ArgumentNullException>(min != null, "min != null");
+            Contract.Requires<ArgumentNullException>(max != null, "max != null");
+
             _min = min;
             _max = max;
         }

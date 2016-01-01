@@ -3,6 +3,7 @@ using EpimetheusPlugins.Procedural.Utilities;
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 
@@ -15,6 +16,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
 
         public Shrink(IValueGenerator distance)
         {
+            Contract.Requires<ArgumentNullException>(distance != null, "distance != null");
+
             _distance = distance;
         }
 

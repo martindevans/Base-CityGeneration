@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Utilities.Numbers;
@@ -15,6 +16,9 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
         public MinArea(IValueGenerator area, BaseFootprintAlgorithm algorithm)
             : base(algorithm)
         {
+            Contract.Requires<ArgumentNullException>(area != null, "area != null");
+            Contract.Requires<ArgumentNullException>(algorithm != null, "algorithm != null");
+
             Area = area;
         }
 

@@ -85,6 +85,10 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// <returns></returns>
         public Internals Internals(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
         {
+            Contract.Requires<ArgumentNullException>(random != null, "random!= null");
+            Contract.Requires<ArgumentNullException>(metadata != null, "metadata!= null");
+            Contract.Requires<ArgumentNullException>(finder != null, "finder!= null");
+
             var ground = _floorSelectors.OfType<GroundMarker>().Single();
             var aboveGround = _floorSelectors.TakeWhile(a => !(a is GroundMarker)).Append(ground).ToArray();
             var belowGround = _floorSelectors.SkipWhile(a => !(a is GroundMarker)).Skip(1).ToArray();
@@ -231,6 +235,11 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         private IEnumerable<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, List<FloorSelection> floors, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd, ICollection<FacadeSelection> results)
         {
+            Contract.Requires<ArgumentNullException>(random != null, "random != null");
+            Contract.Requires<ArgumentNullException>(finder != null, "finder != null");
+            Contract.Requires<ArgumentNullException>(neighbours != null, "neighbours != null");
+            Contract.Requires<ArgumentNullException>(results != null, "results != null");
+
             //working from the first selector to the last, try to find a facade for each floor
             foreach (var spec in FacadeSelectors)
             {
