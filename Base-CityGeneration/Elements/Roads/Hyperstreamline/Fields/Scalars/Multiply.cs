@@ -12,7 +12,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars
 
         public Multiply(BaseScalarField baseField, float scale)
         {
-            Contract.Requires<ArgumentNullException>(baseField != null, "baseField != null");
+            Contract.Requires(baseField != null, "baseField != null");
 
             _baseField = baseField;
             _scale = scale;

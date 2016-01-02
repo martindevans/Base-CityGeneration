@@ -1,6 +1,10 @@
-﻿using System.Numerics;
+﻿using System.Collections.Generic;
+using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
+using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.FacadeConstraints
@@ -13,7 +17,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.FacadeConstrain
         [TestMethod]
         public void AssertThat_OppositeEdge_IsClear()
         {
-            var result = _constraint.Check(new FloorSelection("", null, null, null, 0), new BuildingSideInfo[] {
+            var result = _constraint.Check(new FloorSelection("", new KeyValuePair<string, string>[0], new GroundMarker(new BaseFootprintAlgorithm[0]), new ScriptReference(typeof(TestScript)), 0, 0), new BuildingSideInfo[] {
                 new BuildingSideInfo(new Vector2(10, 20), new Vector2(10, -20), new BuildingSideInfo.NeighbourInfo[]{
                     new BuildingSideInfo.NeighbourInfo(0, 1, 100, null)
                 }),
@@ -25,7 +29,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.FacadeConstrain
         [TestMethod]
         public void AssertThat_MatchingEdge_IsNotClear()
         {
-            var result = _constraint.Check(new FloorSelection("", null, null, null, 0), new BuildingSideInfo[] {
+            var result = _constraint.Check(new FloorSelection("", new KeyValuePair<string, string>[0], new GroundMarker(new BaseFootprintAlgorithm[0]), new ScriptReference(typeof(TestScript)), 0), new BuildingSideInfo[] {
                 new BuildingSideInfo(new Vector2(-10, 20), new Vector2(-10, -20), new BuildingSideInfo.NeighbourInfo[]{
                     new BuildingSideInfo.NeighbourInfo(0, 1, 100, null)
                 }),

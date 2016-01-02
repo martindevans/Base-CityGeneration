@@ -4,28 +4,43 @@ using Base_CityGeneration.Elements.Building.Design.Spec;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
+using EpimetheusPlugins.Scripts;
 
 namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
 {
     [TestClass]
     public class TaggedRefTest
     {
+        private static FloorSelection CreateFloor(string name, float height, int number, params KeyValuePair<string, string>[] tags)
+        {
+            return new FloorSelection(
+                name,
+                tags,
+                new FootprintMarker(new BaseFootprintAlgorithm[0]),
+                new ScriptReference(typeof(TestScript)),
+                height,
+                number
+            );
+        }
+
         readonly FloorSelection[] _floors = {
-            new FloorSelection("top", new []{ new KeyValuePair<string, string>("tag", "top") }, null, null, 0, 12),
-            new FloorSelection("a", new []{ new KeyValuePair<string, string>("tag", "a") }, null, null, 0, 11),
-            new FloorSelection("a", new []{ new KeyValuePair<string, string>("tag", "a"), new KeyValuePair<string, string>("tag", "x") }, null, null, 0, 10),
-            new FloorSelection("a", new []{ new KeyValuePair<string, string>("tag", "a") }, null, null, 0, 9),
-            new FloorSelection("b", new []{ new KeyValuePair<string, string>("tag", "b") }, null, null, 0, 8),
-            new FloorSelection("c", new []{ new KeyValuePair<string, string>("tag", "c") }, null, null, 0, 7),
-            new FloorSelection("d", new []{ new KeyValuePair<string, string>("tag", "d") }, null, null, 0, 6),
-            new FloorSelection("e", new []{ new KeyValuePair<string, string>("tag", "e") }, null, null, 0, 5),
-            new FloorSelection("f", new []{ new KeyValuePair<string, string>("tag", "f") }, null, null, 0, 4),
-            new FloorSelection("g", new []{ new KeyValuePair<string, string>("tag", "g") }, null, null, 0, 3),
-            new FloorSelection("g", new []{ new KeyValuePair<string, string>("tag", "g") }, null, null, 0, 2),
-            new FloorSelection("g", new []{ new KeyValuePair<string, string>("tag", "g") }, null, null, 0, 1),
-            new FloorSelection("ground", new []{ new KeyValuePair<string, string>("tag", "ground") }, null, null, 0, 0),
-            new FloorSelection("u", new []{ new KeyValuePair<string, string>("tag", "u") }, null, null, 0, -1),
-            new FloorSelection("u", new []{ new KeyValuePair<string, string>("tag", "u") }, null, null, 0, -2),
+            CreateFloor("top", 0, 12, new KeyValuePair<string, string>("tag", "top")),
+            CreateFloor("a", 0, 11, new KeyValuePair<string, string>("tag", "a")),
+            CreateFloor("a", 0, 10, new KeyValuePair<string, string>("tag", "a"), new KeyValuePair<string, string>("tag", "x")),
+            CreateFloor("a", 0, 9, new KeyValuePair<string, string>("tag", "a")),
+            CreateFloor("b", 0, 8, new KeyValuePair<string, string>("tag", "b")),
+            CreateFloor("c", 0, 7, new KeyValuePair<string, string>("tag", "c")),
+            CreateFloor("d", 0, 6, new KeyValuePair<string, string>("tag", "d")),
+            CreateFloor("e", 0, 5, new KeyValuePair<string, string>("tag", "e")),
+            CreateFloor("f", 0, 4, new KeyValuePair<string, string>("tag", "f")),
+            CreateFloor("g", 0, 3, new KeyValuePair<string, string>("tag", "g")),
+            CreateFloor("g", 0, 2, new KeyValuePair<string, string>("tag", "g")),
+            CreateFloor("g", 0, 1, new KeyValuePair<string, string>("tag", "g")),
+            CreateFloor("ground", 0, 0, new KeyValuePair<string, string>("tag", "ground")),
+            CreateFloor("u", 0, -1, new KeyValuePair<string, string>("tag", "u")),
+            CreateFloor("u", 0, -2, new KeyValuePair<string, string>("tag", "u")),
         };
 
         [TestMethod]

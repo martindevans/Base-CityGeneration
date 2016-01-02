@@ -31,8 +31,8 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         public float SelectFloatValue(Func<double> random, INamedDataCollection data)
         {
-            Contract.Requires<ArgumentNullException>(random != null, "random != null");
-            Contract.Requires<ArgumentNullException>(data != null, "data != null");
+            Contract.Requires(random != null, "random != null");
+            Contract.Requires(data != null, "data != null");
 
             return default(float);
         }
@@ -77,8 +77,8 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         public static IValueGenerator Add(this IValueGenerator a, IValueGenerator b)
         {
-            Contract.Requires<ArgumentNullException>(a != null, "a");
-            Contract.Requires<ArgumentNullException>(b != null, "b");
+            Contract.Requires(a != null, "a");
+            Contract.Requires(b != null, "b");
             Contract.Ensures(Contract.Result<IValueGenerator>() != null);
 
             return new FuncValue(

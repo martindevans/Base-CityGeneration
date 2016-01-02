@@ -1,4 +1,5 @@
-﻿using Cassowary;
+﻿using System.Diagnostics.Contracts;
+using Cassowary;
 
 namespace Base_CityGeneration.Datastructures.Constraints
 {
@@ -7,73 +8,137 @@ namespace Base_CityGeneration.Datastructures.Constraints
     /// </summary>
     public class ConstrainedRectangle
     {
+        private readonly ClVariable _leftVar;
         /// <summary>
         /// The constraint for the left of this rectangle
         /// </summary>
-        public ClVariable LeftVariable { get; private set; }
+        public ClVariable LeftVariable
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<ClVariable>() != null);
+                return _leftVar;
+            }
+        }
         public float Left
         {
             get { return (float) LeftVariable.Value; }
         }
 
+        private readonly ClVariable _rightVar;
         /// <summary>
         /// The constraint for the right of this rectangle
         /// </summary>
-        public ClVariable RightVariable { get; private set; }
+        public ClVariable RightVariable
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<ClVariable>() != null);
+                return _rightVar;
+            }
+        }
         public float Right
         {
             get { return (float)RightVariable.Value; }
         }
 
+        private readonly ClVariable _topVar;
         /// <summary>
         /// The constraint for the top of this rectangle
         /// </summary>
-        public ClVariable TopVariable { get; private set; }
+        public ClVariable TopVariable
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<ClVariable>() != null);
+                return _topVar;
+            }
+        }
         public float Top
         {
             get { return (float)TopVariable.Value; }
         }
 
+        private readonly ClVariable _botVar;
         /// <summary>
         /// The constraint for the bottom of this rectangle
         /// </summary>
-        public ClVariable BottomVariable { get; private set; }
+        public ClVariable BottomVariable
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<ClVariable>() != null);
+                return _botVar;
+            }
+        }
         public float Bottom
         {
             get { return (float)BottomVariable.Value; }
         }
 
+        private readonly ClVariable _widthVar;
         /// <summary>
         /// The constraint for the width of this rectangle
         /// </summary>
-        public ClVariable WidthVariable { get; private set; }
+        public ClVariable WidthVariable
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<ClVariable>() != null);
+                return _widthVar;
+            }
+        }
         public float Width
         {
             get { return (float)WidthVariable.Value; }
         }
 
+        private readonly ClVariable _heightVar;
         /// <summary>
         /// The constraint for the height of this rectangle
         /// </summary>
-        public ClVariable HeightVariable { get; private set; }
+        public ClVariable HeightVariable
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<ClVariable>() != null);
+                return _heightVar;
+            }
+        }
         public float Height
         {
             get { return (float)HeightVariable.Value; }
         }
 
+        private readonly ClVariable _cxVar;
         /// <summary>
         /// The constraint for the center of this rectangle on the x axis
         /// </summary>
-        public ClVariable CenterXVariable { get; private set; }
+        public ClVariable CenterXVariable
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<ClVariable>() != null);
+                return _cxVar;
+            }
+        }
         public float CenterX
         {
             get { return (float)CenterXVariable.Value; }
         }
 
+        private readonly ClVariable _cyVar;
         /// <summary>
         /// The constraint for the center of this rectangle on the y axis
         /// </summary>
-        public ClVariable CenterYVariable { get; private set; }
+        public ClVariable CenterYVariable
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<ClVariable>() != null);
+                return _cyVar;
+            }
+        }
         public float CenterY
         {
             get { return (float)CenterYVariable.Value; }
@@ -83,18 +148,20 @@ namespace Base_CityGeneration.Datastructures.Constraints
 
         public ConstrainedRectangle(ClSimplexSolver solver, Range left = null, Range right = null, Range top = null, Range bottom = null, Range width = null, Range height = null, Range centerX = null, Range centerY = null)
         {
+            Contract.Requires(solver != null);
+
             _solver = solver;
 
-            LeftVariable = (left ?? new Range()).CreateVariable(solver);
-            RightVariable = (right ?? new Range()).CreateVariable(solver);
-            TopVariable = (top ?? new Range()).CreateVariable(solver);
-            BottomVariable = (bottom ?? new Range()).CreateVariable(solver);
+            _leftVar = (left ?? new Range()).CreateVariable(solver);
+            _rightVar = (right ?? new Range()).CreateVariable(solver);
+            _topVar = (top ?? new Range()).CreateVariable(solver);
+            _botVar = (bottom ?? new Range()).CreateVariable(solver);
 
-            WidthVariable = (width ?? new Range()).CreateVariable(solver);
-            HeightVariable = (height ?? new Range()).CreateVariable(solver);
+            _widthVar = (width ?? new Range()).CreateVariable(solver);
+            _heightVar = (height ?? new Range()).CreateVariable(solver);
 
-            CenterXVariable = (centerX ?? new Range()).CreateVariable(solver);
-            CenterYVariable = (centerY ?? new Range()).CreateVariable(solver);
+            _cxVar = (centerX ?? new Range()).CreateVariable(solver);
+            _cyVar = (centerY ?? new Range()).CreateVariable(solver);
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
             solver.AddConstraint(LeftVariable, WidthVariable, RightVariable, (l, w, r) => l + w == r);
@@ -106,6 +173,8 @@ namespace Base_CityGeneration.Datastructures.Constraints
 
         public ConstrainedRectangle AspectRatio(float aspectRatio)
         {
+            Contract.Ensures(Contract.Result<ConstrainedRectangle>() != null);
+
 // ReSharper disable CompareOfFloatsByEqualityOperator
             _solver.AddConstraint(WidthVariable, HeightVariable, (w, h) => w == h * aspectRatio);
 // ReSharper restore CompareOfFloatsByEqualityOperator
@@ -115,6 +184,9 @@ namespace Base_CityGeneration.Datastructures.Constraints
 
         public ConstrainedRectangle AspectRatio(Range aspectRange)
         {
+            Contract.Requires(aspectRange != null);
+            Contract.Ensures(Contract.Result<ConstrainedRectangle>() != null);
+
             if (aspectRange.Min.HasValue)
             {
                 var m = aspectRange.Min.Value;

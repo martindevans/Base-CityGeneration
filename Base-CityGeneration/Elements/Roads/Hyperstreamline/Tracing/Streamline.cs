@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
@@ -11,6 +12,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<Vertex>>() != null);
                 return _vertices;
             }
         }

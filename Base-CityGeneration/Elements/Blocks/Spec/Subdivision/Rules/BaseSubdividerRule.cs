@@ -13,7 +13,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
 
         protected BaseSubdividerRule(IValueGenerator terminationChance)
         {
-            Contract.Requires<ArgumentNullException>(terminationChance != null, "terminationChance");
+            Contract.Requires(terminationChance != null, "terminationChance");
 
             TerminationChance = terminationChance;
         }

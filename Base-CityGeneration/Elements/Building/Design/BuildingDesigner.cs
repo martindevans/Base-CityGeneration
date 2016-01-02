@@ -66,6 +66,11 @@ namespace Base_CityGeneration.Elements.Building.Design
         #region constructor
         public BuildingDesigner(IEnumerable<KeyValuePair<string, string>> tags, Guid id, string description, BaseFloorSelector[] floorSelectors, VerticalElementSpec[] verticalSelectors, FacadeSpec[] facadeSelectors)
         {
+            Contract.Requires(tags != null);
+            Contract.Requires(floorSelectors != null);
+            Contract.Requires(verticalSelectors != null);
+            Contract.Requires(facadeSelectors != null);
+
             Tags = tags;
             Id = id;
             Description = description;
@@ -85,9 +90,9 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// <returns></returns>
         public Internals Internals(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
         {
-            Contract.Requires<ArgumentNullException>(random != null, "random!= null");
-            Contract.Requires<ArgumentNullException>(metadata != null, "metadata!= null");
-            Contract.Requires<ArgumentNullException>(finder != null, "finder!= null");
+            Contract.Requires(random != null, "random!= null");
+            Contract.Requires(metadata != null, "metadata!= null");
+            Contract.Requires(finder != null, "finder!= null");
 
             var ground = _floorSelectors.OfType<GroundMarker>().Single();
             var aboveGround = _floorSelectors.TakeWhile(a => !(a is GroundMarker)).Append(ground).ToArray();
@@ -235,10 +240,10 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         private IEnumerable<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, List<FloorSelection> floors, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd, ICollection<FacadeSelection> results)
         {
-            Contract.Requires<ArgumentNullException>(random != null, "random != null");
-            Contract.Requires<ArgumentNullException>(finder != null, "finder != null");
-            Contract.Requires<ArgumentNullException>(neighbours != null, "neighbours != null");
-            Contract.Requires<ArgumentNullException>(results != null, "results != null");
+            Contract.Requires(random != null, "random != null");
+            Contract.Requires(finder != null, "finder != null");
+            Contract.Requires(neighbours != null, "neighbours != null");
+            Contract.Requires(results != null, "results != null");
 
             //working from the first selector to the last, try to find a facade for each floor
             foreach (var spec in FacadeSelectors)
@@ -317,8 +322,8 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// <returns></returns>
         private IEnumerable<List<FloorSelection>> ConstrainRun(IEnumerable<FloorSelection> run, IEnumerable<BaseFacadeConstraint> constraints, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd)
         {
-            Contract.Requires<ArgumentNullException>(run != null, "run");
-            Contract.Requires<ArgumentNullException>(constraints != null, "constraints");
+            Contract.Requires(run != null, "run");
+            Contract.Requires(constraints != null, "constraints");
 
             // Check whether each floor individually passes this constraint
             var passed = (
@@ -403,7 +408,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             public BuildingDesigner Unwrap()
             {
                 return new BuildingDesigner(
-                    Tags,
+                    Tags ?? (IEnumerable<KeyValuePair<string, string>>)new List<KeyValuePair<string, string>>(),
                     Guid.Parse(Id ?? Guid.NewGuid().ToString()),
                     Description,
                     Floors.Select(a => a.Unwrap()).ToArray(),

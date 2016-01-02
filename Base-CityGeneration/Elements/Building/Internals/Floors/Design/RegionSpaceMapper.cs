@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
@@ -170,6 +171,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                 var rightSpaces = new ArraySegment<RoomTreemapNode>(spaces.Array, spaces.Offset + lCount, spaces.Count - lCount);
                 var right = new Tree<RoomTreemapNode>.Node();
                 root.Add(right);
+
+                Contract.Assume(leftSpaces.Offset >= 0 && leftSpaces.Count > 0);
+                Contract.Assume(rightSpaces.Offset >= 0 && rightSpaces.Count > 0);
+                Contract.Assume(rightSpaces.Offset == leftSpaces.Offset + leftSpaces.Count);
 
                 //If the two sides are uneven, which side should be put the additional space?
                 if (rightSpaces.Count != leftSpaces.Count)

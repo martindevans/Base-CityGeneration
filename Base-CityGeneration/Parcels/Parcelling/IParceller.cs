@@ -46,15 +46,15 @@ namespace Base_CityGeneration.Parcels.Parcelling
     {
         public float? TerminationChance(Parcel parcel)
         {
-            Contract.Requires<ArgumentNullException>(parcel != null, "parcel");
+            Contract.Requires(parcel != null, "parcel");
 
             return default(float?);
         }
 
         public bool Discard(Parcel parcel, Func<double> random)
         {
-            Contract.Requires<ArgumentNullException>(parcel != null, "parcel");
-            Contract.Requires<ArgumentNullException>(random != null, "random");
+            Contract.Requires(parcel != null, "parcel");
+            Contract.Requires(random != null, "random");
 
             return default(bool);
         }
@@ -67,7 +67,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
 
         public Parcel(Edge[] edges)
         {
-            Contract.Requires<ArgumentNullException>(edges != null, "edges != null");
+            Contract.Requires(edges != null, "edges != null");
 
             Edges = edges;
 
@@ -87,7 +87,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
         /// <param name="edgeResources"></param>
         public Parcel(IEnumerable<Vector2> footprint, string[] edgeResources)
         {
-            Contract.Requires<ArgumentNullException>(footprint != null, "footprint != null");
+            Contract.Requires(footprint != null, "footprint != null");
 
             var footprintArr = footprint.ToArray();
 
@@ -117,12 +117,11 @@ namespace Base_CityGeneration.Parcels.Parcelling
 
         public float AspectRatio()
         {
-            var oabb = ObbParceller.FitOabb(this, 0, 0, null);
-            //var ratio = Math.Max(oabb.Extents.X, oabb.Extents.Y) / Math.Min(oabb.Extents.X, oabb.Extents.Y);
+            var oabb = OABR.Fit(Points());
+            var extents = oabb.Max - oabb.Min;
+            var ratio = Math.Max(extents.X, extents.Y) / Math.Min(extents.X, extents.Y);
 
-            throw new NotImplementedException();
-
-            //return ratio;
+            return ratio;
         }
 
         /// <summary>
@@ -131,6 +130,8 @@ namespace Base_CityGeneration.Parcels.Parcelling
         /// <returns></returns>
         public Vector2[] Points()
         {
+            Contract.Ensures(Contract.Result<Vector2[]>() != null);
+
             return Edges.Select(e => e.Start).ToArray();
         }
 

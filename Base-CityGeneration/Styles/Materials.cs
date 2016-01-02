@@ -13,18 +13,18 @@ namespace Base_CityGeneration.Styles
 
         public static string DefaultMaterial(this INamedDataCollection provider, Func<double> random, params string[] possibilities)
         {
-            Contract.Requires<ArgumentNullException>(provider != null, "provider != null");
-            Contract.Requires<ArgumentNullException>(provider != null, "random != null");
-            Contract.Requires<ArgumentNullException>(provider != null, "possibilities != null");
+            Contract.Requires(provider != null, "provider != null");
+            Contract.Requires(random != null, "random != null");
+            Contract.Requires(possibilities != null, "possibilities != null");
 
             return DefaultMaterial(provider, random, DefaultMaterialName, possibilities);
         }
 
         public static string DefaultMaterial(this INamedDataCollection provider, Func<double> random, TypedName<string> name, params string[] possibilities)
         {
-            Contract.Requires<ArgumentNullException>(provider != null, "provider != null");
-            Contract.Requires<ArgumentNullException>(provider != null, "random != null");
-            Contract.Requires<ArgumentNullException>(provider != null, "possibilities != null");
+            Contract.Requires(provider != null, "provider != null");
+            Contract.Requires(random != null, "random != null");
+            Contract.Requires(possibilities != null, "possibilities != null");
 
             //Select a random value from the possibilities
             var generated = possibilities.Length == 0 ? null : possibilities[random.RandomInteger(0, possibilities.Length - 1)];

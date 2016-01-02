@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
 using System.Numerics;
@@ -15,6 +16,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
         public PointDistanceDecayField(ITensorField field, Vector2 center, float decay)
         {
+            Contract.Requires(field != null);
+
             _field = field;
             _center = center;
             _decay = decay;

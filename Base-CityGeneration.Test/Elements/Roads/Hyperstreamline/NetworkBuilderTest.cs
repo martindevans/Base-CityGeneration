@@ -31,6 +31,15 @@ Major:
             - !PointDistanceDecayTensors { Tensors: !Grid { Angle: 45, Length: 1 }, Decay: 2.5, Center: { X: 1, Y: 0 } }
             - !PointDistanceDecayTensors { Tensors: !Grid { Angle: 45, Length: 1 }, Decay: 2.5, Center: { X: 0, Y: 1 } }
             - !PointDistanceDecayTensors { Tensors: !Grid { Angle: 0, Length: 1 }, Decay: 2.5, Center: { X: 1, Y: 1 } }
+
+Minor:
+    MergeSearchAngle: 12.5
+    MergeDistance: 2.5
+    SegmentLength: 2
+    RoadWidth: 1
+    PriorityField: !ConstantScalars { Value: 1 }
+    SeparationField: !ConstantScalars { Value: 15 }
+    TensorField: !Grid { Angle: 0, Length: 1 }
 "));
 
             NetworkBuilder b = new NetworkBuilder();
@@ -63,6 +72,15 @@ Major:
             - !PointDistanceDecayTensors { Tensors: !Grid { Angle: 45, Length: 1 }, Decay: 2.5, Center: { X: 1, Y: 0 } }
             - !PointDistanceDecayTensors { Tensors: !Grid { Angle: 45, Length: 1 }, Decay: 2.5, Center: { X: 0, Y: 1 } }
             - !PointDistanceDecayTensors { Tensors: !Grid { Angle: 0, Length: 1 }, Decay: 2.5, Center: { X: 1, Y: 1 } }
+
+Minor:
+    MergeSearchAngle: 12.5
+    MergeDistance: 2.5
+    SegmentLength: 2
+    RoadWidth: 1
+    PriorityField: !ConstantScalars { Value: 1 }
+    SeparationField: !ConstantScalars { Value: 15 }
+    TensorField: !Grid { Angle: 0, Length: 1 }
 "));
 
             NetworkBuilder b = new NetworkBuilder();
@@ -152,6 +170,15 @@ Major:
     RoadWidth: !NormalValue { Min: 2, Max: 4, Vary: true }
     PriorityField: !ConstantScalars { Value: 1 }
     SeparationField: !ConstantScalars { Value: 50 }
+    TensorField: *base-field
+
+Minor:
+    MergeSearchAngle: 12.5
+    MergeDistance: 2.5
+    SegmentLength: 2
+    RoadWidth: 1
+    PriorityField: !ConstantScalars { Value: 1 }
+    SeparationField: !ConstantScalars { Value: 15 }
     TensorField: *base-field
 "));
 

@@ -16,9 +16,9 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
         private AreaRuleSpec(IValueGenerator min, IValueGenerator max, IValueGenerator terminationChance)
             : base(terminationChance)
         {
-            Contract.Requires<ArgumentNullException>(min != null, "min");
-            Contract.Requires<ArgumentNullException>(max != null, "max");
-            Contract.Requires<ArgumentNullException>(terminationChance != null, "terminationChance");
+            Contract.Requires(min != null, "min");
+            Contract.Requires(max != null, "max");
+            Contract.Requires(terminationChance != null, "terminationChance");
 
             _min = min;
             _max = max;

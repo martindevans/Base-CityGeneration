@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Datastructures;
@@ -63,6 +64,9 @@ namespace Base_CityGeneration.Utilities
         #region construction
         protected BasePolygonRegion(IReadOnlyList<Side> shape, OABR oabr)
         {
+            Contract.Requires(shape != null);
+            Contract.Requires(shape.Count >= 3);
+
             _shape = shape;
 
             _bounds = BoundingRectangle.CreateFromPoints(Points);
@@ -75,6 +79,8 @@ namespace Base_CityGeneration.Utilities
         protected BasePolygonRegion(IReadOnlyList<Side> shape)
             : this(shape, OABR.Fit(shape.Select(a => a.Start)))
         {
+            Contract.Requires(shape != null);
+            Contract.Requires(shape.Count >= 3);
         }
 
         protected abstract TSelf Construct(IReadOnlyList<Side> shape);

@@ -13,6 +13,11 @@ namespace Base_CityGeneration.Datastructures.Extensions
     {
         private static void SplitFace<TVertexTag, TFaceTag>(Parcel parcel, Face<TVertexTag, string[], TFaceTag> face, Mesh<TVertexTag, string[], TFaceTag> mesh, IDictionary<Parcel, HashSet<Parcel>> childrenMap)
         {
+            Contract.Requires(parcel != null);
+            Contract.Requires(face != null);
+            Contract.Requires(mesh != null);
+            Contract.Requires(childrenMap != null);
+
             //We have a face, like:
             //
             //  A - ? - - - ? - B
@@ -80,6 +85,9 @@ namespace Base_CityGeneration.Datastructures.Extensions
 
         private static void TagEdges<TVertexTag, TFaceTag>(Face<TVertexTag, string[], TFaceTag> face, Parcel parcel)
         {
+            Contract.Requires(face != null);
+            Contract.Requires(parcel != null);
+
             foreach (var halfEdge in face.Edges)
             {
                 foreach (var edge in parcel.Edges)
@@ -92,9 +100,14 @@ namespace Base_CityGeneration.Datastructures.Extensions
 
         private static IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> TraceEdges<TVertexTag, THalfEdgeTag, TFaceTag>(Face<TVertexTag, THalfEdgeTag, TFaceTag> face, IList<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> include, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] exclude)
         {
-            List<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> output = new List<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>();
+            Contract.Requires(face != null);
+            Contract.Requires(include != null);
+            Contract.Requires(exclude != null);
+            Contract.Ensures(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
 
-            for (int i = 0; i < include.Count; i++)
+            var output = new List<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>();
+
+            for (var i = 0; i < include.Count; i++)
             {
                 var vertex = include[i];
                 var next = include[(i + 1) % include.Count];
@@ -116,7 +129,9 @@ namespace Base_CityGeneration.Datastructures.Extensions
 
         private static void InsertVertices<TVertexTag, THalfEdge, TFaceTag>(this Mesh<TVertexTag, THalfEdge, TFaceTag> mesh, Face<TVertexTag, THalfEdge, TFaceTag> face, IEnumerable<Vertex<TVertexTag, THalfEdge, TFaceTag>> vertices)
         {
-            Contract.Requires<ArgumentNullException>(vertices != null, "vertices");
+            Contract.Requires(mesh != null);
+            Contract.Requires(face != null);
+            Contract.Requires(vertices != null);
 
             foreach (var v in vertices)
             {
@@ -138,8 +153,11 @@ namespace Base_CityGeneration.Datastructures.Extensions
 
         private static HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> FindHalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>(Face<TVertexTag, THalfEdgeTag, TFaceTag> face, Vector2 point)
         {
+            Contract.Requires(face != null);
+            Contract.Ensures(Contract.Result<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
+
             HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> winner = null;
-            float score = float.MaxValue;
+            var score = float.MaxValue;
             foreach (var halfEdge in face.Edges)
             {
                 var closest = new LineSegment2(halfEdge.EndVertex.Position, halfEdge.Pair.EndVertex.Position).ClosestPoint(point);

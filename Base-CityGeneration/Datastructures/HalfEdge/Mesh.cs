@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 
@@ -33,6 +34,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructHalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
+            Contract.Requires(start != null);
+            Contract.Requires(end != null);
+
             if (start.Equals(end))
                 throw new InvalidOperationException("Attempted to create a degenerate edge");
             if (start.Mesh != this)
@@ -62,6 +66,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> GetHalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
+            Contract.Requires(start != null);
+            Contract.Requires(end != null);
+
             if (start.Equals(end))
                 throw new InvalidOperationException("Attempted to create a degenerate edge");
             if (start.Mesh != this)
@@ -145,9 +152,13 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public Face<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructFace(params Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] vertices)
         {
+            Contract.Requires(vertices != null);
+            Contract.Requires(vertices.Length >= 3);
+            Contract.Ensures(Contract.Result<Face<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
+
             var edges = new List<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>();
             var faces = new HashSet<Face<TVertexTag, THalfEdgeTag, TFaceTag>>();
-            for (int i = 0; i < vertices.Length; i++)
+            for (var i = 0; i < vertices.Length; i++)
             {
                 var v = vertices[i];
                 var n = vertices[(i + 1) % vertices.Length];
@@ -158,6 +169,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                     faces.Add(e.Face);
             }
 
+            Contract.Assume(edges.Count == vertices.Length);
+
             if (faces.Count > 1)
                 throw new InvalidOperationException("Some edges are already connected to a different face");
 
@@ -165,11 +178,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 return faces.Single();
 
             //Create new face
-            Face<TVertexTag, THalfEdgeTag, TFaceTag> f = new Face<TVertexTag, THalfEdgeTag, TFaceTag> { Edge = edges.First() };
+            var f = new Face<TVertexTag, THalfEdgeTag, TFaceTag> { Edge = edges.First() };
             _faces.Add(f);
 
             //Connect edges to new face
-            for (int i = 0; i < edges.Count; i++)
+            for (var i = 0; i < edges.Count; i++)
             {
                 var e = edges[i];
                 e.Face = f;
@@ -180,6 +193,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         internal void Delete(Face<TVertexTag, THalfEdgeTag, TFaceTag> f)
         {
+            Contract.Requires(f != null);
+
             if (!_faces.Contains(f))
                 throw new InvalidOperationException("Face is not part of this mesh, cannot delete it");
 
@@ -197,6 +212,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         internal IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> EdgesFromVertex(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> v)
         {
+            Contract.Requires(v != null);
+
             return _halfEdges[v];
         }
 

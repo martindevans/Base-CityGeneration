@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Design;
 using EpimetheusPlugins.Procedural;
@@ -78,6 +79,8 @@ namespace Base_CityGeneration.Utilities
 
         public bool TryGetValue(float key, out Dictionary<string, string> value)
         {
+            Contract.Ensures(Contract.Result<bool>() == ContainsKey(key));
+
             foreach (var item in _data)
             {
                 // ReSharper disable once CompareOfFloatsByEqualityOperator

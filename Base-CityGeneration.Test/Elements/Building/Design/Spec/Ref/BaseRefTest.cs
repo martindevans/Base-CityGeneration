@@ -1,38 +1,47 @@
-﻿using Base_CityGeneration.Elements.Building.Design;
+﻿using System.Collections.Generic;
+using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Design.Spec;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
+using EpimetheusPlugins.Scripts;
 
 namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
 {
     [TestClass]
     public class BaseRefTest
     {
+        private static FloorSelection CreateFloor(string name, float height, int number)
+        {
+            return new FloorSelection(name, new KeyValuePair<string, string>[0], new FootprintMarker(new BaseFootprintAlgorithm[0]), new ScriptReference(typeof(TestScript)), height, number);
+        }
+
         private readonly FloorSelection[] _floors = {
-            new FloorSelection("roof", null, null, null, 0, 12),
+            CreateFloor("roof", 0, 12),
 
-            new FloorSelection("penthouse", null, null, null, 0, 13),
+            CreateFloor("penthouse", 0, 13),
 
-            new FloorSelection("skylobby", null, null, null, 0, 12),
-            new FloorSelection("residential", null, null, null, 0, 11),
-            new FloorSelection("residential", null, null, null, 0, 10),
-            new FloorSelection("residential", null, null, null, 0, 9),
+            CreateFloor("skylobby", 0, 12),
+            CreateFloor("residential", 0, 11),
+            CreateFloor("residential", 0, 10),
+            CreateFloor("residential", 0, 9),
 
-            new FloorSelection("skylobby", null, null, null, 0, 8),
-            new FloorSelection("residential", null, null, null, 0, 7),
-            new FloorSelection("residential", null, null, null, 0, 6),
-            new FloorSelection("residential", null, null, null, 0, 5),
+            CreateFloor("skylobby", 0, 8),
+            CreateFloor("residential", 0, 7),
+            CreateFloor("residential", 0, 6),
+            CreateFloor("residential", 0, 5),
 
-            new FloorSelection("skylobby", null, null, null, 0, 4),
-            new FloorSelection("residential", null, null, null, 0, 3),
-            new FloorSelection("residential", null, null, null, 0, 2),
-            new FloorSelection("residential", null, null, null, 0, 1),
+            CreateFloor("skylobby", 0, 4),
+            CreateFloor("residential", 0, 3),
+            CreateFloor("residential", 0, 2),
+            CreateFloor("residential", 0, 1),
 
-            new FloorSelection("ground", null, null, null, 0, 0),
+            CreateFloor("ground", 0, 0),
 
-            new FloorSelection("basement", null, null, null, 0, -1),
-            new FloorSelection("basement", null, null, null,  0, -2),
+            CreateFloor("basement", 0, -1),
+            CreateFloor("basement", 0, -2),
         };
 
         [TestMethod]

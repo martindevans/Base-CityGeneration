@@ -10,6 +10,7 @@ using Myre.Collections;
 using Myre.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
@@ -113,10 +114,12 @@ namespace Base_CityGeneration.Elements.Roads
             var outerPoints = cw ? cwp : ccwp;
             var innerPoints = new Vector2[cw ? cwp.Length : ccwp.Length];
 
-            float widthStart = cw ? r1.SidewalkWidth : r2.SidewalkWidth;
-            float widthEnd = cw ? r2.SidewalkWidth : r1.SidewalkWidth;
+            Contract.Assume(innerPoints.Length == outerPoints.Length);
 
-            for (int i = 0; i < outerPoints.Length && outerPoints.Length > 1; i++) {
+            var widthStart = cw ? r1.SidewalkWidth : r2.SidewalkWidth;
+            var widthEnd = cw ? r2.SidewalkWidth : r1.SidewalkWidth;
+
+            for (var i = 0; i < outerPoints.Length && outerPoints.Length > 1; i++) {
                 Vector2 dir;
                 float w;
                 if (i == 0) {

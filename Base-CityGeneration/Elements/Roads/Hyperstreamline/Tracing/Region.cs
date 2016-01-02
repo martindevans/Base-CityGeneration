@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
@@ -7,7 +8,14 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
     public class Region
     {
         private readonly Vector2[] _vertices;
-        public IEnumerable<Vector2> Vertices { get { return _vertices; } }
+        public IEnumerable<Vector2> Vertices
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<Vector2>>() != null);
+                return _vertices;
+            }
+        }
 
         private readonly Vector2 _min;
         public Vector2 Min
@@ -29,6 +37,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public Region(List<Vector2> vertices)
         {
+            Contract.Requires(vertices != null);
+
             _vertices = vertices.ToArray();
 
             _min = new Vector2(float.MaxValue);
@@ -62,6 +72,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public Region Flip()
         {
+            Contract.Ensures(Contract.Result<Region>() == this);
+
             Array.Reverse(_vertices);
             return this;
         }

@@ -20,6 +20,10 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         protected FloorSelection SelectSingle(Func<double> random, IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float height, string id)
         {
+            Contract.Requires(random != null);
+            Contract.Requires(tags != null);
+            Contract.Requires(finder != null);
+
             KeyValuePair<string, string>[] selectedTags;
             ScriptReference script = tags.SelectScript(random, finder, out selectedTags, typeof(IFloor));
             if (script == null)
@@ -46,7 +50,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         public FloorRun(IReadOnlyList<FloorSelection> floors, BaseMarker marker)
         {
-            Contract.Requires<ArgumentNullException>(floors != null, "floors != null");
+            Contract.Requires(floors != null, "floors != null");
 
             Selection = floors;
             Marker = marker;

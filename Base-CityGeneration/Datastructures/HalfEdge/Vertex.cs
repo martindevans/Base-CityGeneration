@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using Placeholder.AI.Pathfinding.Graph;
 
@@ -26,8 +27,16 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         internal Vertex(Mesh<TVertexTag, THalfEdgeTag, TFaceTag> m, Vector2 position)
         {
+            Contract.Requires(m != null);
+
             Mesh = m;
             Position = position;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariant()
+        {
+            Contract.Invariant(Mesh != null);
         }
 
         public override string ToString()
@@ -50,14 +59,15 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public override bool Equals(object obj)
         {
-            if (obj is Vertex<TVertexTag, THalfEdgeTag, TFaceTag>)
-                return Equals(obj as Vertex<TVertexTag, THalfEdgeTag, TFaceTag>);
+            var a = obj as Vertex<TVertexTag, THalfEdgeTag, TFaceTag>;
+            if (a != null)
+                return Equals(a);
             return ReferenceEquals(this, obj);
         }
 
         public bool Equals(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> other)
         {
-            return other.Position == Position;
+            return other != null && other.Position == Position;
         }
     }
 }

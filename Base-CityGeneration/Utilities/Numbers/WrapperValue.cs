@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Utilities.Numbers
@@ -25,6 +26,9 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         public WrapperValue(IValueGenerator basis, Func<float, float> transform, bool vary = true)
         {
+            Contract.Requires(basis != null);
+            Contract.Requires(transform != null);
+
             _basis = basis;
             _transform = transform;
             _vary = vary;

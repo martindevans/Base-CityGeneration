@@ -72,7 +72,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             }
 
             var extent = max - min;
-            var eigens = config.TensorField.Presample(min, max, (int)Math.Max(extent.X, extent.Y));
+            var eigens = config.TensorField.Presample(min, max, (uint)Math.Max(extent.X, extent.Y));
 
             var count = (int)((extent.X * extent.Y) / 2500);
 
@@ -94,7 +94,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             //var eigens = config.TensorField.Presample(new Vector2(region.Min.X, region.Min.Y), new Vector2(region.Max.X, region.Max.Y), (int)Math.Max(extent.X, extent.Y));
 
             var ex = _max - _min;
-            var eigens = config.TensorField.Presample(_min, _max, (int)Math.Max(ex.X, ex.Y));
+            var eigens = config.TensorField.Presample(_min, _max, (uint)Math.Max(ex.X, ex.Y));
 
             var seeds = SeedsAlongEdge(region, config.SeparationField, eigens.MajorEigenVectors, eigens.MinorEigenVectors);
 

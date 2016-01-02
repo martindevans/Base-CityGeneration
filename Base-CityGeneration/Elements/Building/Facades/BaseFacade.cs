@@ -116,8 +116,8 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <returns></returns>
         protected virtual ICsgShape CreateFacade(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
-            Contract.Requires<ArgumentNullException>(geometry != null, "geometry != null");
-            Contract.Requires<ArgumentNullException>(hierarchicalParameters != null, "hierarchicalParameters != null");
+            Contract.Requires(geometry != null, "geometry != null");
+            Contract.Requires(hierarchicalParameters != null, "hierarchicalParameters != null");
 
             return geometry.CreatePrism(hierarchicalParameters.DefaultMaterial(Random), bounds.Footprint, bounds.Height);
         }

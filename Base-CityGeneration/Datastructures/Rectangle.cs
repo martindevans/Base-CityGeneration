@@ -1,6 +1,6 @@
 ﻿
 using System;
-using JetBrains.Annotations;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 
 namespace Base_CityGeneration.Datastructures
@@ -50,7 +50,7 @@ namespace Base_CityGeneration.Datastructures
             Height = height;
         }
 
-        [Pure]
+        [JetBrains.Annotations.Pure]
         public bool Intersects(Rectangle b)
         {
             return Left <= b.Right
@@ -59,7 +59,7 @@ namespace Base_CityGeneration.Datastructures
                 && b.Bottom <= Top;
         }
 
-        [Pure]
+        [JetBrains.Annotations.Pure]
         public bool Contains(Vector2 point)
         {
             return Left < point.X
@@ -68,9 +68,12 @@ namespace Base_CityGeneration.Datastructures
                    && Top >= point.Y;
         }
 
-        [Pure]
+        [JetBrains.Annotations.Pure]
         public Vector2[] ToConvex()
         {
+            Contract.Ensures(Contract.Result<Vector2[]>() != null);
+            Contract.Ensures(Contract.Result<Vector2[]>().Length == 4);
+
             return new Vector2[]
             {
                 new Vector2(Left, Bottom),
@@ -82,6 +85,8 @@ namespace Base_CityGeneration.Datastructures
 
         public static Rectangle FromPoints(Vector2[] points)
         {
+            Contract.Requires(points != null);
+
             var min = new Vector2(float.MaxValue);
             var max = new Vector2(float.MinValue);
             for (int i = 0; i < points.Length; i++)

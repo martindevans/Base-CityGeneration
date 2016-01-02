@@ -1,7 +1,11 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Design.Spec;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
+using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
+using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
@@ -9,22 +13,34 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
     [TestClass]
     public class NumRefTest
     {
+        private static FloorSelection CreateFloor(string name, float height, int number)
+        {
+            return new FloorSelection(
+                name,
+                new KeyValuePair<string, string>[0],
+                new FootprintMarker(new BaseFootprintAlgorithm[0]),
+                new ScriptReference(typeof(TestScript)),
+                height,
+                number
+            );
+        }
+
         readonly FloorSelection[] _floors = {
-            new FloorSelection("top", null, null, null, 0, 12),
-            new FloorSelection("a", null, null, null, 0, 11),
-            new FloorSelection("a", null, null, null, 0, 10),
-            new FloorSelection("a", null, null, null, 0, 9),
-            new FloorSelection("b", null, null, null, 0, 8),
-            new FloorSelection("c", null, null, null, 0, 7),
-            new FloorSelection("d", null, null, null,  0, 6),
-            new FloorSelection("e", null, null, null, 0, 5),
-            new FloorSelection("f", null, null, null, 0, 4),
-            new FloorSelection("g", null, null, null, 0, 3),
-            new FloorSelection("g", null, null, null, 0, 2),
-            new FloorSelection("g", null, null, null, 0, 1),
-            new FloorSelection("ground", null, null, null, 0, 0),
-            new FloorSelection("u", null, null, null, 0, -1),
-            new FloorSelection("u", null, null, null, 0, -2),
+            CreateFloor("top", 0, 12),
+            CreateFloor("a", 0, 11),
+            CreateFloor("a", 0, 10),
+            CreateFloor("a", 0, 9),
+            CreateFloor("b", 0, 8),
+            CreateFloor("c", 0, 7),
+            CreateFloor("d", 0, 6),
+            CreateFloor("e", 0, 5),
+            CreateFloor("f", 0, 4),
+            CreateFloor("g", 0, 3),
+            CreateFloor("g", 0, 2),
+            CreateFloor("g", 0, 1),
+            CreateFloor("ground", 0, 0),
+            CreateFloor("u", 0, -1),
+            CreateFloor("u", 0, -2),
         };
 
         [TestMethod]

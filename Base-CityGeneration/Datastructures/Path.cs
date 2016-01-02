@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using SwizzleMyVectors;
@@ -15,14 +16,18 @@ namespace Base_CityGeneration.Datastructures
 
         public Path(params Segment[] segments)
         {
+            Contract.Requires(segments != null);
+
             _quadrangles = CalculateQuadrangles(segments, CalculateNormals(segments));
         }
 
         private static Vector2[] CalculateNormals(IList<Segment> segments)
         {
-            Vector2[] normals = new Vector2[segments.Count];
+            Contract.Requires(segments != null);
 
-            for (int i = 0; i < segments.Count; i++)
+            var normals = new Vector2[segments.Count];
+
+            for (var i = 0; i < segments.Count; i++)
             {
                 var segment = segments[i];
 
@@ -56,7 +61,7 @@ namespace Base_CityGeneration.Datastructures
         {
             var quads = new Vector2[segments.Count - 1][];
 
-            for (int i = 0; i < normals.Count - 1; i++)
+            for (var i = 0; i < normals.Count - 1; i++)
             {
                 var segment = segments[i];
                 var segmentNext = segments[i + 1];

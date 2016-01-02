@@ -14,7 +14,7 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         public FuncValue(Func<Func<double>, INamedDataCollection, float> generate, float min, float max)
         {
-            Contract.Requires<ArgumentNullException>(generate != null, "generate != null");
+            Contract.Requires(generate != null, "generate != null");
 
             _generate = generate;
 
