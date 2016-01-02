@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using Cassowary;
 
 namespace Base_CityGeneration.Datastructures.Constraints
@@ -21,6 +22,9 @@ namespace Base_CityGeneration.Datastructures.Constraints
 
         internal ClVariable CreateVariable(ClSimplexSolver solver)
         {
+            Contract.Requires(solver != null);
+            Contract.Ensures(Contract.Result<ClVariable>() != null);
+
             var variable = new ClVariable(Guid.NewGuid().ToString());
 
             if (Min.HasValue)

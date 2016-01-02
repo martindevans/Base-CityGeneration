@@ -1,7 +1,7 @@
 ﻿using Myre;
 using Myre.Collections;
 using System;
-
+using System.Diagnostics.Contracts;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Styles
@@ -33,6 +33,9 @@ namespace Base_CityGeneration.Styles
         /// <returns></returns>
         public static float MaximumBuildingHeight(this INamedDataCollection provider, Func<double> random, float? min = null, float? max = null)
         {
+            Contract.Requires(provider != null);
+            Contract.Requires(random != null);
+
             return provider.DetermineHierarchicalValue(random, MathHelper.Lerp, MaximumBuildingHeightName, MinimumMaximumBuildingHeightName, MaximumMaximumBuildingHeightName, min, max);
         }
     }

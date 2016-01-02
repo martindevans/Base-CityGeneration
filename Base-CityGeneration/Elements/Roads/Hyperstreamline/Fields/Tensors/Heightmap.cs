@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors;
 using System.Numerics;
@@ -14,6 +15,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
         public Heightmap(BaseScalarField height)
         {
+            Contract.Requires(height != null);
+
             _gradient = new Gradient(height);
         }
 

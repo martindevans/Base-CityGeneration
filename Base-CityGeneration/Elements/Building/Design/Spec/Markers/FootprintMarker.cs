@@ -11,7 +11,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
         public FootprintMarker(BaseFootprintAlgorithm[] algorithms)
             : base(algorithms)
         {
-            Contract.Requires<ArgumentNullException>(algorithms != null, "algorithms != null");
+            Contract.Requires(algorithms != null, "algorithms != null");
         }
 
         internal class Container

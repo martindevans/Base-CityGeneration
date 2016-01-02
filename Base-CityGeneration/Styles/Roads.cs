@@ -1,7 +1,7 @@
 ﻿using Myre;
 using Myre.Collections;
 using System;
-
+using System.Diagnostics.Contracts;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Styles
@@ -33,6 +33,9 @@ namespace Base_CityGeneration.Styles
         /// <returns></returns>
         public static float RoadLaneWidth(this INamedDataCollection provider, Func<double> random, float? min = null, float? max = null)
         {
+            Contract.Requires(provider != null);
+            Contract.Requires(random != null);
+
             return provider.DetermineHierarchicalValue(random, MathHelper.Lerp, RoadLaneWidthName, MinimumLaneWidthName, MaximumLaneWidthName, min, max);
         }
 
@@ -62,6 +65,9 @@ namespace Base_CityGeneration.Styles
         /// <returns></returns>
         public static float RoadSidewalkWidth(this INamedDataCollection provider, Func<double> random, float? min = null, float? max = null)
         {
+            Contract.Requires(provider != null);
+            Contract.Requires(random != null);
+
             return provider.DetermineHierarchicalValue(random, MathHelper.Lerp, RoadSidewalkWidthName, MinimumSidewalkWidthName, MaximumSidewalkWidthName, min, max);
         }
 
@@ -91,6 +97,9 @@ namespace Base_CityGeneration.Styles
         /// <returns></returns>
         public static float RoadSidewalkHeight(this INamedDataCollection provider, Func<double> random, float? min = null, float? max = null)
         {
+            Contract.Requires(provider != null);
+            Contract.Requires(random != null);
+
             return provider.DetermineHierarchicalValue(random, MathHelper.Lerp, RoadSidewalkHeightName, MinimumSidewalkHeightName, MaximumSidewalkHeightName, min, max);
         }
 
@@ -114,6 +123,9 @@ namespace Base_CityGeneration.Styles
         /// <returns></returns>
         public static string RoadSidewalkMaterial(this INamedDataCollection provider, Func<double> random, string defaultMaterial = null)
         {
+            Contract.Requires(provider != null);
+            Contract.Requires(random != null);
+
             return provider.DefaultMaterial(random, RoadSidewalkMaterialName, defaultMaterial ?? provider.GetValue(DefaultSidewalkMaterialName));
         }
     }

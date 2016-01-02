@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules;
 using Base_CityGeneration.Parcels.Parcelling;
@@ -13,7 +14,6 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision
     {
         private readonly IValueGenerator _nonOptimalOabbChance;
         private readonly IValueGenerator _nonOptimalOabbMaxRatio;
-
         private readonly IValueGenerator _splitPointSelection;
 
         private readonly BaseSubdividerRule[] _rules;
@@ -24,6 +24,8 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision
 
         public ObbParcellerSpec(IValueGenerator nonOptimalOabbChance, IValueGenerator nonOptimalOabbMaxRatio, IValueGenerator splitPointGenerator, BaseSubdividerRule[] rules)
         {
+            Contract.Requires(rules != null);
+
             _nonOptimalOabbChance = nonOptimalOabbChance;
             _nonOptimalOabbMaxRatio = nonOptimalOabbMaxRatio;
             _splitPointSelection = splitPointGenerator;
@@ -33,7 +35,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision
 
         public override IEnumerable<Parcel> GenerateParcels(Parcel root, Func<double> random, INamedDataCollection metadata)
         {
-            ObbParceller p = new ObbParceller();
+            var p = new ObbParceller();
             if (_nonOptimalOabbChance != null)
                 p.NonOptimalOabbChance = _nonOptimalOabbChance.SelectFloatValue(random, metadata);
             if (_nonOptimalOabbMaxRatio != null)

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using System.Globalization;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Utilities.Numbers
@@ -13,6 +12,7 @@ namespace Base_CityGeneration.Utilities.Numbers
         {
             get
             {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
                 return _min;
             }
         }
@@ -22,6 +22,7 @@ namespace Base_CityGeneration.Utilities.Numbers
         {
             get
             {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
                 return _max;
             }
         }
@@ -37,8 +38,8 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         protected BaseValueGenerator(IValueGenerator min, IValueGenerator max)
         {
-            Contract.Requires<ArgumentNullException>(min != null, "min != null");
-            Contract.Requires<ArgumentNullException>(max != null, "max != null");
+            Contract.Requires(min != null, "min != null");
+            Contract.Requires(max != null, "max != null");
 
             _min = min;
             _max = max;
@@ -53,6 +54,9 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         public static IValueGenerator Average(IValueGenerator a, IValueGenerator b)
         {
+            Contract.Requires(a != null);
+            Contract.Requires(b != null);
+
             return new FuncValue(
                 (r, m) => a.SelectFloatValue(r, m) * 0.5f + b.SelectFloatValue(r, m) * 0.5f,
                 Math.Min(a.MinValue, b.MinValue),
@@ -67,6 +71,8 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         public IValueGenerator Unwrap()
         {
+            Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+
             if (Unwrapped == null)
                 Unwrapped = UnwrapImpl();
             return Unwrapped;

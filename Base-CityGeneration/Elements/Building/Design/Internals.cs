@@ -21,13 +21,10 @@ namespace Base_CityGeneration.Elements.Building.Design
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<FloorSelection>>() != null);
                 foreach (var run in _aboveGroundFloorRuns)
-                {
                     foreach (var floor in run)
-                    {
                         yield return floor;
-                    }
-                }
             }
         }
 
@@ -39,13 +36,10 @@ namespace Base_CityGeneration.Elements.Building.Design
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<FloorSelection>>() != null);
                 foreach (var run in _belowGroundFloorRuns)
-                {
                     foreach (var floor in run)
-                    {
                         yield return floor;
-                    }
-                }
             }
         }
 
@@ -53,6 +47,7 @@ namespace Base_CityGeneration.Elements.Building.Design
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<FloorSelection>>() != null);
                 foreach (var floor in AboveGroundFloors)
                     yield return floor;
                 foreach (var floor in BelowGroundFloors)
@@ -61,7 +56,15 @@ namespace Base_CityGeneration.Elements.Building.Design
         }
 
         private readonly FootprintSelection[] _footprints;
-        public IEnumerable<FootprintSelection> Footprints { get { return _footprints; } }
+        public IEnumerable<FootprintSelection> Footprints
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<FootprintSelection>>() != null);
+                Contract.Ensures(Contract.Result<IEnumerable<FootprintSelection>>().Any());
+                return _footprints;
+            }
+        }
 
         /// <summary>
         /// Vertical elements to place within this building
@@ -70,10 +73,10 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         internal Internals(BuildingDesigner designer, FloorSelection[][] aboveGroundFloors, FloorSelection[][] belowGroundFloors, FootprintSelection[] footprints)
         {
-            Contract.Requires<ArgumentNullException>(designer != null, "designer != null");
-            Contract.Requires<ArgumentNullException>(aboveGroundFloors != null, "aboveGroundFloors != null");
-            Contract.Requires<ArgumentNullException>(belowGroundFloors != null, "belowGroundFloors != null");
-            Contract.Requires<ArgumentNullException>(footprints != null, "footprints != null");
+            Contract.Requires(designer != null);
+            Contract.Requires(aboveGroundFloors != null);
+            Contract.Requires(belowGroundFloors != null);
+            Contract.Requires(footprints != null);
 
             _designer = designer;
 
@@ -85,11 +88,17 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         public Design Externals(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, BuildingSideInfo[] sides)
         {
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(sides != null);
+            Contract.Ensures(Contract.Result<Design>() != null);
+
             //Generate footprints up building
-            IReadOnlyDictionary<int, IReadOnlyList<Vector2>> footprints = GenerateFootprints(random, metadata, sides.Select(a => a.EdgeEnd).ToArray(), Footprints, AboveGroundFloors.Count(), BelowGroundFloors.Count());
+            var footprints = GenerateFootprints(random, metadata, sides.Select(a => a.EdgeEnd).ToArray(), Footprints, AboveGroundFloors.Count(), BelowGroundFloors.Count());
 
             //Results of facade selection
-            List<Design.Wall> walls = new List<Design.Wall>();
+            var walls = new List<Design.Wall>();
 
             //Generate facades
             foreach (var run in _aboveGroundFloorRuns)
@@ -122,6 +131,12 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         private static IReadOnlyDictionary<int, IReadOnlyList<Vector2>> GenerateFootprints(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> initial, IEnumerable<FootprintSelection> footprints, int aboveGroundFloorCount, int belowGroundFloorCount)
         {
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(initial != null);
+            Contract.Requires(footprints != null);
+            Contract.Ensures(Contract.Result<IReadOnlyDictionary<int, IReadOnlyList<Vector2>>>() != null);
+
             Dictionary<int, IReadOnlyList<Vector2>> results = new Dictionary<int, IReadOnlyList<Vector2>>();
 
             //Index by floor number

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using Myre;
 using Myre.Collections;
 
@@ -25,6 +26,9 @@ namespace Base_CityGeneration.Styles
 
         public static float InternalWallThickness(this INamedDataCollection provider, Func<double> random, float? min = null, float? max = null)
         {
+            Contract.Requires(provider != null);
+            Contract.Requires(random != null);
+
             return provider.DetermineHierarchicalValue(random, MathHelper.Lerp, InternalWallThicknessName, MinimumInternalWallThicknessName, MaximumInternalWallThicknessName, min, max);
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing;
 using Base_CityGeneration.Utilities.Numbers;
@@ -15,17 +16,26 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline
 
         private NetworkDescriptor(TracingConfiguration.Container major, TracingConfiguration.Container minor)
         {
+            Contract.Requires(major != null);
+            Contract.Requires(minor != null);
+
             _major = major;
             _minor = minor;
         }
 
         public TracingConfiguration Major(Func<double> random, INamedDataCollection metadata)
         {
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+
             return _major.Unwrap(random, metadata);
         }
 
         public TracingConfiguration Minor(Func<double> random, INamedDataCollection metadata)
         {
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+
             return _minor.Unwrap(random, metadata);
         }
 

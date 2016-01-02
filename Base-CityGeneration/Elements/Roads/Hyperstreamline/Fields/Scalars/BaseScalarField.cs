@@ -1,4 +1,5 @@
-﻿using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors;
+﻿using System.Diagnostics.Contracts;
+using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors;
 using System.Numerics;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars
@@ -9,11 +10,16 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars
 
         public IVector2Field Gradient()
         {
+            Contract.Ensures(Contract.Result<IVector2Field>() != null);
+
             return new Gradient(this);
         }
 
         public static BaseScalarField operator *(BaseScalarField field, float value)
         {
+            Contract.Requires(field != null);
+            Contract.Ensures(Contract.Result<BaseScalarField>() != null);
+
             return new Multiply(field, value);
         }
     }

@@ -21,8 +21,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
 
         private Area(IValueGenerator min, IValueGenerator max)
         {
-            Contract.Requires<ArgumentNullException>(min != null, "min");
-            Contract.Requires<ArgumentNullException>(max != null, "max");
+            Contract.Requires(min != null, "min");
+            Contract.Requires(max != null, "max");
 
             _minimum = min.Transform(vary: false);
             _maximum = max.Transform(vary: false);
@@ -50,7 +50,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
 
         private Area Union(Area area)
         {
-            Contract.Requires<ArgumentNullException>(area != null, "area");
+            Contract.Requires(area != null, "area");
 
             return new Area(_minimum.Add(area.Minimum), _maximum.Add(area.Maximum));
         }

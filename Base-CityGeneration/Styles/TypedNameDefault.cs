@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using Myre;
 using Myre.Collections;
 
@@ -42,6 +43,9 @@ namespace Base_CityGeneration.Styles
         /// <returns></returns>
         public static T GetValue<T>(this INamedDataProvider provider, TypedNameDefault<T> name)
         {
+            Contract.Requires(provider != null);
+            Contract.Requires(name != null);
+
             T value;
             if (provider.TryGetValue<T>(name, out value))
                 return value;
@@ -64,6 +68,12 @@ namespace Base_CityGeneration.Styles
         /// <returns></returns>
         public static T DetermineHierarchicalValue<T>(this INamedDataCollection provider, Func<double> random, Func<T, T, float, T> interpolate, TypedName<T> name, TypedNameDefault<T> minName, TypedNameDefault<T> maxName, T? min = null, T? max = null) where T : struct, IComparable<T>, IEquatable<T>
         {
+            Contract.Requires(provider != null);
+            Contract.Requires(random != null);
+            Contract.Requires(interpolate != null);
+            Contract.Requires(minName != null);
+            Contract.Requires(maxName != null);
+
             return DetermineHierarchicalValue<T>(provider, name, oldValue =>
             {
                 //Take an existing value and restrict it into the given range
@@ -103,6 +113,10 @@ namespace Base_CityGeneration.Styles
         /// <returns>The determined value</returns>
         public static T DetermineHierarchicalValue<T>(this INamedDataCollection provider, TypedName<T> name, Func<T, T> update, Func<T> generate) where T : IEquatable<T>
         {
+            Contract.Requires(provider != null);
+            Contract.Requires(update != null);
+            Contract.Requires(generate != null);
+
             T value;
             if (provider.TryGetValue<T>(name, out value))
             {

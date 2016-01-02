@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
@@ -33,6 +34,9 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         /// <param name="midB"></param>
         public Vertex Split(Vertex mid, out Edge aMid, out Edge midB)
         {
+            Contract.Requires(mid != null);
+            Contract.Ensures(ReferenceEquals(Contract.Result<Vertex>(), mid));
+
             if (!_streamline.Add(mid))
                 throw new InvalidOperationException("Invalid Split Operation: Streamline already contains mid vertex");
 
@@ -49,6 +53,10 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public static Edge Create(Streamline stream, Vertex a, Vertex b)
         {
+            Contract.Requires(stream != null);
+            Contract.Requires(a != null);
+            Contract.Requires(b != null);
+
             if (a.Equals(b))
                 throw new InvalidOperationException("Attempted to create an edge between a vertex and itself");
 

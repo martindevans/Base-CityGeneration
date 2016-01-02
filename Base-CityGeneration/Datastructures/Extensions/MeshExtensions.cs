@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Placeholder.AI.Pathfinding.AStar;
@@ -16,12 +17,17 @@ namespace Base_CityGeneration.Datastructures.Extensions
             Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end
         )
         {
+            Contract.Requires(m != null);
+            Contract.Requires(start != null);
+            Contract.Requires(end != null);
+            Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+
             if (start.Mesh != m)
                 throw new ArgumentException("Start vertex is not contained in mesh for pathfind", "start");
             if (end.Mesh != m)
                 throw new ArgumentException("End vertex is not contained in mesh for pathfind", "end");
 
-            Pathfinder p = Pathfinder.Get();
+            var p = Pathfinder.Get();
             try
             {
                 // ReSharper disable once HeapView.SlowDelegateCreation

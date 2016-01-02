@@ -68,7 +68,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens
                 result = new Vector2(-result.Y, result.X);
         }
 
-        public static IEigenField Create(ITensorField baseField, Vector2 min, Vector2 max, int resolution)
+        public static IEigenField Create(ITensorField baseField, Vector2 min, Vector2 max, uint resolution)
         {
             Vector2[,] major = new Vector2[resolution + 1, resolution + 1];
 

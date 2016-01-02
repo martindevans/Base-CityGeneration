@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using EpimetheusPlugins.Procedural;
 using Myre;
 using Myre.Collections;
@@ -28,6 +29,9 @@ namespace Base_CityGeneration.Styles
 
         public static float ExternalWallThickness(this INamedDataCollection provider, Func<double> random, float? min = null, float? max = null)
         {
+            Contract.Requires(provider != null);
+            Contract.Requires(random != null);
+
             return provider.DetermineHierarchicalValue(random, MathHelper.Lerp, ExternalWallThicknessName, MinimumExternalWallThicknessName, MaximumExternalWallThicknessName, min, max);
         }
         #endregion
@@ -40,6 +44,10 @@ namespace Base_CityGeneration.Styles
 
         public static string ExternalWallMaterial(this INamedDataCollection provider, Func<double> random, params string[] possibilities)
         {
+            Contract.Requires(provider != null);
+            Contract.Requires(random != null);
+            Contract.Requires(possibilities != null);
+
             //Select a random value from the possibilities, if no possibilities are supplied use the default material
             var generated = possibilities.Length == 0 ? provider.DefaultMaterial(random) : possibilities[random.RandomInteger(0, possibilities.Length - 1)];
 

@@ -13,6 +13,7 @@ namespace Base_CityGeneration.Utilities.Numbers
         {
             get
             {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
                 return _mean;
             }
         }
@@ -22,6 +23,7 @@ namespace Base_CityGeneration.Utilities.Numbers
         {
             get
             {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
                 return _deviation;
             }
         }
@@ -36,13 +38,20 @@ namespace Base_CityGeneration.Utilities.Numbers
         public NormallyDistributedValue(IValueGenerator min, IValueGenerator mean, IValueGenerator max, IValueGenerator deviation)
             : base(min, max)
         {
-            Contract.Requires<ArgumentNullException>(min != null, "min != null");
-            Contract.Requires<ArgumentNullException>(mean != null, "mean != null");
-            Contract.Requires<ArgumentNullException>(max != null, "max != null");
-            Contract.Requires<ArgumentNullException>(deviation != null, "deviation != null");
+            Contract.Requires(min != null, "min != null");
+            Contract.Requires(mean != null, "mean != null");
+            Contract.Requires(max != null, "max != null");
+            Contract.Requires(deviation != null, "deviation != null");
 
             _mean = mean;
             _deviation = deviation;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariant()
+        {
+            Contract.Invariant(_deviation != null);
+            Contract.Invariant(_mean != null);
         }
 
         protected override float GenerateFloatValue(Func<double> random, INamedDataCollection data)

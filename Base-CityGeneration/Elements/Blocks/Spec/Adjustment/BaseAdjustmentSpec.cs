@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Elements.Blocks.Spec.Lots.Constraints;
 using Base_CityGeneration.Parcels.Parcelling;
@@ -14,6 +15,8 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Adjustment
 
         protected BaseAdjustmentSpec(IEnumerable<BaseLotConstraint> selectors)
         {
+            Contract.Requires(selectors != null);
+
             _selectors = selectors.ToArray();
         }
 
@@ -21,6 +24,11 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Adjustment
 
         protected IEnumerable<Parcel> SelectParcels(IEnumerable<Parcel> parcels, Func<double> random, INamedDataCollection metadata)
         {
+            Contract.Requires(parcels != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Ensures(Contract.Result<IEnumerable<Parcel>>() != null);
+
             if (_selectors.Length == 0)
                 return parcels;
 

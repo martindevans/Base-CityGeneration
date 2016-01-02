@@ -36,6 +36,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 
         public IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> MatchFrom(IList<FloorSelection> floors, BaseRef start, IEnumerable<FloorSelection> selectedByStart)
         {
+            Contract.Requires(floors != null);
+            Contract.Requires(start != null);
+            Contract.Requires(selectedByStart != null);
+            Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<FloorSelection, FloorSelection>>>() != null);
+
             //Select all matching pairs
             var selected = start.FilterByMode(selectedByStart.SelectMany(a => {
 
@@ -68,7 +73,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 
         private IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> FilterByMode(IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> zipped)
         {
-            Contract.Requires<ArgumentNullException>(zipped != null, "zipped");
+            Contract.Requires(zipped != null, "zipped");
 
             switch (Filter)
             {
@@ -105,15 +110,18 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 
         protected static IEnumerable<FloorSelection> Prefilter(IEnumerable<FloorSelection> floors, int? startIndex, SearchDirection direction = SearchDirection.Down)
         {
+            Contract.Requires(floors != null);
+            Contract.Ensures(Contract.Result<IEnumerable<FloorSelection>>() != null);
+
             switch (direction)
             {
                 case SearchDirection.Up:
                     return floors.Where(a => !startIndex.HasValue || a.Index >= startIndex.Value).OrderBy(a => a.Index);
                 case SearchDirection.Down:
                     return floors.Where(a => !startIndex.HasValue || a.Index <= startIndex.Value).OrderByDescending(a => a.Index);
+                default:
+                    throw new ArgumentException("Unknown search direction");
             }
-
-            throw new ArgumentException("Unknown search direction");
         }
 
         internal abstract class BaseContainer

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -14,7 +15,6 @@ using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
-using HandyCollections.Extensions;
 using JetBrains.Annotations;
 using Myre.Collections;
 using SharpYaml.Serialization;
@@ -54,6 +54,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         public FloorPlan Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<BasePolygonRegion<FloorplanRegion, Section>.Side> footprint, float wallThickness)
         {
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(footprint != null);
+
             var plan = new FloorPlan(footprint.Select(a => a.Start).ToArray());
 
             //We will recursively subdivide this root node, assigning more spaces as we go

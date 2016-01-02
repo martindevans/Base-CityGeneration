@@ -38,6 +38,9 @@ Major:
                     - { X: 0.07, Y: 0.25 }
                     - { X: 0.1, Y: 0.45 }
                     - { X: 0.3, Y: 1 }
+
+Minor:
+    TensorField: !Grid { Angle: 0, Length: 1 }
 "));
 
             var c = d.Major(() => 1, new NamedBoxCollection());
@@ -79,6 +82,9 @@ Major:
                     - { X: 0.07, Y: 0.25 }
                     - { X: 0.1, Y: 0.45 }
                     - { X: 0.3, Y: 1 }
+
+Minor:
+    TensorField: !Grid { Angle: 0, Length: 1 }
 "));
             var c = d.Major(() => 1, new NamedBoxCollection());
 

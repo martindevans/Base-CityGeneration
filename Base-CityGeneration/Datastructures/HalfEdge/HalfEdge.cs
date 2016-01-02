@@ -1,4 +1,5 @@
-﻿using Placeholder.AI.Pathfinding.Graph;
+﻿using System.Diagnostics.Contracts;
+using Placeholder.AI.Pathfinding.Graph;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
@@ -41,6 +42,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         #region constructor
         public HalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end, bool isPrimary)
         {
+            Contract.Requires(end != null);
+
             _end = end;
             IsPrimaryEdge = isPrimary;
         }
@@ -53,6 +56,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <param name="end">The end.</param>
         private void GetVertices(out Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, out Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
+            Contract.Ensures(Contract.ValueAtReturn(out start) != null);
+            Contract.Ensures(Contract.ValueAtReturn(out end) != null);
+
             start = Pair.EndVertex;
             end = EndVertex;
         }
@@ -92,6 +98,10 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public bool Equals(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> e)
         {
+            Contract.Requires(e != null);
+            Contract.Requires(EndVertex != null);
+            Contract.Requires(e.EndVertex != null);
+
             Vertex<TVertexTag, THalfEdgeTag, TFaceTag> a;
             Vertex<TVertexTag, THalfEdgeTag, TFaceTag> b;
             GetVertices(out a, out b);
