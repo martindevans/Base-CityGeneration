@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Datastructures;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
@@ -17,12 +18,33 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
     {
         #region field and properties
         private readonly List<BaseSpaceSpec> _requiredAssignedSpaces = new List<BaseSpaceSpec>();
-        public IReadOnlyList<BaseSpaceSpec> RequiredAssignedSpaces { get { return _requiredAssignedSpaces; } }
+        public IReadOnlyList<BaseSpaceSpec> RequiredAssignedSpaces
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<BaseSpaceSpec>>() != null);
+                return _requiredAssignedSpaces;
+            }
+        }
 
         private readonly List<BaseSpaceSpec> _optionalAssignedSpaces = new List<BaseSpaceSpec>();
-        public IReadOnlyList<BaseSpaceSpec> OptionalAssignedSpaces { get { return _optionalAssignedSpaces; } }
+        public IReadOnlyList<BaseSpaceSpec> OptionalAssignedSpaces
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<BaseSpaceSpec>>() != null);
+                return _optionalAssignedSpaces;
+            }
+        }
 
-        public IEnumerable<BaseSpaceSpec> AssignedSpaces { get { return _requiredAssignedSpaces.Concat(_optionalAssignedSpaces); } }
+        public IEnumerable<BaseSpaceSpec> AssignedSpaces
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<BaseSpaceSpec>>() != null);
+                return _requiredAssignedSpaces.Concat(_optionalAssignedSpaces);
+            }
+        }
 
         public float AssignedSpaceArea { get; private set; }
         public float UnassignedArea { get { return Area - AssignedSpaceArea; } }
@@ -63,6 +85,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         #region space layout
         public void Add(BaseSpaceSpec spec, bool required, Func<double> random, INamedDataCollection metadata)
         {
+            Contract.Requires(spec != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+
             //Save this space
             (required ? _requiredAssignedSpaces : _optionalAssignedSpaces).Add(spec);
 
@@ -77,6 +103,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         public IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>> LayoutSpaces(Func<double> random, INamedDataCollection metadata)
         {
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>>>() != null);
+
             //Create a node to represent each space
             var nodes = AssignedSpaces.Select(a => new RoomTreemapNode(a, random, metadata)).ToArray();
 

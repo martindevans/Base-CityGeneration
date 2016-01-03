@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
@@ -33,6 +34,8 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <param name="section"></param>
         public SubsectionFacade(IConfigurableFacade parent, Vector2 min, Vector2 max, float depthMin, float depthMax, Walls.Section section)
         {
+            Contract.Requires(parent != null);
+
             _parent = parent;
 
             _delta = (min + max) / 2;

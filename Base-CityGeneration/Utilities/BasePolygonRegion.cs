@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -22,12 +23,17 @@ namespace Base_CityGeneration.Utilities
     {
         #region fields and properties
         private readonly IReadOnlyList<Side> _shape;
+
         /// <summary>
         /// The shape of this region
         /// </summary>
         public IReadOnlyList<Side> Shape
         {
-            get { return _shape; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IReadOnlyList<Side>>() != null);
+                return _shape;
+            }
         }
 
         /// <summary>
@@ -35,7 +41,11 @@ namespace Base_CityGeneration.Utilities
         /// </summary>
         public IEnumerable<Vector2> Points
         {
-            get { return Shape.Select(a => a.Start); }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<Vector2>>() != null);
+                return Shape.Select(a => a.Start);
+            }
         }
 
         private readonly BoundingRectangle _bounds;
@@ -269,6 +279,8 @@ namespace Base_CityGeneration.Utilities
         /// <returns></returns>
         public IEnumerable<TSelf> RecursiveReduceError(float toleranceMultiplier)
         {
+            Contract.Ensures(Contract.Result<IEnumerable<TSelf>>() != null);
+
             var result = new List<TSelf>();
 
             if (ReduceError(toleranceMultiplier, result))
@@ -292,6 +304,8 @@ namespace Base_CityGeneration.Utilities
         /// <returns></returns>
         public IEnumerable<TSelf> ReduceError(float tolerance)
         {
+            Contract.Ensures(Contract.Result<IEnumerable<TSelf>>() != null);
+
             var result = new List<TSelf>();
             ReduceError(tolerance, result);
             return result;
@@ -299,10 +313,14 @@ namespace Base_CityGeneration.Utilities
 
         private bool ReduceError(float tolerance, List<TSelf> result)
         {
+            Contract.Requires(result != null);
+            Contract.Ensures(Contract.Result<bool>() != result.Contains(this));
+
             //Base case: error is acceptable
             if (OabrAreaError / Area <= tolerance)
             {
                 result.Add((TSelf)this);
+                Contract.Assume(result.Contains(this));
                 return false;
             }
 
@@ -379,6 +397,7 @@ namespace Base_CityGeneration.Utilities
                 result.AddRange(best);
             }
 
+            Contract.Assume(!result.Contains(this));
             return true;
         }
         #endregion

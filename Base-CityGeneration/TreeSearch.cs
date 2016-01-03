@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using EpimetheusPlugins.Procedural;
 
@@ -19,6 +20,10 @@ namespace Base_CityGeneration
             where T : class
             where I : class
         {
+            Contract.Requires(start != null);
+            Contract.Requires(queryNode != null);
+            Contract.Requires(stopTypes != null);
+
             ISubdivisionContext node = start.Parent;
 
             while (node != null)

@@ -255,6 +255,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                                 newFacade = FailedToFindInternalNeighbourSection(facade.NeighbouringRoom, roomPlan, facade);
                             else
                             {
+                                Contract.Assume(fs != null);
+
                                 // ReSharper disable once AccessToForEachVariableInClosure
                                 var f = fs.SingleOrDefault(a => a.Section.Matches(facade.Section));
                                 if (f == null)
@@ -302,17 +304,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         }
 
         /// <summary>
-        /// External wall generation failed to find a setion which is co-linear with the given facade section. Override this method to handle this problem in a different way (by default do nothing)
+        /// External wall generation failed to find a setion which is co-linear with the given facade section.
+        /// Return null to do nothing
         /// </summary>
         /// <param name="roomPlan"></param>
         /// <param name="facade"></param>
-        protected virtual IConfigurableFacade FailedToFindExternalSection(RoomPlan roomPlan, RoomPlan.Facade facade)
-        {
-            return null;
-        }
+        protected abstract IConfigurableFacade FailedToFindExternalSection(RoomPlan roomPlan, RoomPlan.Facade facade);
 
         protected virtual IConfigurableFacade CreateExternalWall(RoomPlan roomPlan, RoomPlan.Facade facade, IConfigurableFacade externalSection)
         {
+            Contract.Requires(roomPlan != null);
+            Contract.Requires(facade != null);
+            Contract.Requires(externalSection != null);
+
             //Make sure the room subdivides before the facade (and thus has a chance to configure it
             ((ISubdivisionContext)externalSection).AddPrerequisite(roomPlan.Node);
 
@@ -355,16 +359,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         }
 
         /// <summary>
-        /// Internal wall generation failed to find a pregenerated section between two rooms
+        /// Internal wall generation failed to find a pregenerated section between two rooms.
+        /// Return null to do nothing
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <param name="facade"></param>
         /// <returns></returns>
-        protected virtual IConfigurableFacade FailedToFindInternalNeighbourSection(RoomPlan a, RoomPlan b, RoomPlan.Facade facade)
-        {
-            return null;
-        }
+        protected abstract IConfigurableFacade FailedToFindInternalNeighbourSection(RoomPlan a, RoomPlan b, RoomPlan.Facade facade);
 
         /// <summary>
         /// Return a set of possible scripts to use for internal facades. Must implement IConfigurableFacade

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Generic;
@@ -96,6 +97,9 @@ namespace Base_CityGeneration.Elements.City
         /// <returns></returns>
         protected virtual IHalfEdgeBuilder CreateHalfEdgeBuilder(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> edge, int roadLanes)
         {
+            Contract.Requires(edge != null);
+            Contract.Requires(HierarchicalParameters != null);
+
             var road = HierarchicalParameters.RoadLaneWidth(Random);
             var path = HierarchicalParameters.RoadSidewalkWidth(Random);
 
@@ -109,6 +113,8 @@ namespace Base_CityGeneration.Elements.City
         /// <returns></returns>
         protected virtual IFaceBuilder CreateFaceBuilder(Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> face)
         {
+            Contract.Requires(face != null);
+
             return new FaceBlockBuilder(face);
         }
 

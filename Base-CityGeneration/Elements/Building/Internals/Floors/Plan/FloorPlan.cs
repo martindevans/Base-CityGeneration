@@ -22,13 +22,21 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         private readonly IReadOnlyList<Vector2> _externalFootprint;
         public IReadOnlyList<Vector2> ExternalFootprint
         {
-            get { return _externalFootprint; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IReadOnlyList<Vector2>>() != null);
+                return _externalFootprint;
+            }
         }
 
         private readonly List<RoomPlan> _rooms = new List<RoomPlan>();
         public IEnumerable<RoomPlan> Rooms
         {
-            get { return _rooms; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<RoomPlan>>() != null);
+                return _rooms;
+            }
         }
 
         private readonly NeighbourData _neighbourhood;
@@ -36,9 +44,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public FloorPlan(IReadOnlyList<Vector2> footprint)
         {
+            Contract.Requires(footprint != null);
+
             _externalFootprint = footprint;
 
             _neighbourhood = new NeighbourData(this);
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_clipper != null);
         }
 
         public void Freeze()
@@ -52,6 +68,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public IReadOnlyList<Vector2[]> TestRoom(IEnumerable<Vector2> roomFootprint, bool split = false, bool shrink = true)
         {
+            Contract.Requires(roomFootprint != null);
+            Contract.Ensures(Contract.Result<IReadOnlyList<Vector2[]>>() != null);
+
             //Generate shapes for this room footprint, early exit if null
             var solution = ShapesForRoom(roomFootprint, split);
             if (solution == null)

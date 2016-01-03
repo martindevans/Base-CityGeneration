@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
@@ -40,7 +41,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Rooms
         private readonly ISet<IPlannedRoom> _connectTo = new HashSet<IPlannedRoom>();
         protected IEnumerable<IPlannedRoom> ConnectDoorsTo
         {
-            get { return _connectTo; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<IPlannedRoom>>() != null);
+                return _connectTo;
+            }
         }
 
         protected void PlaceConnections(Prism bounds, IEnumerable<IPlannedRoom> targets)

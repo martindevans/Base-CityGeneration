@@ -13,6 +13,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         public RequirementStrength(T requirement, IValueGenerator strength)
             : this()
         {
+            Contract.Requires(strength != null);
             Contract.Requires<ArgumentOutOfRangeException>(strength.MinValue >= -1, "Minimum strength must be >= -1");
             Contract.Requires<ArgumentOutOfRangeException>(strength.MaxValue <= 1, "Maximum strength must be <= 1");
 

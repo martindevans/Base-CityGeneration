@@ -172,8 +172,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                 var right = new Tree<RoomTreemapNode>.Node();
                 root.Add(right);
 
-                Contract.Assume(leftSpaces.Offset >= 0 && leftSpaces.Count > 0);
-                Contract.Assume(rightSpaces.Offset >= 0 && rightSpaces.Count > 0);
+                Contract.Assume(leftSpaces.Count > 0);
+                Contract.Assume(rightSpaces.Count > 0);
                 Contract.Assume(rightSpaces.Offset == leftSpaces.Offset + leftSpaces.Count);
 
                 //If the two sides are uneven, which side should be put the additional space?

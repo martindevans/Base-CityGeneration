@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
 using Base_CityGeneration.Utilities;
@@ -20,6 +21,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<FloorRangeIncludeSpec>>() != null);
                 return _includes;
             }
         }
@@ -39,12 +41,16 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         {
             get
             {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
                 return _defaultHeightSpec;
             }
         }
 
         public FloorRangeSpec(FloorRangeIncludeSpec[] includes, IValueGenerator defaultHeightSpec)
         {
+            Contract.Requires(includes != null);
+            Contract.Requires(defaultHeightSpec != null);
+
             _includes = includes;
             _defaultHeightSpec = defaultHeightSpec;
 
@@ -54,7 +60,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
         {
-            List<FloorSelection[]> selected = new List<FloorSelection[]>();
+            var selected = new List<FloorSelection[]>();
 
             //Includes return an enumerable of enumerables, inner enumerables are items which must be continuous (i.e. all next to each other)
             foreach (var selection in _includes.Select(include => include.Select(this, random, metadata, finder).Select(a => a.Where(b => b.Script != null)).ToArray()))
@@ -98,13 +104,22 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         /// </summary>
         public IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> Tags
         {
-            get { return _tags; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>>>() != null);
+                return _tags;
+            }
         }
 
         private readonly IValueGenerator _count;
+
         public IValueGenerator Count
         {
-            get { return _count; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+                return _count;
+            }
         }
 
         /// <summary>
@@ -125,6 +140,10 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         public FloorRangeIncludeSpec(string id, IValueGenerator count, bool vary, bool continuous, KeyValuePair<float, KeyValuePair<string, string>[]>[] tags, IValueGenerator height)
         {
+            Contract.Requires(count != null);
+            Contract.Requires(tags != null);
+            Contract.Requires(height != null);
+
             Continuous = continuous;
             Height = height;
             Vary = vary;
@@ -146,11 +165,17 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         public IEnumerable<IEnumerable<FloorSelection>> Select(BaseFloorSelector selector, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
         {
+            Contract.Requires(selector != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(finder != null);
+            Contract.Ensures(Contract.Result<IEnumerable<IEnumerable<FloorSelection>>>() != null);
+
             //How many items to emit?
-            int amount = _count.SelectIntValue(random, metadata);
+            var amount = _count.SelectIntValue(random, metadata);
 
             //Result to emit
-            List<List<FloorSelection>> emit = new List<List<FloorSelection>>();
+            var emit = new List<List<FloorSelection>>();
 
             //Create a selection function which either always returns the same value or doesn't, depending upon Vary
             Func<FloorSelection> selectFloor;

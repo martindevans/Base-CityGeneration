@@ -11,6 +11,7 @@ using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using SharpYaml.Serialization;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using Base_CityGeneration.Elements.Building;
@@ -26,23 +27,41 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
         private readonly BaseSubdivideSpec _subdivide;
         public BaseSubdivideSpec Subdivider
         {
-            get { return _subdivide; }
+            get
+            {
+                Contract.Ensures(Contract.Result<BaseSubdivideSpec>() != null);
+                return _subdivide;
+            }
         }
 
         private readonly BaseAdjustmentSpec[] _adjustments;
         public IEnumerable<BaseAdjustmentSpec> Adjustments
         {
-            get { return _adjustments; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<BaseAdjustmentSpec>>() != null);
+                return _adjustments;
+            }
         }
 
         private readonly LotSpec[] _lots;
+
         public IEnumerable<LotSpec> Lots
         {
-            get { return _lots; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<LotSpec>>() != null);
+                return _lots;
+            }
         }
 
         public BlockSpec(IEnumerable<KeyValuePair<string, string>> tags, Guid id, string description, BaseSubdivideSpec subdivide, IEnumerable<BaseAdjustmentSpec> adjustments, IEnumerable<LotSpec> lots)
         {
+            Contract.Requires(tags != null);
+            Contract.Requires(subdivide != null);
+            Contract.Requires(adjustments != null);
+            Contract.Requires(lots != null);
+
             Tags = tags;
             Id = id;
             Description = description;
@@ -54,6 +73,11 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
 
         public IEnumerable<Parcel> CreateParcels(Parcel shape, Func<double> random, INamedDataCollection metadata)
         {
+            Contract.Requires(shape != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Ensures(Contract.Result<IEnumerable<Parcel>>() != null);
+
             //Generate parcels from shape
             var parcels = Subdivider.GenerateParcels(shape, random, metadata);
 
@@ -66,6 +90,11 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
 
         public ScriptReference SelectLot(Parcel parcel, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> scriptFinder)
         {
+            Contract.Requires(parcel != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(scriptFinder != null);
+
             foreach (var lotSpec in _lots)
             {
                 if (lotSpec.Check(parcel, random, metadata))
@@ -138,7 +167,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
             public BlockSpec Unwrap()
             {
                 return new BlockSpec(
-                    Tags,
+                    Tags ?? (IEnumerable<KeyValuePair<string, string>>)new List<KeyValuePair<string, string>>(),
                     Guid.Parse(Id ?? Guid.NewGuid().ToString()),
                     Description,
                     Subdivide.Unwrap(),

@@ -171,6 +171,23 @@ namespace Base_CityGeneration.Datastructures.Constraints
 // ReSharper restore CompareOfFloatsByEqualityOperator
         }
 
+        [ContractInvariantMethod]
+        private void ObjectInvariant()
+        {
+            Contract.Invariant(_leftVar != null);
+            Contract.Invariant(_rightVar != null);
+            Contract.Invariant(_botVar != null);
+            Contract.Invariant(_topVar != null);
+
+            Contract.Invariant(_widthVar != null);
+            Contract.Invariant(_heightVar != null);
+
+            Contract.Invariant(_cxVar != null);
+            Contract.Invariant(_cyVar != null);
+
+            Contract.Invariant(_solver != null);
+        }
+
         public ConstrainedRectangle AspectRatio(float aspectRatio)
         {
             Contract.Ensures(Contract.Result<ConstrainedRectangle>() != null);

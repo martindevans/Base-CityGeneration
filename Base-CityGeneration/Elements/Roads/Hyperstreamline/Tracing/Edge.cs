@@ -7,19 +7,44 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
     public class Edge
     {
         private readonly Vertex _a;
-        public Vertex A { get { return _a; } }
+        public Vertex A
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<Vertex>() != null);
+                return _a;
+            }
+        }
 
         private readonly Vertex _b;
-        public Vertex B { get { return _b; } }
+        public Vertex B
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<Vertex>() != null);
+                return _b;
+            }
+        }
 
         private readonly Vector2 _direction;
         public Vector2 Direction { get { return _direction; } }
 
         private readonly Streamline _streamline;
-        public Streamline Streamline { get { return _streamline; } }
+        public Streamline Streamline
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<Streamline>() != null);
+                return _streamline;
+            }
+        }
 
         private Edge(Streamline stream, Vertex a, Vertex b)
         {
+            Contract.Requires(stream != null);
+            Contract.Requires(a != null);
+            Contract.Requires(b != null);
+
             _a = a;
             _b = b;
             _streamline = stream;
@@ -36,6 +61,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         {
             Contract.Requires(mid != null);
             Contract.Ensures(ReferenceEquals(Contract.Result<Vertex>(), mid));
+            Contract.Ensures(Contract.Result<Vertex>() != null);
 
             if (!_streamline.Add(mid))
                 throw new InvalidOperationException("Invalid Split Operation: Streamline already contains mid vertex");
@@ -56,9 +82,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             Contract.Requires(stream != null);
             Contract.Requires(a != null);
             Contract.Requires(b != null);
-
-            if (a.Equals(b))
-                throw new InvalidOperationException("Attempted to create an edge between a vertex and itself");
+            Contract.Requires(!a.Equals(b), "Cannot create edge from a vertex to itself");
+            Contract.Ensures(Contract.Result<Edge>() != null);
 
             var e = new Edge(stream, a, b);
             a.Add(e);

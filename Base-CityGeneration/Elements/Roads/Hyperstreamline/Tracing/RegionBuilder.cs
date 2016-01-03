@@ -97,13 +97,13 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             return null;
         }
 
-        private static void RemoveDeadEnds(List<Vertex> points)
+        private static void RemoveDeadEnds(IList<Vertex> points)
         {
             //it's possible for a region to follow up a dead end road
             //This will manifest as a point both preceded and followed by the same vertex
             //We want to remove the vertex, and one of the two neighbours and keep doing this until no more are left
 
-            for (int i = 0; i < points.Count; i++)
+            for (var i = 0; i < points.Count; i++)
             {
                 //If we have too few points, clear the collection and give up
                 if (points.Count <= 3)
@@ -124,7 +124,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
                 if (prev.Equals(next))
                 {
-                    points.RemoveAt(i);
+                    points.RemoveAt(iVert);
                     points.RemoveAt(iPrev);
                     i -= 2;
                 }
@@ -141,23 +141,23 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             var v = direction ? edge.B : edge.A;
             var d = edge.Direction * (direction ? 1 : -1);
 
-            if (v.EdgeCount == 0)
-                return null;
-                //throw new ArgumentException("Vertex has no connected edges!");
-
-            if (v.EdgeCount == 1)
+            var edgeCount = v.EdgeCount;
+            Contract.Assume(edgeCount == v.Edges.Count());
+            switch (edgeCount)
             {
-                //Dead end! Reverse down other side of same edge
-                direction = !direction;
-                return edge;
-            }
+                case 0:
+                    return null;
 
-            if (v.EdgeCount == 2)
-            {
-                //Straight path! Continue down next edge in direction
-                var next = v.Edges.Single(e => e != edge);
-                direction = next.A.Equals(v);
-                return next;
+                case 1:
+                    //Dead end! Reverse down other side of same edge
+                    direction = !direction;
+                    return edge;
+
+                case 2:
+                    //Straight path! Continue down next edge in direction
+                    var next = v.Edges.Single(e => e != edge);
+                    direction = next.A.Equals(v);
+                    return next;
 
             }
 

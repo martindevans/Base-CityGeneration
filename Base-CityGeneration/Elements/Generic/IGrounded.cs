@@ -36,7 +36,7 @@ namespace Base_CityGeneration.Elements.Generic
         {
             Contract.Requires(grounded != null);
             Contract.Requires(geometry != null);
-            Contract.Requires(footprint.Count >= 3);
+            Contract.Requires(footprint != null && footprint.Count >= 3);
 
             var offset = GroundOffset(grounded, height) + yOffset;
 

@@ -1,7 +1,9 @@
 ﻿using Base_CityGeneration.Utilities.Numbers;
-using System.Numerics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
+using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors;
 using Myre.Collections;
 
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
@@ -10,36 +12,60 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 {
     public class TracingConfiguration
     {
+        private readonly BaseScalarField _priorityField;
         /// <summary>
         /// Field which specifies the priority of a given point as a seed. Recommended that this contains normalized distance from nearest coastline
         /// </summary>
-        public Fields.Scalars.BaseScalarField PriorityField { get; set; }
+        public BaseScalarField PriorityField
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<BaseScalarField>() != null);
+                return _priorityField;
+            }
+        }
 
+        private readonly BaseScalarField _separationField;
         /// <summary>
         /// Separation between roads
         /// </summary>
-        public Fields.Scalars.BaseScalarField SeparationField { get; set; }
+        public BaseScalarField SeparationField
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<BaseScalarField>() != null);
+                return _separationField;
+            }
+        }
 
+        private readonly ITensorField _tensorField;
         /// <summary>
         /// Eigen vectors to trace streamlines along
         /// </summary>
-        public Fields.Tensors.ITensorField TensorField { get; set; }
+        public ITensorField TensorField
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<ITensorField>() != null);
+                return _tensorField;
+            }
+        }
 
-        internal float CosineSearchConeAngle { get; private set; }
+        private readonly float _consineSearchConeAngle;
+        internal float CosineSearchConeAngle
+        {
+            get { return _consineSearchConeAngle; }
+        }
+
         public float SearchConeAngle
         {
             get
             {
-                return (float) Math.Acos(CosineSearchConeAngle);
-            }
-            set
-            {
-                CosineSearchConeAngle = (float) Math.Cos(value);
+                return (float)Math.Acos(_consineSearchConeAngle);
             }
         }
 
-        internal float SegmentLengthSquared { get; private set; }
-        private float _segmentLength;
+        private readonly float _segmentLength;
         /// <summary>
         /// The approximate length of a segment of road
         /// </summary>
@@ -49,24 +75,51 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             {
                 return _segmentLength;
             }
-            set
+        }
+
+        private readonly float _mergeDistance;
+        public float MergeDistance
+        {
+            get { return _mergeDistance; }
+        }
+
+        private readonly IValueGenerator _roadWidth;
+        public IValueGenerator RoadWidth
+        {
+            get
             {
-                _segmentLength = value;
-                SegmentLengthSquared = value * value;
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+                return _roadWidth;
             }
         }
 
-        public float MergeDistance { get; set; }
-
-        public IValueGenerator RoadWidth { get; set; }
-
-        public TracingConfiguration()
+        public TracingConfiguration(BaseScalarField priorityField, BaseScalarField separationField, ITensorField tensorField, IValueGenerator roadWidth,
+            float searchAngle = 0.3926991f, //22.5 degrees in radians
+            float segmentLength = 10,
+            float mergeDistance = 25
+        )
         {
-            MergeDistance = 25;
-            SearchConeAngle = MathHelper.ToRadians(22.5f);
-            SegmentLength = 10;
+            Contract.Requires(priorityField != null);
+            Contract.Requires(separationField != null);
+            Contract.Requires(tensorField != null);
+            Contract.Requires(roadWidth != null);
 
-            RoadWidth = new UniformlyDistributedValue(1, 3);
+            _priorityField = priorityField;
+            _separationField = separationField;
+            _tensorField = tensorField;
+            _roadWidth = roadWidth;
+            _consineSearchConeAngle = (float)Math.Cos(searchAngle);
+            _segmentLength = segmentLength;
+            _mergeDistance = mergeDistance;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_priorityField != null);
+            Contract.Invariant(_separationField != null);
+            Contract.Invariant(_tensorField != null);
+            Contract.Invariant(_roadWidth != null);
         }
 
         #region serialization
@@ -80,22 +133,21 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             public object MergeDistance { get; set; }
             public object SegmentLength { get; set; }
             public object RoadWidth { get; set; }
-            public Fields.Scalars.IScalarFieldContainer PriorityField { get; set; }
-            public Fields.Scalars.IScalarFieldContainer SeparationField { get; set; }
+            public IScalarFieldContainer PriorityField { get; set; }
+            public IScalarFieldContainer SeparationField { get; set; }
 
-            public Fields.Tensors.ITensorFieldContainer TensorField { get; set; }
+            public ITensorFieldContainer TensorField { get; set; }
 
             public TracingConfiguration Unwrap(Func<double> random, INamedDataCollection metadata)
             {
-                return new TracingConfiguration {
-                    SearchConeAngle = MathHelper.ToRadians(BaseValueGeneratorContainer.FromObject(MergeSearchAngle).SelectFloatValue(random, metadata)),
-                    MergeDistance = BaseValueGeneratorContainer.FromObject(MergeDistance).SelectFloatValue(random, metadata),
-                    SegmentLength = BaseValueGeneratorContainer.FromObject(SegmentLength).SelectFloatValue(random, metadata),
-                    RoadWidth = BaseValueGeneratorContainer.FromObject(RoadWidth),
-                    PriorityField = PriorityField.Unwrap(),
-                    SeparationField = SeparationField.Unwrap(),
-                    TensorField = TensorField.Unwrap(random, metadata)
-                };
+                return new TracingConfiguration(
+                    PriorityField.Unwrap(),
+                    SeparationField.Unwrap(),
+                    TensorField.Unwrap(random, metadata),
+                    BaseValueGeneratorContainer.FromObject(RoadWidth),
+                    MathHelper.ToRadians(BaseValueGeneratorContainer.FromObject(MergeSearchAngle).SelectFloatValue(random, metadata)),
+                    BaseValueGeneratorContainer.FromObject(SegmentLength).SelectFloatValue(random, metadata),
+                    BaseValueGeneratorContainer.FromObject(MergeDistance).SelectFloatValue(random, metadata));
             }
         }
         #endregion

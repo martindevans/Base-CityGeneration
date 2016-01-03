@@ -6,7 +6,6 @@ using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using EpimetheusPlugins.Scripts;
-using HandyCollections.Extensions;
 using Myre.Collections;
 using Poly2Tri.Utility;
 
@@ -17,18 +16,32 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
     {
         public override float MinHeight
         {
-            get { return 0; }
+            get
+            {
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                Contract.Ensures(Contract.Result<float>() == 0);
+                return 0;
+            }
         }
 
         public override float MaxHeight
         {
-            get { return 0; }
+            get
+            {
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                Contract.Ensures(Contract.Result<float>() == 0);
+                return 0;
+            }
         }
 
         private readonly BaseFootprintAlgorithm[] _footprintAlgorithms;
         public IEnumerable<BaseFootprintAlgorithm> FootprintAlgorithms
         {
-            get { return _footprintAlgorithms; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<BaseFootprintAlgorithm>>() != null);
+                return _footprintAlgorithms;
+            }
         }
 
         protected BaseMarker(BaseFootprintAlgorithm[] footprintAlgorithms)
@@ -40,6 +53,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 
         public IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> lot)
         {
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(footprint != null);
+            Contract.Requires(lot != null);
+            Contract.Ensures(Contract.Result<IReadOnlyList<Vector2>>() != null);
+
             var wip = footprint;
             foreach (var alg in _footprintAlgorithms)
             {
@@ -57,6 +76,10 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
         /// <returns></returns>
         private static IReadOnlyList<Vector2> Reduce(IReadOnlyList<Vector2> footprint)
         {
+            Contract.Requires(footprint != null);
+            Contract.Ensures(Contract.Result<IReadOnlyList<Vector2>>() != null);
+            Contract.Ensures(Contract.Result<IReadOnlyList<Vector2>>().Count <= footprint.Count);
+
             //Early exit, we can't do anything useful with a line!
             if (footprint.Count <= 3)
                 return footprint;

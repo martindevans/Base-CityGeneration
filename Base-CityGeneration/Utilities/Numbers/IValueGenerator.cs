@@ -42,6 +42,10 @@ namespace Base_CityGeneration.Utilities.Numbers
     {
         public static int SelectIntValue(this IValueGenerator gen, Func<double> random, INamedDataCollection data)
         {
+            Contract.Requires(gen != null);
+            Contract.Requires(random != null);
+            Contract.Requires(data != null);
+
             checked
             {
                 //Rearrange the min and max to be integers (in a narrower or equal range)
@@ -68,6 +72,9 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         public static IValueGenerator Transform(this IValueGenerator gen, Func<float, float> func = null, bool vary = true)
         {
+            Contract.Requires(gen != null);
+            Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+
             //If we're not transforming the value, and we're not making it unvarying this method has no effect!
             if (func == null && vary)
                 return gen;
@@ -77,8 +84,8 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         public static IValueGenerator Add(this IValueGenerator a, IValueGenerator b)
         {
-            Contract.Requires(a != null, "a");
-            Contract.Requires(b != null, "b");
+            Contract.Requires(a != null);
+            Contract.Requires(b != null);
             Contract.Ensures(Contract.Result<IValueGenerator>() != null);
 
             return new FuncValue(

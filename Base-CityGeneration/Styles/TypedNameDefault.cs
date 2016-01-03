@@ -28,6 +28,8 @@ namespace Base_CityGeneration.Styles
 
         public static implicit operator TypedName<T>(TypedNameDefault<T> tnd)
         {
+            Contract.Requires(tnd != null);
+
             return new TypedName<T>(tnd._name);
         }
     }

@@ -12,16 +12,32 @@ namespace Base_CityGeneration.Elements.Building.Design
         public string Id { get { return _id; } }
 
         private readonly KeyValuePair<string, string>[] _tags;
-        public IEnumerable<KeyValuePair<string, string>> Tags { get { return _tags; } }
+
+        public IEnumerable<KeyValuePair<string, string>> Tags
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<string, string>>>() != null);
+                return _tags;
+            }
+        }
 
         private readonly BaseFloorSelector _selector;
-        public BaseFloorSelector Selector { get { return _selector; } }
+        public BaseFloorSelector Selector
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<BaseFloorSelector>() != null);
+                return _selector;
+            }
+        }
 
         private readonly ScriptReference _script;
         public ScriptReference Script
         {
             get
             {
+                Contract.Ensures(Contract.Result<ScriptReference>() != null);
                 return _script;
             }
         }

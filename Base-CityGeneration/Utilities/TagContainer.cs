@@ -79,8 +79,6 @@ namespace Base_CityGeneration.Utilities
 
         public bool TryGetValue(float key, out Dictionary<string, string> value)
         {
-            Contract.Ensures(Contract.Result<bool>() == ContainsKey(key));
-
             foreach (var item in _data)
             {
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
@@ -92,6 +90,7 @@ namespace Base_CityGeneration.Utilities
             }
 
             value = default(Dictionary<string, string>);
+            Contract.Assume(!ContainsKey(key));
             return false;
         }
 

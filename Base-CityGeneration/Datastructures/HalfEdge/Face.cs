@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
@@ -17,6 +18,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+
                 var e = Edge;
                 do
                 {
@@ -30,6 +33,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+
                 return (from e in Edges
                         select e.EndVertex);
             }
