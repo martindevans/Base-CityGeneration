@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Myre.Collections;
@@ -13,12 +14,16 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
         public Addition(params ITensorField[] fields)
         {
+            Contract.Requires(fields != null);
+
             foreach (var tensorField in fields)
                 Add(tensorField);
         }
 
         public void Add(ITensorField field)
         {
+            Contract.Requires(field != null);
+
             _fields.Add(field);
         }
 

@@ -117,8 +117,6 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
                 public bool TryGetValue(float key, out ITensorFieldContainer value)
                 {
-                    Contract.Ensures(Contract.Result<bool>() == ContainsKey(key));
-
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
                     var i = _data.FindIndex(a => a.Key == key);
                     if (i == -1)
@@ -128,6 +126,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
                     }
 
                     value = _data[i].Value;
+                    Contract.Assume(!ContainsKey(key));
                     return true;
                 }
 

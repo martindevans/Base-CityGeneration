@@ -14,7 +14,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
             Number = number;
         }
 
-        protected override IEnumerable<FloorSelection> MatchImpl(IList<FloorSelection> floors, int? startIndex)
+        protected override IEnumerable<FloorSelection> MatchImpl(IReadOnlyList<FloorSelection> floors, int? startIndex)
         {
             //Find floor with this index
             var matched = floors.SingleOrDefault(a => a.Index == Number);

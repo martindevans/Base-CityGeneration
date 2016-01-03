@@ -29,12 +29,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
             Inclusive = inclusive;
         }
 
-        public IEnumerable<FloorSelection> Match(IList<FloorSelection> floors, int? startIndex)
+        public IEnumerable<FloorSelection> Match(IReadOnlyList<FloorSelection> floors, int? startIndex)
         {
             return MatchImpl(floors, startIndex);
         }
 
-        public IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> MatchFrom(IList<FloorSelection> floors, BaseRef start, IEnumerable<FloorSelection> selectedByStart)
+        public IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> MatchFrom(IReadOnlyList<FloorSelection> floors, BaseRef start, IEnumerable<FloorSelection> selectedByStart)
         {
             Contract.Requires(floors != null);
             Contract.Requires(start != null);
@@ -106,7 +106,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
             }
         }
 
-        protected abstract IEnumerable<FloorSelection> MatchImpl(IList<FloorSelection> floors, int? startIndex);
+        protected abstract IEnumerable<FloorSelection> MatchImpl(IReadOnlyList<FloorSelection> floors, int? startIndex);
 
         protected static IEnumerable<FloorSelection> Prefilter(IEnumerable<FloorSelection> floors, int? startIndex, SearchDirection direction = SearchDirection.Down)
         {

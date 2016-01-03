@@ -27,6 +27,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline
         {
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
+            Contract.Ensures(Contract.Result<TracingConfiguration>() != null);
 
             return _major.Unwrap(random, metadata);
         }
@@ -35,6 +36,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline
         {
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
+            Contract.Ensures(Contract.Result<TracingConfiguration>() != null);
 
             return _minor.Unwrap(random, metadata);
         }

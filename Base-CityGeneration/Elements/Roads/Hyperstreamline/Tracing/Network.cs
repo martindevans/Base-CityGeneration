@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Xml.Linq;
 using System.Numerics;
@@ -9,21 +10,36 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
     public class Network
     {
         private readonly Vertex[] _vertices;
-        public IEnumerable<Vertex> Vertices { get { return _vertices; } }
+        public IEnumerable<Vertex> Vertices
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<Vertex>>() != null);
+                return _vertices;
+            }
+        }
 
         public Network(IEnumerable<Vertex> vertices)
         {
+            Contract.Requires(vertices != null);
+
             _vertices = vertices.ToArray();
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_vertices != null);
         }
 
         public string ToSvg(IEnumerable<Region> regions = null)
         {
-            XElement g = new XElement("g",
+            var g = new XElement("g",
                 new XAttribute("transform", "translate(10, 10)")
             );
 
-            Vector2 min = new Vector2(float.MaxValue);
-            Vector2 max = new Vector2(float.MinValue);
+            var min = new Vector2(float.MaxValue);
+            var max = new Vector2(float.MinValue);
             foreach (var vertex in _vertices)
             {
                 foreach (var edge in vertex.Edges)

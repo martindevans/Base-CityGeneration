@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Threading;
 using System.Numerics;
 
@@ -10,7 +11,15 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         public Vector2 Position { get { return PositionField; } }
 
         private readonly List<Edge> _edges = new List<Edge>();
-        public IEnumerable<Edge> Edges { get { return _edges; } }
+
+        public IEnumerable<Edge> Edges
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<Edge>>() != null);
+                return _edges;
+            }
+        }
 
         public int EdgeCount { get { return _edges.Count; } }
 

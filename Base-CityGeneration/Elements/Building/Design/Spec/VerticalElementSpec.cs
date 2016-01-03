@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
@@ -15,26 +16,60 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>>>() != null);
                 return _tags;
             }
         }
 
-        public BaseRef BottomFloor { get; private set; }
-        public BaseRef TopFloor { get; private set; }
+        private readonly BaseRef _bottomFloor;
+        public BaseRef BottomFloor
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<BaseRef>() != null);
+                return _bottomFloor;
+            }
+        }
+
+        private readonly BaseRef _topFloor;
+        public BaseRef TopFloor
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<BaseRef>() != null);
+                return _topFloor;
+            }
+        }
 
         public VerticalElementSpec(KeyValuePair<float, KeyValuePair<string, string>[]>[] tags, BaseRef bottomFloor, BaseRef topFloor)
         {
+            Contract.Requires(tags != null);
+            Contract.Requires(bottomFloor != null);
+            Contract.Requires(topFloor != null);
+
             _tags = tags;
-            TopFloor = topFloor;
-            BottomFloor = bottomFloor;
+            _topFloor = topFloor;
+            _bottomFloor = bottomFloor;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_bottomFloor != null);
+            Contract.Invariant(_topFloor != null);
         }
 
         public IEnumerable<VerticalSelection> Select(Func<double> random, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorSelection[] floors)
         {
+            Contract.Requires(random != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(floors != null);
+            Contract.Ensures(Contract.Result<IEnumerable<VerticalSelection>>() != null);
+
             var bot = BottomFloor.Match(floors, null);
             var zipped = TopFloor.MatchFrom(floors, BottomFloor, bot);
 
-            List<VerticalSelection> output = new List<VerticalSelection>();
+            var output = new List<VerticalSelection>();
             foreach (var vertical in zipped)
             {
                 KeyValuePair<string, string>[] chosenTags;

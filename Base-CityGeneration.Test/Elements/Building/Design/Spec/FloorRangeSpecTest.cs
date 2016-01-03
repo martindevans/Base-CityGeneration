@@ -17,7 +17,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
         {
             var range = new FloorRangeSpec(new[] {
                 new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, KeyValuePair<string, string>[]>(1, new [] { new KeyValuePair<string, string>("tag", "tag")
-                }) }, null)
+                }) }, new ConstantValue(1))
             }, new NormallyDistributedValue(1, 2, 3, 1).Transform(vary: false));
 
             var selected = range.Select(() => 0.5, new NamedBoxCollection(), (a, b) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
@@ -32,7 +32,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
         public void AssertThat_RangeWithSingleInclude_OutputsNothing_WhenIncludeIsNull()
         {
             var range = new FloorRangeSpec(new[] {
-                new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, KeyValuePair<string, string>[]>(1, null) }, null)
+                new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, KeyValuePair<string, string>[]>(1, null) }, new ConstantValue(1))
             }, new NormallyDistributedValue(1, 2, 3, 1));
 
             var selected = range.Select(() => 0.5, new NamedBoxCollection(), (a, b) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
@@ -49,13 +49,13 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
             var range = new FloorRangeSpec(new[] {
                 new FloorRangeIncludeSpec("id", new NormallyDistributedValue(20, 20, 20, 10), false, true, new[] {
                     new KeyValuePair<float, KeyValuePair<string, string>[]>(1, new [] { new KeyValuePair<string, string>("key", "continuous") })
-                }, null),
+                }, new ConstantValue(1)),
                 new FloorRangeIncludeSpec("id", new NormallyDistributedValue(20, 30, 40, 10), false, false, new[] {
                     new KeyValuePair<float, KeyValuePair<string, string>[]>(1, new [] { new KeyValuePair<string, string>("key", "interrupt") })
-                }, null)
+                }, new ConstantValue(1))
             }, new NormallyDistributedValue(1, 2, 3, 1).Transform(vary: false));
 
-            Random r = new Random();
+            var r = new Random();
             var d = new NamedBoxCollection();
             var selected = range.Select(r.NextDouble, d, (a, b) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a))).ToArray();
 

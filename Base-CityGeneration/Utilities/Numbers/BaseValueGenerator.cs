@@ -56,6 +56,7 @@ namespace Base_CityGeneration.Utilities.Numbers
         {
             Contract.Requires(a != null);
             Contract.Requires(b != null);
+            Contract.Ensures(Contract.Result<IValueGenerator>() != null);
 
             return new FuncValue(
                 (r, m) => a.SelectFloatValue(r, m) * 0.5f + b.SelectFloatValue(r, m) * 0.5f,

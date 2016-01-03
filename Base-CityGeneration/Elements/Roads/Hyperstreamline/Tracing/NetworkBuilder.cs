@@ -6,6 +6,7 @@ using HandyCollections.Geometry;
 using HandyCollections.Heap;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Management.Instrumentation;
 using Base_CityGeneration.Utilities.Numbers;
@@ -35,6 +36,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         {
             get
             {
+                Contract.Ensures(Contract.Result<Network>() != null);
                 return new Network(
                     Vertices()
                 );
@@ -65,6 +67,10 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public void Build(TracingConfiguration config, Func<double> random, INamedDataCollection metadata, Vector2 min, Vector2 max)
         {
+            Contract.Requires(config != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+
             if (!_begun)
             {
                 Begin(min, max);
@@ -90,7 +96,12 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public void Build(TracingConfiguration config, Func<double> random, INamedDataCollection metadata, Region region)
         {
-            var extent = region.Max - region.Min;
+            Contract.Requires(config != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(region != null);
+
+            //var extent = region.Max - region.Min;
             //var eigens = config.TensorField.Presample(new Vector2(region.Min.X, region.Min.Y), new Vector2(region.Max.X, region.Max.Y), (int)Math.Max(extent.X, extent.Y));
 
             var ex = _max - _min;
@@ -166,20 +177,22 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         #region streams
         private void LinearReduction(Streamline stream)
         {
+            Contract.Requires(stream != null);
+
             //Helper functions
-            HashSet<Edge> visited = new HashSet<Edge>();
+            var visited = new HashSet<Edge>();
             Func<Edge, bool> predicate = e => e.Streamline == stream;
             Func<Vertex, Edge> next = v => v.Edges.Where(predicate).Where(a => !visited.Contains(a)).SingleOrDefault(e => e.A.Equals(v));
 
             //Setup, we'll advance "end" forwards, reducing edges which are straight, until end is the end of the streamline
-            Vertex start = stream.First;
-            Edge se = next(start);
+            var start = stream.First;
+            var se = next(start);
             if (se == null)
                 return;
-            Vertex end = se.B;
+            var end = se.B;
             var segmentDirection = Vector2.Normalize(end.Position - start.Position);
 
-            while (end != null && end.EdgeCount != 1)
+            while (end.EdgeCount != 1)
             {
                 visited.Add(se);
 
@@ -223,9 +236,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                 else
                 {
                     start = end;
-                    se = next(start);
-                    if (se == null)
-                        return;
+                    se = n;
                     end = se.B;
                     segmentDirection = Vector2.Normalize(end.Position - start.Position);
                 }
@@ -320,8 +331,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public IEnumerable<Region> Regions()
         {
-            var r = new RegionBuilder(Vertices());
-            return r.Regions();
+            Contract.Ensures(Contract.Result<IEnumerable<Region>>() != null);
+            return new RegionBuilder(Vertices()).Regions();
         }
 
         #region edges

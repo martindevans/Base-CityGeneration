@@ -30,6 +30,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>>>() != null);
                 return _tags;
             }
         }
@@ -39,25 +40,34 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         {
             get
             {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
                 return _height;
             }
         }
 
         private readonly string _id;
-        public string Id { get { return _id; } }
+
+        public string Id
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<string>() != null);
+                return _id;
+            }
+        }
 
         public FloorSpec(KeyValuePair<float, KeyValuePair<string, string>[]>[] tags, IValueGenerator height)
             : this(Guid.NewGuid().ToString(), tags, height)
         {
-            Contract.Requires(tags != null, "tags != null");
-            Contract.Requires(height != null, "height != null");
+            Contract.Requires(tags != null);
+            Contract.Requires(height != null);
         }
 
         public FloorSpec(string id, KeyValuePair<float, KeyValuePair<string, string>[]>[] tags, IValueGenerator height)
         {
-            Contract.Requires(id != null, "id != null");
-            Contract.Requires(tags != null, "tags != null");
-            Contract.Requires(height != null, "height != null");
+            Contract.Requires(id != null);
+            Contract.Requires(tags != null);
+            Contract.Requires(height != null);
 
             _id = id;
             _tags = tags;

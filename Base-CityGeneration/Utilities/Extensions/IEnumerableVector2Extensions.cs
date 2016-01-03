@@ -19,6 +19,7 @@ namespace Base_CityGeneration.Utilities.Extensions
         {
             Contract.Requires(items != null);
             Contract.Requires(pointSelector != null);
+            Contract.Ensures(Contract.Result<IOrderedEnumerable<T>>() != null);
 
             return items.OrderBy(a => pointSelector(a).X)
                         .ThenBy(a => pointSelector(a).Y);
@@ -31,10 +32,11 @@ namespace Base_CityGeneration.Utilities.Extensions
         /// <param name="items"></param>
         /// <param name="pointSelector"></param>
         /// <returns></returns>
-        public static IEnumerable<T> ThenByPoint<T>(this IOrderedEnumerable<T> items, Func<T, Vector2> pointSelector)
+        public static IOrderedEnumerable<T> ThenByPoint<T>(this IOrderedEnumerable<T> items, Func<T, Vector2> pointSelector)
         {
             Contract.Requires(items != null);
             Contract.Requires(pointSelector != null);
+            Contract.Ensures(Contract.Result<IOrderedEnumerable<T>>() != null);
 
             return items.ThenBy(a => pointSelector(a).X)
                         .ThenBy(a => pointSelector(a).Y);

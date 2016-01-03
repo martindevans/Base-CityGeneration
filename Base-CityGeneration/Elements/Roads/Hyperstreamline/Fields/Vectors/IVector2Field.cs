@@ -69,6 +69,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors
         public static IVector2Field Inverse(this IVector2Field field)
         {
             Contract.Requires(field != null);
+            Contract.Ensures(Contract.Result<IVector2Field>() != null);
 
             return new Inverse(field);
         }

@@ -33,6 +33,7 @@ namespace Base_CityGeneration.Elements.Building.Design
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<VerticalElementSpec>>() != null);
                 return _verticalSelectors;
             }
         }
@@ -42,6 +43,7 @@ namespace Base_CityGeneration.Elements.Building.Design
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<BaseFloorSelector>>() != null);
                 return _floorSelectors;
             }
         }
@@ -49,7 +51,11 @@ namespace Base_CityGeneration.Elements.Building.Design
         private readonly FacadeSpec[] _facadeSelectors;
         public IEnumerable<FacadeSpec> FacadeSelectors
         {
-            get { return _facadeSelectors; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<FacadeSpec>>() != null);
+                return _facadeSelectors;
+            }
         }
 
         public float MinHeight
@@ -93,6 +99,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             Contract.Requires(random != null, "random!= null");
             Contract.Requires(metadata != null, "metadata!= null");
             Contract.Requires(finder != null, "finder!= null");
+            Contract.Ensures(Contract.Result<Internals>() != null);
 
             var ground = _floorSelectors.OfType<GroundMarker>().Single();
             var aboveGround = _floorSelectors.TakeWhile(a => !(a is GroundMarker)).Append(ground).ToArray();

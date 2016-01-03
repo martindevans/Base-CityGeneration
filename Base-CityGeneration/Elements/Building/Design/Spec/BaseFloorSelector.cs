@@ -10,6 +10,7 @@ using Base_CityGeneration.Elements.Building.Internals.Floors;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec
 {
+    [ContractClass(typeof(BaseFloorSelectorContracts))]
     public abstract class BaseFloorSelector
     {
         public abstract float MinHeight { get; }
@@ -30,6 +31,21 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
                 return null;
 
             return new FloorSelection(id, selectedTags, this, script, height);
+        }
+    }
+
+    [ContractClassFor(typeof(BaseFloorSelector))]
+    internal abstract class BaseFloorSelectorContracts
+        : BaseFloorSelector
+    {
+        public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
+        {
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(finder != null);
+            Contract.Ensures(Contract.Result<IEnumerable<FloorRun>>() != null);
+
+            return default(IEnumerable<FloorRun>);
         }
     }
 

@@ -9,6 +9,7 @@ using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Blocks;
@@ -163,7 +164,7 @@ namespace Base_CityGeneration.Elements.Building
             foreach (var verticalSelection in verticals)
             {
                 //Get all floors this feature overlaps
-                IFloor[] crossedFloors = (
+                var crossedFloors = (
                     from i in Enumerable.Range(verticalSelection.Bottom, verticalSelection.Top - verticalSelection.Bottom + 1)
                     select floors[i]
                     ).ToArray();
@@ -348,6 +349,9 @@ namespace Base_CityGeneration.Elements.Building
         #region helpers
         protected BuildingSideInfo[] GetNeighbourInfo(Prism bounds)
         {
+            Contract.Ensures(Contract.Result<BuildingSideInfo[]>() != null);
+            Contract.Ensures(Contract.Result<BuildingSideInfo[]>().Length == bounds.Footprint.Count);
+
             var sides = new BuildingSideInfo[bounds.Footprint.Count];
 
             for (var i = 0; i < bounds.Footprint.Count; i++)

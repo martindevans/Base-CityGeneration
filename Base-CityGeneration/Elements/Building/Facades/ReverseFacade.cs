@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
@@ -17,6 +18,8 @@ namespace Base_CityGeneration.Elements.Building.Facades
 
         public ReverseFacade(IConfigurableFacade parent, Walls.Section section)
         {
+            Contract.Requires(parent != null);
+
             _parent = parent;
             Section = section;
         }

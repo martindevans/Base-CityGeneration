@@ -21,7 +21,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// </summary>
         public Vertex<TVertexTag, THalfEdgeTag, TFaceTag> EndVertex
         {
-            get { return _end; }
+            get
+            {
+                Contract.Ensures(Contract.Result<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
+                return _end;
+            }
         }
 
         /// <summary>
@@ -49,6 +53,12 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         }
         #endregion
 
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_end != null);
+        }
+
         /// <summary>
         /// Gets the vertices which bound this half edge
         /// </summary>
@@ -56,6 +66,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <param name="end">The end.</param>
         private void GetVertices(out Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, out Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
+            Contract.Requires(Pair != null);
             Contract.Ensures(Contract.ValueAtReturn(out start) != null);
             Contract.Ensures(Contract.ValueAtReturn(out end) != null);
 
@@ -70,6 +81,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <param name="b">The face the pair of this edge bounds</param>
         public void GetFaces(out Face<TVertexTag, THalfEdgeTag, TFaceTag> a, out Face<TVertexTag, THalfEdgeTag, TFaceTag> b)
         {
+            Contract.Requires(Pair != null);
+            Contract.Requires(Face != null);
+            Contract.Ensures(Contract.ValueAtReturn<Face<TVertexTag, THalfEdgeTag, TFaceTag>>(out a) != null);
+            Contract.Ensures(Contract.ValueAtReturn<Face<TVertexTag, THalfEdgeTag, TFaceTag>>(out b) != null);
+
             a = Face;
             b = Pair.Face;
         }
@@ -89,6 +105,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public override bool Equals(object obj)
         {
+            Contract.Assume(Pair != null);
+
             var a = obj as HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>;
             if (a != null)
                 return Equals(a);
@@ -98,9 +116,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public bool Equals(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> e)
         {
-            Contract.Requires(e != null);
-            Contract.Requires(EndVertex != null);
-            Contract.Requires(e.EndVertex != null);
+            Contract.Requires(e == null|| e.Pair != null);
+            Contract.Requires(Pair != null);
+
+            if (e == null)
+                return false;
 
             Vertex<TVertexTag, THalfEdgeTag, TFaceTag> a;
             Vertex<TVertexTag, THalfEdgeTag, TFaceTag> b;
@@ -115,21 +135,24 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public override int GetHashCode()
         {
-            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> a;
-            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> b;
-            GetVertices(out a, out b);
-            return a.GetHashCode() ^ b.GetHashCode();
+            return 31 + (IsPrimaryEdge ? 17 : -29)
+                   * 11 * EndVertex.GetHashCode();
         }
 
         public override string ToString()
         {
+            Contract.Assume(Pair != null);
             return Pair.EndVertex + "=>" + EndVertex;
         }
 
         #region Pathfinding IEdge
         IVertex IEdge.Start
         {
-            get { return Pair.EndVertex; }
+            get
+            {
+                Contract.Assume(Pair != null);
+                return Pair.EndVertex;
+            }
         }
 
         IVertex IEdge.End
@@ -139,7 +162,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         float IEdge.TraversalCost
         {
-            get { return (EndVertex.Position - Pair.EndVertex.Position).Length(); }
+            get
+            {
+                Contract.Assume(Pair != null);
+                return (EndVertex.Position - Pair.EndVertex.Position).Length();
+            }
         }
         #endregion
     }

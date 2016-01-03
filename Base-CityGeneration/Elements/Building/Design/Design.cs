@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 
@@ -24,6 +25,10 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         public Design(IEnumerable<FloorSelection> floors, IEnumerable<VerticalSelection> verticals, IEnumerable<Wall> walls)
         {
+            Contract.Requires(floors != null);
+            Contract.Requires(verticals != null);
+            Contract.Requires(walls != null);
+
             Floors = floors.OrderBy(a => a.Index).ToArray();
             Walls = walls.ToArray();
             Verticals = verticals.ToArray();
@@ -41,6 +46,8 @@ namespace Base_CityGeneration.Elements.Building.Design
 
             public Wall(int footprintIndex, int floorIndex, Vector2 start, Vector2 end, IEnumerable<FacadeSelection> facades)
             {
+                Contract.Requires(facades != null);
+
                 BottomIndex = floorIndex;
                 FootprintIndex = footprintIndex;
 

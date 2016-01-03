@@ -19,23 +19,36 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>> Faces
         {
-            get { return _faces; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                return _faces;
+            }
         }
 
         public IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> HalfEdges
         {
-            get { return _halfEdges.Values.SelectMany(a => a); }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                return _halfEdges.Values.SelectMany(a => a);
+            }
         }
 
         public IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> Vertices
         {
-            get { return _halfEdges.Keys; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                return _halfEdges.Keys;
+            }
         }
 
         public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructHalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
             Contract.Requires(start != null);
             Contract.Requires(end != null);
+            Contract.Ensures(Contract.Result<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
 
             if (start.Equals(end))
                 throw new InvalidOperationException("Attempted to create a degenerate edge");
@@ -50,12 +63,12 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             if (edge == null)
             {
                 edge = new HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>(end, true);
-                HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> pair = new HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>(start, false);
+                var pair = new HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>(start, false);
                 edge.Pair = pair;
                 pair.Pair = edge;
 
-                bool addedA = edgeList.Add(edge);
-                bool addedB = _halfEdges[end].Add(pair);
+                var addedA = edgeList.Add(edge);
+                var addedB = _halfEdges[end].Add(pair);
 
                 if (!addedA || !addedB)
                     throw new InvalidOperationException("Constructing new half edge found duplicate edge");
@@ -136,6 +149,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public Vertex<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructVertex(Vector2 vector2)
         {
+            Contract.Ensures(Contract.Result<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
+
             var existing = Vertices.Select(k => new { k, d = Vector2.DistanceSquared(k.Position, vector2) }).Where(a => a.d < VERTEX_EPSILON).OrderBy(a => a.d).Select(a => a.k).FirstOrDefault();
             if (existing != null)
                 return existing;
@@ -147,6 +162,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public Vertex<TVertexTag, THalfEdgeTag, TFaceTag> GetVertex(Vector2 vector2)
         {
+            Contract.Ensures(Contract.Result<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
+
             return _halfEdges.Keys.Single(k => k.Position == vector2);
         }
 

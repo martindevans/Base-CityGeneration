@@ -32,18 +32,31 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         private readonly IReadOnlyCollection<ISpaceSpecProducer> _rooms;
         public IReadOnlyCollection<ISpaceSpecProducer> Rooms
         {
-            get { return _rooms; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IReadOnlyCollection<ISpaceSpecProducer>>() != null);
+                return _rooms;
+            }
         }
 
         private readonly IValueGenerator _regionErrorTolerance;
         public IValueGenerator RegionErrorTolerance
         {
-            get { return _regionErrorTolerance; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+                return _regionErrorTolerance;
+            }
         }
         #endregion
 
         private FloorDesigner(Dictionary<string, string> tags, Guid id, string description, IReadOnlyCollection<ISpaceSpecProducer> rooms, IValueGenerator regionErrorTolerance)
         {
+            Contract.Requires(tags != null);
+            Contract.Requires(description != null);
+            Contract.Requires(rooms != null);
+            Contract.Requires(regionErrorTolerance != null);
+
             Tags = tags;
             Id = id;
             Description = description;
@@ -57,7 +70,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
             Contract.Requires(finder != null);
-            Contract.Requires(footprint != null);
+            Contract.Requires(footprint != null && footprint.Count >= 3);
+            Contract.Ensures(Contract.Result<FloorPlan>() != null);
 
             var plan = new FloorPlan(footprint.Select(a => a.Start).ToArray());
 
@@ -270,7 +284,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                 return new FloorDesigner(
                     Tags,
                     Guid.Parse(Id ?? Guid.NewGuid().ToString()),
-                    Description,
+                    Description ?? "",
                     Rooms.Select(a => a.Unwrap()).ToArray(),
                     BaseValueGeneratorContainer.FromObject(RegionErrorTolerance ?? 0.05f)
                 );
