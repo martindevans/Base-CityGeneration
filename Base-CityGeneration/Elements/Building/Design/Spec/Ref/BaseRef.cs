@@ -73,7 +73,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 
         private IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> FilterByMode(IEnumerable<KeyValuePair<FloorSelection, FloorSelection>> zipped)
         {
-            Contract.Requires(zipped != null, "zipped");
+            Contract.Requires(zipped != null);
 
             switch (Filter)
             {

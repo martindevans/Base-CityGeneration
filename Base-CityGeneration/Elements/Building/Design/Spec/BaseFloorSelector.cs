@@ -66,7 +66,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         public FloorRun(IReadOnlyList<FloorSelection> floors, BaseMarker marker)
         {
-            Contract.Requires(floors != null, "floors != null");
+            Contract.Requires(floors != null);
 
             Selection = floors;
             Marker = marker;

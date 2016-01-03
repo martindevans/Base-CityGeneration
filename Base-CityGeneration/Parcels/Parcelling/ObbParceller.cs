@@ -92,8 +92,8 @@ namespace Base_CityGeneration.Parcels.Parcelling
 
         private static Parcel ToParcel(Parcel parent, IEnumerable<Vector2> child)
         {
-            Contract.Requires(parent != null, "parent != null");
-            Contract.Requires(child != null, "child != null");
+            Contract.Requires(parent != null);
+            Contract.Requires(child != null);
 
             Vector2[] points = child.ToArray();
             if (points.Area() < 0)
@@ -129,8 +129,8 @@ namespace Base_CityGeneration.Parcels.Parcelling
 
         internal static OABR FitOabb(Parcel parcel, float nonOptimalityChance, float maximumNonOptimality, Func<double> random)
         {
-            Contract.Requires(parcel != null, "parcel");
-            Contract.Requires(random != null, "random");
+            Contract.Requires(parcel != null);
+            Contract.Requires(random != null);
 
             //Generate a set of OABBs, order by size
             var oabbs = OABR.Fittings(parcel.Points()).OrderBy(a =>  a.Area).ToArray();

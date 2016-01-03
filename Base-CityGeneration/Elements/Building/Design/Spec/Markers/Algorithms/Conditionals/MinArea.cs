@@ -16,8 +16,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
         public MinArea(IValueGenerator area, BaseFootprintAlgorithm algorithm)
             : base(algorithm)
         {
-            Contract.Requires(area != null, "area != null");
-            Contract.Requires(algorithm != null, "algorithm != null");
+            Contract.Requires(area != null);
+            Contract.Requires(algorithm != null);
 
             Area = area;
         }

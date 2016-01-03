@@ -28,6 +28,8 @@ namespace Base_CityGeneration.Datastructures.Edges
         /// <returns></returns>
         public IEnumerable<NeighbourResult> Neighbours(LineSegment2 query, float angularTolerance, float distanceTolerance)
         {
+            Contract.Ensures(Contract.Result<IEnumerable<NeighbourResult>>() != null);
+
             var angle = Angle(query);
             var lowKey = ToKey(angle - angularTolerance);
             var highKey = ToKey(angle + angularTolerance + 1);

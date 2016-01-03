@@ -15,7 +15,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
         private AccessRuleSpec(IValueGenerator terminationChance, string resource)
             : base(terminationChance)
         {
-            Contract.Requires(terminationChance != null, "terminationChance");
+            Contract.Requires(terminationChance != null);
 
             _resource = resource;
         }

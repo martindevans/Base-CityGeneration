@@ -16,7 +16,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
 
         public Shrink(IValueGenerator distance)
         {
-            Contract.Requires(distance != null, "distance != null");
+            Contract.Requires(distance != null);
 
             _distance = distance;
         }

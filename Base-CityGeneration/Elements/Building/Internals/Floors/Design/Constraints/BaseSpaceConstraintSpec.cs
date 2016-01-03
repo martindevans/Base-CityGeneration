@@ -31,16 +31,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
     {
         internal override T Union<T>(T other)
         {
-            Contract.Requires(other != null, "other");
+            Contract.Requires(other != null);
 
             return default(T);
         }
 
         public override float AssessSatisfactionProbability(FloorplanRegion region, Func<double> random, INamedDataCollection metadata)
         {
-            Contract.Requires(region != null, "region");
-            Contract.Requires(metadata != null, "metadata");
-            Contract.Requires(random != null, "random");
+            Contract.Requires(region != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(random != null);
 
             return default(float);
         }

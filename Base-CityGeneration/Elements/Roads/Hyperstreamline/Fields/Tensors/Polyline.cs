@@ -15,7 +15,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
         public Polyline(Vector2[] points, float decay)
         {
-            Contract.Requires(points != null, "points != null");
+            Contract.Requires(points != null);
 
             _points = points;
             _decay = decay;
