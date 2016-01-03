@@ -13,7 +13,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
 
         protected BaseConditional(BaseFootprintAlgorithm action)
         {
-            Contract.Requires(action != null, "action != null");
+            Contract.Requires(action != null);
 
             _action = action;
         }

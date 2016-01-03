@@ -96,9 +96,9 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// <returns></returns>
         public Internals Internals(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
         {
-            Contract.Requires(random != null, "random!= null");
-            Contract.Requires(metadata != null, "metadata!= null");
-            Contract.Requires(finder != null, "finder!= null");
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(finder != null);
             Contract.Ensures(Contract.Result<Internals>() != null);
 
             var ground = _floorSelectors.OfType<GroundMarker>().Single();
@@ -247,10 +247,10 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         private IEnumerable<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, List<FloorSelection> floors, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd, ICollection<FacadeSelection> results)
         {
-            Contract.Requires(random != null, "random != null");
-            Contract.Requires(finder != null, "finder != null");
-            Contract.Requires(neighbours != null, "neighbours != null");
-            Contract.Requires(results != null, "results != null");
+            Contract.Requires(random != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(neighbours != null);
+            Contract.Requires(results != null);
 
             //working from the first selector to the last, try to find a facade for each floor
             foreach (var spec in FacadeSelectors)
@@ -329,8 +329,8 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// <returns></returns>
         private IEnumerable<List<FloorSelection>> ConstrainRun(IEnumerable<FloorSelection> run, IEnumerable<BaseFacadeConstraint> constraints, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd)
         {
-            Contract.Requires(run != null, "run");
-            Contract.Requires(constraints != null, "constraints");
+            Contract.Requires(run != null);
+            Contract.Requires(constraints != null);
 
             // Check whether each floor individually passes this constraint
             var passed = (

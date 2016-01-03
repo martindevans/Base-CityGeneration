@@ -13,7 +13,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public RegionBuilder(IEnumerable<Vertex> vertices)
         {
-            Contract.Requires(vertices != null, "vertices");
+            Contract.Requires(vertices != null);
 
             _unprocessed = new HashSet<Edge>(vertices.SelectMany(v => v.Edges));
         }

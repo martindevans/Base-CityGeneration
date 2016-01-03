@@ -25,7 +25,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         {
             get
             {
-                Contract.Requires(key != null, "key != null");
+                Contract.Requires(key != null);
                 Contract.Ensures(Contract.Result<IEnumerable<FloorPlan.Neighbour>>() != null);
 
                 List<FloorPlan.Neighbour> value;

@@ -38,10 +38,10 @@ namespace Base_CityGeneration.Utilities.Numbers
         public NormallyDistributedValue(IValueGenerator min, IValueGenerator mean, IValueGenerator max, IValueGenerator deviation)
             : base(min, max)
         {
-            Contract.Requires(min != null, "min != null");
-            Contract.Requires(mean != null, "mean != null");
-            Contract.Requires(max != null, "max != null");
-            Contract.Requires(deviation != null, "deviation != null");
+            Contract.Requires(min != null);
+            Contract.Requires(mean != null);
+            Contract.Requires(max != null);
+            Contract.Requires(deviation != null);
 
             _mean = mean;
             _deviation = deviation;

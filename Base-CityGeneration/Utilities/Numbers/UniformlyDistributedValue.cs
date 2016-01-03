@@ -17,8 +17,8 @@ namespace Base_CityGeneration.Utilities.Numbers
         public UniformlyDistributedValue(IValueGenerator min, IValueGenerator max)
             : base(min, max)
         {
-            Contract.Requires(min != null, "min != null");
-            Contract.Requires(max != null, "max != null");
+            Contract.Requires(min != null);
+            Contract.Requires(max != null);
         }
 
         protected override float GenerateFloatValue(Func<double> random, INamedDataCollection data)

@@ -46,15 +46,15 @@ namespace Base_CityGeneration.Parcels.Parcelling
     {
         public float? TerminationChance(Parcel parcel)
         {
-            Contract.Requires(parcel != null, "parcel");
+            Contract.Requires(parcel != null);
 
             return default(float?);
         }
 
         public bool Discard(Parcel parcel, Func<double> random)
         {
-            Contract.Requires(parcel != null, "parcel");
-            Contract.Requires(random != null, "random");
+            Contract.Requires(parcel != null);
+            Contract.Requires(random != null);
 
             return default(bool);
         }
@@ -67,7 +67,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
 
         public Parcel(Edge[] edges)
         {
-            Contract.Requires(edges != null, "edges != null");
+            Contract.Requires(edges != null);
 
             Edges = edges;
 
@@ -87,7 +87,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
         /// <param name="edgeResources"></param>
         public Parcel(IEnumerable<Vector2> footprint, string[] edgeResources)
         {
-            Contract.Requires(footprint != null, "footprint != null");
+            Contract.Requires(footprint != null);
 
             var footprintArr = footprint.ToArray();
 

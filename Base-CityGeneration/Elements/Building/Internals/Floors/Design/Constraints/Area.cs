@@ -14,15 +14,29 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
         : BaseSpaceConstraintSpec
     {
         private readonly IValueGenerator _minimum;
-        public IValueGenerator Minimum { get { return _minimum; } }
+        public IValueGenerator Minimum
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+                return _minimum;
+            }
+        }
 
         private readonly IValueGenerator _maximum;
-        public IValueGenerator Maximum { get { return _maximum; } }
+        public IValueGenerator Maximum
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+                return _maximum;
+            }
+        }
 
         private Area(IValueGenerator min, IValueGenerator max)
         {
-            Contract.Requires(min != null, "min");
-            Contract.Requires(max != null, "max");
+            Contract.Requires(min != null);
+            Contract.Requires(max != null);
 
             _minimum = min.Transform(vary: false);
             _maximum = max.Transform(vary: false);
@@ -50,7 +64,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
 
         private Area Union(Area area)
         {
-            Contract.Requires(area != null, "area");
+            Contract.Requires(area != null);
 
             return new Area(_minimum.Add(area.Minimum), _maximum.Add(area.Maximum));
         }

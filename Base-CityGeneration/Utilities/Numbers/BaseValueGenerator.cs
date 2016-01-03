@@ -38,8 +38,8 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         protected BaseValueGenerator(IValueGenerator min, IValueGenerator max)
         {
-            Contract.Requires(min != null, "min != null");
-            Contract.Requires(max != null, "max != null");
+            Contract.Requires(min != null);
+            Contract.Requires(max != null);
 
             _min = min;
             _max = max;

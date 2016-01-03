@@ -46,7 +46,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 
         protected BaseMarker(BaseFootprintAlgorithm[] footprintAlgorithms)
         {
-            Contract.Requires(footprintAlgorithms != null, "footprintAlgorithms != null");
+            Contract.Requires(footprintAlgorithms != null);
 
             _footprintAlgorithms = footprintAlgorithms;
         }

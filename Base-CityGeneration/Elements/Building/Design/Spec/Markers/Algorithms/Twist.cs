@@ -16,7 +16,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
 
         public Twist(IValueGenerator angle)
         {
-            Contract.Requires(angle != null, "angle != null");
+            Contract.Requires(angle != null);
 
             _angle = angle;
         }

@@ -31,8 +31,8 @@ namespace Base_CityGeneration.Utilities.Numbers
 
         public float SelectFloatValue(Func<double> random, INamedDataCollection data)
         {
-            Contract.Requires(random != null, "random != null");
-            Contract.Requires(data != null, "data != null");
+            Contract.Requires(random != null);
+            Contract.Requires(data != null);
 
             return default(float);
         }

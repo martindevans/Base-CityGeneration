@@ -74,7 +74,7 @@ namespace Base_CityGeneration.Datastructures
         /// <returns></returns>
         internal static IEnumerable<OABR> Fittings(IEnumerable<Vector2> shape)
         {
-            Contract.Requires(shape != null, "shape != null");
+            Contract.Requires(shape != null);
             Contract.Ensures(Contract.Result<IEnumerable<OABR>>() != null);
 
             //Finding the OABB of the hull is the same as finding the OABB of the parcel, but is quicker
@@ -121,7 +121,7 @@ namespace Base_CityGeneration.Datastructures
         /// <returns></returns>
         public static OABR Fit(IEnumerable<Vector2> shape)
         {
-            Contract.Requires(shape != null, "shape != null");
+            Contract.Requires(shape != null);
 
             return Fittings(shape).Aggregate((a, b) => a.Area < b.Area ? a : b);
         }

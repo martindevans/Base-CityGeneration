@@ -94,8 +94,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         #region floors and ceilings
         private void CreateFloors(Prism bounds, ISubdivisionGeometry geometry, Dictionary<RoomPlan, IVerticalFeature> verticalSubsections, string material)
         {
-            Contract.Requires(geometry != null, "geometry != null");
-            Contract.Requires(verticalSubsections != null, "verticalSubsections != null");
+            Contract.Requires(geometry != null);
+            Contract.Requires(verticalSubsections != null);
 
             var floor = geometry.CreatePrism(material, bounds.Footprint, _floorThickness).Translate(new Vector3(0, -bounds.Height / 2 + _floorThickness / 2, 0));
 
@@ -106,8 +106,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
         private void CreateCeilings(Prism bounds, ISubdivisionGeometry geometry, Dictionary<RoomPlan, IVerticalFeature> verticalSubsections, string material)
         {
-            Contract.Requires(geometry != null, "geometry != null");
-            Contract.Requires(verticalSubsections != null, "verticalSubsections != null");
+            Contract.Requires(geometry != null);
+            Contract.Requires(verticalSubsections != null);
 
             var ceiling = geometry.CreatePrism(material, bounds.Footprint, _ceilingThickness).Translate(new Vector3(0, bounds.Height / 2 - _ceilingThickness / 2, 0));
 
@@ -118,9 +118,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
         private ICsgShape CutVerticalHoles(ICsgShape shape, ISubdivisionGeometry geometry, string material, Dictionary<RoomPlan, IVerticalFeature> verticalSubsections)
         {
-            Contract.Requires(shape != null, "shape != null");
-            Contract.Requires(geometry != null, "geometry != null");
-            Contract.Requires(verticalSubsections != null, "verticalSubsections != null");
+            Contract.Requires(shape != null);
+            Contract.Requires(geometry != null);
+            Contract.Requires(verticalSubsections != null);
             Contract.Ensures(Contract.Result<ICsgShape>() != null);
 
             var shapeHeight = (shape.Bounds.Max.Y - shape.Bounds.Min.Y) * 2f;

@@ -29,8 +29,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         internal RoomPlan(FloorPlan plan, Vector2[] footprint, float wallThickness, ScriptReference[] scripts, int id)
         {
-            Contract.Requires(plan != null, "plan != null");
-            Contract.Requires(footprint != null, "footprint != null");
+            Contract.Requires(plan != null);
+            Contract.Requires(footprint != null);
 
             _plan = plan;
             OuterFootprint = footprint;
