@@ -66,7 +66,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             return result;
         }
 
-        public class Container
+        internal class Container
             : BaseContainer
         {
             /// <summary>
@@ -79,11 +79,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             /// </summary>
             public object Distance { get; set; }
 
-            internal override BaseFootprintAlgorithm Unwrap()
+            public override BaseFootprintAlgorithm Unwrap()
             {
                 return new Bevel(
-                    BaseValueGeneratorContainer.FromObject(Angle),
-                    BaseValueGeneratorContainer.FromObject(Distance)
+                    IValueGeneratorContainer.FromObject(Angle),
+                    IValueGeneratorContainer.FromObject(Distance)
                 );
             }
         }

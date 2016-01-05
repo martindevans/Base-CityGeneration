@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Design.Spec;
+using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

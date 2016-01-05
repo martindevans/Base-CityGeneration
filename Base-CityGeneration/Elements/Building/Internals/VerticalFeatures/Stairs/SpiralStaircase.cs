@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using EpimetheusPlugins.Procedural;
@@ -80,15 +81,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.VerticalFeatures.Stair
         /// <param name="hierarchicalParameters"></param>
         protected virtual void SubdivideEmptyCentralSpace(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
+            Contract.Requires(geometry != null);
+            Contract.Requires(hierarchicalParameters != null);
         }
 
         private static void PlaceSection(string material, ISubdivisionGeometry geometry, Vector2 side1Start, Vector2 side1End, Vector2 side2Start, Vector2 side2End, float stepHeight, float heightOffset, int steps)
         {
-            Vector2 stepSide1 = (side1End - side1Start) / steps;
-            Vector2 stepSide2 = (side2End - side2Start) / steps;
+            Contract.Requires(geometry != null);
 
-            Vector2 a = side1Start;
-            Vector2 d = side2Start;
+            var stepSide1 = (side1End - side1Start) / steps;
+            var stepSide2 = (side2End - side2Start) / steps;
+
+            var a = side1Start;
+            var d = side2Start;
 
             // A single step is (top down):
             //
@@ -106,10 +111,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.VerticalFeatures.Stair
             //     | |
             //     o-o
 
-            for (int i = 0; i < steps; i++)
+            for (var i = 0; i < steps; i++)
             {
-                Vector2 b = a + stepSide1;
-                Vector2 c = d + stepSide2;
+                var b = a + stepSide1;
+                var c = d + stepSide2;
 
                 var step = geometry
                     .CreatePrism(material, new Vector2[] { a, b, c, d }, stepHeight)

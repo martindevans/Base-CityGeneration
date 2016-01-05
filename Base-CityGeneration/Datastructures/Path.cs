@@ -11,7 +11,11 @@ namespace Base_CityGeneration.Datastructures
         private readonly Vector2[][] _quadrangles;
         public IEnumerable<Vector2[]> Quadrangles
         {
-            get { return _quadrangles; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<Vector2[]>>() != null);
+                return _quadrangles;
+            }
         }
 
         public Path(params Segment[] segments)
@@ -21,9 +25,16 @@ namespace Base_CityGeneration.Datastructures
             _quadrangles = CalculateQuadrangles(segments, CalculateNormals(segments));
         }
 
-        private static Vector2[] CalculateNormals(IList<Segment> segments)
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_quadrangles != null);
+        }
+
+        private static Vector2[] CalculateNormals(IReadOnlyList<Segment> segments)
         {
             Contract.Requires(segments != null);
+            Contract.Ensures(Contract.Result<Vector2[]>() != null);
 
             var normals = new Vector2[segments.Count];
 
@@ -59,6 +70,11 @@ namespace Base_CityGeneration.Datastructures
 
         private static Vector2[][] CalculateQuadrangles(IList<Segment> segments, IList<Vector2> normals)
         {
+            Contract.Requires(segments != null && segments.Count > 0);
+            Contract.Requires(normals != null && normals.Count == segments.Count);
+            Contract.Ensures(Contract.Result<Vector2[][]>() != null && Contract.Result<Vector2[][]>().Length == segments.Count - 1);
+            Contract.Ensures(Contract.ForAll(Contract.Result<Vector2[][]>(), a => a != null && a.Length == 4));
+
             var quads = new Vector2[segments.Count - 1][];
 
             for (var i = 0; i < normals.Count - 1; i++)

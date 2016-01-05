@@ -1,4 +1,5 @@
-﻿using EpimetheusPlugins.Procedural;
+﻿using System.Collections.Generic;
+using EpimetheusPlugins.Procedural;
 using System.Numerics;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
@@ -32,7 +33,7 @@ namespace Base_CityGeneration.Elements.Generic
             return grounded.GroundHeight - grounded.Bounds.Height / 2f + itemHeight / 2f;
         }
 
-        public static void CreateFlatPlane(this IGrounded grounded, ISubdivisionGeometry geometry, string material, ReadOnlyCollection<Vector2> footprint, float height, float yOffset = 0)
+        public static void CreateFlatPlane(this IGrounded grounded, ISubdivisionGeometry geometry, string material, IReadOnlyList<Vector2> footprint, float height, float yOffset = 0)
         {
             Contract.Requires(grounded != null);
             Contract.Requires(geometry != null);

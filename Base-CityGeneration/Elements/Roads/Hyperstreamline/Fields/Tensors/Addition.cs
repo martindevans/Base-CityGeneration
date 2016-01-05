@@ -20,6 +20,12 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
                 Add(tensorField);
         }
 
+        [ContractInvariantMethod]
+        private void ObjectInvariant()
+        {
+            Contract.Invariant(_fields != null);
+        }
+
         public void Add(ITensorField field)
         {
             Contract.Requires(field != null);

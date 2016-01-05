@@ -36,6 +36,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Adjustment
         }
 
         public abstract class BaseContainer
+            : IUnwrappable<BaseAdjustmentSpec>
         {
             public BaseLotConstraint.BaseContainer[] Selectors { get; set; }
 

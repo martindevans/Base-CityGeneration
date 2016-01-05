@@ -32,14 +32,14 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
             return measuredArea > area;
         }
 
-        public class Container
+        internal class Container
             : BaseConditionalContainer
         {
             public object Area { get; set; }
 
-            internal override BaseFootprintAlgorithm Unwrap()
+            public override BaseFootprintAlgorithm Unwrap()
             {
-                return new MinArea(BaseValueGeneratorContainer.FromObject(Area), Action.Unwrap());
+                return new MinArea(IValueGeneratorContainer.FromObject(Area), Action.Unwrap());
             }
         }
     }

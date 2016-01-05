@@ -1,5 +1,6 @@
 ﻿using SwizzleMyVectors;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using SwizzleMyVectors.Geometry;
@@ -16,7 +17,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
             Type = type;
         }
 
-        public override bool Check(FloorSelection floor, BuildingSideInfo[] sides, Vector2 edgeStart, Vector2 edgeEnd, float bottom, float top)
+        public override bool Check(FloorSelection floor, IReadOnlyList<BuildingSideInfo> sides, Vector2 edgeStart, Vector2 edgeEnd, float bottom, float top)
         {
             //Direction of the edge of the building
             var eDir = Vector2.Normalize(edgeEnd - edgeStart);

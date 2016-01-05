@@ -1,6 +1,7 @@
 ﻿using Base_CityGeneration.Datastructures.HalfEdge;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace Base_CityGeneration.Elements.Roads
@@ -9,6 +10,9 @@ namespace Base_CityGeneration.Elements.Roads
     {
         public static IEnumerable<IHalfEdgeBuilder> OrderedEdges(this Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> vertex)
         {
+            Contract.Requires(vertex != null);
+            Contract.Ensures(Contract.Result<IEnumerable<IHalfEdgeBuilder>>() != null);
+
             //Order the edges by their angle around the vertex
             return (from edge in vertex.Edges
                     let b = edge.BuilderEndingWith(vertex)

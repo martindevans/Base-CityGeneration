@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using JetBrains.Annotations;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
 {
@@ -39,12 +40,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             return clipperSolution.Select(a => new Vector2(a.X / (float)SCALE, a.Y / (float)SCALE)).ToArray();
         }
 
-        public class Container
+        internal class Container
             : BaseContainer
         {
-            public bool Lot { get; set; }
+            public bool Lot { get; [UsedImplicitly]set; }
 
-            internal override BaseFootprintAlgorithm Unwrap()
+            public override BaseFootprintAlgorithm Unwrap()
             {
                 return new Clip(Lot);
             }

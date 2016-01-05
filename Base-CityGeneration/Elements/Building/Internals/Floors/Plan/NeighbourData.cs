@@ -39,9 +39,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public NeighbourData(FloorPlan plan)
         {
+            Contract.Requires(plan != null);
+
             _plan = plan;
 
             Dirty = true;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_plan != null);
         }
 
         public void GenerateNeighbours()
@@ -108,16 +116,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 var overlaps = edge.EdgeList.Where(x => SegmentOverlap(a, b, x)).ToArray();
 
                 //Create segment
-                List<FloorPlan.Neighbour> segmentNeighbours = new List<FloorPlan.Neighbour>();
+                var segmentNeighbours = new List<FloorPlan.Neighbour>();
                 AddNeighbour(segmentNeighbours, edge.Index, room, a, b);
 
                 //Narrow down segment by slicing out parts where an occluding overlap occurs
-                for (int j = 0; j < overlaps.Length; j++)
+                foreach (var o1 in overlaps)
                 {
-                    var o1 = overlaps[j];
                     var o2 = o1.NaturalPair;
+                    Contract.Assert(o2 != null);
 
-                    for (int k = 0; k < segmentNeighbours.Count; k++)
+                    for (var k = 0; k < segmentNeighbours.Count; k++)
                     {
                         var s = segmentNeighbours[k];
 
@@ -166,7 +174,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                         else
                             throw new InvalidOperationException("No overlap");
                     }
-
                 }
 
                 neighbours.AddRange(segmentNeighbours);
@@ -177,6 +184,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private static bool SegmentOverlap(NeighbourInfo a, NeighbourInfo b, NeighbourInfo potentialOverlapPoint)
         {
+            Contract.Requires(a != null);
+            Contract.Requires(b != null);
+            Contract.Requires(potentialOverlapPoint != null);
+            Contract.Requires(potentialOverlapPoint.NaturalPair != null);
+
             var x = potentialOverlapPoint;
             var y = potentialOverlapPoint.NaturalPair;
 
@@ -191,11 +203,20 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private static bool SegmentContains(NeighbourInfo a, NeighbourInfo b, NeighbourInfo point)
         {
+            Contract.Requires(a != null);
+            Contract.Requires(b != null);
+            Contract.Requires(point != null);
+
             return a.Pt <= point.Pt && b.Pt >= point.Pt;
         }
 
         private static void AddNeighbour_N_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, bool nA, NeighbourInfo info)
         {
+            Contract.Requires(neighbours != null);
+            Contract.Requires(room != null);
+            Contract.Requires(n != null);
+            Contract.Requires(info != null);
+
             var lineOut = new Ray2(info.Point, info.OtherPoint - info.Point);
             var otherEdge = GetEdge(n.RoomCD, n.EdgeIndexRoomCD).Segment;
             var otherEdgeLine = new Ray2(otherEdge.Start, otherEdge.End - otherEdge.Start);
@@ -219,6 +240,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private static NeighbourInfo ToNeighbourInfoAD(FloorPlan.Neighbour n)
         {
+            Contract.Requires(n != null);
+            Contract.Ensures(Contract.Result<NeighbourInfo>() != null);
+
             return new NeighbourInfo
             {
                 Distance = Vector2.Distance(n.A, n.D),
@@ -234,6 +258,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private static NeighbourInfo ToNeighbourInfoBC(FloorPlan.Neighbour n)
         {
+            Contract.Requires(n != null);
+            Contract.Ensures(Contract.Result<NeighbourInfo>() != null);
+
             return new NeighbourInfo
             {
                 Distance = Vector2.Distance(n.B, n.C),
@@ -249,6 +276,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private static void AddNeighbour(ICollection<FloorPlan.Neighbour> list, uint edgeIndex, RoomPlan room, NeighbourInfo a, NeighbourInfo b)
         {
+            Contract.Requires(list != null);
+            Contract.Requires(room != null);
+            Contract.Requires(a != null);
+            Contract.Requires(b != null);
+
             //Swap points if order is reversed
             if (a.Pt > b.Pt)
             {
@@ -270,6 +302,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private static void ProjectPointsOntoEdge(RoomPlan otherRoom, Ray2 edgeLine, Edge edge)
         {
+            Contract.Requires(otherRoom != null);
+
             foreach (var otherEdge in Edges(otherRoom))
             {
                 var otherEdgeLine = new Ray2(otherEdge.Segment.Start, otherEdge.Segment.End - otherEdge.Segment.Start);
@@ -277,7 +311,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 if (Vector2.Dot(edgeLine.Direction.Perpendicular(), otherEdgeLine.Direction.Perpendicular()) >= 0)
                     continue;
 
-                int lCount = 0;
+                var lCount = 0;
                 if (edgeLine.IsLeft(otherEdge.Segment.Start, float.Epsilon))
                     lCount++;
                 if (edgeLine.IsLeft(otherEdge.Segment.End, float.Epsilon))
@@ -316,10 +350,21 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 var d = otherEdge.Segment.End;
                 var dt = edgeLine.ClosestPointDistanceAlongLine(d);
 
+                //Check that the edge is the correct direction
                 if (ct < dt)
                     throw new InvalidOperationException("Edge is wound incorrectly");
 
-                if (ct >= 0 && ct <= 1)
+                // If c is before the line then logically d must also be off the line
+                //      B------------A
+                //                       C-------D
+                //
+                // If d is after the line, then logically c must be too
+                //             B------------A
+                // C-------D
+                if (ct < 0 || dt > 1)
+                    continue;
+
+                if (ct <= 1)
                 {
                     if (dt < 0)
                     {
@@ -330,7 +375,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
                         CreateNeighbourInfoPair(otherRoom, edge, ct, 0, otherEdge, 0, at);
                     }
-                    else if (dt >= 0 && dt <= 1)
+                    else //if (dt >= 0 && dt <= 1)// this is always true (has to do with the `ct < dt` check above, thanks to code contracts!)
                     {
                         // Contained:
                         //      B------------A
@@ -340,7 +385,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 }
                 else
                 {
-                    if (dt > 0 && dt < 1)
+                    if (dt > 0)
                     {
                         // Start Overlap
                         //      B------------A
@@ -349,7 +394,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
                         CreateNeighbourInfoPair(otherRoom, edge, dt, 1, otherEdge, 1, bt);
                     }
-                    else if (Math.Sign(ct) != Math.Sign(dt))
+                    else
                     {
                         // Reverse Contained:
                         //      B------------A
@@ -359,10 +404,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
                         CreateNeighbourInfoPair(otherRoom, edge, 0, at, otherEdge, 1, bt);
                     }
-                    else
-                    {
-                        //No overlap
-                    }
                 }
             }
         }
@@ -371,6 +412,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             Edge edge, float point1DistanceAlongEdge, float point1ProjDistanceAlongOtherEdge,
             Edge otherEdge, float point2DistanceAlongEdge, float point2ProjDistanceAlongOtherEdge)
         {
+            Contract.Requires(otherRoom != null);
+            Contract.Requires(edge.EdgeList != null);
+
             var edgeDirection = (edge.Segment.End - edge.Segment.Start);
             var point1OnEdge = edge.Segment.Start + edgeDirection * point1DistanceAlongEdge;
             var point2OnEdge = edge.Segment.Start + edgeDirection * point2DistanceAlongEdge;
@@ -410,11 +454,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private static IEnumerable<Edge> Edges(RoomPlan room)
         {
+            Contract.Requires(room != null);
+            Contract.Ensures(Contract.Result<IEnumerable<Edge>>() != null);
+
             return room.Edges().Select((e, i) => new Edge(e.Start, e.End, (uint)i));
         }
 
         private static Edge GetEdge(RoomPlan room, uint index)
         {
+            Contract.Requires(room != null);
+
             var e = room.GetEdge(index);
             return new Edge(e.Start, e.End, index);
         }

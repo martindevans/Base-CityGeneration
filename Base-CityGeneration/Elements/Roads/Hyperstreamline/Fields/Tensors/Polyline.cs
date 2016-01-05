@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 using System.Numerics;
+using JetBrains.Annotations;
 using Myre.Collections;
 using SwizzleMyVectors.Geometry;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
@@ -25,7 +26,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         {
             result = new Tensor(0, 0);
 
-            for (int i = 0; i < _points.Length - 1; i++)
+            for (var i = 0; i < _points.Length - 1; i++)
             {
                 var start = _points[i];
                 var end = _points[i + 1];
@@ -44,12 +45,13 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         internal class Container
             : ITensorFieldContainer
         {
-            public float Decay { get; set; }
-
-            public Vector2[] Points { get; set; }
+            public float Decay { get; [UsedImplicitly]set; }
+            public Vector2[] Points { get; [UsedImplicitly]set; }
 
             public ITensorField Unwrap(Func<double> random, INamedDataCollection metadata)
             {
+                Contract.Assume(Points != null);
+
                 return new Polyline(Points, Decay);
             }
         }

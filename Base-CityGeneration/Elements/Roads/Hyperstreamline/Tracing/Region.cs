@@ -38,6 +38,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         public Region(List<Vector2> vertices)
         {
             Contract.Requires(vertices != null);
+            Contract.Requires(vertices.Count >= 3);
 
             _vertices = vertices.ToArray();
 
@@ -48,6 +49,13 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                 _min = new Vector2(Math.Min(vertex.X, _min.X), Math.Min(vertex.Y, _min.Y));
                 _max = new Vector2(Math.Max(vertex.X, _max.X), Math.Max(vertex.Y, _max.Y));
             }
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_vertices != null);
+            Contract.Invariant(_vertices.Length >= 3);
         }
 
         #region winding
@@ -144,7 +152,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             }
         }
 
-        static unsafe void AdjustDelta(ref int delta, Vector2* vertex, Vector2* nextVertex, Vector2* p)
+        private static unsafe void AdjustDelta(ref int delta, Vector2* vertex, Vector2* nextVertex, Vector2* p)
         {
             switch (delta)
             {
@@ -157,10 +165,12 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                     if (XIntercept(vertex, nextVertex, p->Y) > p->X)
                         delta = -delta;
                     break;
+                default:
+                    break;
             }
         }
 
-        static unsafe float XIntercept(Vector2* p, Vector2* q, float y)
+        private static unsafe float XIntercept(Vector2* p, Vector2* q, float y)
         {
             if (Math.Abs(p->Y - q->Y) < float.Epsilon)
               throw new ArgumentException("unexpected horizontal segment");
@@ -168,7 +178,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             return q->X - ((q->Y - y) * ((p->X - q->X) / (p->Y - q->Y)));
         }
 
-        static int GetQuadrant(Vector2 vertex, Vector2 p)
+        private static int GetQuadrant(Vector2 vertex, Vector2 p)
         {
             return ((vertex.X > p.X)
                  ? ((vertex.Y > p.Y) ? 0 : 3)

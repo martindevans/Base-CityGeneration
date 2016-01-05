@@ -50,7 +50,7 @@ namespace Base_CityGeneration.TestHelpers
 
                 var scr = room.Scripts.FirstOrDefault();
                 if (scr != null)
-                    elements.Add(ToSvgText((room.InnerFootprint.Aggregate((a, b) => a + b) / room.InnerFootprint.Length) * scalePosition, scr.Name, fontSize: 7));
+                    elements.Add(ToSvgText((room.InnerFootprint.Aggregate((a, b) => a + b) / room.InnerFootprint.Count) * scalePosition, scr.Name, fontSize: 7));
             }
 
             const int w = 1000;

@@ -11,9 +11,24 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         void Sample(ref Vector2 position, out Tensor result);
     }
 
+    [ContractClass(typeof(ITensorFieldContainerContracts))]
     internal interface ITensorFieldContainer
     {
         ITensorField Unwrap(Func<double> random, INamedDataCollection metadata);
+    }
+
+    [ContractClassFor(typeof(ITensorFieldContainer))]
+    internal abstract class ITensorFieldContainerContracts
+        : ITensorFieldContainer
+    {
+        public ITensorField Unwrap(Func<double> random, INamedDataCollection metadata)
+        {
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Ensures(Contract.Result<ITensorField>() != null);
+
+            return default(ITensorField);
+        }
     }
 
     public static class ITensorFieldExtensions

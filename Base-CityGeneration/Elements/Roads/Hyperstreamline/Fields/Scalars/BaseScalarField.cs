@@ -25,8 +25,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars
     }
 
     internal interface IScalarFieldContainer
+        : IUnwrappable<BaseScalarField>
     {
-        BaseScalarField Unwrap();
     }
 
     internal static class BaseScalarFieldExtensions

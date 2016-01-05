@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors;
@@ -18,8 +19,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens
         public IVector2Field MinorEigenVectors { get { return _minor; } }
 
         private readonly Vector2[,] _majorEigenVectors;
-        private readonly int _xLength;
-        private readonly int _yLength;
+        private readonly float _xLength;
+        private readonly float _yLength;
 
         private readonly Vector2 _size;
         private readonly Vector2 _min;
@@ -70,7 +71,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens
 
         public static IEigenField Create(ITensorField baseField, Vector2 min, Vector2 max, uint resolution)
         {
-            Vector2[,] major = new Vector2[resolution + 1, resolution + 1];
+            var major = new Vector2[resolution + 1, resolution + 1];
 
             Parallel.For(0, resolution + 1, i =>
                 Parallel.For(0, resolution + 1, j => {
@@ -97,8 +98,16 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Eigens
 
             public EigenAccessor(bool major, ResampleAndRescale field)
             {
+                Contract.Requires(field != null);
+
                 _major = major;
                 _field = field;
+            }
+
+            [ContractInvariantMethod]
+            private void ObjectInvariants()
+            {
+                Contract.Invariant(_field != null);
             }
 
             public Vector2 Sample(Vector2 position)

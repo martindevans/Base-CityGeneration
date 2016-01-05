@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing;
 using Base_CityGeneration.Utilities.Numbers;
+using JetBrains.Annotations;
 using Myre.Collections;
 using SharpYaml.Serialization;
 
@@ -80,14 +81,16 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline
 
         internal class Container
         {
-            public List<object> Aliases { get; set; }
+            public List<object> Aliases { get; [UsedImplicitly]set; }
 
-            public TracingConfiguration.Container Major { get; set; }
-
-            public TracingConfiguration.Container Minor { get; set; }
+            public TracingConfiguration.Container Major { get; [UsedImplicitly]set; }
+            public TracingConfiguration.Container Minor { get; [UsedImplicitly]set; }
 
             public NetworkDescriptor Unwrap()
             {
+                Contract.Assume(Major != null);
+                Contract.Assume(Minor != null);
+
                 return new NetworkDescriptor(Major, Minor);
             }
         }

@@ -15,6 +15,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using Base_CityGeneration.Elements.Building;
+using JetBrains.Annotations;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec
 {
@@ -95,16 +96,11 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
             Contract.Requires(metadata != null);
             Contract.Requires(scriptFinder != null);
 
-            foreach (var lotSpec in _lots)
-            {
-                if (lotSpec.Check(parcel, random, metadata))
-                {
-                    KeyValuePair<string, string>[] selected;
-                    return lotSpec.Tags.SelectScript(random, scriptFinder, out selected, typeof(IBuildingContainer));
-                }
-            }
-
-            return null;
+            return (from lotSpec in _lots
+                    where lotSpec.Check(parcel, random, metadata)
+                    let result = lotSpec.Tags.SelectScript(random, scriptFinder, typeof(IBuildingContainer))
+                    select result.HasValue ? result.Value.Script : null
+            ).FirstOrDefault();
         }
 
         #region serialization
@@ -145,27 +141,29 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
 
         public static BlockSpec Deserialize(TextReader reader)
         {
-            var s = CreateSerializer();
-
-            return s.Deserialize<Container>(reader).Unwrap();
+            var s = CreateSerializer().Deserialize<Container>(reader);
+            Contract.Assume(s != null);
+            return s.Unwrap();
         }
 
         internal class Container
         {
-            public Dictionary<string, string> Tags { get; set; }
-            public string Id { get; set; }
-            public string Description { get; set; }
+            public Dictionary<string, string> Tags { get; [UsedImplicitly]set; }
+            public string Id { get; [UsedImplicitly]set; }
+            public string Description { get; [UsedImplicitly]set; }
 
-            public List<object> Aliases { get; set; }
+            public List<object> Aliases { get; [UsedImplicitly]set; }
 
-            public BaseSubdivideSpec.BaseContainer Subdivide { get; set; }
+            public BaseSubdivideSpec.BaseContainer Subdivide { get; [UsedImplicitly]set; }
 
-            public BaseAdjustmentSpec.BaseContainer[] Adjustments { get; set; }
+            public BaseAdjustmentSpec.BaseContainer[] Adjustments { get; [UsedImplicitly]set; }
 
-            public LotSpec.BaseContainer[] Lots { get; set; }
+            public LotSpec.BaseContainer[] Lots { get; [UsedImplicitly]set; }
 
             public BlockSpec Unwrap()
             {
+                Contract.Requires(Subdivide != null);
+
                 return new BlockSpec(
                     Tags ?? (IEnumerable<KeyValuePair<string, string>>)new List<KeyValuePair<string, string>>(),
                     Guid.Parse(Id ?? Guid.NewGuid().ToString()),

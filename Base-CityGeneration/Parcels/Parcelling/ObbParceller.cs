@@ -18,16 +18,30 @@ namespace Base_CityGeneration.Parcels.Parcelling
     public class ObbParceller
         :IParceller
     {
-        public float NonOptimalOabbChance { get; set; }
-        public float NonOptimalOabbMaxRatio { get; set; }
-
-        public IValueGenerator SplitPointGenerator { get; set; }
+        private readonly IValueGenerator _nonOptionalObbChance;
+        private readonly IValueGenerator _nonOptionalObbMaxRatio;
+        private readonly IValueGenerator _splitPoint;
 
         private readonly List<ITerminationRule> _terminators = new List<ITerminationRule>();
 
-        public ObbParceller()
+        public ObbParceller(IValueGenerator splitPointGenerator = null, IValueGenerator nonOptimalOabbChance = null, IValueGenerator nonOptimalOabbMaxRatio = null)
         {
-            SplitPointGenerator = new NormallyDistributedValue(-0.35f, 0.0f, 0.35f, 0.2f);
+            Contract.Requires(splitPointGenerator == null || (splitPointGenerator.MinValue >= -1 && splitPointGenerator.MaxValue <= 1));
+            Contract.Requires(nonOptimalOabbChance == null || (nonOptimalOabbChance.MinValue >= 0 && nonOptimalOabbChance.MaxValue <= 1));
+            Contract.Requires(nonOptimalOabbMaxRatio == null || nonOptimalOabbMaxRatio.MinValue >= 1);
+
+            _splitPoint = splitPointGenerator ?? new NormallyDistributedValue(-0.35f, 0.0f, 0.35f, 0.2f);
+            _nonOptionalObbChance = nonOptimalOabbChance ?? new ConstantValue(0);
+            _nonOptionalObbMaxRatio = nonOptimalOabbMaxRatio ?? new ConstantValue(0);
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_nonOptionalObbChance != null);
+            Contract.Invariant(_nonOptionalObbMaxRatio != null);
+            Contract.Invariant(_splitPoint != null);
+            Contract.Invariant(_terminators != null);
         }
 
         public void AddTerminationRule(ITerminationRule rule)
@@ -42,10 +56,14 @@ namespace Base_CityGeneration.Parcels.Parcelling
 
         private IEnumerable<Parcel> RecursiveSplit(Parcel parcel, Func<double> random, INamedDataCollection metadata)
         {
+            Contract.Requires(parcel != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+
             //Accumulate chance of termination, checking for any rule which forbods it (i.e. probability zero)
             float accumulator = 0;
-            bool noChance = false;
-            for (int i = 0; i < _terminators.Count && !noChance; i++)
+            var noChance = false;
+            for (var i = 0; i < _terminators.Count && !noChance; i++)
             {
                 var c = _terminators[i].TerminationChance(parcel);
                 if (c.HasValue)
@@ -59,7 +77,7 @@ namespace Base_CityGeneration.Parcels.Parcelling
             if (accumulator / _terminators.Count >= random())
                 return new[] { parcel };
 
-            OABR oabb = FitOabb(parcel, NonOptimalOabbChance, NonOptimalOabbMaxRatio, random);
+            var oabb = FitOabb(parcel, _nonOptionalObbChance.SelectFloatValue(random, metadata), _nonOptionalObbChance.SelectFloatValue(random, metadata), random);
 
             var splitLine = oabb.SplitDirection();
             var children = Split(parcel, oabb, splitLine, random, metadata).ToArray();
@@ -82,8 +100,12 @@ namespace Base_CityGeneration.Parcels.Parcelling
         #region static helpers
         private IEnumerable<Parcel> Split(Parcel parcel, OABR oabb, Vector2 sliceDirection, Func<double> random, INamedDataCollection metadata)
         {
-            var extent = (oabb.Max - oabb.Min);
-            var point = oabb.Middle + Math.Max(extent.X, extent.Y) * sliceDirection.Perpendicular() * SplitPointGenerator.SelectFloatValue(random, metadata);
+            Contract.Requires(parcel != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+
+            var extent = (oabb.Max - oabb.Min) / 2;
+            var point = oabb.Middle + Math.Max(extent.X, extent.Y) * sliceDirection.Perpendicular() * _splitPoint.SelectFloatValue(random, metadata);
 
             var slices = parcel.Points().SlicePolygon(new Ray2(point, sliceDirection));
 
@@ -149,17 +171,6 @@ namespace Base_CityGeneration.Parcels.Parcelling
             }
 
             return oabbs[selected];
-        }
-
-        private static Vector2 RotateAround(Vector2 point, Vector2 origin, float angle)
-        {
-            var c = (float)Math.Cos(angle);
-            var s = (float)Math.Sin(angle);
-
-            return new Vector2(
-                c * (point.X - origin.X) - s * (point.Y - origin.Y) + origin.X,
-                s * (point.X - origin.X) + c * (point.Y - origin.Y) + origin.Y
-            );
         }
         #endregion
     }

@@ -105,7 +105,7 @@ Minor:
                     var end = vertices[primaryEdge.EndVertex.Position];
                     var edge = start.Edges.FirstOrDefault(a => Equals(a.B, end));
 
-                    primaryEdge.Tag = new HalfEdgeRoadBuilder(primaryEdge, road, path, edge == null ? 1 : edge.Streamline.Width);
+                    primaryEdge.Tag = new HalfEdgeRoadBuilder(primaryEdge, road, path, edge == null ? 1u : edge.Streamline.Width);
                 }
             }
         }

@@ -19,13 +19,14 @@ namespace Base_CityGeneration.Elements.City
     /// 
     /// First Generates a mesh of edges (roads), vertices (junctions) and faces (city blocks).
     /// </summary>
+    [ContractClass(typeof(BaseCityContracts))]
     public abstract class BaseCity
         :ProceduralScript
     {
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
             //Generate a topological map of city roads
-            Mesh<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> m = GenerateBlockMesh();
+            var m = GenerateBlockMesh();
 
             //Materialize the topological map into a topographical one
             MaterializeMesh(m);
@@ -76,7 +77,7 @@ namespace Base_CityGeneration.Elements.City
         /// </summary>
         /// <param name="road"></param>
         /// <returns></returns>
-        protected abstract int RoadLanes(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> road);
+        protected abstract uint RoadLanes(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> road);
         #endregion
 
         /// <summary>
@@ -86,6 +87,9 @@ namespace Base_CityGeneration.Elements.City
         /// <returns></returns>
         protected virtual IVertexBuilder CreateVertexBuilder(Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> vertex)
         {
+            Contract.Requires(vertex != null);
+            Contract.Ensures(Contract.Result<IVertexBuilder>() != null);
+
             return new VertexJunctionBuilder(vertex);
         }
 
@@ -95,10 +99,11 @@ namespace Base_CityGeneration.Elements.City
         /// <param name="edge"></param>
         /// <param name="roadLanes"></param>
         /// <returns></returns>
-        protected virtual IHalfEdgeBuilder CreateHalfEdgeBuilder(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> edge, int roadLanes)
+        protected virtual IHalfEdgeBuilder CreateHalfEdgeBuilder(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> edge, uint roadLanes)
         {
             Contract.Requires(edge != null);
             Contract.Requires(HierarchicalParameters != null);
+            Contract.Ensures(Contract.Result<IHalfEdgeBuilder>() != null);
 
             var road = HierarchicalParameters.RoadLaneWidth(Random);
             var path = HierarchicalParameters.RoadSidewalkWidth(Random);
@@ -114,12 +119,15 @@ namespace Base_CityGeneration.Elements.City
         protected virtual IFaceBuilder CreateFaceBuilder(Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> face)
         {
             Contract.Requires(face != null);
+            Contract.Ensures(Contract.Result<IFaceBuilder>() != null);
 
             return new FaceBlockBuilder(face);
         }
 
         private void MaterializeMesh(Mesh<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> mesh)
         {
+            Contract.Requires(mesh != null);
+
             //Generate default footpath data
             HierarchicalParameters.RoadSidewalkHeight(Random);
             HierarchicalParameters.RoadSidewalkWidth(Random);
@@ -150,8 +158,11 @@ namespace Base_CityGeneration.Elements.City
                 CreateBlock(Bounds.Height, face);
         }
 
-        private IGrounded Create<TTopology>(float height, TTopology topology, ReadOnlyCollection<Vector2> shape, Func<TTopology, Prism, IEnumerable<ScriptReference>> choose)
+        private IGrounded Create<TTopology>(float height, TTopology topology, IReadOnlyCollection<Vector2> shape, Func<TTopology, Prism, IEnumerable<ScriptReference>> choose)
         {
+            Contract.Requires(topology != null);
+            Contract.Requires(choose != null);
+
             if (shape == null || shape.Count < 3)
                 return null;
 
@@ -172,6 +183,8 @@ namespace Base_CityGeneration.Elements.City
 
         private IGrounded CreateJunction(float height, Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
+            Contract.Requires(topology != null);
+
             var result = Create<Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>>(height, topology, topology.Builder.Shape, ChooseJunctionScript);
 
             var junction = result as IJunction;
@@ -183,6 +196,8 @@ namespace Base_CityGeneration.Elements.City
 
         private IGrounded CreateRoad(float height, HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
+            Contract.Requires(topology != null && topology.Tag != null);
+
             var result = Create<HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>>(height, topology, topology.Tag.Shape, ChooseRoadScript);
 
             var road = result as IRoad;
@@ -194,6 +209,8 @@ namespace Base_CityGeneration.Elements.City
 
         private IGrounded CreateBlock(float height, Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology)
         {
+            Contract.Requires(topology != null && topology.Tag != null);
+
             var result = Create<Face<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>>(height, topology, topology.Tag.Shape, ChooseBlockScript);
 
             //var block = result as IBlock;
@@ -201,6 +218,30 @@ namespace Base_CityGeneration.Elements.City
             //    block.Face = topology;
 
             return result;
+        }
+    }
+
+    [ContractClassFor(typeof(BaseCity))]
+    internal abstract class BaseCityContracts
+        : BaseCity
+    {
+        public override bool Accept(Prism bounds, INamedDataProvider parameters)
+        {
+            return default(bool);
+        }
+
+        protected override Mesh<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> GenerateBlockMesh()
+        {
+            Contract.Ensures(Contract.Result<Mesh<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>>() != null);
+
+            return default(Mesh<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>);
+        }
+
+        protected override uint RoadLanes(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> road)
+        {
+            Contract.Requires(road != null);
+
+            return default(uint);
         }
     }
 }

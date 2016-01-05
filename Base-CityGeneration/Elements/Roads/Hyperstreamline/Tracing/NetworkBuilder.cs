@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Management.Instrumentation;
-using Base_CityGeneration.Utilities.Numbers;
+using Base_CityGeneration.Utilities.Extensions;
 using Myre.Collections;
 using SwizzleMyVectors.Geometry;
 
@@ -88,7 +88,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
             Build(seeds, min, max, config.SeparationField, true, true, config.SegmentLength, config.MergeDistance, config.CosineSearchConeAngle, isOutOfBounds, null, s =>
             {
-                s.Width = config.RoadWidth.SelectIntValue(random, metadata);
+                s.Width = (uint)config.RoadWidth.SelectIntValue(random, metadata);
 
                 LinearReduction(s);
             });
@@ -117,7 +117,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
                 config.CosineSearchConeAngle,
                 p => !region.PointInPolygon(p), e => e.Streamline.Region == region,
                 s => {
-                    s.Width = config.RoadWidth.SelectIntValue(random, metadata);
+                    s.Width = (uint)config.RoadWidth.SelectIntValue(random, metadata);
                     s.Region = region;
 
                     LinearReduction(s);
@@ -126,6 +126,11 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         private void Build(IEnumerable<Seed> initialSeeds, Vector2 min, Vector2 max, BaseScalarField separation, bool forward, bool backward, float maxSegmentLength, float mergeDistance, float cosineSearchAngle, Func<Vector2, bool> isOutOfBounds, Func<Edge, bool> edgeFilter, Action<Streamline> streamCreated)
         {
+            Contract.Requires(initialSeeds != null);
+            Contract.Requires(separation != null);
+            Contract.Requires(isOutOfBounds != null);
+            Contract.Requires(streamCreated != null);
+
             var seeds = new MinHeap<KeyValuePair<float, Seed>>(1024, new KeyComparer<float, Seed>());
             foreach (var initialSeed in initialSeeds)
                 AddSeed(seeds, initialSeed);
@@ -162,7 +167,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         private void AddBoundary(Vector2 min, Vector2 max)
         {
             //Start boundary
-            Streamline boundary = new Streamline(CreateVertex(min));
+            var boundary = new Streamline(CreateVertex(min));
 
             //Loop around 3 sides
             InsertEdge(boundary.Extend(CreateVertex(new Vector2(max.X, min.Y))));
@@ -257,22 +262,24 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             return stream;
         }
 
-        private void DeleteStream(Streamline stream)
+        private void DeleteStream(Streamline streamline)
         {
-            foreach (var vertex in stream.Vertices)
+            Contract.Requires(streamline != null);
+
+            foreach (var vertex in streamline.Vertices)
             {
-                var edge = vertex.Edges.SingleOrDefault(e => e.Streamline == stream);
+                var edge = vertex.Edges.SingleOrDefault(e => e.Streamline == streamline);
                 if (edge != null)
                     DeleteEdge(edge);
             }
 
-            foreach (var vertex in stream.Vertices)
+            foreach (var vertex in streamline.Vertices)
             {
                 if (vertex.EdgeCount == 0)
                     DeleteVertex(vertex);
             }
 
-            _streams.Remove(stream);
+            _streams.Remove(streamline);
         }
 
         private Streamline Trace(Seed seed, bool reverse, MinHeap<KeyValuePair<float, Seed>> seeds, Func<Vector2, bool> isOutOfBounds, float maxSegmentLength, float mergeDistance, float cosineSearchAngle, BaseScalarField separation)
@@ -283,7 +290,11 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             var direction = Vector2.Zero;
             var position = seed.Point;
             var stream = new Streamline(FindOrCreateVertex(position, mergeDistance, cosineSearchAngle));
-            for (var i = 0; i < 10000; i++)
+
+            //This is a weird way to do a for loop! What gives?
+            //This is, in many respects, a better way to do it if you don't want i to be mutated within the loop
+            //In this case I'm using it to pacify a persistent CodeContracts false positive (this loop is too complex for it to analyze, I guess?)
+            foreach (var i in Enumerable.Range(0, 10000))
             {
                 direction = seed.Field.TraceVectorField(position, direction, maxSegmentLength);
                 if (i == 0)
@@ -338,6 +349,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         #region edges
         private bool CreateEdge(Streamline streamline, Vector2 endPosition, Vector2 direction, float segmentLength, float segmentLengthSquared, float mergeDistance, float cosineSearchAngle, bool skipDistanceCheck = false)
         {
+            Contract.Requires(streamline != null);
+
             //Do not create an edge if this distance is too short
             if (!skipDistanceCheck && Vector2.DistanceSquared(streamline.Last.PositionField, endPosition) < segmentLengthSquared)
                 return false;
@@ -393,6 +406,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         private bool InsertEdge(Edge e)
         {
+            Contract.Requires(_edges != null);
+
             if (e == null)
                 return false;
 
@@ -412,6 +427,9 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         /// <returns></returns>
         private IEnumerable<Edge> FindEdges(Vector2 position, float radius)
         {
+            Contract.Requires(_vertices != null);
+            Contract.Ensures(Contract.Result<IEnumerable<Edge>>() != null);
+
             return _vertices.Intersects(
                 new BoundingRectangle(
                     new Vector2(position.X - radius, position.Y - radius),
@@ -425,41 +443,35 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             var min = new Vector2(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y));
             var max = new Vector2(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
 
-            var candidates = _edges.Intersects(new BoundingRectangle(min, max));
+            //Select the all intersections (by checking all edges in octree result)
+            var segment = new LineSegment2(a, b);
+            var best = (from candidate in _edges.Intersects(new BoundingRectangle(min, max))
+                        let intersectionMaybe = new LineSegment2(candidate.A.Position, candidate.B.Position).Intersects(segment)
+                        where intersectionMaybe.HasValue
+                        let intersection = intersectionMaybe.Value
+                        select new KeyValuePair<LinesIntersection2, Edge>(intersection, candidate));
 
-            intersectPosition = new Vector2(0);
-            float d = float.MaxValue;
-            Edge selected = null;
-            foreach (var candidate in candidates)
+            intersectPosition = Vector2.Zero;
+            Edge bestEdge = null;
+            var bestScore = float.MaxValue;
+            foreach (var keyValuePair in best)
             {
-                //Ignore edges which start or end in the same place as the query
-                if (candidate.A.PositionField.Equals(a) || candidate.B.PositionField.Equals(b))
-                    continue;
-
-                //Do we intersect at all?
-                var intersection = new LineSegment2(candidate.A.Position, candidate.B.Position).Intersects(new Ray2(a, b - a));
-                if (!intersection.HasValue)
-                    continue;
-
-                //Is this intersection closer than the best so far?
-                if (intersection.Value.DistanceAlongB >= d)
-                    continue;
-
-                //Is the intersection *actually* valid (i.e. within the bound of line 2)
-                if (intersection.Value.DistanceAlongB > 1 || intersection.Value.DistanceAlongB < 0)
-                    continue;
-
-                //We have a winner, update best fit so far
-                d = intersection.Value.DistanceAlongB;
-                intersectPosition = intersection.Value.Position;
-                selected = candidate;
+                if (keyValuePair.Key.DistanceAlongB < bestScore)
+                {
+                    intersectPosition = keyValuePair.Key.Position;
+                    bestEdge = keyValuePair.Value;
+                    bestScore = keyValuePair.Key.DistanceAlongB;
+                }
             }
 
-            return selected;
+            return bestEdge;
         }
 
         private void DeleteEdge(Edge e)
         {
+            Contract.Requires(e != null);
+            Contract.Requires(_edges != null);
+
             //Remove from vertices
             e.A.Remove(e);
             e.B.Remove(e);
@@ -479,12 +491,17 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         #region vertices
         private Vertex FindOrCreateVertex(Vector2 position, float mergeDistance, float cosineSearchAngle)
         {
+            Contract.Requires(_vertices != null);
+            Contract.Ensures(Contract.Result<Vertex>() != null);
+
             return FindVertex(position, Vector2.Zero, mergeDistance, cosineSearchAngle, null)
                 ?? CreateVertex(position);
         }
 
         private Vertex FindVertex(Vector2 position, Vector2 direction, float radius, float cosineSearchAngle, Vertex skip)
         {
+            Contract.Requires(_vertices != null);
+
             var candidates = _vertices.Intersects(new BoundingRectangle(new Vector2(position.X - radius, position.Y - radius), new Vector2(position.X + radius, position.Y + radius)));
 
             Vertex closest = null;
@@ -542,13 +559,13 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             return vertex;
         }
 
-        private bool DeleteVertex(Vertex v)
+        private bool DeleteVertex(Vertex vertex)
         {
-            if (v.EdgeCount != 0)
-                throw new InvalidOperationException("Cannot delete vertex with attached edges");
+            Contract.Requires(vertex != null);
+            Contract.Requires(vertex.EdgeCount == 0, "Cannot delete vertex with attached edges");
 
-            var pos = new Vector2(v.Position.X, v.Position.Y);
-            return _vertices.Remove(new BoundingRectangle(pos, pos), v);
+            var pos = new Vector2(vertex.Position.X, vertex.Position.Y);
+            return _vertices.Remove(new BoundingRectangle(pos, pos), vertex);
         }
         #endregion
 
@@ -595,8 +612,11 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             }
         }
 
-        private Seed? RemoveSeed(MinHeap<KeyValuePair<float, Seed>> seeds, BaseScalarField separation, float cosineSearchAngle, Func<Edge, bool> edgeFilter = null)
+        private Seed? RemoveSeed(IMinHeap<KeyValuePair<float, Seed>> seeds, BaseScalarField separation, float cosineSearchAngle, Func<Edge, bool> edgeFilter = null)
         {
+            Contract.Requires(seeds != null);
+            Contract.Requires(separation != null);
+
             while (seeds.Count > 0)
             {
                 //Get the highest priority seed
@@ -626,8 +646,10 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             return null;
         }
 
-        private void AddSeed(MinHeap<KeyValuePair<float, Seed>> seeds, Seed seed, BaseScalarField priority = null, BaseScalarField separation = null)
+        private static void AddSeed(IMinHeap<KeyValuePair<float, Seed>> seeds, Seed seed, BaseScalarField priority = null, BaseScalarField separation = null)
         {
+            Contract.Requires(seeds != null);
+
             var prio = priority.SafeSample(seed.Point)
                      + 1 / separation.SafeSample(seed.Point);
 
@@ -636,6 +658,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         private IEnumerable<Vertex> Vertices()
         {
+            Contract.Ensures(Contract.Result<IEnumerable<Vertex>>() != null);
+
             return _vertices.Intersects(
                 new BoundingRectangle(
                     new Vector2(float.MinValue),

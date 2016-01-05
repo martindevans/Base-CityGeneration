@@ -79,6 +79,9 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <returns></returns>
         private static ICsgShape ConvertStampToBrush(Walls.Section section, Stamp stamp, string material, ICsgFactory geometry, INamedDataProvider hierarchicalParameters)
         {
+            Contract.Requires(geometry != null);
+            Contract.Requires(hierarchicalParameters != null);
+
             material = material ?? hierarchicalParameters.GetValue(new TypedName<string>("material"));
 
             //Establish basis vectors

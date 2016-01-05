@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using Base_CityGeneration.Parcels.Parcelling;
 using Base_CityGeneration.Utilities.Numbers;
 using Myre.Collections;
@@ -13,8 +14,18 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Lots.Constraints
 
         private RequireAreaSpec(IValueGenerator min, IValueGenerator max)
         {
+            Contract.Requires(min != null);
+            Contract.Requires(max != null);
+
             _min = min;
             _max = max;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_min != null);
+            Contract.Invariant(_max != null);
         }
 
         public override bool Check(Parcel parcel, Func<double> random, INamedDataCollection metadata)
@@ -36,8 +47,8 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Lots.Constraints
             public override BaseLotConstraint Unwrap()
             {
                 return new RequireAreaSpec(
-                    BaseValueGeneratorContainer.FromObject(Min ?? 0),
-                    BaseValueGeneratorContainer.FromObject(Max ?? float.PositiveInfinity)
+                    IValueGeneratorContainer.FromObject(Min ?? 0),
+                    IValueGeneratorContainer.FromObject(Max ?? float.PositiveInfinity)
                 );
             }
         }

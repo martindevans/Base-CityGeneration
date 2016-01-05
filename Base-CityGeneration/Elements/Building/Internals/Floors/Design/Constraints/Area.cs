@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using JetBrains.Annotations;
 using Myre.Collections;
@@ -78,8 +79,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
             public override BaseSpaceConstraintSpec Unwrap()
             {
                 return new Area(
-                    BaseValueGeneratorContainer.FromObject(Min, 1),
-                    BaseValueGeneratorContainer.FromObject(Max, float.PositiveInfinity)
+                    IValueGeneratorContainer.FromObject(Min, 1),
+                    IValueGeneratorContainer.FromObject(Max, float.PositiveInfinity)
                 );
             }
         }

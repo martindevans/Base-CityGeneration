@@ -29,15 +29,15 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             return footprint.Select(a => Vector3.Transform((a - center).X_Y(0), Quaternion.CreateFromAxisAngle(Vector3.UnitY, radians)).XZ() + center).ToArray();
         }
 
-        public class Container
+        internal class Container
             : BaseContainer
         {
             public object Angle { get; set; }
 
-            internal override BaseFootprintAlgorithm Unwrap()
+            public override BaseFootprintAlgorithm Unwrap()
             {
                 return new Twist(
-                    BaseValueGeneratorContainer.FromObject(Angle ?? 0)
+                    IValueGeneratorContainer.FromObject(Angle ?? 0)
                 );
             }
         }

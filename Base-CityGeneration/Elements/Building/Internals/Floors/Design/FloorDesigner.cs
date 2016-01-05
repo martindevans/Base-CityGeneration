@@ -90,6 +90,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         private static void DesignRegion(FloorplanRegion region, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorPlan plan, float wallThickness, IValueGenerator regionErrorTolerance)
         {
+            Contract.Requires(region != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(plan != null);
+            Contract.Requires(regionErrorTolerance != null);
+
             //Split region up into sub regions
             var regions = GenerateRegions(region, random, metadata, regionErrorTolerance.SelectFloatValue(random, metadata)).ToArray();
 
@@ -106,6 +113,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         private static void LayoutRegion(FloorplanRegion region, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, FloorPlan plan, float wallThickness, IValueGenerator regionErrorTolerance)
         {
+            Contract.Requires(region != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(plan != null);
+            Contract.Requires(regionErrorTolerance != null);
+
             //Layout spaces in this region
             var spaces = region.LayoutSpaces(random, metadata);
 
@@ -120,10 +134,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             //Add non-group rooms to plan
             foreach (var room in rooms)
             {
-                KeyValuePair<string, string>[] tags;
-                var scripts = ((RoomSpec)room.Value).Tags.SelectScript(random, finder, out tags, typeof(IRoom));
+                var scripts = ((RoomSpec)room.Value).Tags.SelectScript(random, finder, typeof(IRoom));
 
-                plan.AddRoom(RoomShape(room.Key, region.OABR), wallThickness, new[] { scripts });
+                plan.AddRoom(RoomShape(room.Key, region.OABR), wallThickness, new[] { scripts.HasValue ? scripts.Value.Script : null });
             }
 
             foreach (var group in groups)
@@ -148,6 +161,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         private static void AssignRooms(IEnumerable<BaseSpaceSpec> requiredSpecs, IEnumerable<FloorplanRegion> regions, Func<double> random, INamedDataCollection metadata, bool required)
         {
+            Contract.Requires(requiredSpecs != null);
+            Contract.Requires(regions != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+
             //Assign every space spec to a region of space
             foreach (var spec in requiredSpecs)
             {
@@ -195,6 +213,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         private static float ScoreRegionForSpec(FloorplanRegion region, BaseSpaceSpec spec, Func<double> random, INamedDataCollection metadata)
         {
+            Contract.Requires(region != null);
+            Contract.Requires(spec != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+
             //Sum up the total strength of all constraints
             var totalStrength = spec.Constraints.Sum(a => a.Strength.SelectFloatValue(random, metadata));
 
@@ -221,6 +244,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         /// <returns></returns>
         private static IEnumerable<FloorplanRegion> GenerateRegions(FloorplanRegion root, Func<double> random, INamedDataCollection metadata, float areaErrorTolerance)
         {
+            Contract.Requires(root != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+
             return new List<FloorplanRegion> { new FloorplanRegion(root.Shape, root.OABR) }
                 .SelectMany(a => a.RecursiveReduceError(areaErrorTolerance))
                 .ToArray();
@@ -286,7 +313,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     Guid.Parse(Id ?? Guid.NewGuid().ToString()),
                     Description ?? "",
                     Rooms.Select(a => a.Unwrap()).ToArray(),
-                    BaseValueGeneratorContainer.FromObject(RegionErrorTolerance ?? 0.05f)
+                    IValueGeneratorContainer.FromObject(RegionErrorTolerance ?? 0.05f)
                 );
             }
         }

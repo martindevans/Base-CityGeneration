@@ -3,6 +3,7 @@ using Base_CityGeneration.Parcels.Parcelling.Rules;
 using Base_CityGeneration.Utilities.Numbers;
 using System;
 using System.Diagnostics.Contracts;
+using JetBrains.Annotations;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
@@ -31,12 +32,12 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
         internal class Container
             : BaseContainer
         {
-            public string Type { get; set; }
+            public string Type { get; [UsedImplicitly]set; }
 
             public override BaseSubdividerRule Unwrap()
             {
                 return new AccessRuleSpec(
-                    BaseValueGeneratorContainer.FromObject(TerminationChance ?? 0),
+                    IValueGeneratorContainer.FromObject(TerminationChance ?? 0),
                     Type
                 );
             }

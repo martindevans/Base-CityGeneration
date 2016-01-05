@@ -29,7 +29,7 @@ namespace Base_CityGeneration.Utilities.Numbers
         }
 
         internal class Container
-            : BaseValueGeneratorContainer
+            : IValueGeneratorContainer
         {
             public float Value { get; set; }
 

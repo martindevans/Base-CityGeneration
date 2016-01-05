@@ -9,6 +9,7 @@ using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Parcels.Parcelling
 {
+    [ContractClass(typeof(IParcellerContracts))]
     public interface IParceller
     {
         /// <summary>
@@ -19,6 +20,21 @@ namespace Base_CityGeneration.Parcels.Parcelling
         /// <param name="metadata"></param>
         /// <returns></returns>
         IEnumerable<Parcel> GenerateParcels(Parcel root, Func<double> random, INamedDataCollection metadata);
+    }
+
+    [ContractClassFor(typeof(IParceller))]
+    internal abstract class IParcellerContracts
+        : IParceller
+    {
+        public IEnumerable<Parcel> GenerateParcels(Parcel root, Func<double> random, INamedDataCollection metadata)
+        {
+            Contract.Requires(root != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Ensures(Contract.Result<IEnumerable<Parcel>>() != null);
+
+            return default(IEnumerable<Parcel>);
+        }
     }
 
     [ContractClass(typeof(ITerminatedRuleContracts))]

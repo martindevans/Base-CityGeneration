@@ -180,12 +180,25 @@ Floors:
 
             Assert.IsNotNull(b);
 
-            Random r = new Random();
+            var r = new Random();
             var d = new NamedBoxCollection();
             var selection = b.Internals(r.NextDouble, d, Finder);
 
             Assert.AreEqual(0, selection.AboveGroundFloors.Count());
             Assert.AreEqual(0, selection.BelowGroundFloors.Count());
+
+            var lot = new Vector2[] {
+                new Vector2(-30, -30),
+                new Vector2(-30, 30f),
+                new Vector2(30, 30f),
+                new Vector2(30, -30f)
+            };
+            selection.Externals(r.NextDouble, d, Finder, new BuildingSideInfo[] {
+                new BuildingSideInfo(lot[0], lot[1], new BuildingSideInfo.NeighbourInfo[0]),
+                new BuildingSideInfo(lot[1], lot[2], new BuildingSideInfo.NeighbourInfo[0]),
+                new BuildingSideInfo(lot[2], lot[3], new BuildingSideInfo.NeighbourInfo[0]),
+                new BuildingSideInfo(lot[3], lot[0], new BuildingSideInfo.NeighbourInfo[0]),
+            });
         }
 
         [TestMethod]
@@ -211,7 +224,7 @@ Floors:
 
             Assert.IsNotNull(b);
 
-            Random r = new Random();
+            var r = new Random();
             var d = new NamedBoxCollection();
             var selection = b.Internals(r.NextDouble, d, Finder);
 

@@ -179,13 +179,13 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             Assert.IsTrue(lowNeighbours.Any(a => a.RoomCD == wide));
 
             //Check that point is close to the edge it is supposed to lie on
-            var segment = new LineSegment2(wide.OuterFootprint[n.EdgeIndexRoomAB], wide.OuterFootprint[(n.EdgeIndexRoomAB + 1) % wide.OuterFootprint.Length]);
+            var segment = new LineSegment2(wide.OuterFootprint[(int)n.EdgeIndexRoomAB], wide.OuterFootprint[(int)(n.EdgeIndexRoomAB + 1) % wide.OuterFootprint.Count]);
             var line = segment.Line;
             var dist = line.DistanceToPoint(n.A);
             Assert.IsTrue(dist < 0.01f);
 
             //Check that point is close to the edge it is supposed to lie on
-            var segment2 = new LineSegment2(low.OuterFootprint[n.EdgeIndexRoomCD], low.OuterFootprint[(n.EdgeIndexRoomCD + 1) % low.OuterFootprint.Length]);
+            var segment2 = new LineSegment2(low.OuterFootprint[(int)n.EdgeIndexRoomCD], low.OuterFootprint[(int)(n.EdgeIndexRoomCD + 1) % low.OuterFootprint.Count]);
             var line2 = segment2.Line;
             var dist2 = line2.DistanceToPoint(n.C);
             Assert.IsTrue(dist2 < 0.01f);
@@ -484,7 +484,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
         private void AssertAllSections()
         {
-            Func<RoomPlan, LineSegment2[]> edges = r => r.OuterFootprint.Select((a, i) => new LineSegment2(a, r.OuterFootprint[(i + 1) % r.OuterFootprint.Length])).ToArray();
+            Func<RoomPlan, LineSegment2[]> edges = r => r.OuterFootprint.Select((a, i) => new LineSegment2(a, r.OuterFootprint[(i + 1) % r.OuterFootprint.Count])).ToArray();
 
             foreach (var neighbour in _plan.Rooms.SelectMany(roomInfo => _plan.GetNeighbours(roomInfo)))
             {

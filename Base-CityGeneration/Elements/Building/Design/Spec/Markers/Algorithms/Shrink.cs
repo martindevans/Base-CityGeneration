@@ -28,15 +28,15 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             return footprint.Shrink(amount).ToArray();
         }
 
-        public class Container
+        internal class Container
             : BaseContainer
         {
             public object Distance { get; set; }
 
-            internal override BaseFootprintAlgorithm Unwrap()
+            public override BaseFootprintAlgorithm Unwrap()
             {
                 return new Shrink(
-                    BaseValueGeneratorContainer.FromObject(Distance ?? 0)
+                    IValueGeneratorContainer.FromObject(Distance ?? 0)
                 );
             }
         }

@@ -22,6 +22,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             get
             {
                 Contract.Ensures(Contract.Result<IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>>>(), a => a != null));
                 return _faces;
             }
         }
@@ -31,6 +32,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             get
             {
                 Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>(), a => a != null));
                 return _halfEdges.Values.SelectMany(a => a);
             }
         }
@@ -40,6 +42,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             get
             {
                 Contract.Ensures(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>(), a => a != null));
                 return _halfEdges.Keys;
             }
         }
@@ -95,8 +98,13 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         internal void Split(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edge, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> middle, out HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> am, out HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> mb)
         {
+            Contract.Requires(edge != null && edge.Pair != null);
+            Contract.Requires(middle != null);
+            Contract.Ensures(Contract.ValueAtReturn<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>(out am) != null);
+            Contract.Ensures(Contract.ValueAtReturn<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>(out mb) != null);
+
             // A --------> B
-            // A --> m ++> B
+            // A --> m --> B
 
             var a = edge.Pair.EndVertex;
             var b = edge.EndVertex;
@@ -186,7 +194,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                     faces.Add(e.Face);
             }
 
-            Contract.Assume(edges.Count == vertices.Length);
+            Contract.Assert(edges.Count == vertices.Length);
 
             if (faces.Count > 1)
                 throw new InvalidOperationException("Some edges are already connected to a different face");

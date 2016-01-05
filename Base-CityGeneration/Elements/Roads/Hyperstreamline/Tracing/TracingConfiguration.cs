@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors;
+using JetBrains.Annotations;
 using Myre.Collections;
 
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
@@ -125,29 +126,39 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
         #region serialization
         internal class Container
         {
-            public List<string> Tags { get; set; }
+            public List<string> Tags { get; [UsedImplicitly]set; }
+            public List<object> Aliases { get; [UsedImplicitly]set; }
 
-            public List<object> Aliases { get; set; }
+            public object MergeSearchAngle { get; [UsedImplicitly]set; }
+            public object MergeDistance { get; [UsedImplicitly]set; }
+            public object SegmentLength { get; [UsedImplicitly]set; }
+            public object RoadWidth { get; [UsedImplicitly]set; }
 
-            public object MergeSearchAngle { get; set; }
-            public object MergeDistance { get; set; }
-            public object SegmentLength { get; set; }
-            public object RoadWidth { get; set; }
-            public IScalarFieldContainer PriorityField { get; set; }
-            public IScalarFieldContainer SeparationField { get; set; }
-
-            public ITensorFieldContainer TensorField { get; set; }
+            public IScalarFieldContainer PriorityField { get; [UsedImplicitly]set; }
+            public IScalarFieldContainer SeparationField { get; [UsedImplicitly]set; }
+            public ITensorFieldContainer TensorField { get; [UsedImplicitly]set; }
 
             public TracingConfiguration Unwrap(Func<double> random, INamedDataCollection metadata)
             {
+                Contract.Requires(random != null);
+                Contract.Requires(metadata != null);
+                Contract.Ensures(Contract.Result<TracingConfiguration>() != null);
+
+                Contract.Assume(MergeSearchAngle != null);
+                Contract.Assume(SegmentLength != null);
+                Contract.Assume(RoadWidth != null);
+                Contract.Assume(PriorityField != null);
+                Contract.Assume(SeparationField != null);
+                Contract.Assume(TensorField != null);
+
                 return new TracingConfiguration(
                     PriorityField.Unwrap(),
                     SeparationField.Unwrap(),
                     TensorField.Unwrap(random, metadata),
-                    BaseValueGeneratorContainer.FromObject(RoadWidth),
-                    MathHelper.ToRadians(BaseValueGeneratorContainer.FromObject(MergeSearchAngle).SelectFloatValue(random, metadata)),
-                    BaseValueGeneratorContainer.FromObject(SegmentLength).SelectFloatValue(random, metadata),
-                    BaseValueGeneratorContainer.FromObject(MergeDistance).SelectFloatValue(random, metadata));
+                    IValueGeneratorContainer.FromObject(RoadWidth),
+                    MathHelper.ToRadians(IValueGeneratorContainer.FromObject(MergeSearchAngle).SelectFloatValue(random, metadata)),
+                    IValueGeneratorContainer.FromObject(SegmentLength).SelectFloatValue(random, metadata),
+                    IValueGeneratorContainer.FromObject(MergeDistance).SelectFloatValue(random, metadata));
             }
         }
         #endregion

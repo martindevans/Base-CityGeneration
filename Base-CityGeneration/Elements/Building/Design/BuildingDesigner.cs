@@ -165,10 +165,16 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// <returns></returns>
         private static IEnumerable<FloorRun> SelectFloors(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IEnumerable<BaseFloorSelector> selectors, BaseMarker groundMarker, bool aboveGround)
         {
-            List<FloorRun> runs = new List<FloorRun>();
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(selectors != null);
+            Contract.Requires(groundMarker != null);
+            Contract.Ensures(Contract.Result<IEnumerable<FloorRun>>() != null);
 
-            BaseMarker previousMarker = groundMarker;
-            List<FloorSelection> floors = new List<FloorSelection>();
+            var runs = new List<FloorRun>();
+            var previousMarker = groundMarker;
+            var floors = new List<FloorSelection>();
             //Selectors, ordered top to bottom
             foreach (var selector in selectors)
             {
@@ -209,7 +215,12 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         private static IEnumerable<VerticalSelection> SelectVerticals(Func<double> random, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IEnumerable<VerticalElementSpec> verticalSelectors, IEnumerable<FloorSelection> floors)
         {
-            List<VerticalSelection> verticals = new List<VerticalSelection>();
+            Contract.Requires(random != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(verticalSelectors != null);
+            Contract.Requires(floors != null);
+
+            var verticals = new List<VerticalSelection>();
 
             var fArr = floors.ToArray();
 
@@ -219,12 +230,18 @@ namespace Base_CityGeneration.Elements.Building.Design
             return verticals;
         }
 
-        internal IEnumerable<FacadeSelection> SelectFacadesForWall(Func<double> random, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IEnumerable<FloorSelection> floorRun, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd)
+        internal IEnumerable<FacadeSelection> SelectFacadesForWall(Func<double> random, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IEnumerable<FloorSelection> floorRun, IReadOnlyList<BuildingSideInfo> neighbours, Vector2 ftStart, Vector2 ftEnd)
         {
-            List<FacadeSelection> result = new List<FacadeSelection>();
+            Contract.Requires(random != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(floorRun != null);
+            Contract.Requires(neighbours != null);
+            Contract.Ensures(Contract.Result<IEnumerable<FacadeSelection>>() != null);
+
+            var result = new List<FacadeSelection>();
 
             //Runs which we have no yet selected a facade for. Starts with just the input runs
-            Stack<List<FloorSelection>> runs = new Stack<List<FloorSelection>>(new[] {
+            var runs = new Stack<List<FloorSelection>>(new[] {
                 floorRun.ToList()
             });
 
@@ -245,7 +262,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             return result;
         }
 
-        private IEnumerable<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, List<FloorSelection> floors, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd, ICollection<FacadeSelection> results)
+        private IEnumerable<List<FloorSelection>> SelectFacadesForRun(Func<double> random, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, List<FloorSelection> floors, IReadOnlyList<BuildingSideInfo> neighbours, Vector2 ftStart, Vector2 ftEnd, ICollection<FacadeSelection> results)
         {
             Contract.Requires(random != null);
             Contract.Requires(finder != null);
@@ -255,12 +272,10 @@ namespace Base_CityGeneration.Elements.Building.Design
             //working from the first selector to the last, try to find a facade for each floor
             foreach (var spec in FacadeSelectors)
             {
-                //Find scripts for this spec
-                KeyValuePair<string, string>[] selectedTags;
-                ScriptReference script = spec.Tags.SelectScript(random, finder, out selectedTags, typeof(IFacade));
+                var result = spec.Tags.SelectScript(random, finder, typeof(IFacade));
 
                 //Skip specs which cannot find a script
-                if (script == null)
+                if (result == null)
                     continue;
 
                 //Remove floors from this run which do not pass the constraints of this facade spec
@@ -280,7 +295,7 @@ namespace Base_CityGeneration.Elements.Building.Design
                         //Create a face over this range of floors
                         var min = Math.Min(facade.Key.Index, facade.Value.Index);
                         var max = Math.Max(facade.Key.Index, facade.Value.Index);
-                        results.Add(new FacadeSelection(script, min, max));
+                        results.Add(new FacadeSelection(result.Value.Script, min, max));
 
                         //Remove these floors from the run
                         floors.RemoveAll(a => a.Index >= min && a.Index <= max);
@@ -327,7 +342,7 @@ namespace Base_CityGeneration.Elements.Building.Design
         /// Given a run of floors apply constraints to eliminate floors and generate sub runs
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<List<FloorSelection>> ConstrainRun(IEnumerable<FloorSelection> run, IEnumerable<BaseFacadeConstraint> constraints, BuildingSideInfo[] neighbours, Vector2 ftStart, Vector2 ftEnd)
+        private IEnumerable<List<FloorSelection>> ConstrainRun(IEnumerable<FloorSelection> run, IEnumerable<BaseFacadeConstraint> constraints, IReadOnlyList<BuildingSideInfo> neighbours, Vector2 ftStart, Vector2 ftEnd)
         {
             Contract.Requires(run != null);
             Contract.Requires(constraints != null);

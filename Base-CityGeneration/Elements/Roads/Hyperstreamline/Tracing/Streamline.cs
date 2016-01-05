@@ -29,7 +29,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         public Vertex Last { get; private set; }
 
-        public int Width { get; set; }
+        public uint Width { get; set; }
 
         public Region Region { get; set; }
 
@@ -41,23 +41,31 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
             _vertices.Add(start);
         }
 
-        internal bool Add(Vertex v)
+        internal bool Add(Vertex vertex)
         {
-            return _vertices.Add(v);
+            Contract.Requires(vertex != null);
+
+            return _vertices.Add(vertex);
         }
 
-        internal bool Remove(Vertex v)
+        internal bool Remove(Vertex vertex)
         {
-            return _vertices.Remove(v);
+            Contract.Requires(vertex != null);
+
+            return _vertices.Remove(vertex);
         }
 
-        public bool Contains(Vertex v)
+        public bool Contains(Vertex vertex)
         {
-            return _vertices.Contains(v);
+            Contract.Requires(vertex != null);
+
+            return _vertices.Contains(vertex);
         }
 
         internal Edge Extend(Vertex endVertex)
         {
+            Contract.Requires(endVertex != null);
+
             if (!First.Equals(endVertex) && !Add(endVertex))
                 throw new ArgumentException("Cannot extend: Streamline already contains vertex", "endVertex");
 

@@ -23,6 +23,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         public IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>> Map(IEnumerable<RoomTreemapNode> spaces)
         {
+            Contract.Requires(spaces != null);
+            Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>>>() != null);
+
             //The layout of the rooms in the tree map depends entirely upon the shape of the tree!
             //Simply through experimentation I have found balanced trees to be the best.
             var root = new Tree<RoomTreemapNode>.Node();
@@ -78,10 +81,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         #endregion
 
         #region tree building
+        [ContractAbbreviator]
         private static void SanityCheckPreBuildTree(Tree<RoomTreemapNode>.Node root)
         {
-            if (root.Count != 0)
-                throw new InvalidOperationException("Cannot build tree when root is not empty");
+            Contract.Requires(root != null && root.Count == 0);
         }
 
         /// <summary>
@@ -92,6 +95,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         /// <remarks>This results in *all* rooms being split the same direction - quite a terrible layout</remarks>
         private static void BuildFlatTree(IEnumerable<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root)
         {
+            Contract.Requires(spaces != null);
             SanityCheckPreBuildTree(root);
 
             foreach (var roomTreemapNode in spaces)
@@ -106,6 +110,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         /// <remarks>Generates acceptable layouts for smallest rooms, large rooms tend to have fairly bad aspect ratios</remarks>
         private static void BuildRightRecursiveTree(IEnumerable<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root)
         {
+            Contract.Requires(spaces != null);
             SanityCheckPreBuildTree(root);
 
             var addTo = root;
@@ -126,6 +131,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         /// <remarks>Mirror images of right recursive (obviously...)</remarks>
         private static void BuildLeftRecursiveTree(IEnumerable<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root)
         {
+            Contract.Requires(spaces != null);
             SanityCheckPreBuildTree(root);
 
             var addTo = root;
@@ -145,12 +151,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         /// <param name="root"></param>
         private static void BuildBalancedBinaryTree(IEnumerable<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root)
         {
+            Contract.Requires(spaces != null);
             SanityCheckPreBuildTree(root);
+
             ExtendBalancedBinaryTree(new ArraySegment<RoomTreemapNode>(spaces.ToArray()), root, 0);
         }
 
         private static void ExtendBalancedBinaryTree(ArraySegment<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root, int depth)
         {
+            SanityCheckPreBuildTree(root);
+
             //We can't build a *perfectly* balanced binary tree with a potentially odd number of nodes. How we distribute those odd nodes is important
 
             //Going all the way down to 2 nodes doesn't give us quite enough material to work with to split spaces, so we flatten with child nodes of 3
@@ -205,6 +215,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         /// <remarks>This totally sucks.</remarks>
         private static void BuildAdaptiveTree(IEnumerable<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root, BoundingRectangle bounds)
         {
+            Contract.Requires(spaces != null);
             SanityCheckPreBuildTree(root);
 
             //Each node can either stack up next to the previous, or switch direction and occupy some of the remaining space
@@ -254,7 +265,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
     internal class RoomTreemapNode
         : ITreemapNode
     {
-        public BaseSpaceSpec Space { get; private set; }
+        private readonly BaseSpaceSpec _space;
+        public BaseSpaceSpec Space
+        {
+            get { return _space; }
+        }
 
         public float Area { get; set; }
 
@@ -263,12 +278,22 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         public RoomTreemapNode(BaseSpaceSpec assignedSpace, Func<double> random, INamedDataCollection metadata)
         {
-            Space = assignedSpace;
+            Contract.Requires(assignedSpace != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+
+            _space = assignedSpace;
 
             MinArea = assignedSpace.MinArea(random, metadata);
             MaxArea = assignedSpace.MaxArea(random, metadata);
 
             Area = MinArea;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_space != null);
         }
 
         float? ITreemapNode.Area

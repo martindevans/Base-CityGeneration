@@ -54,11 +54,22 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         internal FloorplanRegion(IReadOnlyList<Side> shape)
             : base(shape)
         {
+            Contract.Requires(shape != null);
+            Contract.Requires(shape.Count >= 3);
         }
 
         internal FloorplanRegion(IReadOnlyList<Side> shape, OABR oabr)
             : base(shape, oabr)
         {
+            Contract.Requires(shape != null);
+            Contract.Requires(shape.Count >= 3);
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_requiredAssignedSpaces != null);
+            Contract.Invariant(_optionalAssignedSpaces != null);
         }
 
         protected override FloorplanRegion Construct(IReadOnlyList<Side> shape)

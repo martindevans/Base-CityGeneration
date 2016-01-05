@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
@@ -63,8 +64,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
         {
             public BaseContainer[] Rooms { get; [UsedImplicitly]set; }
 
-            internal override BaseSpaceSpec Unwrap()
+            protected internal override BaseSpaceSpec Unwrap()
             {
+                Contract.Assume(Rooms != null);
+
                 return new GroupSpec(
                     Rooms.Select(a => a.Unwrap()).ToArray(),
                     Id,

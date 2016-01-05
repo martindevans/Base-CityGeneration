@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.Contracts;
+using System.Numerics;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors
 {
@@ -9,6 +10,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors
 
         public Inverse(IVector2Field field)
         {
+            Contract.Requires(field != null);
+
             _field = field;
         }
 

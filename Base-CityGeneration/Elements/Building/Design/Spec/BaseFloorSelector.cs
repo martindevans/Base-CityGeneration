@@ -25,12 +25,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             Contract.Requires(tags != null);
             Contract.Requires(finder != null);
 
-            KeyValuePair<string, string>[] selectedTags;
-            ScriptReference script = tags.SelectScript(random, finder, out selectedTags, typeof(IFloor));
-            if (script == null)
+            var result = tags.SelectScript(random, finder, typeof(IFloor));
+            if (result.HasValue)
+                return new FloorSelection(id, result.Value.Tags, this, result.Value.Script, height);
+            else
                 return null;
-
-            return new FloorSelection(id, selectedTags, this, script, height);
         }
     }
 
@@ -84,7 +83,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
     }
 
     internal interface ISelectorContainer
+        : IUnwrappable<BaseFloorSelector>
     {
-        BaseFloorSelector Unwrap();
     }
 }

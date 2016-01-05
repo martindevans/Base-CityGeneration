@@ -30,7 +30,7 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
             public ITensorField Unwrap(Func<double> random, INamedDataCollection metadata)
             {
-                var angle = BaseValueGeneratorContainer.FromObject(Angle).SelectFloatValue(random, metadata);
+                var angle = IValueGeneratorContainer.FromObject(Angle).SelectFloatValue(random, metadata);
 
                 return new Gridline(MathHelper.ToRadians(angle), Length ?? 1);
             }

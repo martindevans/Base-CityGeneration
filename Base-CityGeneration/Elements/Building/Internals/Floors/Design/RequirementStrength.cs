@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using JetBrains.Annotations;
 
@@ -34,7 +35,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         {
             return new RequirementStrength<TItem>(
                 Req.Unwrap(),
-                BaseValueGeneratorContainer.FromObject(Strength).Transform(vary: false)
+                IValueGeneratorContainer.FromObject(Strength).Transform(vary: false)
             );
         }
     }

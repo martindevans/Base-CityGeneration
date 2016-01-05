@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using Myre.Collections;
 
@@ -40,8 +41,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             public ISpaceSpecProducer Unwrap()
             {
                 return new RepeatSpec(
-                    BaseValueGeneratorContainer.FromObject(Optional ?? 0),
-                    BaseValueGeneratorContainer.FromObject(Required ?? 1),
+                    IValueGeneratorContainer.FromObject(Optional ?? 0),
+                    IValueGeneratorContainer.FromObject(Required ?? 1),
                     Room.Unwrap()
                 );
             }

@@ -2,6 +2,7 @@
 using Base_CityGeneration.Datastructures.HalfEdge;
 using System.Numerics;
 using System;
+using System.Diagnostics.Contracts;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
 
@@ -17,6 +18,9 @@ namespace Base_CityGeneration.Elements.Roads
         /// <returns></returns>
         public static IHalfEdgeBuilder BuilderEndingWith(this HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> edge, Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> ending)
         {
+            Contract.Requires(edge != null);
+            Contract.Requires(ending != null);
+
             if (edge.IsPrimaryEdge)
             {
                 if (edge.EndVertex.Equals(ending))
