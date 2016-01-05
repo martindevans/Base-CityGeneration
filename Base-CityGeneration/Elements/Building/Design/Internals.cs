@@ -61,7 +61,6 @@ namespace Base_CityGeneration.Elements.Building.Design
             get
             {
                 Contract.Ensures(Contract.Result<IEnumerable<FootprintSelection>>() != null);
-                Contract.Ensures(Contract.Result<IEnumerable<FootprintSelection>>().Any());
                 return _footprints;
             }
         }
@@ -94,6 +93,10 @@ namespace Base_CityGeneration.Elements.Building.Design
             Contract.Requires(sides != null);
             Contract.Ensures(Contract.Result<Design>() != null);
 
+            //No footprints means no floors, early exit with an empty building
+            if (!Footprints.Any())
+                return new Design(new FloorSelection[0], new VerticalSelection[0], new Design.Wall[0]);
+
             //Generate footprints up building
             var footprints = GenerateFootprints(random, metadata, sides.Select(a => a.EdgeEnd).ToArray(), Footprints, AboveGroundFloors.Count(), BelowGroundFloors.Count());
 
@@ -112,7 +115,7 @@ namespace Base_CityGeneration.Elements.Building.Design
                 var footprint = footprints[bot];
 
                 //Generate facades for each side
-                for (int i = 0; i < footprint.Count; i++)
+                for (var i = 0; i < footprint.Count; i++)
                 {
                     //Get start and end points of this wall
                     var s = footprint[i];
@@ -134,10 +137,10 @@ namespace Base_CityGeneration.Elements.Building.Design
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
             Contract.Requires(initial != null);
-            Contract.Requires(footprints != null);
+            Contract.Requires(footprints != null && footprints.Any());
             Contract.Ensures(Contract.Result<IReadOnlyDictionary<int, IReadOnlyList<Vector2>>>() != null);
 
-            Dictionary<int, IReadOnlyList<Vector2>> results = new Dictionary<int, IReadOnlyList<Vector2>>();
+            var results = new Dictionary<int, IReadOnlyList<Vector2>>();
 
             //Index by floor number
             var footprintLookup = footprints.ToDictionary(a => a.Index, a => a.Marker);

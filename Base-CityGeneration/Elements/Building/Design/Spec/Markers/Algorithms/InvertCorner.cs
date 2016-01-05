@@ -103,7 +103,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             return ab.Cross(bc) > 0;
         }
 
-        public class Container
+        internal class Container
             : BaseContainer
         {
             /// <summary>
@@ -131,12 +131,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             /// </summary>
             public bool InvertOuter { get; set; }
 
-            internal override BaseFootprintAlgorithm Unwrap()
+            public override BaseFootprintAlgorithm Unwrap()
             {
                 return new InvertCorner(
-                    BaseValueGeneratorContainer.FromObject(Angle),
-                    BaseValueGeneratorContainer.FromObject(Distance),
-                    BaseValueGeneratorContainer.FromObject(MinDistance ?? 0),
+                    IValueGeneratorContainer.FromObject(Angle),
+                    IValueGeneratorContainer.FromObject(Distance),
+                    IValueGeneratorContainer.FromObject(MinDistance ?? 0),
                     InvertInner,
                     InvertOuter
                 );

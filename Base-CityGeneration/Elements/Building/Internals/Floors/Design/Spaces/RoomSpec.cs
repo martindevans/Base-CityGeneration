@@ -47,7 +47,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 
             public bool Optional { get; [UsedImplicitly] private set; }
 
-            internal override BaseSpaceSpec Unwrap()
+            protected internal override BaseSpaceSpec Unwrap()
             {
                 if (!Constraints.Any(a => a.Req is Area.Container))
                     throw new SharpYaml.SemanticErrorException(string.Format("Room spec \"{0}\" must specify an Area constraint", Id));

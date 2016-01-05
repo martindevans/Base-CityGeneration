@@ -24,6 +24,13 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
             _max = max;
         }
 
+        [ContractInvariantMethod]
+        private void ObjectInvariant()
+        {
+            Contract.Invariant(_min != null);
+            Contract.Invariant(_max != null);
+        }
+
         public override ITerminationRule Rule(Func<double> random, INamedDataCollection metadata)
         {
             return new AreaRule(
@@ -42,9 +49,9 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision.Rules
             public override BaseSubdividerRule Unwrap()
             {
                 return new AreaRuleSpec(
-                    BaseValueGeneratorContainer.FromObject(Min ?? 0),
-                    BaseValueGeneratorContainer.FromObject(Max ?? float.PositiveInfinity),
-                    BaseValueGeneratorContainer.FromObject(TerminationChance ?? 0)
+                    IValueGeneratorContainer.FromObject(Min ?? 0),
+                    IValueGeneratorContainer.FromObject(Max ?? float.PositiveInfinity),
+                    IValueGeneratorContainer.FromObject(TerminationChance ?? 0)
                 );
             }
         }

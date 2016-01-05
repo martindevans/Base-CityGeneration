@@ -33,7 +33,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
 
         protected abstract bool Condition(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis);
 
-        public abstract class BaseConditionalContainer
+        internal abstract class BaseConditionalContainer
            : BaseContainer
         {
             public BaseContainer Action { get; set; }

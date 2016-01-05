@@ -130,7 +130,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
             var s = scripts.ToArray();
 
-            List<RoomPlan> result = new List<RoomPlan>();
+            var result = new List<RoomPlan>();
             foreach (var shape in solution)
             {
                 _neighbourhood.Dirty = true;
@@ -174,6 +174,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private static bool HasHole(PolyNode tree)
         {
+            Contract.Requires(tree != null && tree.Contour != null && tree.Childs != null);
+
             if (tree.Contour.Count > 0 && tree.IsHole)
                 return true;
 

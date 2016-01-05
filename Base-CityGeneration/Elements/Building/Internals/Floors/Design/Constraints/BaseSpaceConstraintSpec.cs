@@ -32,6 +32,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
         internal override T Union<T>(T other)
         {
             Contract.Requires(other != null);
+            Contract.Ensures(Contract.Result<T>() != null);
 
             return default(T);
         }

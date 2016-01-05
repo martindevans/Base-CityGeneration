@@ -10,7 +10,7 @@ using EpimetheusPlugins.Scripts;
 namespace Base_CityGeneration.Utilities
 {
     internal class TagContainerContainer
-        : IDictionary<float, Dictionary<string, string>>
+        : IDictionary<float, Dictionary<string, string>>, IUnwrappable<IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>>>
     {
         private readonly List<KeyValuePair<float, Dictionary<string, string>>> _data = new List<KeyValuePair<float, Dictionary<string, string>>>();
 
@@ -42,6 +42,8 @@ namespace Base_CityGeneration.Utilities
 
         public void CopyTo(KeyValuePair<float, Dictionary<string, string>>[] array, int arrayIndex)
         {
+            Contract.Assert(arrayIndex <= (array.Length - Count));
+
             _data.CopyTo(array, arrayIndex);
         }
 
@@ -124,19 +126,42 @@ namespace Base_CityGeneration.Utilities
 
     internal static class TagsContainerExtensions
     {
-        public static ScriptReference SelectScript(
+        public struct ScriptSelection
+        {
+            public readonly ScriptReference Script;
+            public readonly KeyValuePair<string, string>[] Tags;
+
+            public ScriptSelection(ScriptReference script, KeyValuePair<string, string>[] tags)
+            {
+                Contract.Requires(script != null);
+                Contract.Requires(tags != null);
+
+                Script = script;
+                Tags = tags;
+            }
+
+            [ContractInvariantMethod]
+            private void ObjectInvariant()
+            {
+                Contract.Invariant(Script != null);
+                Contract.Invariant(Tags != null);
+            }
+        }
+
+        public static ScriptSelection? SelectScript(
             this IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tagsSets,
             Func<double> random,
             Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder,
-            out KeyValuePair<string, string>[] tags,
             params Type[] extraConstraints
         )
         {
+            Contract.Requires(tagsSets != null);
+
             var options = tagsSets.ToList();
             while (options.Count > 0)
             {
                 //Select a set
-                tags = options.WeightedRandom(random);
+                var tags = options.WeightedRandom(random);
 
                 // Find a script (null tags set means explicitly select no script)
                 if (tags == null)
@@ -147,14 +172,13 @@ namespace Base_CityGeneration.Utilities
 
                 //If we found something we're good to go
                 if (script != null)
-                    return script;
+                    return new ScriptSelection(script, tags);
 
                 //Failed to find anything, remove this set and try again
                 var t = tags;
                 options.RemoveAll(a => a.Value == t);
             }
 
-            tags = null;
             throw new DesignFailedException("No suitable script found for any tag set");
         }
     }

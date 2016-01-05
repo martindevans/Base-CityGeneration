@@ -35,14 +35,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision
 
         public override IEnumerable<Parcel> GenerateParcels(Parcel root, Func<double> random, INamedDataCollection metadata)
         {
-            var p = new ObbParceller();
-            if (_nonOptimalOabbChance != null)
-                p.NonOptimalOabbChance = _nonOptimalOabbChance.SelectFloatValue(random, metadata);
-            if (_nonOptimalOabbMaxRatio != null)
-                p.NonOptimalOabbMaxRatio = _nonOptimalOabbMaxRatio.SelectFloatValue(random, metadata);
-            if (_splitPointSelection != null)
-                p.SplitPointGenerator = _splitPointSelection;
-
+            var p = new ObbParceller(_splitPointSelection, _nonOptimalOabbChance, _nonOptimalOabbMaxRatio);
             foreach (var rule in _rules)
                 p.AddTerminationRule(rule.Rule(random, metadata));
 
@@ -60,9 +53,9 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Subdivision
             public override BaseSubdivideSpec Unwrap()
             {
                 return new ObbParcellerSpec(
-                    NonOptimalChance == null ? null : BaseValueGeneratorContainer.FromObject(NonOptimalChance),
-                    MaxNonOptimalRatio == null ? null : BaseValueGeneratorContainer.FromObject(MaxNonOptimalRatio),
-                    SplitRatio == null ? null : BaseValueGeneratorContainer.FromObject(SplitRatio),
+                    NonOptimalChance == null ? null : IValueGeneratorContainer.FromObject(NonOptimalChance),
+                    MaxNonOptimalRatio == null ? null : IValueGeneratorContainer.FromObject(MaxNonOptimalRatio),
+                    SplitRatio == null ? null : IValueGeneratorContainer.FromObject(SplitRatio),
                     (Rules ?? new BaseSubdividerRule.BaseContainer[0]).Select(a => a.Unwrap()).ToArray()
                 );
             }

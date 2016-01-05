@@ -3,6 +3,7 @@ using System.Diagnostics.Contracts;
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
 using System.Numerics;
+using JetBrains.Annotations;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
@@ -41,18 +42,19 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         internal class Container
             : ITensorFieldContainer
         {
-            public ITensorFieldContainer Tensors { get; set; }
-
-            public Vector2Container Center { get; set; }
-
-            public object Decay { get; set; }
+            public ITensorFieldContainer Tensors { get; [UsedImplicitly]set; }
+            public Vector2Container Center { get; [UsedImplicitly]set; }
+            public object Decay { get; [UsedImplicitly]set; }
 
             public ITensorField Unwrap(Func<double> random, INamedDataCollection metadata)
             {
+                Contract.Assume(Tensors != null);
+                Contract.Assume(Center != null);
+
                 return new PointDistanceDecayField(
                     Tensors.Unwrap(random, metadata),
                     Center.Unwrap(random, metadata),
-                    BaseValueGeneratorContainer.FromObject(Decay).SelectFloatValue(random, metadata)
+                    IValueGeneratorContainer.FromObject(Decay).SelectFloatValue(random, metadata)
                 );
             }
         }

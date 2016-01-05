@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Contracts;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
@@ -30,6 +31,8 @@ namespace Base_CityGeneration.Elements.Roads
 
         private ReadOnlyCollection<Vector2> CalculateShape()
         {
+            Contract.Requires(Face != null && Face.Edges != null);
+
             //return new ReadOnlyCollection<Vector2>((
             //    from halfEdge in Face.Edges
             //    let builder = halfEdge.BuilderEndingWith(halfEdge.EndVertex)
@@ -40,9 +43,9 @@ namespace Base_CityGeneration.Elements.Roads
             //Get the builders around this face
             var builders = Face.Edges.Select(e => e.BuilderEndingWith(e.EndVertex)).ToArray();
 
-            List<Vector2> points = new List<Vector2>();
+            var points = new List<Vector2>();
 
-            for (int i = 0; i < builders.Length; i++)
+            for (var i = 0; i < builders.Length; i++)
             {
                 //Get roads in and out from this junction
                 var b = builders[i];
@@ -59,7 +62,7 @@ namespace Base_CityGeneration.Elements.Roads
                     b.RightEnd,
                     n.RightStart,
                     0.01f, out cwp, out cw, out ccwp, out ccw,
-                    new[] { b.LeftEnd, n.LeftStart }
+                    b.LeftEnd, n.LeftStart
                 );
 
                 //Sanity check

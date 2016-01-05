@@ -5,6 +5,7 @@ using System.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using SwizzleMyVectors;
 
@@ -28,7 +29,15 @@ namespace Base_CityGeneration.Elements.Roads
 
         public VertexJunctionBuilder(Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> vertex)
         {
+            Contract.Requires(vertex != null);
+
             _vertex = vertex;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_vertex != null);
         }
 
         private ReadOnlyCollection<Vector2> CalculateShape()
@@ -44,6 +53,8 @@ namespace Base_CityGeneration.Elements.Roads
 
         private ReadOnlyCollection<Vector2> GenerateDeadEnd(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> a)
         {
+            Contract.Requires(a != null);
+
             //Get the builder for the edge ending at _vertex
             var b = a.BuilderEndingWith(_vertex);
 
@@ -80,6 +91,9 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void ExtractPoints(NWayJunctionEdgeData right, NWayJunctionEdgeData left)
         {
+            Contract.Requires(right != null);
+            Contract.Requires(left != null);
+
             var at = right.Builder;
             var bt = left.Builder;
 
@@ -128,6 +142,9 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void ExtractPointsFromParallelRoads(IHalfEdgeBuilder at, IHalfEdgeBuilder bt)
         {
+            Contract.Requires(at != null);
+            Contract.Requires(bt != null);
+
             if (at.Width.TolerantEquals(bt.Width, 0.01f)) {
                 //Roads are totally parallel, have the same width, and join to the same vertex... a.k.a: a straight line
                 var w = at.Width * 0.5f;

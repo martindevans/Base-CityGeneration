@@ -20,7 +20,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
         internal class Container
             : BaseContainer
         {
-            protected override BaseFloorSelector Unwrap()
+            public override BaseFloorSelector Unwrap()
             {
                 return new GroundMarker(this.Select(a => a.Unwrap()).ToArray());
             }

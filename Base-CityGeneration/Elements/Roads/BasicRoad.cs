@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Generic;
@@ -41,6 +42,9 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void CreateFootpaths(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters, string material, float height)
         {
+            Contract.Requires(geometry != null);
+            Contract.Requires(hierarchicalParameters != null);
+
             //Get a builder for this edge
             var builder = HalfEdge.BuilderEndingWith(HalfEdge.EndVertex);
 
@@ -63,6 +67,10 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void MaterializeCornerSections(ISubdivisionGeometry geometry, string material, float height, IEnumerable<Walls.Section> sections, IHalfEdgeBuilder builder, Vector2 rightEnd, Vector2 leftEnd, Vector2 leftStart, Vector2 rightStart)
         {
+            Contract.Requires(geometry != null);
+            Contract.Requires(sections != null);
+            Contract.Requires(builder != null);
+
             foreach (var section in sections)
             {
                 //Skip non corner sections
@@ -121,6 +129,9 @@ namespace Base_CityGeneration.Elements.Roads
 
         private static Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> DetermineBorderingVertex(Walls.Section section, IHalfEdgeBuilder builder, Vector2 rightEnd, Vector2 leftEnd, Vector2 leftStart, Vector2 rightStart, out Vector2 endPointA, out Vector2 endPointB)
         {
+            Contract.Requires(builder != null);
+            Contract.Ensures(Contract.Result<Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>>() != null);
+
             //Point B is the corner point, which of the corners is it?
             Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> vertex;
 
@@ -158,6 +169,10 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void MaterializeEdgeSections(ISubdivisionGeometry geometry, string material, float height, IEnumerable<Walls.Section> sections, IHalfEdgeBuilder builder, Vector2 leftEnd, Vector2 rightEnd, Vector2 leftStart, Vector2 rightStart)
         {
+            Contract.Requires(geometry != null);
+            Contract.Requires(sections != null);
+            Contract.Requires(builder != null);
+
             //Cache these checks
             var deadEnd = builder.HalfEdge.EndVertex.Edges.Count() == 1;
             var deadStart = builder.HalfEdge.Pair.EndVertex.Edges.Count() == 1;
@@ -198,12 +213,17 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void MaterializeSection(ISubdivisionGeometry geometry, string material, Walls.Section section, float height)
         {
+            Contract.Requires(geometry != null);
+
             MaterializeSection(geometry, material, new Vector2[] {section.A, section.B, section.C, section.D}, height);
         }
 
         private void MaterializeSection(ISubdivisionGeometry geometry, string material, IEnumerable<Vector2> shape, float height)
         {
-            this.CreateFlatPlane(geometry, material, new ReadOnlyCollection<Vector2>(shape.ConvexHull().ToArray()), height);
+            Contract.Requires(geometry != null);
+            Contract.Requires(shape != null);
+
+            this.CreateFlatPlane(geometry, material, shape.ConvexHull().ToArray(), height);
         }
     }
 }

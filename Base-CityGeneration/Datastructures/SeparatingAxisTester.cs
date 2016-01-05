@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Myre.Extensions;
@@ -9,9 +10,12 @@ namespace Base_CityGeneration.Datastructures
 {
     public static class SeparatingAxisTester
     {
-        public static bool Intersects(Vector2[] convex1, Vector2[] convex2)
+        public static bool Intersects(IReadOnlyList<Vector2> convex1, IReadOnlyList<Vector2> convex2)
         {
-            foreach (var edge in Edges(convex1).Append(Edges(convex2)))
+            Contract.Requires(convex1 != null);
+            Contract.Requires(convex2 != null);
+
+            foreach (var edge in Edges(convex1).Concat(Edges(convex2)))
             {
                 float a1, b1;
                 Project(edge, convex1, out a1, out b1);
@@ -26,8 +30,10 @@ namespace Base_CityGeneration.Datastructures
             return true;    //Couldn't find a separating axis
         }
 
-        public static bool Intersects(Rectangle r, Vector2[] convex2)
+        public static bool Intersects(Rectangle r, IReadOnlyList<Vector2> convex2)
         {
+            Contract.Requires(convex2 != null);
+
             var convex1 = new Vector2[]
             {
                 new Vector2(r.Left, r.Bottom),
@@ -41,6 +47,8 @@ namespace Base_CityGeneration.Datastructures
 
         private static void Project(Ray2 r, IEnumerable<Vector2> shape, out float min, out float max)
         {
+            Contract.Requires(shape != null);
+
             min = float.MaxValue;
             max = float.MinValue;
 
@@ -51,9 +59,11 @@ namespace Base_CityGeneration.Datastructures
             }
         }
 
-        private static IEnumerable<Ray2> Edges(IList<Vector2> shape)
+        private static IEnumerable<Ray2> Edges(IReadOnlyList<Vector2> shape)
         {
-            for (int i = 0; i < shape.Count; i++)
+            Contract.Requires(shape != null);
+
+            for (var i = 0; i < shape.Count; i++)
             {
                 var a = shape[i];
                 var b = shape[(i + 1) % shape.Count];

@@ -6,6 +6,7 @@ using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using Base_CityGeneration.Utilities;
 using EpimetheusPlugins.Scripts;
+using JetBrains.Annotations;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec
 {
@@ -72,13 +73,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             var output = new List<VerticalSelection>();
             foreach (var vertical in zipped)
             {
-                KeyValuePair<string, string>[] chosenTags;
-                var script = _tags.SelectScript(random, finder, out chosenTags, typeof(IVerticalFeature));
-                if (script == null)
+                var result = _tags.SelectScript(random, finder, typeof(IVerticalFeature));
+                if (!result.HasValue)
                     continue;
 
                 output.Add(new VerticalSelection(
-                    script,
+                    result.Value.Script,
                     vertical.Key.Index,
                     vertical.Value.Index
                 ));
@@ -88,13 +88,17 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         internal class Container
         {
-            public TagContainerContainer Tags { get; set; }
+            public TagContainerContainer Tags { get; [UsedImplicitly]set; }
 
-            public BaseRef.BaseContainer Bottom { get; set; }
-            public BaseRef.BaseContainer Top { get; set; }
+            public BaseRef.BaseContainer Bottom { get; [UsedImplicitly]set; }
+            public BaseRef.BaseContainer Top { get; [UsedImplicitly]set; }
 
             public VerticalElementSpec Unwrap()
             {
+                Contract.Assume(Tags != null);
+                Contract.Assume(Bottom != null);
+                Contract.Assume(Top != null);
+
                 return new VerticalElementSpec(
                     Tags.Unwrap().ToArray(),
                     Bottom.Unwrap(),

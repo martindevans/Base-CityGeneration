@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
 using Myre.Collections;
@@ -70,7 +71,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             {
                 return new RepeatSpec(
                     Items.Select(a => a.Unwrap()).ToArray(),
-                    BaseValueGeneratorContainer.FromObject(Count),
+                    IValueGeneratorContainer.FromObject(Count),
                     Vary
                 );
             }

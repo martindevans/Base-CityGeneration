@@ -5,6 +5,7 @@ using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using JetBrains.Annotations;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
@@ -21,6 +22,12 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
             _totalWeight += weight;
         }
 
+        [ContractInvariantMethod]
+        private void ObjectInvariant()
+        {
+            Contract.Invariant(_blends != null);
+        }
+
         public void Sample(ref Vector2 position, out Tensor result)
         {
             result = new Tensor(0, 0);
@@ -32,10 +39,12 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         internal class Container
             : ITensorFieldContainer
         {
-            public FieldContainer Tensors { get; set; }
+            public FieldContainer Tensors { get; [UsedImplicitly]set; }
 
             public ITensorField Unwrap(Func<double> random, INamedDataCollection metadata)
             {
+                Contract.Assume(Tensors != null);
+
                 var wa = new WeightedAverage();
                 foreach (var tensorFieldContainer in Tensors)
                     wa.Blend(tensorFieldContainer.Value.Unwrap(random, metadata), tensorFieldContainer.Key);
@@ -74,6 +83,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 
                 public void CopyTo(KeyValuePair<float, ITensorFieldContainer>[] array, int arrayIndex)
                 {
+                    Contract.Assert(arrayIndex <= (array.Length - Count));
+
                     _data.CopyTo(array, arrayIndex);
                 }
 

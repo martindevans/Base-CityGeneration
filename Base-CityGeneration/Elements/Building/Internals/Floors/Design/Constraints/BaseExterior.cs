@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using EpimetheusPlugins.Extensions;
 using Myre.Collections;
@@ -54,6 +55,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
 
         private static float TotalResourceLength(FloorplanRegion region, Section.Types type)
         {
+            Contract.Requires(region != null);
+
             return region
                 .Shape
                 .SelectMany(a => a.Sections)

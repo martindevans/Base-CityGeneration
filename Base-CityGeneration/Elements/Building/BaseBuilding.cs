@@ -19,6 +19,7 @@ using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building
 {
+    [ContractClass(typeof(BaseBuildingContracts))]
     public abstract class BaseBuilding
         : ProceduralScript, IBuilding
     {
@@ -37,7 +38,6 @@ namespace Base_CityGeneration.Elements.Building
         }
 
         private int _belowGroundFloors;
-
         public int BelowGroundFloors
         {
             get
@@ -104,13 +104,16 @@ namespace Base_CityGeneration.Elements.Building
             //Set up relationship between floor and verticals (floor PrerequisiteOf vertical)
             foreach (var vertical in _verticals)
             {
-                for (int i = vertical.BottomFloorIndex; i <= vertical.TopFloorIndex; i++)
+                for (var i = vertical.BottomFloorIndex; i <= vertical.TopFloorIndex; i++)
                     vertical.AddPrerequisite(_floors[i]);
             }
         }
 
         private IReadOnlyDictionary<int, IFloor> CreateFloors(IEnumerable<FloorSelection> floors, Func<int, IReadOnlyList<Vector2>> footprintSelector)
         {
+            Contract.Requires(floors != null);
+            Contract.Requires(footprintSelector != null);
+
             //Sanity check selection does not have two floors in the same place
             if (floors.GroupBy(a => a.Index).Any(g => g.Count() > 1))
                 throw new InvalidOperationException("Attempted to create two floors with the same index");
@@ -156,8 +159,10 @@ namespace Base_CityGeneration.Elements.Building
 
         private IReadOnlyCollection<IVerticalFeature> CreateVerticals(IEnumerable<VerticalSelection> verticals, IReadOnlyDictionary<int, IFloor> floors)
         {
-            if (verticals.Any(a => a.Bottom > a.Top))
-                throw new InvalidOperationException("Attempted to crete a vertical element where bottom > top");
+            Contract.Requires(verticals != null);
+            Contract.Requires(Contract.ForAll(verticals, a => a.Bottom <= a.Top), "Attempted to crete a vertical element where bottom > top");
+            Contract.Requires(floors != null);
+            Contract.Ensures(Contract.Result<IReadOnlyCollection<IVerticalFeature>>() != null);
 
             var results = new List<IVerticalFeature>();
 
@@ -211,6 +216,10 @@ namespace Base_CityGeneration.Elements.Building
 
         private IReadOnlyCollection<IBuildingFacade> CreateFacades(ISubdivisionGeometry geometry, IEnumerable<Footprint> footprints, INamedDataCollection hierarchicalParameters)
         {
+            Contract.Requires(geometry != null);
+            Contract.Requires(footprints != null);
+            Contract.Requires(hierarchicalParameters != null);
+
             //Accumulate results
             var results = new List<IBuildingFacade>();
 
@@ -314,6 +323,10 @@ namespace Base_CityGeneration.Elements.Building
 
         private void CreateCornerFacades(ISubdivisionGeometry geometry, Footprint footprint, int topIndex, Walls.Section[] corners, string material)
         {
+            Contract.Requires(geometry != null);
+            Contract.Requires(corners != null);
+            Contract.Requires(_floors != null);
+
             //Calculate altitude of bottom and top of this facade
             var bot = _floors[footprint.BottomIndex].FloorAltitude;
             var top = _floors[topIndex].FloorAltitude + _floors[topIndex].FloorHeight;
@@ -406,6 +419,9 @@ namespace Base_CityGeneration.Elements.Building
 
         private static IReadOnlyList<Vector2> IntersectionOfFootprints(IReadOnlyList<IFloor> floors)
         {
+            Contract.Requires(floors != null);
+            Contract.Ensures(Contract.Result<IReadOnlyList<Vector2>>() != null);
+
             const int SCALE = 1000;
             var c = new Clipper();
 
@@ -428,6 +444,9 @@ namespace Base_CityGeneration.Elements.Building
 
         private static Func<int, IReadOnlyList<Vector2>> Footprints(IEnumerable<Footprint> externals)
         {
+            Contract.Requires(externals != null);
+            Contract.Ensures(Contract.Result<Func<int, IReadOnlyList<Vector2>>>() != null);
+
             var footprints = externals.ToDictionary(a => a.BottomIndex, a => a);
 
             return floor => {
@@ -438,7 +457,7 @@ namespace Base_CityGeneration.Elements.Building
                 //Search downwards from this floor for next footprint
                 if (floor > 0)
                 {
-                    for (int i = floor; i >= 0; i--)
+                    for (var i = floor; i >= 0; i--)
                     {
                         Footprint ft;
                         if (footprints.TryGetValue(i, out ft))
@@ -490,6 +509,37 @@ namespace Base_CityGeneration.Elements.Building
                 Shape = shape;
                 Facades = facades;
             }
+        }
+    }
+
+    [ContractClassFor(typeof(BaseBuilding))]
+    internal abstract class BaseBuildingContracts
+        : BaseBuilding
+    {
+        protected override IEnumerable<FloorSelection> SelectFloors()
+        {
+            Contract.Ensures(Contract.Result<IEnumerable<FloorSelection>>() != null);
+
+            return default(IEnumerable<FloorSelection>);
+        }
+
+        protected override IEnumerable<VerticalSelection> SelectVerticals()
+        {
+            Contract.Ensures(Contract.Result<IEnumerable<VerticalSelection>>() != null);
+
+            return default(IEnumerable<VerticalSelection>);
+        }
+
+        protected override IEnumerable<BaseBuilding.Footprint> SelectExternals()
+        {
+            Contract.Ensures(Contract.Result<IEnumerable<BaseBuilding.Footprint>>() != null);
+
+            return default(IEnumerable<BaseBuilding.Footprint>);
+        }
+
+        public override bool Accept(Prism bounds, INamedDataProvider parameters)
+        {
+            return default(bool);
         }
     }
 }

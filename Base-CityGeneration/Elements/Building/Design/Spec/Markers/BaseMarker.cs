@@ -120,14 +120,9 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
         internal abstract class BaseContainer
             : ISelectorContainer, IList<BaseFootprintAlgorithm.BaseContainer>
         {
-            private readonly List<BaseFootprintAlgorithm.BaseContainer> _algorithms = new List<BaseFootprintAlgorithm.BaseContainer>(); 
+            private readonly List<BaseFootprintAlgorithm.BaseContainer> _algorithms = new List<BaseFootprintAlgorithm.BaseContainer>();
 
-            protected abstract BaseFloorSelector Unwrap();
-
-            BaseFloorSelector ISelectorContainer.Unwrap()
-            {
-                return Unwrap();
-            }
+            public abstract BaseFloorSelector Unwrap();
 
             #region ilist
             public IEnumerator<BaseFootprintAlgorithm.BaseContainer> GetEnumerator()

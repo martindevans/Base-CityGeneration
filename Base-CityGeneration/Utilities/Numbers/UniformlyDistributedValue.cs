@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using Base_CityGeneration.Utilities.Extensions;
 using EpimetheusPlugins.Procedural;
 using JetBrains.Annotations;
 using Myre.Collections;
@@ -27,7 +28,7 @@ namespace Base_CityGeneration.Utilities.Numbers
         }
 
         internal class Container
-            : BaseValueGeneratorContainer
+            : IValueGeneratorContainer
         {
             public float Min { get; [UsedImplicitly]set; }
             public float Max { get; [UsedImplicitly]set; }

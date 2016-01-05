@@ -59,6 +59,9 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void CreateFootpathN(ISubdivisionGeometry geometry, string material, float height)
         {
+            Contract.Requires(geometry != null);
+            Contract.Requires(Vertex != null);
+
             //Order the edges by their angle around the vertex
             var orderedEdges = Vertex.OrderedEdges().ToArray();
 
@@ -74,6 +77,10 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void CreateFootpathFromPair(ISubdivisionGeometry geometry, string material, float height, IHalfEdgeBuilder a, IHalfEdgeBuilder b)
         {
+            Contract.Requires(geometry != null);
+            Contract.Requires(a != null);
+            Contract.Requires(b != null);
+
             //Determine the inner point we're curving around
             bool r1LeftInner = a.LeftEnd.TolerantEquals(b.RightEnd, 0.01f);
             bool r1RightInner = a.RightEnd.TolerantEquals(b.LeftEnd, 0.01f);
@@ -94,6 +101,10 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void CreateFootpath2Outer(ISubdivisionGeometry geometry, string material, float height, IHalfEdgeBuilder r1, IHalfEdgeBuilder r2)
         {
+            Contract.Requires(geometry != null);
+            Contract.Requires(r1 != null);
+            Contract.Requires(r2 != null);
+
             //r1.LeftEnd and r2.RightEnd are the outsides of the roads
             //Trace a path along the boundary between these points, use the path which does *not* include the other points
             Vector2[] cwp, ccwp;
@@ -114,7 +125,7 @@ namespace Base_CityGeneration.Elements.Roads
             var outerPoints = cw ? cwp : ccwp;
             var innerPoints = new Vector2[cw ? cwp.Length : ccwp.Length];
 
-            Contract.Assume(innerPoints.Length == outerPoints.Length);
+            Contract.Assert(innerPoints.Length == outerPoints.Length);
 
             var widthStart = cw ? r1.SidewalkWidth : r2.SidewalkWidth;
             var widthEnd = cw ? r2.SidewalkWidth : r1.SidewalkWidth;
@@ -142,7 +153,7 @@ namespace Base_CityGeneration.Elements.Roads
             }
 
             //Create footprint from 2 halves
-            var footprint = cw ? outerPoints.Append(innerPoints.Reverse()) : outerPoints.Reverse().Append(innerPoints);
+            var footprint = cw ? outerPoints.Concat(innerPoints.Reverse()) : outerPoints.Reverse().Concat(innerPoints);
             geometry.Union(geometry
                 .CreatePrism(material, footprint.ToArray(), height)
                 .Translate(new Vector3(0, this.GroundOffset(height), 0))
@@ -156,6 +167,10 @@ namespace Base_CityGeneration.Elements.Roads
 
         private void CreateFootpath2Inner(ISubdivisionGeometry geometry, string material, float height, bool r1LeftInner, IHalfEdgeBuilder r1, IHalfEdgeBuilder r2)
         {
+            Contract.Requires(r1 != null);
+            Contract.Requires(r2 != null);
+            Contract.Requires(geometry != null);
+
             var innerPoint = r1LeftInner ? r1.LeftEnd : r1.RightEnd;
 
             var points = new List<Vector2> {

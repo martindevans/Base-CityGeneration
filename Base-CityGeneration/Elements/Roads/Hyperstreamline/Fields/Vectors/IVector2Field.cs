@@ -17,12 +17,15 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors
     {
         public static Vector2 TraceVectorField(this IVector2Field field, Vector2 position, Vector2 previous, float maxSegmentLength)
         {
-            Vector2 first = previous;
+            Contract.Requires(field != null);
+            Contract.Requires(maxSegmentLength > 0);
+
+            var first = previous;
 
             //Extended naieve tracing (accumulate naieve traces, stop once we hit sample OR length limit)
             float lengthSum = 0;
-            Vector2 result = Vector2.Zero;
-            for (int i = 0; i < 10 && lengthSum < maxSegmentLength; i++)
+            var result = Vector2.Zero;
+            for (var i = 0; i < 10 && lengthSum < maxSegmentLength; i++)
             {
                 var d = field.SingleTraceVectorField(position, previous);
                 var l = d.Length();
@@ -40,6 +43,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors
 
         private static Vector2 SingleTraceVectorField(this IVector2Field field, Vector2 position, Vector2 previous)
         {
+            Contract.Requires(field != null);
+
             //Naieve tracing
             //return field.CorrectedSample(position, previous);
 
@@ -53,6 +58,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Vectors
 
         private static Vector2 CorrectedSample(this IVector2Field field, Vector2 position, Vector2 baseDirection)
         {
+            Contract.Requires(field != null);
+
             return CorrectVectorDirection(field.Sample(position), baseDirection);
         }
 

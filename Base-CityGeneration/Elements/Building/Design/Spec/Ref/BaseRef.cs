@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 {
+    [ContractClass(typeof(BaseRefContracts))]
     public abstract class BaseRef
     {
         /// <summary>
@@ -31,6 +32,9 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
 
         public IEnumerable<FloorSelection> Match(IReadOnlyList<FloorSelection> floors, int? startIndex)
         {
+            Contract.Requires(floors != null);
+            Contract.Ensures(Contract.Result<IEnumerable<FloorSelection>>() != null);
+
             return MatchImpl(floors, startIndex);
         }
 
@@ -125,6 +129,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
         }
 
         internal abstract class BaseContainer
+            : IUnwrappable<BaseRef>
         {
             // Making protected would break serialization
             // ReSharper disable MemberCanBeProtected.Global
@@ -180,5 +185,23 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Ref
         /// If only one option was generated, take that. Otherwise take fail (cancel entire building)
         /// </summary>
         SingleOrFail,
+    }
+
+    [ContractClassFor(typeof(BaseRef))]
+    internal abstract class BaseRefContracts
+        : BaseRef
+    {
+        protected BaseRefContracts(RefFilter filter, bool nonOverlapping, bool inclusive)
+            : base(filter, nonOverlapping, inclusive)
+        {
+        }
+
+        protected override IEnumerable<FloorSelection> MatchImpl(IReadOnlyList<FloorSelection> floors, int? startIndex)
+        {
+            Contract.Requires(floors != null);
+            Contract.Ensures(Contract.Result<IEnumerable<FloorSelection>>() != null);
+
+            return default(IEnumerable<FloorSelection>);
+        }
     }
 }

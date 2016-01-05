@@ -21,11 +21,7 @@ namespace Base_CityGeneration.Test.Parcelling
         [TestInitialize]
         public void TestInitialize()
         {
-            _parceller = new ObbParceller() {
-                NonOptimalOabbChance = 0.5f,
-                NonOptimalOabbMaxRatio = 1.25f,
-                SplitPointGenerator = new ConstantValue(0)
-            };
+            _parceller = new ObbParceller(new ConstantValue(0), new ConstantValue(0.5f), new ConstantValue(1.25f));
         }
 
         [TestMethod]

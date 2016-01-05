@@ -1,5 +1,7 @@
 ﻿using Base_CityGeneration.Parcels.Parcelling;
 using System;
+using System.Diagnostics.Contracts;
+using JetBrains.Annotations;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Lots.Constraints
@@ -11,7 +13,15 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Lots.Constraints
 
         private Invert(BaseLotConstraint inner)
         {
+            Contract.Requires(inner != null);
+
             _inner = inner;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariant()
+        {
+            Contract.Invariant(_inner != null);
         }
 
         public override bool Check(Parcel parcel, Func<double> random, INamedDataCollection metadata)
@@ -22,10 +32,12 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Lots.Constraints
         internal class Container
             : BaseContainer
         {
-            public BaseContainer Inner { get; set; }
+            public BaseContainer Inner { get; [UsedImplicitly]set; }
 
             public override BaseLotConstraint Unwrap()
             {
+                Contract.Assume(Inner != null);
+
                 return new Invert(Inner.Unwrap());
             }
         }

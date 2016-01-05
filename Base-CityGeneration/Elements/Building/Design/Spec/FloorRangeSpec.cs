@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
 using Base_CityGeneration.Utilities;
+using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
 using Myre.Collections;
@@ -89,7 +90,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
             public BaseFloorSelector Unwrap()
             {
-                IValueGenerator defaultHeight = DefaultHeight == null ? new NormallyDistributedValue(2.5f, 3, 3.5f, 0.2f) : BaseValueGeneratorContainer.FromObject(DefaultHeight);
+                IValueGenerator defaultHeight = DefaultHeight == null ? new NormallyDistributedValue(2.5f, 3, 3.5f, 0.2f) : IValueGeneratorContainer.FromObject(DefaultHeight);
 
                 return new FloorRangeSpec(Includes.Select(a => a.Unwrap(defaultHeight)).ToArray(), defaultHeight);
             }
@@ -112,7 +113,6 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         }
 
         private readonly IValueGenerator _count;
-
         public IValueGenerator Count
         {
             get
@@ -153,14 +153,25 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             _count = count;
         }
 
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_count != null);
+            Contract.Invariant(_tags != null);
+        }
+
         private static FloorSelection SelectSingle(BaseFloorSelector selector, Func<double> random, IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float height, string id)
         {
-            KeyValuePair<string, string>[] selectedTags;
-            ScriptReference script = tags.SelectScript(random, finder, out selectedTags, typeof(IFloor));
-            if (script == null)
+            Contract.Requires(selector != null);
+            Contract.Requires(random != null);
+            Contract.Requires(tags != null);
+            Contract.Requires(finder != null);
+
+            var result = tags.SelectScript(random, finder, typeof(IFloor));
+            if (result == null)
                 return null;
 
-            return new FloorSelection(id, selectedTags, selector, script, height);
+            return new FloorSelection(id, result.Value.Tags, selector, result.Value.Script, height);
         }
 
         public IEnumerable<IEnumerable<FloorSelection>> Select(BaseFloorSelector selector, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
@@ -230,9 +241,9 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
             internal FloorRangeIncludeSpec Unwrap(IValueGenerator defaultHeight)
             {
-                var count = BaseValueGeneratorContainer.FromObject(Count);
+                var count = IValueGeneratorContainer.FromObject(Count);
 
-                return new FloorRangeIncludeSpec(Id ?? Guid.NewGuid().ToString(), count, Vary, Continuous, Tags.Unwrap().ToArray(), Height == null ? defaultHeight : BaseValueGeneratorContainer.FromObject(Height));
+                return new FloorRangeIncludeSpec(Id ?? Guid.NewGuid().ToString(), count, Vary, Continuous, Tags.Unwrap().ToArray(), Height == null ? defaultHeight : IValueGeneratorContainer.FromObject(Height));
             }
         }
     }

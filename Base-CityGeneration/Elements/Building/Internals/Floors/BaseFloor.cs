@@ -203,6 +203,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
         private void CreateRoomFacades(IReadOnlyCollection<IConfigurableFacade> externalFacades, float yOffset, FloorPlan plan)
         {
+            Contract.Requires(externalFacades != null);
+            Contract.Requires(plan != null);
+
             //There are three types of facade:
             // 1. A border between 2 rooms
             //  - Create a NegotiableFacade between rooms and store for later retrieval
@@ -214,12 +217,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
             // Facades between rooms
             // Key is both rooms (in ID order), value is the all the facades between the two rooms
-            Dictionary<KeyValuePair<RoomPlan, RoomPlan>, List<IConfigurableFacade>> interRoomFacades = new Dictionary<KeyValuePair<RoomPlan, RoomPlan>, List<IConfigurableFacade>>();
+            var interRoomFacades = new Dictionary<KeyValuePair<RoomPlan, RoomPlan>, List<IConfigurableFacade>>();
 
             foreach (var roomPlan in plan.Rooms.Where(r => r.Node != null).OrderBy(r => r.Id))
             {
                 //All facades generated for this room
-                Dictionary<RoomPlan.Facade, IConfigurableFacade> generatedFacades = new Dictionary<RoomPlan.Facade, IConfigurableFacade>();
+                var generatedFacades = new Dictionary<RoomPlan.Facade, IConfigurableFacade>();
 
                 var facades = roomPlan.GetFacades();
 
@@ -287,6 +290,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
         private static IConfigurableFacade FindExternalFacade(float wallThickness, IEnumerable<IConfigurableFacade> externalFacades, LineSegment2 segment)
         {
+            Contract.Requires(externalFacades != null);
+
             return externalFacades.FirstOrDefault(e =>
             {
                 var l = e.Section.ExternalLineSegment;
@@ -375,6 +380,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         /// <returns></returns>
         protected virtual IEnumerable<ScriptReference> InternalFacadeScripts(RoomPlan roomPlan)
         {
+            Contract.Requires(roomPlan != null);
+            Contract.Ensures(Contract.Result<IEnumerable<ScriptReference>>() != null);
+
             yield return new ScriptReference(typeof(ConfigurableFacade));
         }
 
@@ -416,12 +424,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
         private void CreateFloorPlan(Prism bounds, FloorPlan plan)
         {
+            Contract.Requires(plan != null);
+
             CreateRooms(plan);
             plan.Freeze();
         }
 
         private void CreateRoomScripts(float yOffset, float height, FloorPlan plan)
         {
+            Contract.Requires(plan != null);
+
             foreach (var roomPlan in plan.Rooms)
             {
                 var room = (IPlannedRoom)CreateChild(

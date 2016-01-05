@@ -46,7 +46,6 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
         }
 
         private readonly string _id;
-
         public string Id
         {
             get
@@ -74,6 +73,14 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             _height = height;
         }
 
+        [ContractInvariantMethod]
+        private void ObjectInvariant()
+        {
+            Contract.Invariant(_tags != null);
+            Contract.Invariant(_id != null);
+            Contract.Invariant(_height != null);
+        }
+
         public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
         {
             var selected = SelectSingle(random, _tags, finder, _height.SelectFloatValue(random, metadata), Id);
@@ -96,7 +103,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
             public BaseFloorSelector Unwrap()
             {
-                IValueGenerator height = Height == null ? new NormallyDistributedValue(2.5f, 3f, 3.5f, 0.2f) : BaseValueGeneratorContainer.FromObject(Height);
+                IValueGenerator height = Height == null ? new NormallyDistributedValue(2.5f, 3f, 3.5f, 0.2f) : IValueGeneratorContainer.FromObject(Height);
 
                 return new FloorSpec(Id ?? Guid.NewGuid().ToString(), Tags.Unwrap().ToArray(), height);
             }

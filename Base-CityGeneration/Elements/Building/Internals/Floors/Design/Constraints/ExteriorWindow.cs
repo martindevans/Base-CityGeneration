@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Diagnostics.Contracts;
 using JetBrains.Annotations;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints
@@ -21,6 +21,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
 
         private ExteriorWindow Union(ExteriorWindow other)
         {
+            Contract.Requires(other != null);
+
             return new ExteriorWindow(Deny || other.Deny);
         }
 

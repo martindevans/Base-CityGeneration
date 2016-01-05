@@ -50,6 +50,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Rooms
 
         protected void PlaceConnections(Prism bounds, IEnumerable<IPlannedRoom> targets)
         {
+            Contract.Requires(HierarchicalParameters != null);
+            Contract.Requires(targets != null);
+
             var doorWidth = HierarchicalParameters.StandardDoorWidth(Random);
             var material = HierarchicalParameters.GetValue(new TypedName<string>("material"));
 

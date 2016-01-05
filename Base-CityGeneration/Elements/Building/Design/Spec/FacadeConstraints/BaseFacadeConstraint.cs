@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Collections.Generic;
+using System.Numerics;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
 {
@@ -14,9 +15,10 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
         /// <param name="bottom">Altitude of the bottom of the wall we're applying this facade to</param>
         /// <param name="top">Altitude of the top of the wall we're applying this facade to</param>
         /// <returns></returns>
-        public abstract bool Check(FloorSelection floor, BuildingSideInfo[] neighbours, Vector2 edgeStart, Vector2 edgeEnd, float bottom, float top);
+        public abstract bool Check(FloorSelection floor, IReadOnlyList<BuildingSideInfo> neighbours, Vector2 edgeStart, Vector2 edgeEnd, float bottom, float top);
 
         internal abstract class BaseContainer
+            : IUnwrappable<BaseFacadeConstraint>
         {
             public abstract BaseFacadeConstraint Unwrap();
         }

@@ -56,6 +56,10 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         private static Region WalkRegionBoundary(Edge start, bool direction, ISet<Edge> unprocessed, ISet<KeyValuePair<bool, Edge>> halfProcessed)
         {
+            Contract.Requires(start != null);
+            Contract.Requires(unprocessed != null);
+            Contract.Requires(halfProcessed != null);
+
             //We only want to trace boundary streamlines (width zero) on the inside, not the outside
             //Skip this streamline if it is a clockwise boundary streamline (and update collections)
             if (start.Streamline.Width == 0)
@@ -99,6 +103,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         private static void RemoveDeadEnds(IList<Vertex> points)
         {
+            Contract.Requires(points != null);
+
             //it's possible for a region to follow up a dead end road
             //This will manifest as a point both preceded and followed by the same vertex
             //We want to remove the vertex, and one of the two neighbours and keep doing this until no more are left
@@ -138,6 +144,8 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 
         private static Edge WalkNextEdge(Edge edge, ref bool direction)
         {
+            Contract.Requires(edge != null);
+
             var v = direction ? edge.B : edge.A;
             var d = edge.Direction * (direction ? 1 : -1);
 

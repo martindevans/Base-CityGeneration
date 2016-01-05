@@ -1,7 +1,6 @@
 ﻿using Myre.Collections;
 using System;
 using System.Diagnostics.Contracts;
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Utilities.Numbers
 {
@@ -38,61 +37,69 @@ namespace Base_CityGeneration.Utilities.Numbers
         }
     }
 
-    public static class IValueGeneratorExtensions
+    // ReSharper disable once InconsistentNaming
+    [ContractClass(typeof(IValueGeneratorContainerContracts))]
+    internal abstract class IValueGeneratorContainer
+        : IUnwrappable<IValueGenerator>
     {
-        public static int SelectIntValue(this IValueGenerator gen, Func<double> random, INamedDataCollection data)
-        {
-            Contract.Requires(gen != null);
-            Contract.Requires(random != null);
-            Contract.Requires(data != null);
+        private IValueGenerator Unwrapped { get; set; }
 
-            checked
+        public IValueGenerator Unwrap()
+        {
+            Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+
+            if (Unwrapped == null)
+                Unwrapped = UnwrapImpl();
+            return Unwrapped;
+        }
+
+        protected abstract IValueGenerator UnwrapImpl();
+
+        public static explicit operator IValueGeneratorContainer(float v)
+        {
+            return new ConstantValue.Container { Value = v };
+        }
+
+        public static explicit operator IValueGeneratorContainer(double v)
+        {
+            return new ConstantValue.Container { Value = (float)v };
+        }
+
+        public static explicit operator IValueGeneratorContainer(int v)
+        {
+            return new ConstantValue.Container { Value = v };
+        }
+
+        public static IValueGenerator FromObject(object v, float? defaultValue = null)
+        {
+            Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+
+            var @explicit = v as IValueGeneratorContainer;
+            if (@explicit != null)
+                return @explicit.Unwrap();
+
+            if (v == null)
             {
-                //Rearrange the min and max to be integers (in a narrower or equal range)
-                var min = (long)Math.Ceiling(gen.MinValue);
-                var max = (long)Math.Floor(gen.MaxValue);
-
-                //If they're the same we don't have a whole lot of choice!
-                if (min == max)
-                    return (int)min;
-
-                //If they're inverted the range is too narrow (e.g. Min:0.1 Max:0.9 we can't select any integers in that range)
-                if (min > max)
-                {
-                    //Swap max and min
-                    var tmp = max;
-                    max = min;
-                    min = tmp;
-                }
-
-                //Clamp and round the value
-                return (int)Math.Round(MathHelper.Clamp(gen.SelectFloatValue(random, data), min, max), MidpointRounding.AwayFromZero);
+                if (defaultValue.HasValue)
+                    v = defaultValue.Value;
+                else
+                    throw new ArgumentException("Value is null (and no default value was provided", "v");
             }
-        }
 
-        public static IValueGenerator Transform(this IValueGenerator gen, Func<float, float> func = null, bool vary = true)
+            var f = Convert.ToSingle(v);
+            return ((IValueGeneratorContainer)f).Unwrap();
+        }
+    }
+
+    [ContractClassFor(typeof(IValueGeneratorContainer))]
+    internal abstract class IValueGeneratorContainerContracts
+        : IValueGeneratorContainer
+    {
+        protected override IValueGenerator UnwrapImpl()
         {
-            Contract.Requires(gen != null);
             Contract.Ensures(Contract.Result<IValueGenerator>() != null);
 
-            //If we're not transforming the value, and we're not making it unvarying this method has no effect!
-            if (func == null && vary)
-                return gen;
-
-            return new WrapperValue(gen, func ?? (a => a), vary);
-        }
-
-        public static IValueGenerator Add(this IValueGenerator a, IValueGenerator b)
-        {
-            Contract.Requires(a != null);
-            Contract.Requires(b != null);
-            Contract.Ensures(Contract.Result<IValueGenerator>() != null);
-
-            return new FuncValue(
-                (r, m) => a.SelectFloatValue(r, m) + b.SelectFloatValue(r, m),
-                a.MinValue + b.MinValue,
-                a.MinValue + a.MaxValue
-            );
+            return default(IValueGenerator);
         }
     }
 }

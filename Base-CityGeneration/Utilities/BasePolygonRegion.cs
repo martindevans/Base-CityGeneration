@@ -1,5 +1,4 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -17,13 +16,13 @@ namespace Base_CityGeneration.Utilities
     /// <summary>
     /// Base class for regions of space defined by a polygon
     /// </summary>
+    [ContractClass(typeof(BasePolygonRegionContracts<,>))]
     public abstract class BasePolygonRegion<TSelf, TSection>
         where TSelf : BasePolygonRegion<TSelf, TSection>
         where TSection : class, BasePolygonRegion<TSelf, TSection>.Side.ISection
     {
         #region fields and properties
         private readonly IReadOnlyList<Side> _shape;
-
         /// <summary>
         /// The shape of this region
         /// </summary>
@@ -93,12 +92,20 @@ namespace Base_CityGeneration.Utilities
             Contract.Requires(shape.Count >= 3);
         }
 
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_shape != null && _shape.Count >= 3);
+        }
+
         protected abstract TSelf Construct(IReadOnlyList<Side> shape);
         #endregion
 
         #region slicing
         private Quadtree<Side> ConstructSideQuadtree()
         {
+            Contract.Ensures(Contract.Result<Quadtree<Side>>() != null);
+
             var sides = new Quadtree<Side>(Bounds, 4);
             foreach (var side in _shape)
                 sides.Insert(new BoundingRectangle(Vector2.Min(side.Start, side.End) - new Vector2(0.01f), Vector2.Max(side.Start, side.End) + new Vector2(0.01f)), side);
@@ -108,7 +115,8 @@ namespace Base_CityGeneration.Utilities
         internal IEnumerable<TSelf> Slice(Ray2 sliceLine)
         {
             //Basic polygon slicing, now we need to re-establish Side information for these polygon
-            var sliced = Points.SlicePolygon(sliceLine);
+            //Simply is set to "false" because the two halves are *independently* simplified, which could make matching up neighbour edges impossible!
+            var sliced = Points.SlicePolygon(sliceLine, false);
 
             //spatially index sides so we can find applicable edges faster later
             var sides = ConstructSideQuadtree();
@@ -131,6 +139,8 @@ namespace Base_CityGeneration.Utilities
                         break;
                 }
 
+                Contract.Assert(j < internalSides.Count, "Failed to find matching internal line between two sliced sections");
+
                 var ab = internalSides[0];
                 var ba = internalSides[j];
 
@@ -148,6 +158,11 @@ namespace Base_CityGeneration.Utilities
 
         private TSelf ConstructFromSlicePart(IReadOnlyList<Vector2> polygon, Quadtree<Side> inputSidesQuad, Ray2? sliceLine, List<KeyValuePair<TSelf, Side>> outInternalSides)
         {
+            Contract.Requires(polygon != null);
+            Contract.Requires(inputSidesQuad != null);
+            Contract.Requires(outInternalSides != null);
+            Contract.Ensures(Contract.Result<TSelf>() != null);
+
             var outputSides = new List<Side>();
             var internalSides = new List<Side>();
 
@@ -217,6 +232,9 @@ namespace Base_CityGeneration.Utilities
 
         private IReadOnlyList<TSection> SelectSections(Side side, Vector2 startPoint, Vector2 endPoint)
         {
+            Contract.Requires(side != null && side.Sections != null);
+            Contract.Ensures(Contract.Result<IReadOnlyList<TSection>>() != null);
+
             var tStart = new LineSegment2(side.Start, side.End).LongLine.ClosestPointDistanceAlongLine(startPoint);
             var tEnd = new LineSegment2(side.Start, side.End).LongLine.ClosestPointDistanceAlongLine(endPoint);
 
@@ -225,6 +243,11 @@ namespace Base_CityGeneration.Utilities
 
         private IReadOnlyList<TSection> SelectSections(Side side, float tStart, float tEnd)
         {
+            Contract.Requires(side != null);
+            Contract.Requires(side.Sections != null);
+            Contract.Requires(Contract.ForAll(side.Sections, s => s != null));
+            Contract.Ensures(Contract.Result<IReadOnlyList<TSection>>() != null);
+
             //Ensure tStart < tEnd
             var tmp = tStart;
             tStart = Math.Min(tStart, tEnd);
@@ -233,6 +256,8 @@ namespace Base_CityGeneration.Utilities
             var sections = new List<TSection>();
             foreach (var section in side.Sections)
             {
+                Contract.Assert(section != null);
+
                 if (section.Start < tEnd && section.End > tStart)
                 {
                     //Does the section *entirely* overlap this new section?
@@ -263,8 +288,11 @@ namespace Base_CityGeneration.Utilities
         protected abstract TSection Subsection(TSection section, float tStart, float tEnd);
         #endregion
 
-        public TSelf SubRegion(Vector2[] shape)
+        public TSelf SubRegion(IReadOnlyList<Vector2> shape)
         {
+            Contract.Requires(shape != null);
+            Contract.Ensures(Contract.Result<TSelf>() != null);
+
             var sides = ConstructSideQuadtree();
 
             var internalSides = new List<KeyValuePair<TSelf, Side>>();
@@ -437,4 +465,46 @@ namespace Base_CityGeneration.Utilities
             }
         }
     }
+
+    [ContractClassFor(typeof(BasePolygonRegion<,>))]
+    internal abstract class BasePolygonRegionContracts<TSelf, TSection>
+        : BasePolygonRegion<TSelf, TSection>
+        where TSelf : BasePolygonRegion<TSelf, TSection>
+        where TSection : class, BasePolygonRegion<TSelf, TSection>.Side.ISection
+    {
+        protected BasePolygonRegionContracts(IReadOnlyList<Side> shape, OABR oabr)
+            : base(shape, oabr)
+        {
+        }
+
+        protected BasePolygonRegionContracts(IReadOnlyList<Side> shape)
+            : base(shape)
+        {
+        }
+
+        protected override TSelf Construct(IReadOnlyList<Side> shape)
+        {
+            Contract.Requires(shape != null);
+            Contract.Ensures(Contract.Result<TSelf>() != null);
+
+            return default(TSelf);
+        }
+
+        protected override TSection ConstructNeighbourSection(TSelf neighbour)
+        {
+            Contract.Requires(neighbour != null);
+            Contract.Ensures(Contract.Result<TSection>() != null);
+
+            return default(TSection);
+        }
+
+        protected override TSection Subsection(TSection section, float tStart, float tEnd)
+        {
+            Contract.Requires(section != null);
+            Contract.Ensures(Contract.Result<TSection>() != null);
+
+            return default(TSection);
+        }
+    }
+
 }

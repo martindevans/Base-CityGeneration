@@ -1,6 +1,7 @@
 ﻿using EpimetheusPlugins.Procedural;
 using System;
 using System.Diagnostics.Contracts;
+using Base_CityGeneration.Utilities.Extensions;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Utilities.Numbers
@@ -65,7 +66,7 @@ namespace Base_CityGeneration.Utilities.Numbers
         }
 
         internal class Container
-            : BaseValueGeneratorContainer
+            : IValueGeneratorContainer
         {
             public float Min { get; set; }
             public float? Mean { get; set; }

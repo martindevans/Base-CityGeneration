@@ -3,6 +3,7 @@ using EpimetheusPlugins.Scripts;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using Base_CityGeneration.Utilities;
 
 namespace Base_CityGeneration.Elements.Building.Design
 {
@@ -12,7 +13,6 @@ namespace Base_CityGeneration.Elements.Building.Design
         public string Id { get { return _id; } }
 
         private readonly KeyValuePair<string, string>[] _tags;
-
         public IEnumerable<KeyValuePair<string, string>> Tags
         {
             get
@@ -61,6 +61,12 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         public int Index { get; internal set; }
 
+        internal FloorSelection(string id, BaseFloorSelector selector, float height, TagsContainerExtensions.ScriptSelection script, int index = 0)
+            : this(id, script.Tags, selector, script.Script, height, index)
+        {
+            Contract.Requires(selector != null);
+        }
+
         public FloorSelection(string id, KeyValuePair<string, string>[] tags, BaseFloorSelector selector, ScriptReference script, float height, int index = 0)
         {
             Contract.Requires(tags != null);
@@ -83,7 +89,16 @@ namespace Base_CityGeneration.Elements.Building.Design
             _tags = selection.Tags.ToArray();
             _script = selection.Script;
             _height = selection.Height;
+            _selector = selection.Selector;
             Index = index;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariant()
+        {
+            Contract.Invariant(_tags != null);
+            Contract.Invariant(_script != null);
+            Contract.Invariant(_selector != null);
         }
 
         internal FloorSelection Clone()

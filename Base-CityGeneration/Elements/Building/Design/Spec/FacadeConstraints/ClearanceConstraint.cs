@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using SwizzleMyVectors;
 using System.Numerics;
@@ -19,13 +21,16 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
             Clearance = clearance;
         }
 
-        public override bool Check(FloorSelection floor, BuildingSideInfo[] neighbours, Vector2 edgeStart, Vector2 edgeEnd, float bottom, float top)
+        public override bool Check(FloorSelection floor, IReadOnlyList<BuildingSideInfo> neighbours, Vector2 edgeStart, Vector2 edgeEnd, float bottom, float top)
         {
             return Check(Clearance, floor, neighbours, edgeStart, edgeEnd);
         }
 
-        private static bool Check(float distance, FloorSelection floor, BuildingSideInfo[] sides, Vector2 edgeStart, Vector2 edgeEnd)
+        private static bool Check(float distance, FloorSelection floor, IReadOnlyList<BuildingSideInfo> sides, Vector2 edgeStart, Vector2 edgeEnd)
         {
+            Contract.Requires(floor != null);
+            Contract.Requires(sides != null);
+
             //Direction of the edge of the building
             var eDir = Vector2.Normalize(edgeEnd - edgeStart);
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using JetBrains.Annotations;
@@ -55,10 +56,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             public RequirementStrengthContainer<BaseSpaceConnectionSpec, BaseSpaceConnectionSpec.BaseContainer>[] Connections { get; [UsedImplicitly]set; }
             // ReSharper restore MemberCanBeProtected.Global
 
-            internal abstract BaseSpaceSpec Unwrap();
+            protected internal abstract BaseSpaceSpec Unwrap();
 
             ISpaceSpecProducer IUnwrappable<ISpaceSpecProducer>.Unwrap()
             {
+                Contract.Ensures(Contract.Result<ISpaceSpecProducer>() != null);
+
                 return Unwrap();
             }
         }

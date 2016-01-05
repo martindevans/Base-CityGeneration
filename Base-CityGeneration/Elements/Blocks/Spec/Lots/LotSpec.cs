@@ -5,6 +5,7 @@ using Base_CityGeneration.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using JetBrains.Annotations;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Blocks.Spec.Lots
@@ -42,12 +43,13 @@ namespace Base_CityGeneration.Elements.Blocks.Spec.Lots
 
         internal class BaseContainer
         {
-            public BaseLotConstraint.BaseContainer[] Constraints { get; set; }
-
-            public TagContainerContainer Tags { get; set; }
+            public BaseLotConstraint.BaseContainer[] Constraints { get; [UsedImplicitly]set; }
+            public TagContainerContainer Tags { get; [UsedImplicitly]set; }
 
             public LotSpec Unwrap()
             {
+                Contract.Requires(Tags != null);
+
                 return new LotSpec(
                     (Constraints ?? new BaseLotConstraint.BaseContainer[0]).Select(a => a.Unwrap()).ToArray(),
                     Tags.Unwrap().ToArray()
