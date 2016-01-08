@@ -23,14 +23,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             Optional = optional;
         }
 
-        public override float MinArea(Func<double> random, INamedDataCollection metadata)
+        public override float MinArea()
         {
-            return ((Area)Constraints.Single(a => a.Requirement is Area).Requirement).Minimum.SelectFloatValue(random, metadata);
+            return ((Area)Constraints.Single(a => a.Requirement is Area).Requirement).Minimum;
         }
 
-        public override float MaxArea(Func<double> random, INamedDataCollection metadata)
+        public override float MaxArea()
         {
-            return ((Area)Constraints.Single(a => a.Requirement is Area).Requirement).Maximum.SelectFloatValue(random, metadata);
+            return ((Area)Constraints.Single(a => a.Requirement is Area).Requirement).Maximum;
         }
 
         public override IEnumerable<BaseSpaceSpec> Produce(bool required, Func<double> random, INamedDataCollection metadata)
@@ -47,7 +47,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 
             public bool Optional { get; [UsedImplicitly] private set; }
 
-            protected internal override BaseSpaceSpec Unwrap()
+            protected internal override BaseSpaceSpec Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 if (!Constraints.Any(a => a.Req is Area.Container))
                     throw new SharpYaml.SemanticErrorException(string.Format("Room spec \"{0}\" must specify an Area constraint", Id));
@@ -56,8 +56,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
                     Tags.Unwrap().ToArray(),
                     Id,
                     Walkthrough,
-                    (Constraints ?? NoConstraints).Select(a => a.Unwrap()).ToArray(),
-                    (Connections ?? NoConnections).Select(a => a.Unwrap()).ToArray(),
+                    (Constraints ?? NoConstraints).Select(a => a.Unwrap(random, metadata)).ToArray(),
+                    (Connections ?? NoConnections).Select(a => a.Unwrap(random, metadata)).ToArray(),
                     Optional
                 );
             }

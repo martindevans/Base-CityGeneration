@@ -4,7 +4,6 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
-using Base_CityGeneration.Utilities.Numbers;
 using JetBrains.Annotations;
 using Myre.Collections;
 
@@ -21,14 +20,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             Rooms = rooms;
         }
 
-        public override float MinArea(Func<double> random, INamedDataCollection metadata)
+        public override float MinArea()
         {
-            return Rooms.Select(r => r.MinArea(random, metadata)).Sum();
+            return Rooms.Select(r => r.MinArea()).Sum();
         }
 
-        public override float MaxArea(Func<double> random, INamedDataCollection metadata)
+        public override float MaxArea()
         {
-            return Rooms.Select(r => r.MaxArea(random, metadata)).Sum();
+            return Rooms.Select(r => r.MaxArea()).Sum();
         }
 
         public override IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> Constraints
@@ -55,7 +54,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
         {
             return new RequirementStrength<T>(
                 a.Requirement.Union<T>(b.Requirement),
-                BaseValueGenerator.Average(a.Strength, b.Strength)
+                a.Strength * 0.5f + b.Strength * 0.5f
             );
         }
 
@@ -64,16 +63,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
         {
             public BaseContainer[] Rooms { get; [UsedImplicitly]set; }
 
-            protected internal override BaseSpaceSpec Unwrap()
+            protected internal override BaseSpaceSpec Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 Contract.Assume(Rooms != null);
 
                 return new GroupSpec(
-                    Rooms.Select(a => a.Unwrap()).ToArray(),
+                    Rooms.Select(a => a.Unwrap(random, metadata)).ToArray(),
                     Id,
                     Walkthrough,
-                    (Constraints ?? NoConstraints).Select(a => a.Unwrap()).ToArray(),
-                    (Connections ?? NoConnections).Select(a => a.Unwrap()).ToArray()
+                    (Constraints ?? NoConstraints).Select(a => a.Unwrap(random, metadata)).ToArray(),
+                    (Connections ?? NoConnections).Select(a => a.Unwrap(random, metadata)).ToArray()
                 );
             }
         }

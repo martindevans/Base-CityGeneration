@@ -92,7 +92,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             if (Clipper.Orientation(clipperRoomFootprint))
                 throw new ArgumentException("Room footprint must be clockwise wound");
 
-            //Contain within floor out edge
+            //Contain within floor outer edge
             var solution = ClipToFloor(clipperRoomFootprint, split);
             if (solution == null)
                 return null;
@@ -195,7 +195,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             _clipper.AddPolygon(roomFootprint, PolyType.Subject);
             _clipper.AddPolygon(_externalFootprint.Select(ToPoint).ToList(), PolyType.Clip);
 
-            List<List<IntPoint>> solution = new List<List<IntPoint>>();
+            var solution = new List<List<IntPoint>>();
             _clipper.Execute(ClipType.Intersection, solution);
 
             if (solution.Count > 1 && !allowSplit)

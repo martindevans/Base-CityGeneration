@@ -1,4 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections
 {
@@ -28,11 +30,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connecti
             public BaseContainer B { get; [UsedImplicitly]set; }
             public bool Exclusive { get; [UsedImplicitly]set; }
 
-            public override BaseSpaceConnectionSpec Unwrap()
+            public override BaseSpaceConnectionSpec Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 return new Either(
-                    A.Unwrap(),
-                    B.Unwrap(),
+                    A.Unwrap(random, metadata),
+                    B.Unwrap(random, metadata),
                     Exclusive
                 );
             }

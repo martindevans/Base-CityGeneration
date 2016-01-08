@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections
 {
@@ -19,7 +21,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connecti
         {
             public KeyValuePair<string, string>[] Tags { get; [UsedImplicitly]set; }
 
-            public override BaseSpaceConnectionSpec Unwrap()
+            public override BaseSpaceConnectionSpec Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 return new TaggedRef(Tags);
             }

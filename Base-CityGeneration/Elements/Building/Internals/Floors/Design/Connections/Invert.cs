@@ -1,4 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections
 {
@@ -19,9 +21,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connecti
         {
             public BaseContainer Inner { get; [UsedImplicitly]set; }
 
-            public override BaseSpaceConnectionSpec Unwrap()
+            public override BaseSpaceConnectionSpec Unwrap(Func<double> random, INamedDataCollection metadata)
             {
-                return new Invert(Inner.Unwrap());
+                return new Invert(Inner.Unwrap(random, metadata));
             }
         }
     }

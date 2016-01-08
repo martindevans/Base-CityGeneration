@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints
 {
@@ -19,12 +20,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
             throw new NotImplementedException();
         }
 
+        public override bool IsSatisfied(FloorplanRegion region)
+        {
+            throw new NotImplementedException();
+        }
+
         internal class Container
             : BaseContainer
         {
             public bool Deny { get; [UsedImplicitly]set; }
 
-            public override BaseSpaceConstraintSpec Unwrap()
+            public override BaseSpaceConstraintSpec Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 return new ExteriorDoor(Deny);
             }
