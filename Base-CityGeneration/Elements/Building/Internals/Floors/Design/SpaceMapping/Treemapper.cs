@@ -4,24 +4,27 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
+using EpimetheusPlugins.Extensions;
+using EpimetheusPlugins.Procedural.Utilities;
 using Myre.Collections;
+using Myre.Extensions;
+using SquarifiedTreemap.Extensions;
 using SquarifiedTreemap.Model;
 using SquarifiedTreemap.Model.Input;
 using SquarifiedTreemap.Model.Output;
 using SwizzleMyVectors.Geometry;
 
-namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
+namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping
 {
-    internal class RegionSpaceMapper
+    internal class Treemapper
+        : ISpaceMapper
     {
-        private readonly BoundingRectangle _bounds;
-
-        public RegionSpaceMapper(BoundingRectangle bounds)
+        public IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>> Map(FloorplanRegion region, IEnumerable<KeyValuePair<BaseSpaceSpec, float>> spaces, Func<double> random, INamedDataCollection metadata)
         {
-            _bounds = bounds;
+            return Map(region, spaces.Select(a => new RoomTreemapNode(a.Key, a.Value)));
         }
 
-        public IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>> Map(IEnumerable<RoomTreemapNode> spaces)
+        private static IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>> Map(FloorplanRegion region, IEnumerable<RoomTreemapNode> spaces)
         {
             Contract.Requires(spaces != null);
             Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>>>() != null);
@@ -33,56 +36,89 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             BuildBalancedBinaryTree(orderedSpaces, root);
 
             //Build a treemap to assign spaces to the nodes of the tree
-            var treemap = Treemap<RoomTreemapNode>.Build(_bounds, new Tree<RoomTreemapNode>(root));
+            var treemap = Treemap<RoomTreemapNode>.Build(new BoundingRectangle(region.OABR.Min, region.OABR.Max), new Tree<RoomTreemapNode>(root));
 
             //Rearrange the treemap to satisfy constraints (where possible)
-            ImproveConstraintSatisfaction(treemap);
+            ImproveConstraintSatisfaction(region, treemap);
 
-            //Rearrange the treemap to satisfy connections (where possible, without disrupting any constraints)
-            ImproveConnectionSatisfaction(treemap);
-
-            return from space in WalkTree(treemap.Root)
-                   select new KeyValuePair<BoundingRectangle, BaseSpaceSpec>(space.Bounds, space.Value.Space);
+            return from node in WalkTreeValues(treemap.Root)
+                   select new KeyValuePair<BoundingRectangle, BaseSpaceSpec>(node.Bounds, node.Value.Space);
         }
-
-        
 
         #region improve constraints
         /// <summary>
         /// We can freely swap parts within the treemap around in an attempt to satisfy more constraints
         /// </summary>
+        /// <param name="region"></param>
         /// <param name="treemap"></param>
-        private static void ImproveConstraintSatisfaction(Treemap<RoomTreemapNode> treemap)
+        private static void ImproveConstraintSatisfaction(FloorplanRegion region, Treemap<RoomTreemapNode> treemap)
         {
-            //Measure the initial constraint satisfaction, we will iteratively improve this bound until we cannot improve any more
-            var sat = MeasureConstraintSat(treemap);
+            var values = WalkTreeValues(treemap.Root).ToArray();
 
-            for (var i = 0; i < 128; i++)
-            {
-                
-            }
+            //Assign a score to every node. Leaf nodes score = satisfaction of this room. Inner nodes = function of leaf node scores.
+            WalkTreeValues(treemap.Root).ForEach(a => a.Value.ConstraintSatisfaction = MeasureLeafUnSat(region, a));
+            var unsatMap = WalkTreeValues(treemap.Root).ToDictionary(a => a, a => a.Value.ConstraintSatisfaction);
 
-            //throw new NotImplementedException();
+            CalculateInnerUnSat(treemap.Root, unsatMap);
+
+            //todo: [floorplan] rearrange!
         }
 
         /// <summary>
-        /// We can freely swap parts within the treemap around in an attempt to bring rooms next to one another
+        /// unsat of inner nodes is a function of the unsat of the child nodes
         /// </summary>
-        /// <param name="treemap"></param>
-        private static void ImproveConnectionSatisfaction(Treemap<RoomTreemapNode> treemap)
+        /// <param name="root"></param>
+        /// <param name="unsatMap"></param>
+        private static void CalculateInnerUnSat(Node<RoomTreemapNode> root, IDictionary<Node<RoomTreemapNode>, float> unsatMap)
         {
-            //throw new NotImplementedException();
+            foreach (var node in root.WalkTreeBottomUp().Where(a => !unsatMap.ContainsKey(a)))
+            {
+                unsatMap[node] = node.Select(a => {
+                    float val;
+                    return unsatMap.TryGetValue(a, out val) ? val : 0;
+                }).Aggregate(1.0f, (a, b) => Math.Max(1, a) * Math.Max(1, b));
+            }
         }
 
-        private static float MeasureConstraintSat(Treemap<RoomTreemapNode> treemap)
+        private static float MeasureLeafUnSat(FloorplanRegion region, Node<RoomTreemapNode> leaf)
         {
-            return 0;
+            Contract.Requires(region != null);
+            Contract.Requires(leaf != null && leaf.Value != null);
+
+            //Calculate the intersection between the floor plan and the rectangle assigned to this room
+            var intersection = leaf.Bounds.GetCorners().Intersection2D(region.Points).Select(a => a.ToArray()).ToArray();
+
+            //If the intersection generates no parts we have a problem! This rooms is unsat to the order of it's area (since it has no area)
+            if (!intersection.Any())
+                return leaf.Value.Area;
+
+            //If we have 1 intersection we're good to go, otherwise take the largest
+            Vector2[] intersectionShape;
+            if (intersection.Length == 1)
+                intersectionShape = intersection[0];
+            else
+                intersectionShape = intersection.Select(a => new { Area = a.Area(), Shape = a }).Aggregate((a, b) => a.Area > b.Area ? a : b).Shape;
+
+            //Cut out a subregion using this shape, this gets us useful information about walls (adjacency, windows, doors etc)
+            var subregion = region.SubRegion(intersectionShape);
+
+            return leaf.Value.Space.Constraints.Select(c =>
+            {
+
+                region.SubRegion(leaf.Bounds.GetCorners());
+
+                //Measure how unsatisfed this constraint is in this position
+                if (c.Requirement.IsSatisfied(subregion))
+                    return 0;
+
+                return 1;
+            }).Aggregate(1.0f, (a, b) => Math.Max(1, a) * Math.Max(1, b));
         }
         #endregion
 
         #region tree building
         [ContractAbbreviator]
-        private static void SanityCheckPreBuildTree(Tree<RoomTreemapNode>.Node root)
+        private static void SanityCheckBuildTree(Tree<RoomTreemapNode>.Node root)
         {
             Contract.Requires(root != null && root.Count == 0);
         }
@@ -96,7 +132,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         private static void BuildFlatTree(IEnumerable<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root)
         {
             Contract.Requires(spaces != null);
-            SanityCheckPreBuildTree(root);
+            SanityCheckBuildTree(root);
 
             foreach (var roomTreemapNode in spaces)
                 root.Add(new Tree<RoomTreemapNode>.Node(roomTreemapNode));
@@ -111,7 +147,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         private static void BuildRightRecursiveTree(IEnumerable<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root)
         {
             Contract.Requires(spaces != null);
-            SanityCheckPreBuildTree(root);
+            SanityCheckBuildTree(root);
 
             var addTo = root;
             foreach (var roomTreemapNode in spaces)
@@ -132,7 +168,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         private static void BuildLeftRecursiveTree(IEnumerable<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root)
         {
             Contract.Requires(spaces != null);
-            SanityCheckPreBuildTree(root);
+            SanityCheckBuildTree(root);
 
             var addTo = root;
             foreach (var roomTreemapNode in spaces)
@@ -152,14 +188,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         private static void BuildBalancedBinaryTree(IEnumerable<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root)
         {
             Contract.Requires(spaces != null);
-            SanityCheckPreBuildTree(root);
+            SanityCheckBuildTree(root);
 
             ExtendBalancedBinaryTree(new ArraySegment<RoomTreemapNode>(spaces.ToArray()), root, 0);
         }
 
         private static void ExtendBalancedBinaryTree(ArraySegment<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root, int depth)
         {
-            SanityCheckPreBuildTree(root);
+            SanityCheckBuildTree(root);
 
             //We can't build a *perfectly* balanced binary tree with a potentially odd number of nodes. How we distribute those odd nodes is important
 
@@ -216,7 +252,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         private static void BuildAdaptiveTree(IEnumerable<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root, BoundingRectangle bounds)
         {
             Contract.Requires(spaces != null);
-            SanityCheckPreBuildTree(root);
+            SanityCheckBuildTree(root);
 
             //Each node can either stack up next to the previous, or switch direction and occupy some of the remaining space
             //Add every node to a common parent, if we change which way around is best, add a new node to the tree and add all future nodes to that
@@ -251,54 +287,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         }
         #endregion
 
-        private static IEnumerable<Node<T>> WalkTree<T>(Node<T> root) where T : ITreemapNode
+        #region static helpers
+        /// <summary>
+        /// Walk all nodes in the tree which have a value associated with them
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="root"></param>
+        /// <returns></returns>
+        private static IEnumerable<Node<T>> WalkTreeValues<T>(Node<T> root) where T : ITreemapNode
         {
-            if (root.Value != null)
-                yield return root;
-
-            foreach (var node in root)
-                foreach (var child in WalkTree(node))
-                    yield return child;
+            return root.WalkTreeBottomUp().Where(a => a.Value != null);
         }
+        #endregion
     }
 
-    internal class RoomTreemapNode
-        : ITreemapNode
-    {
-        private readonly BaseSpaceSpec _space;
-        public BaseSpaceSpec Space
-        {
-            get { return _space; }
-        }
-
-        public float Area { get; set; }
-
-        public float MinArea { get; private set; }
-        public float MaxArea { get; private set; }
-
-        public RoomTreemapNode(BaseSpaceSpec assignedSpace, Func<double> random, INamedDataCollection metadata)
-        {
-            Contract.Requires(assignedSpace != null);
-            Contract.Requires(random != null);
-            Contract.Requires(metadata != null);
-
-            _space = assignedSpace;
-
-            MinArea = assignedSpace.MinArea(random, metadata);
-            MaxArea = assignedSpace.MaxArea(random, metadata);
-
-            Area = MinArea;
-        }
-
-        [ContractInvariantMethod]
-        private void ObjectInvariants()
-        {
-            Contract.Invariant(_space != null);
-        }
-
-        float? ITreemapNode.Area
-        {
-            get { return Area; }
-        }
-    }
+    
 }
