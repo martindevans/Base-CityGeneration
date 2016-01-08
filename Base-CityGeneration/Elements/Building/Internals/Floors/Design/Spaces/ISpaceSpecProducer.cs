@@ -20,7 +20,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
     }
 
     internal interface ISpaceSpecProducerContainer
-        : IUnwrappable<ISpaceSpecProducer>
+        : IUnwrappable2<ISpaceSpecProducer>
     {
     }
 }

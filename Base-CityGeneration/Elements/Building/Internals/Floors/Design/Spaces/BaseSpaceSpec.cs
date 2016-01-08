@@ -30,12 +30,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
         /// <summary>
         /// Get the minimum area this space may occupy
         /// </summary>
-        public abstract float MinArea(Func<double> random, INamedDataCollection metadata);
+        public abstract float MinArea();
 
         /// <summary>
         /// Get the minimum area this space may occupy
         /// </summary>
-        public abstract float MaxArea(Func<double> random, INamedDataCollection metadata);
+        public abstract float MaxArea();
 
         public abstract IEnumerable<BaseSpaceSpec> Produce(bool required, Func<double> random, INamedDataCollection metadata);
 
@@ -56,13 +56,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             public RequirementStrengthContainer<BaseSpaceConnectionSpec, BaseSpaceConnectionSpec.BaseContainer>[] Connections { get; [UsedImplicitly]set; }
             // ReSharper restore MemberCanBeProtected.Global
 
-            protected internal abstract BaseSpaceSpec Unwrap();
+            protected internal abstract BaseSpaceSpec Unwrap(Func<double> random, INamedDataCollection metadata);
 
-            ISpaceSpecProducer IUnwrappable<ISpaceSpecProducer>.Unwrap()
+            ISpaceSpecProducer IUnwrappable2<ISpaceSpecProducer>.Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 Contract.Ensures(Contract.Result<ISpaceSpecProducer>() != null);
 
-                return Unwrap();
+                return Unwrap(random, metadata);
             }
         }
     }

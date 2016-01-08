@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using JetBrains.Annotations;
 using Myre.Collections;
@@ -14,39 +13,22 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
     public class Area
         : BaseSpaceConstraintSpec
     {
-        private readonly IValueGenerator _minimum;
-        public IValueGenerator Minimum
+        private readonly float _minimum;
+        public float Minimum { get { return _minimum; } }
+
+        private readonly float _maximum;
+        public float Maximum { get { return _maximum; } }
+
+        private Area(float min, float max)
         {
-            get
-            {
-                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
-                return _minimum;
-            }
+            _minimum = min;
+            _maximum = max;
         }
 
-        private readonly IValueGenerator _maximum;
-        public IValueGenerator Maximum
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
-                return _maximum;
-            }
-        }
-
-        private Area(IValueGenerator min, IValueGenerator max)
-        {
-            Contract.Requires(min != null);
-            Contract.Requires(max != null);
-
-            _minimum = min.Transform(vary: false);
-            _maximum = max.Transform(vary: false);
-        }
-
-        public override float AssessSatisfactionProbability(FloorplanRegion region, Func<double> random, INamedDataCollection metadata)
+        public override float AssessSatisfactionProbability(FloorplanRegion region)
         {
             //Calculate how much space we need vs how much there is available
-            var required = Minimum.SelectFloatValue(random, metadata);
+            var required = Minimum;
             var available = region.UnassignedArea;
 
             //If insufficient area is available insta-fail
@@ -58,6 +40,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
             return MathHelper.Clamp((float)Math.Log((available / required) * 1.5f), 0.1f, 1);
         }
 
+        public override bool IsSatisfied(FloorplanRegion region)
+        {
+            return region.Area >= _minimum && region.Area <= _maximum;
+        }
+
         internal override T Union<T>(T other)
         {
             return Union(other as Area) as T;
@@ -67,7 +54,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
         {
             Contract.Requires(area != null);
 
-            return new Area(_minimum.Add(area.Minimum), _maximum.Add(area.Maximum));
+            return new Area(_minimum + area.Minimum, _maximum + area.Maximum);
         }
 
         internal class Container
@@ -76,11 +63,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
             public object Min { get; [UsedImplicitly]set; }
             public object Max { get; [UsedImplicitly]set; }
 
-            public override BaseSpaceConstraintSpec Unwrap()
+            public override BaseSpaceConstraintSpec Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 return new Area(
-                    IValueGeneratorContainer.FromObject(Min, 1),
-                    IValueGeneratorContainer.FromObject(Max, float.PositiveInfinity)
+                    IValueGeneratorContainer.FromObject(Min, 1).SelectFloatValue(random, metadata),
+                    IValueGeneratorContainer.FromObject(Max, float.PositiveInfinity).SelectFloatValue(random, metadata)
                 );
             }
         }

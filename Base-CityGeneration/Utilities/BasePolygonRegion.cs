@@ -293,6 +293,9 @@ namespace Base_CityGeneration.Utilities
             Contract.Requires(shape != null);
             Contract.Ensures(Contract.Result<TSelf>() != null);
 
+            if (!shape.IsClockwise())
+                shape = shape.Reverse().ToArray();
+
             var sides = ConstructSideQuadtree();
 
             var internalSides = new List<KeyValuePair<TSelf, Side>>();

@@ -159,6 +159,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Design
         [TestMethod]
         public void TestMethod1()
         {
+            var rnd = new Random(2);
+            Func<double> random = rnd.NextDouble;
+            var meta = new NamedBoxCollection();
+
             var designer = FloorDesigner.Deserialize(new StringReader(@"
 # root node
 !Floorplan
@@ -231,11 +235,7 @@ Rooms:
       Required: 1
       Optional: 100
       Room: *apartment
-"));
-
-            var rnd = new Random(2);
-            Func<double> random = rnd.NextDouble;
-            var meta = new NamedBoxCollection();
+"), random, meta);
 
             ////Octagon
             //var floorplan = designer.Design(random, meta, null, new Vector2[] {
@@ -259,6 +259,7 @@ Rooms:
 
                 return ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tagsClean));
             };
+
             //Corner shape
             var floorplan = designer.Design(random, meta, finder, new[] {
                 new FloorplanRegion.Side(new Vector2(9, 5), new Vector2(9, -6), new Section[]  { new Section(0, 1, Section.Types.Window) }),
@@ -268,6 +269,14 @@ Rooms:
                 new FloorplanRegion.Side(new Vector2(-4, 0), new Vector2(-4, 5), new Section[0]),
                 new FloorplanRegion.Side(new Vector2(-4, 5), new Vector2(9, 5), new Section[0]),
             }, 0.075f);
+
+            ////simple rectangle shape
+            //var floorplan = designer.Design(random, meta, finder, new[] {
+            //    new FloorplanRegion.Side(new Vector2(9, 0), new Vector2(9, -6), new Section[]  { new Section(0, 1, Section.Types.Window) }),
+            //    new FloorplanRegion.Side(new Vector2(9, -6), new Vector2(0, -6), new Section[0]),
+            //    new FloorplanRegion.Side(new Vector2(0, -6), new Vector2(0, 0), new Section[0]),
+            //    new FloorplanRegion.Side(new Vector2(0, 0), new Vector2(9, 0), new Section[0]),
+            //}, 0.075f);
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 15));
 

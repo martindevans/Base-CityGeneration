@@ -1,5 +1,8 @@
-﻿using System.Diagnostics.Contracts;
+﻿using System;
+using System.Diagnostics.Contracts;
+using System.Linq;
 using JetBrains.Annotations;
+using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints
 {
@@ -26,12 +29,18 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
             return new ExteriorWindow(Deny || other.Deny);
         }
 
+        public override bool IsSatisfied(FloorplanRegion region)
+        {
+            var window = region.Shape.Any(a => a.Sections.Any(s => s.Type == Section.Types.Window));
+            return window ^ Deny;
+        }
+
         internal class Container
             : BaseContainer
         {
             public bool Deny { get; [UsedImplicitly]set; }
 
-            public override BaseSpaceConstraintSpec Unwrap()
+            public override BaseSpaceConstraintSpec Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 return new ExteriorWindow(Deny);
             }

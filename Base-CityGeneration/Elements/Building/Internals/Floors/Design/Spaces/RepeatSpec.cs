@@ -9,11 +9,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
     public class RepeatSpec
         : ISpaceSpecProducer
     {
-        public IValueGenerator OptionalCount { get; set; }
-        public IValueGenerator RequiredCount { get; set; }
+        public int OptionalCount { get; private set; }
+        public int RequiredCount { get; private set; }
         public ISpaceSpecProducer Spec { get; set; }
 
-        private RepeatSpec(IValueGenerator optionalCount, IValueGenerator requiredCount, ISpaceSpecProducer spec)
+        private RepeatSpec(int optionalCount, int requiredCount, ISpaceSpecProducer spec)
         {
             OptionalCount = optionalCount;
             RequiredCount = requiredCount;
@@ -23,9 +23,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
         public IEnumerable<BaseSpaceSpec> Produce(bool required, Func<double> random, INamedDataCollection metadata)
         {
             var counter = required ? RequiredCount : OptionalCount;
-            var count = counter.SelectIntValue(random, metadata);
 
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < counter; i++)
                 foreach (var spec in Spec.Produce(required, random, metadata))
                     yield return spec;
         }
@@ -38,12 +37,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 
             public ISpaceSpecProducerContainer Room { get; set; }
 
-            public ISpaceSpecProducer Unwrap()
+            public ISpaceSpecProducer Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 return new RepeatSpec(
-                    IValueGeneratorContainer.FromObject(Optional ?? 0),
-                    IValueGeneratorContainer.FromObject(Required ?? 1),
-                    Room.Unwrap()
+                    IValueGeneratorContainer.FromObject(Optional ?? 0).SelectIntValue(random, metadata),
+                    IValueGeneratorContainer.FromObject(Required ?? 1).SelectIntValue(random, metadata),
+                    Room.Unwrap(random, metadata)
                 );
             }
         }

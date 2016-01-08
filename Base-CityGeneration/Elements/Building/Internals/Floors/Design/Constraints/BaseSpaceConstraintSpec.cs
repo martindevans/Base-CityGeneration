@@ -13,15 +13,20 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
         /// Return a value (0-1) which indicates how likely it is that this constraint will be satisfied in the given region
         /// </summary>
         /// <param name="region"></param>
-        /// <param name="random"></param>
-        /// <param name="metadata"></param>
         /// <returns></returns>
-        public abstract float AssessSatisfactionProbability(FloorplanRegion region, Func<double> random, INamedDataCollection metadata);
+        public abstract float AssessSatisfactionProbability(FloorplanRegion region);
+
+        /// <summary>
+        /// Assess if the constraint is satisfied in the given region
+        /// </summary>
+        /// <param name="region"></param>
+        /// <returns></returns>
+        public abstract bool IsSatisfied(FloorplanRegion region);
 
         internal abstract class BaseContainer
-            : IUnwrappable<BaseSpaceConstraintSpec>
+            : IUnwrappable2<BaseSpaceConstraintSpec>
         {
-            public abstract BaseSpaceConstraintSpec Unwrap();
+            public abstract BaseSpaceConstraintSpec Unwrap(Func<double> random, INamedDataCollection metadata);
         }
     }
 
@@ -37,11 +42,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
             return default(T);
         }
 
-        public override float AssessSatisfactionProbability(FloorplanRegion region, Func<double> random, INamedDataCollection metadata)
+        public override float AssessSatisfactionProbability(FloorplanRegion region)
         {
             Contract.Requires(region != null);
-            Contract.Requires(metadata != null);
-            Contract.Requires(random != null);
 
             return default(float);
         }

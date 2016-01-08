@@ -20,7 +20,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connecti
         {
             public string Id { get; [UsedImplicitly]set; }
 
-            public override BaseSpaceConnectionSpec Unwrap()
+            public override BaseSpaceConnectionSpec Unwrap(Func<double> random, INamedDataCollection metadata)
             {
                 return new IdRef(Id);
             }

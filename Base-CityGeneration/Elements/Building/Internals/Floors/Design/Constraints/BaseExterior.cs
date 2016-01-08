@@ -1,8 +1,6 @@
-﻿using System;
-using System.Diagnostics.Contracts;
+﻿using System.Diagnostics.Contracts;
 using System.Linq;
 using EpimetheusPlugins.Extensions;
-using Myre.Collections;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints
@@ -27,7 +25,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constrai
             _sectionType = sectionType;
         }
 
-        public override float AssessSatisfactionProbability(FloorplanRegion region, Func<double> random, INamedDataCollection metadata)
+        public override float AssessSatisfactionProbability(FloorplanRegion region)
         {
             //Count up how many exterior constraints already want things from this region
             var exteriorConstraints = from space in region.AssignedSpaces

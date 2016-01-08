@@ -160,8 +160,8 @@
       <HintPath>..\packages\CGAL_StraightSkeleton_Dotnet.3.0.0.0\lib\net46\CGAL_StraightSkeleton_Dotnet.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5848.21080, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5848.21080\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5850.30806, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5850.30806\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FortuneVoronoi, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -253,8 +253,8 @@
       <HintPath>..\packages\SharpYaml.1.5.3\lib\SharpYaml.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SquarifiedTreemap, Version=2.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SquarifiedTreemap.2.0.1.0\lib\net46\SquarifiedTreemap.dll</HintPath>
+    <Reference Include="SquarifiedTreemap, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SquarifiedTreemap.2.1.0.0\lib\net46\SquarifiedTreemap.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SupersonicSound, Version=4.1.1.0, Culture=neutral, processorArchitecture=x86">
@@ -373,7 +373,9 @@
     <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\ExteriorDoor.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\ExteriorWindow.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\FloorplanRegion.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\RegionSpaceMapper.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\SpaceMapping\ISpaceMapper.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\SpaceMapping\Treemapper.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\SpaceMapping\RoomTreemapNode.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\BaseSpaceSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Connections\Either.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Connections\Invert.cs" />
@@ -390,6 +392,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Design\RequirementStrength.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\RoomSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\FloorPlanner.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\EmptyRoom.cs" />
     <Compile Include="Elements\Building\SpecBuilding.cs" />
     <Compile Include="Elements\Building\SpecBuildingContainer.cs" />

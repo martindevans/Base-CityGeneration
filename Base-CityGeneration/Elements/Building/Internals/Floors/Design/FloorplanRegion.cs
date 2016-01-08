@@ -7,8 +7,7 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Utilities;
 using Myre.Collections;
 using System.Numerics;
-using SquarifiedTreemap.Model;
-using SquarifiedTreemap.Model.Output;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping;
 using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
@@ -94,17 +93,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         #endregion
 
         #region space layout
-        public void Add(BaseSpaceSpec spec, bool required, Func<double> random, INamedDataCollection metadata)
+        public void Add(BaseSpaceSpec spec, bool required)
         {
             Contract.Requires(spec != null);
-            Contract.Requires(random != null);
-            Contract.Requires(metadata != null);
 
             //Save this space
             (required ? _requiredAssignedSpaces : _optionalAssignedSpaces).Add(spec);
 
             //Update the area consumed in this space (assuming the minimum)
-            AssignedSpaceArea += spec.MinArea(random, metadata);
+            AssignedSpaceArea += spec.MinArea();
         }
 
         IEnumerable<BaseSpaceSpec> ISpaceSpecProducer.Produce(bool required, Func<double> random, INamedDataCollection metadata)
@@ -119,26 +116,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>>>() != null);
 
             //Create a node to represent each space
-            var nodes = AssignedSpaces.Select(a => new RoomTreemapNode(a, random, metadata)).ToArray();
+            var nodes = AssignedSpaces.Select(a => new AreaAssignment(a, random, metadata)).ToArray();
 
             //Assign extra space to rooms which are not yet max area
             AssignAdditionalArea(nodes, UnassignedArea);
 
             //Iteratively layout spaces to minimise aspect ratio
-            return new RegionSpaceMapper(new BoundingRectangle(OABR.Min, OABR.Max)).Map(nodes);
+            return new Treemapper().Map(this, nodes.Select(a => new KeyValuePair<BaseSpaceSpec, float>(a.Space, a.Area)), random, metadata);
         }
 
-        private static IEnumerable<Node<T>> WalkTree<T>(Node<T> root) where T : ITreemapNode
-        {
-            if (root.Value != null)
-                yield return root;
-
-            foreach (var node in root)
-                foreach (var child in WalkTree(node))
-                    yield return child;
-        }
-
-        private static void AssignAdditionalArea(IReadOnlyList<RoomTreemapNode> nodes, double additionalArea)
+        private static void AssignAdditionalArea(IReadOnlyList<AreaAssignment> nodes, double additionalArea)
         {
             while (additionalArea > 0.01f)
             {
@@ -166,6 +153,48 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         }
 
         #endregion
+
+        private class AreaAssignment
+        {
+            private readonly BaseSpaceSpec _space;
+            /// <summary>
+            /// The space this node represents
+            /// </summary>
+            public BaseSpaceSpec Space
+            {
+                get { return _space; }
+            }
+
+            /// <summary>
+            /// The area assigned to this space
+            /// </summary>
+            public float Area { get; set; }
+
+            private readonly float _maxArea;
+            /// <summary>
+            /// Maximum area this room may be
+            /// </summary>
+            public float MaxArea { get { return _maxArea; } }
+
+            public AreaAssignment(BaseSpaceSpec assignedSpace, Func<double> random, INamedDataCollection metadata)
+            {
+                Contract.Requires(assignedSpace != null);
+                Contract.Requires(random != null);
+                Contract.Requires(metadata != null);
+
+                _space = assignedSpace;
+
+                //Generate values for upper and lower bounds of allowed area (we start area at min, since we will expand rooms later)
+                Area = assignedSpace.MinArea();
+                _maxArea = assignedSpace.MaxArea();
+            }
+
+            [ContractInvariantMethod]
+            private void ObjectInvariants()
+            {
+                Contract.Invariant(_space != null);
+            }
+        }
     }
 
     public class Side
