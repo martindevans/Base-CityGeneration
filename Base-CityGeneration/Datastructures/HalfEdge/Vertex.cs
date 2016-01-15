@@ -1,10 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Numerics;
 using Placeholder.AI.Pathfinding.Graph;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
+    /// <summary>
+    /// A vertex in a half edge graph
+    /// </summary>
+    /// <typeparam name="TVertexTag">Type of additional data associated with vertices</typeparam>
+    /// <typeparam name="THalfEdgeTag">Type of additional data associated with half edges</typeparam>
+    /// <typeparam name="TFaceTag">Type of additional data associated with faces</typeparam>
     public class Vertex<TVertexTag, THalfEdgeTag, TFaceTag>
         :IVertex
     {
@@ -23,6 +31,19 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         public IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> Edges
         {
             get { return Mesh.EdgesFromVertex(this); }
+        }
+
+        public IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>> Faces
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+
+                return (from edge in Edges
+                       let face = edge.Face
+                       where face != null
+                       select face).Distinct();
+            }
         }
 
         internal Vertex(Mesh<TVertexTag, THalfEdgeTag, TFaceTag> m, Vector2 position)
@@ -68,6 +89,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         public bool Equals(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> other)
         {
             return other != null && other.Position == Position;
+        }
+
+        internal void Transform(Func<Vector2, Vector2> transform)
+        {
+            Position = transform(Position);
         }
     }
 }

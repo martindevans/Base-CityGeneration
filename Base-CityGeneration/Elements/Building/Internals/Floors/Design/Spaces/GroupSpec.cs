@@ -14,8 +14,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
     {
         public IReadOnlyList<BaseSpaceSpec> Rooms { get; private set; }
 
-        public GroupSpec(IReadOnlyList<BaseSpaceSpec> rooms, string id, bool walkthrough, IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> constraints, IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> connections)
-            : base(id, walkthrough, constraints, connections)
+        public GroupSpec(IReadOnlyList<BaseSpaceSpec> rooms, string id, bool walkthrough, bool verticalAttach, IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> constraints, IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> connections)
+            : base(id, walkthrough, verticalAttach, constraints, connections)
         {
             Rooms = rooms;
         }
@@ -71,6 +71,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
                     Rooms.Select(a => a.Unwrap(random, metadata)).ToArray(),
                     Id,
                     Walkthrough,
+                    VerticalAttach,
                     (Constraints ?? NoConstraints).Select(a => a.Unwrap(random, metadata)).ToArray(),
                     (Connections ?? NoConnections).Select(a => a.Unwrap(random, metadata)).ToArray()
                 );

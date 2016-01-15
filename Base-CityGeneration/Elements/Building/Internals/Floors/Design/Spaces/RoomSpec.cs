@@ -16,8 +16,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 
         public IReadOnlyList<KeyValuePair<float, KeyValuePair<string, string>[]>> Tags { get; private set; }
 
-        public RoomSpec(IReadOnlyList<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, string id, bool walkthrough, IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> constraints, IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> connections, bool optional)
-            : base(id, walkthrough, constraints, connections)
+        public RoomSpec(IReadOnlyList<KeyValuePair<float, KeyValuePair<string, string>[]>> tags, string id, bool walkthrough, bool verticalAttach, IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> constraints, IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> connections, bool optional)
+            : base(id, walkthrough, verticalAttach, constraints, connections)
         {
             Tags = tags;
             Optional = optional;
@@ -56,6 +56,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
                     Tags.Unwrap().ToArray(),
                     Id,
                     Walkthrough,
+                    VerticalAttach,
                     (Constraints ?? NoConstraints).Select(a => a.Unwrap(random, metadata)).ToArray(),
                     (Connections ?? NoConnections).Select(a => a.Unwrap(random, metadata)).ToArray(),
                     Optional

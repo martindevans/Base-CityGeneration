@@ -198,7 +198,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.8.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Ninject, Version=3.2.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
@@ -217,8 +217,8 @@
       <HintPath>..\packages\Placeholder.AI.Control.14.1.1.0\lib\net46\Placeholder.AI.Control.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.AI.Pathfinding, Version=9.1.1.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.AI.Pathfinding.9.1.1.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
+    <Reference Include="Placeholder.AI.Pathfinding, Version=9.2.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.AI.Pathfinding.9.2.1.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Audio2, Version=5.2.4.0, Culture=neutral, processorArchitecture=x86">
@@ -253,8 +253,8 @@
       <HintPath>..\packages\SharpYaml.1.5.3\lib\SharpYaml.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SquarifiedTreemap, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SquarifiedTreemap.2.1.0.0\lib\net46\SquarifiedTreemap.dll</HintPath>
+    <Reference Include="SquarifiedTreemap, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SquarifiedTreemap.2.2.0.0\lib\net46\SquarifiedTreemap.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SupersonicSound, Version=4.1.1.0, Culture=neutral, processorArchitecture=x86">
@@ -392,7 +392,7 @@
     <Compile Include="Elements\Building\Internals\Floors\Design\RequirementStrength.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\RoomSpec.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\FloorPlanner.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\FloorPlanner.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\EmptyRoom.cs" />
     <Compile Include="Elements\Building\SpecBuilding.cs" />
     <Compile Include="Elements\Building\SpecBuildingContainer.cs" />
@@ -509,6 +509,7 @@
     </None>
     <None Include="Elements\Blocks\Spec\BlockSpec.md" />
     <None Include="Elements\Building\Building Hierarchy.md" />
+    <None Include="Elements\Building\Internals\Floors\Design\FloorSpec.md" />
     <None Include="Elements\Roads\Hyperstreamline\Hyperstreamline.md" />
     <None Include="packages.config" />
   </ItemGroup>

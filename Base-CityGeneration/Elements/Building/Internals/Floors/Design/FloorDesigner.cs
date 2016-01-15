@@ -4,21 +4,17 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using Base_CityGeneration.Datastructures;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
-using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Numbers;
-using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using JetBrains.Annotations;
 using Myre.Collections;
 using SharpYaml.Serialization;
-using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 {
@@ -67,16 +63,18 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         }
         #endregion
 
-        public FloorPlan Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<BasePolygonRegion<FloorplanRegion, Section>.Side> footprint, float wallThickness)
+        public FloorPlan Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<BasePolygonRegion<FloorplanRegion, Section>.Side> footprint, float wallThickness, IList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals)
         {
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
             Contract.Requires(finder != null);
             Contract.Requires(footprint != null && footprint.Count >= 3);
+            Contract.Requires(overlappingVerticals != null);
+            Contract.Requires(startingVerticals != null);
             Contract.Ensures(Contract.Result<FloorPlan>() != null);
 
             var planner = new FloorPlanner(_rooms, _regionErrorTolerance, random, metadata, finder, footprint, wallThickness);
-            return planner.Plan();
+            return planner.Plan(overlappingVerticals, startingVerticals);
         }
 
         #region serialization
@@ -115,6 +113,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         public static FloorDesigner Deserialize(TextReader reader, Func<double> random, INamedDataCollection metadata)
         {
+            Contract.Requires(reader != null);
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Ensures(Contract.Result<FloorDesigner>() != null);
+
             return CreateSerializer().Deserialize<Container>(reader).Unwrap(random, metadata);
         }
 

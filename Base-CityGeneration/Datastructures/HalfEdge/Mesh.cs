@@ -1,13 +1,17 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
+using SharpYaml.Tokens;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
     public class Mesh<TVertexTag, THalfEdgeTag, TFaceTag>
     {
+        #region fields and properties
         private readonly HashSet<Face<TVertexTag, THalfEdgeTag, TFaceTag>> _faces = new HashSet<Face<TVertexTag, THalfEdgeTag, TFaceTag>>();
 
         private const float VERTEX_EPSILON = 0.05f;
@@ -46,6 +50,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 return _halfEdges.Keys;
             }
         }
+        #endregion
 
         public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructHalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
@@ -244,7 +249,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public Vertex<TVertexTag, THalfEdgeTag, TFaceTag> FindClosestVertex(Vector2 v)
         {
-            float shortest = float.MaxValue;
+            var shortest = float.MaxValue;
             Vertex<TVertexTag, THalfEdgeTag, TFaceTag> closest = null;
             foreach (var vertex in Vertices)
             {
@@ -256,6 +261,80 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 }
             }
             return closest;
+        }
+
+        /// <summary>
+        /// Split a face
+        /// </summary>
+        /// <param name="face">Face to split</param>
+        /// <param name="vertex1">Vertex (somewhere on the edge of the face being split) to split from</param>
+        /// <param name="vertex2">Vertex (somewhere on the edge of the face being split) to split to</param>
+        /// <param name="result1">Resulting face next to the new edge</param>
+        /// <param name="result2">Resulting face next to the new paired edge</param>
+        public void Split(Face<TVertexTag, THalfEdgeTag, TFaceTag> face, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> vertex1, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> vertex2, out Face<TVertexTag, THalfEdgeTag, TFaceTag> result1, out Face<TVertexTag, THalfEdgeTag, TFaceTag> result2)
+        {
+            Contract.Requires(face != null);
+            Contract.Requires(vertex1 != null);
+            Contract.Requires(vertex2 != null);
+            Contract.Ensures(Contract.ValueAtReturn(out result1) != null);
+            Contract.Ensures(Contract.ValueAtReturn(out result2) != null);
+
+            //Sanity check: vertex1/2 must not be already connected
+            if (vertex1.Edges.Any(e => e.EndVertex.Equals(vertex2)))
+                throw new InvalidOperationException("Face split vertices are already connected");
+
+            //Get the vertices from the face (eager)
+            var vertices = face.Vertices.ToArray();
+
+            //Sanity check: vertex1/2 must already be in the border of the face we're splitting
+            var v1 = Array.FindIndex(vertices, v => v.Equals(vertex1));
+            var v2 = Array.FindIndex(vertices, v => v.Equals(vertex2));
+            if (v1 < 0 || v2 < 0)
+                throw new InvalidOperationException("Face split vertices are not on the border of the face being split");
+
+            //delete face, *cannot access face after this point*
+            Delete(face);
+
+            //Swap the indices so we're always doing the indexing into the array in a consistent way
+            bool swap = v1 > v2;
+            if (swap)
+            {
+                var tmp = v1;
+                v1 = v2;
+                v2 = tmp;
+            }
+
+            //Face on the right hand side simple goes around the edge and connects A -> ??? -> v2 -> v1 -> ??? -> A
+            result2 = GetOrConstructFace(new ArraySegment<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>(vertices, v1, v2 - v1 + 1).ToArray());
+
+            //Face on the right hand side simple goes around the edgeand connects A -> ??? -> v1 -> v2 -> ??? -> A
+            var vArr = new Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[vertices.Length - (v2 - v1) + 1];
+            Array.Copy(vertices, 0, vArr, 0, v1 + 1);
+            Array.Copy(vertices, v2, vArr, v1 + 1, vertices.Length - v2);
+            result1 = GetOrConstructFace(vArr);
+
+            if (swap)
+            {
+                var tmp = result1;
+                result1 = result2;
+                result2 = tmp;
+            }
+        }
+
+        public void Transform(Func<Vector2, Vector2> transform)
+        {
+            //Copy all the values out from halfEdges dictionary
+            //We're about to mutate on a field which is in the hashcode and break the entire data structure
+            var index = _halfEdges.ToArray();
+            _halfEdges.Clear();
+
+            //We can't use the this.Vertices property because that's backed by the _halfEdges collection which we just broke!
+            foreach (var vertex in index)
+                vertex.Key.Transform(transform);
+
+            //Rebuild index
+            foreach (var keyValuePair in index)
+                _halfEdges.Add(keyValuePair.Key, keyValuePair.Value);
         }
     }
 }

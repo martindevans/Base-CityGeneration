@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Connections;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Constraints;
 using JetBrains.Annotations;
@@ -11,14 +10,25 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
     public abstract class BaseSpaceSpec
         : ISpaceSpecProducer
     {
+        /// <summary>
+        /// ID of this floor, used for debugging and error message purposes
+        /// </summary>
         public string Id { get; private set; }
 
+        /// <summary>
+        /// Indicates if this space may be used to connect to other spaces (i.e. people may walk through this space to get to the spaces)
+        /// </summary>
         public bool Walkthrough { get; private set; }
+
+        /// <summary>
+        /// Indicates if vertical elements may be attached directly to this space (e.g. some kind of skylobby)
+        /// </summary>
+        public bool VerticalAttach { get; private set; }
 
         public virtual IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> Constraints { get; private set; }
         public virtual IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> Connections { get; private set; }
 
-        protected BaseSpaceSpec(string id, bool walkthrough, IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> constraints, IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> connections)
+        protected BaseSpaceSpec(string id, bool walkthrough, bool verticalAttach, IReadOnlyList<RequirementStrength<BaseSpaceConstraintSpec>> constraints, IReadOnlyList<RequirementStrength<BaseSpaceConnectionSpec>> connections)
         {
             Id = id;
             Walkthrough = walkthrough;
@@ -49,6 +59,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
             public string Id { get; [UsedImplicitly]set; }
 
             public bool Walkthrough { get; [UsedImplicitly]set; }
+            public bool VerticalAttach { get; [UsedImplicitly]set; }
 
             public object WallThickness { get; [UsedImplicitly]set; }
 
@@ -60,8 +71,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 
             ISpaceSpecProducer IUnwrappable2<ISpaceSpecProducer>.Unwrap(Func<double> random, INamedDataCollection metadata)
             {
-                Contract.Ensures(Contract.Result<ISpaceSpecProducer>() != null);
-
                 return Unwrap(random, metadata);
             }
         }

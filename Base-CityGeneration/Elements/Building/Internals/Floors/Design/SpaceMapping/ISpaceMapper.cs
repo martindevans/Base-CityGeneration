@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Myre.Collections;
-using SwizzleMyVectors.Geometry;
+using Base_CityGeneration.Datastructures.HalfEdge;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping
 {
@@ -16,6 +17,40 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMap
         /// <param name="random"></param>
         /// <param name="metadata"></param>
         /// <returns></returns>
-        IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>> Map(FloorplanRegion region, IEnumerable<KeyValuePair<BaseSpaceSpec, float>> spaces, Func<double> random, INamedDataCollection metadata);
+        Mesh<SpaceCornerVertex, SpaceWall, SpaceFace> Map(FloorplanRegion region, IEnumerable<KeyValuePair<BaseSpaceSpec, float>> spaces, Func<double> random, INamedDataCollection metadata);
+    }
+
+    public class SpaceCornerVertex
+    {
+    }
+
+    public class SpaceFace
+    {
+        private readonly BaseSpaceSpec _spec;
+        public BaseSpaceSpec Spec
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<BaseSpaceSpec>() != null);
+                return _spec;
+            }
+        }
+
+        public SpaceFace(BaseSpaceSpec spec)
+        {
+            Contract.Requires(spec != null);
+
+            _spec = spec;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariants()
+        {
+            Contract.Invariant(_spec != null);
+        }
+    }
+
+    public class SpaceWall
+    {
     }
 }
