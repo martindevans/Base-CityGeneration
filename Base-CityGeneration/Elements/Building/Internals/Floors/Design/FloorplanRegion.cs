@@ -7,6 +7,7 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Utilities;
 using Myre.Collections;
 using System.Numerics;
+using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping;
 using SwizzleMyVectors.Geometry;
 
@@ -109,11 +110,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             return (required ? _requiredAssignedSpaces : _optionalAssignedSpaces).SelectMany(r => r.Produce(required, random, metadata));
         }
 
-        public IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>> LayoutSpaces(Func<double> random, INamedDataCollection metadata)
+        public Mesh<SpaceCornerVertex, SpaceWall, SpaceFace> LayoutSpaces(Func<double> random, INamedDataCollection metadata)
         {
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
-            Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>>>() != null);
+            Contract.Ensures(Contract.Result<Mesh<SpaceCornerVertex, SpaceWall, SpaceFace>>() != null);
 
             //Create a node to represent each space
             var nodes = AssignedSpaces.Select(a => new AreaAssignment(a, random, metadata)).ToArray();

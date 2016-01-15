@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural.Utilities;
@@ -14,26 +15,133 @@ using SquarifiedTreemap.Model.Input;
 using SquarifiedTreemap.Model.Output;
 using SwizzleMyVectors.Geometry;
 
+using HeMesh = Base_CityGeneration.Datastructures.HalfEdge.Mesh<
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceCornerVertex,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceWall,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceFace
+>;
+using HeVertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceCornerVertex,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceWall,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceFace
+>;
+using HeFace = Base_CityGeneration.Datastructures.HalfEdge.Face<
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceCornerVertex,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceWall,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceFace
+>;
+using HeHalfEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceCornerVertex,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceWall,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping.SpaceFace
+>;
+
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping
 {
     internal class Treemapper
         : ISpaceMapper
     {
-        public IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>> Map(FloorplanRegion region, IEnumerable<KeyValuePair<BaseSpaceSpec, float>> spaces, Func<double> random, INamedDataCollection metadata)
+        public Mesh<SpaceCornerVertex, SpaceWall, SpaceFace> Map(FloorplanRegion region, IEnumerable<KeyValuePair<BaseSpaceSpec, float>> spaces, Func<double> random, INamedDataCollection metadata)
         {
-            return Map(region, spaces.Select(a => new RoomTreemapNode(a.Key, a.Value)));
+            var treemap = Map(region, spaces.Select(a => new RoomTreemapNode(a.Key, a.Value)));
+
+            return ExtractMesh(region, treemap);
         }
 
-        private static IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>> Map(FloorplanRegion region, IEnumerable<RoomTreemapNode> spaces)
+        #region mesh generation from treemap
+        private Mesh<SpaceCornerVertex, SpaceWall, SpaceFace> ExtractMesh(FloorplanRegion region, Treemap<RoomTreemapNode> treemap)
+        {
+            var mesh = new Mesh<SpaceCornerVertex, SpaceWall, SpaceFace>();
+
+            //Create root face. This is the OABR which this means all cuts will be on convex shapes and slicing is a lot simpler
+            var root = mesh.GetOrConstructFace(treemap.StartSpace.GetCorners().Select(a => mesh.GetOrConstructVertex(a)).ToArray());
+
+            //Recursively descend down the tree, cutting each face as the treemap specifies
+            SubdivideFace(treemap.Root, mesh, root);
+
+            //Transform the vertices from OABB space into world space
+            mesh.Transform(region.OABR.ToWorld);
+
+            return mesh;
+        }
+
+        private void SubdivideFace(Node<RoomTreemapNode> node, HeMesh mesh, Face<SpaceCornerVertex, SpaceWall, SpaceFace> face)
+        {
+            //Find all children which are not zero size.
+            //Sometimes we generate zero size nodes due to the way the tree is built up so we need to ignore them
+            var children = node.Where(a => a.Length > 0).ToArray();
+
+            if (children.Length == 0)
+            {
+                //No children! Assign the parent (this) node instead
+                face.Tag = new SpaceFace(node.Value.Space);
+            }
+            else if (children.Length == 1)
+            {
+                //Only 1 child, just recurse into it with the full face
+                SubdivideFace(children.Single(), mesh, face);
+            }
+            else
+            {
+                var min = face.Vertices.Select(a => a.Position).Aggregate(Vector2.Min);
+
+                //More than one child. Work through them splitting the parent face part by part
+                float total = 0;
+                for (var i = 0; i < children.Length - 1; i++)
+                {
+                    var child = children[i];
+
+                    //Determine the split line
+                    Ray2 splitRay = node.SplitVertical
+                        ? new Ray2(new Vector2(total + child.Length + min.X, min.Y - 10), new Vector2(0, 1))
+                        : new Ray2(new Vector2(min.X - 10, total + child.Length + min.Y), new Vector2(1, 0));
+                    total += child.Length;
+
+                    //Find the two edges which intersect this line
+                    var intersectingEdges = (from edge in face.Edges
+                                            let seg = new LineSegment2(edge.Pair.EndVertex.Position, edge.EndVertex.Position)
+                                            let intersection = seg.Intersects(splitRay)
+                                            where intersection != null
+                                            select new { edge, vertex = mesh.GetOrConstructVertex(intersection.Value.Position) }).ToArray();
+
+                    //Sanity check: The shape is convex, and split by a line. It should be intersected in exactly 2 places.
+                    if (intersectingEdges.Length != 2)
+                        throw new InvalidOperationException(string.Format("Expected split line to intersect 2 edges, found {0}", intersectingEdges.Length));
+
+                    //Split both the edges with their associated vertex
+                    foreach (var intersectingEdge in intersectingEdges)
+                    {
+                        HeHalfEdge _, __;
+                        mesh.Split(intersectingEdge.edge, intersectingEdge.vertex, out _, out __);
+                    }
+
+                    //Split the face with the two vertices
+                    HeFace f1, f2;
+                    mesh.Split(face, intersectingEdges[0].vertex, intersectingEdges[1].vertex, out f1, out f2);
+
+                    //Recursively subdivide this face
+                    SubdivideFace(child, mesh, f1);
+
+                    //If this is the second to last child then the remainder is exactly the right space for the remaining node. In which case recursively subdivide that too
+                    //otherwise set face to be the remainder and move onto the next child node
+                    if (i == children.Length - 2)
+                        SubdivideFace(children[i + 1], mesh, f2);
+                    else
+                        face = f2;
+                }
+            }
+        }
+        #endregion
+
+        private static Treemap<RoomTreemapNode> Map(FloorplanRegion region, IEnumerable<RoomTreemapNode> spaces)
         {
             Contract.Requires(spaces != null);
-            Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<BoundingRectangle, BaseSpaceSpec>>>() != null);
+            Contract.Ensures(Contract.Result<Treemap<RoomTreemapNode>>() != null);
 
             //The layout of the rooms in the tree map depends entirely upon the shape of the tree!
             //Simply through experimentation I have found balanced trees to be the best.
             var root = new Tree<RoomTreemapNode>.Node();
-            var orderedSpaces = spaces.OrderByDescending(a => a.Area);
-            BuildBalancedBinaryTree(orderedSpaces, root);
+            BuildTree(spaces, root);
 
             //Build a treemap to assign spaces to the nodes of the tree
             var treemap = Treemap<RoomTreemapNode>.Build(new BoundingRectangle(region.OABR.Min, region.OABR.Max), new Tree<RoomTreemapNode>(root));
@@ -41,8 +149,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMap
             //Rearrange the treemap to satisfy constraints (where possible)
             ImproveConstraintSatisfaction(region, treemap);
 
-            return from node in WalkTreeValues(treemap.Root)
-                   select new KeyValuePair<BoundingRectangle, BaseSpaceSpec>(node.Bounds, node.Value.Space);
+            return treemap;
         }
 
         #region improve constraints
@@ -53,6 +160,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMap
         /// <param name="treemap"></param>
         private static void ImproveConstraintSatisfaction(FloorplanRegion region, Treemap<RoomTreemapNode> treemap)
         {
+            Contract.Requires(region != null);
+            Contract.Requires(treemap != null);
+
             var values = WalkTreeValues(treemap.Root).ToArray();
 
             //Assign a score to every node. Leaf nodes score = satisfaction of this room. Inner nodes = function of leaf node scores.
@@ -61,7 +171,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMap
 
             CalculateInnerUnSat(treemap.Root, unsatMap);
 
-            //todo: [floorplan] rearrange!
+            //todo: [floorplan] rearrange nodes in tree to improve satisfaction!
         }
 
         /// <summary>
@@ -117,6 +227,32 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMap
         #endregion
 
         #region tree building
+        private static void BuildTree(IEnumerable<RoomTreemapNode> spaces, Tree<RoomTreemapNode>.Node root)
+        {
+            //Build whichever tree we want (balanced bianry seems to get best results, may we can do something cleverer in the future)
+            var orderedSpaces = spaces.OrderByDescending(a => a.Area);
+            BuildBalancedBinaryTree(orderedSpaces, root);
+
+            //Clean up the tree (remove branches of entirely null nodes)
+            RecursiveRemoveNullBranch(root);
+        }
+
+        /// <summary>
+        /// Delete this node if all the child nodes are deleted and this node has a null value
+        /// </summary>
+        /// <param name="root"></param>
+        private static bool RecursiveRemoveNullBranch(INode<RoomTreemapNode> root)
+        {
+            var children = root.ToArray();
+            foreach (var node in children)
+            {
+                if (RecursiveRemoveNullBranch(node))
+                    root.Remove(node);
+            }
+
+            return root.Count == 0 && root.Value == null;
+        }
+
         [ContractAbbreviator]
         private static void SanityCheckBuildTree(Tree<RoomTreemapNode>.Node root)
         {

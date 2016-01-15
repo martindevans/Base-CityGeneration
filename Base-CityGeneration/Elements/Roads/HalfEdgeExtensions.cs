@@ -49,11 +49,19 @@ namespace Base_CityGeneration.Elements.Roads
 
             public Switcharoo(IHalfEdgeBuilder tag)
             {
+                Contract.Requires(tag != null);
+
                 _tag = tag;
 
                 var n = Direction.Perpendicular() * Width * 0.5f;
                 _left = new Ray2(HalfEdge.EndVertex.Position - n, Direction);
                 _right = new Ray2(HalfEdge.EndVertex.Position + n, Direction);
+            }
+
+            [ContractInvariantMethod]
+            private void ObjectInvariants()
+            {
+                Contract.Invariant(_tag != null);
             }
 
             public HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> HalfEdge

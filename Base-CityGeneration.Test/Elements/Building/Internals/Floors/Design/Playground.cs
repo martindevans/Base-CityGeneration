@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
 using Base_CityGeneration.Test.Elements.Building.Design;
 using Base_CityGeneration.TestHelpers;
@@ -185,6 +186,18 @@ Aliases:
 #         - { Strength: 0.5,  Req: !ExteriorDoor { Deny: true } }
          - { Strength: 0.5,  Req: !Area { Min: 11 } }
 
+    # A vertical element
+    - &elevator !Room
+      Id: Skylobby
+      Walkthrough: true
+      VerticalAttach: true
+      Tags:
+        1: { Elevator }
+      Constraints:
+        - { Strength: -1, Req: !ExteriorWindow { } }
+#         - { Strength: 0.5,  Req: !ExteriorDoor { Deny: true } }
+        - { Strength: 0.5,  Req: !Area { Min: 9 } }
+
     # Another room
     - &kitchen !Room
       Id: Kitchen
@@ -235,6 +248,7 @@ Rooms:
       Required: 1
       Optional: 100
       Room: *apartment
+    - *elevator
 "), random, meta);
 
             ////Octagon
@@ -262,13 +276,13 @@ Rooms:
 
             //Corner shape
             var floorplan = designer.Design(random, meta, finder, new[] {
-                new FloorplanRegion.Side(new Vector2(9, 5), new Vector2(9, -6), new Section[]  { new Section(0, 1, Section.Types.Window) }),
+                new FloorplanRegion.Side(new Vector2(9, 5), new Vector2(9, -6), new Section[] { new Section(0, 1, Section.Types.Window) }),
                 new FloorplanRegion.Side(new Vector2(9, -6), new Vector2(0, -6), new Section[0]),
                 new FloorplanRegion.Side(new Vector2(0, -6), new Vector2(0, 0), new Section[0]),
                 new FloorplanRegion.Side(new Vector2(0, 0), new Vector2(-4, 0), new Section[0]),
-                new FloorplanRegion.Side(new Vector2(-4, 0), new Vector2(-4, 5), new Section[0]),
+                new FloorplanRegion.Side(new Vector2(-4, 0), new Vector2(-4, 5), new Section[] { new Section(0, 1, Section.Types.Window) }),
                 new FloorplanRegion.Side(new Vector2(-4, 5), new Vector2(9, 5), new Section[0]),
-            }, 0.075f);
+            }, 0.075f, new List<IReadOnlyList<Vector2>>(), new List<VerticalSelection>());
 
             ////simple rectangle shape
             //var floorplan = designer.Design(random, meta, finder, new[] {

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.Contracts;
 using Placeholder.AI.Pathfinding.Graph;
+using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
@@ -167,6 +168,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 Contract.Assume(Pair != null);
                 return (EndVertex.Position - Pair.EndVertex.Position).Length();
             }
+        }
+
+        public LineSegment2 Segment
+        {
+            get { return new LineSegment2(Pair.EndVertex.Position, EndVertex.Position); }
         }
         #endregion
     }
