@@ -140,7 +140,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             {
                 var scripts = ((RoomSpec)room.Value).Tags.SelectScript(_random, _finder, typeof(IRoom));
 
-                _plan.AddRoom(room.Key, _wallThickness, new[] { scripts.HasValue ? scripts.Value.Script : null });
+                _plan.AddRoom(room.Key, _wallThickness, new[] { scripts.HasValue ? scripts.Value.Script : null }, room.Value.Id);
             }
 
             //Expand groups

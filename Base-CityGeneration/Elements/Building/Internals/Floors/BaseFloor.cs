@@ -219,7 +219,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             // Key is both rooms (in ID order), value is the all the facades between the two rooms
             var interRoomFacades = new Dictionary<KeyValuePair<RoomPlan, RoomPlan>, List<IConfigurableFacade>>();
 
-            foreach (var roomPlan in plan.Rooms.Where(r => r.Node != null).OrderBy(r => r.Id))
+            foreach (var roomPlan in plan.Rooms.Where(r => r.Node != null).OrderBy(r => r.Uid))
             {
                 //All facades generated for this room
                 var generatedFacades = new Dictionary<RoomPlan.Facade, IConfigurableFacade>();
@@ -240,7 +240,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                     }
                     else if (facade.NeighbouringRoom != null && facade.NeighbouringRoom.Node != null)
                     {
-                        if (roomPlan.Id < facade.NeighbouringRoom.Id)
+                        if (roomPlan.Uid < facade.NeighbouringRoom.Uid)
                         {
                             //Create a new facade between these rooms and store it for the other room to retrieve later
                             newFacade = CreateInternalWall(roomPlan, facade, yOffset);
@@ -416,7 +416,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                 //  Consider:
                 //    - Should we use something other than the empty room for verticals?
                 //    - Perhaps allow vertical elements to supply their own room script?
-                var r = plan.AddRoom(points, 0.1f, new[] { new ScriptReference(typeof(EmptyRoom)) }).Single();
+                var r = plan.AddRoom(points, 0.1f, new[] { new ScriptReference(typeof(EmptyRoom)) }, overlap.GetType().Name).Single();
                 return new KeyValuePair<RoomPlan, IVerticalFeature>(r, overlap);
             }).ToDictionary(a => a.Key, a => a.Value);
             return verticalSubsections;

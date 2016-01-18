@@ -12,7 +12,7 @@ using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 {
-    [DebuggerDisplay("RoomPlan Id={Id}")]
+    [DebuggerDisplay("RoomPlan Id={Uid}")]
     public class RoomPlan
     {
         private readonly FloorPlan _plan;
@@ -23,11 +23,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         public readonly ScriptReference[] Scripts;
         public readonly float WallThickness;
 
-        public readonly int Id;
+        private readonly string _name;
+        public string Name { get { return _name; } }
+
+        public readonly int Uid;
 
         public IPlannedRoom Node;
 
-        internal RoomPlan(FloorPlan plan, Vector2[] footprint, float wallThickness, ScriptReference[] scripts, int id)
+        internal RoomPlan(FloorPlan plan, Vector2[] footprint, float wallThickness, ScriptReference[] scripts, int uid, string name)
         {
             Contract.Requires(plan != null);
             Contract.Requires(footprint != null);
@@ -44,7 +47,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
             Scripts = scripts;
             WallThickness = wallThickness;
-            Id = id;
+            Uid = uid;
+            _name = name;
         }
 
         /// <summary>
