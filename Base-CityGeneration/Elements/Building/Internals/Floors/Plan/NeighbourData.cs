@@ -482,7 +482,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             }
         }
 
-        [DebuggerDisplay("T={Pt} R={OtherRoom.Id} D={Distance}")]
+        [DebuggerDisplay("T={Pt} R={OtherRoom.Uid} D={Distance}")]
         private class NeighbourInfo
         {
             /// <summary>

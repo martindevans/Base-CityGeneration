@@ -115,7 +115,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return solution;
         }
 
-        public IReadOnlyList<RoomPlan> AddRoom(IEnumerable<Vector2> roomFootprint, float wallThickness, IEnumerable<ScriptReference> scripts, bool split = false)
+        public IReadOnlyList<RoomPlan> AddRoom(IEnumerable<Vector2> roomFootprint, float wallThickness, IEnumerable<ScriptReference> scripts, string name, bool split = false)
         {
             Contract.Requires(roomFootprint != null);
             Contract.Requires(scripts != null);
@@ -139,7 +139,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 if (Clipper.Orientation(shape))
                     shape.Reverse();
 
-                var r = new RoomPlan(this, shape.Select(ToVector2).Shrink(SAFE_DISTANCE).ToArray(), wallThickness, s, _nextRoomId++);
+                var r = new RoomPlan(this, shape.Select(ToVector2).Shrink(SAFE_DISTANCE).ToArray(), wallThickness, s, _nextRoomId++, name);
                 result.Add(r);
                 _rooms.Add(r);
             }
