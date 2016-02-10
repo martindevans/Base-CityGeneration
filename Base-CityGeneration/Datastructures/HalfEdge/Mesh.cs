@@ -313,12 +313,12 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             Array.Copy(vertices, v2, vArr, v1 + 1, vertices.Length - v2);
             result1 = GetOrConstructFace(vArr);
 
-            if (swap)
-            {
-                var tmp = result1;
-                result1 = result2;
-                result2 = tmp;
-            }
+            //if (swap)
+            //{
+            //    var tmp = result1;
+            //    result1 = result2;
+            //    result2 = tmp;
+            //}
         }
 
         public void Transform(Func<Vector2, Vector2> transform)

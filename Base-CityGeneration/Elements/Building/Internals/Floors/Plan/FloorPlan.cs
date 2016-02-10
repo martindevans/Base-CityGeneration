@@ -5,6 +5,7 @@ using System.Linq;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using System.Numerics;
+using ClipperRedux;
 using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan

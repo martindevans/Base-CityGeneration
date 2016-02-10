@@ -318,7 +318,7 @@ namespace Base_CityGeneration.Utilities
             {
                 //This shape was reduced, recurse to reduce error of the results
                 return (from shape in result
-                        from reduced in shape.RecursiveReduceError(toleranceMultiplier)
+                        from reduced in shape.RecursiveReduceError(toleranceMultiplier * 1.75f)
                         select reduced).ToArray();
             }
             else

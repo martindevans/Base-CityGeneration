@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using ClipperRedux;
 using JetBrains.Annotations;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
