@@ -284,6 +284,15 @@ Rooms:
                 new FloorplanRegion.Side(new Vector2(-4, 5), new Vector2(9, 5), new Section[0]),
             }, 0.075f, new List<IReadOnlyList<Vector2>>(), new List<VerticalSelection>());
 
+            //var floorplan = designer.Design(random, meta, finder, new[] {
+            //    new FloorplanRegion.Side(new Vector2(-25, 17), new Vector2(0, 17), new Section[0]),
+            //    new FloorplanRegion.Side(new Vector2(0, 17), new Vector2(3, 15), new Section[] { new Section(0, 1, Section.Types.Window) }),
+            //    new FloorplanRegion.Side(new Vector2(3, 15), new Vector2(33, 15), new Section[] { new Section(0, 1, Section.Types.Window) }),
+            //    new FloorplanRegion.Side(new Vector2(33, 15), new Vector2(38, 0), new Section[0]),
+            //    new FloorplanRegion.Side(new Vector2(38, 0), new Vector2(-25, -25), new Section[] { new Section(0, 1, Section.Types.Window) }),
+            //    new FloorplanRegion.Side(new Vector2(-25, -25), new Vector2(-25, 17), new Section[] { new Section(0, 1, Section.Types.Window) }),
+            //}, 0.075f, new List<IReadOnlyList<Vector2>>(), new List<VerticalSelection>());
+
             ////simple rectangle shape
             //var floorplan = designer.Design(random, meta, finder, new[] {
             //    new FloorplanRegion.Side(new Vector2(9, 0), new Vector2(9, -6), new Section[]  { new Section(0, 1, Section.Types.Window) }),

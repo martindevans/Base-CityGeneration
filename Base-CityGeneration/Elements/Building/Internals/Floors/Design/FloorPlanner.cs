@@ -9,7 +9,6 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMapping
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Elements.Building.Internals.Rooms;
-using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using Base_CityGeneration.Utilities;
 using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
@@ -162,6 +161,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         private static IEnumerable<KeyValuePair<IReadOnlyList<Vector2>, BaseSpaceSpec>> ConvertMeshToSpecs(Mesh<SpaceCornerVertex, SpaceWall, SpaceFace> layoutMesh)
         {
             return from face in layoutMesh.Faces
+                   where face.Tag != null
                    let vertices = face.Vertices.Select(v => v.Position).ToArray()
                    let spec = face.Tag.Spec
                    select new KeyValuePair<IReadOnlyList<Vector2>, BaseSpaceSpec>(vertices, spec);

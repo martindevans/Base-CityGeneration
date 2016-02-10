@@ -14,6 +14,7 @@ using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Blocks;
 using Base_CityGeneration.Elements.Roads;
+using ClipperRedux;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
 

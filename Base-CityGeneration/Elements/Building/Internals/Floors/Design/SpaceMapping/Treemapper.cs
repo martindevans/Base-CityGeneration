@@ -65,8 +65,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMap
             return mesh;
         }
 
+        private bool TolerantEquals(BoundingRectangle a, BoundingRectangle b, float tolerance = 0.01f)
+        {
+            return a.Min.TolerantEquals(b.Min, 0.01f) || a.Max.TolerantEquals(b.Max, 0.01f);
+        }
+
         private void SubdivideFace(Node<RoomTreemapNode> node, HeMesh mesh, Face<SpaceCornerVertex, SpaceWall, SpaceFace> face)
         {
+            var bounds = BoundingRectangle.CreateFromPoints(face.Vertices.Select(p => p.Position));
+            if (!TolerantEquals(bounds, node.Bounds))
+                throw new ArgumentException();
+
             //Find all children which are not zero size.
             //Sometimes we generate zero size nodes due to the way the tree is built up so we need to ignore them
             var children = node.Where(a => a.Length > 0).ToArray();
@@ -87,47 +96,70 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.SpaceMap
 
                 //More than one child. Work through them splitting the parent face part by part
                 float total = 0;
-                for (var i = 0; i < children.Length - 1; i++)
+                for (var i = 0; i < children.Length; i++)
                 {
                     var child = children[i];
 
                     //Determine the split line
-                    Ray2 splitRay = node.SplitVertical
+                    var splitRay = node.SplitVertical
                         ? new Ray2(new Vector2(total + child.Length + min.X, min.Y - 10), new Vector2(0, 1))
                         : new Ray2(new Vector2(min.X - 10, total + child.Length + min.Y), new Vector2(1, 0));
                     total += child.Length;
 
-                    //Find the two edges which intersect this line
-                    var intersectingEdges = (from edge in face.Edges
-                                            let seg = new LineSegment2(edge.Pair.EndVertex.Position, edge.EndVertex.Position)
-                                            let intersection = seg.Intersects(splitRay)
-                                            where intersection != null
-                                            select new { edge, vertex = mesh.GetOrConstructVertex(intersection.Value.Position) }).ToArray();
-
-                    //Sanity check: The shape is convex, and split by a line. It should be intersected in exactly 2 places.
-                    if (intersectingEdges.Length != 2)
-                        throw new InvalidOperationException(string.Format("Expected split line to intersect 2 edges, found {0}", intersectingEdges.Length));
-
-                    //Split both the edges with their associated vertex
-                    foreach (var intersectingEdge in intersectingEdges)
+                    if (total.TolerantEquals(node.Length, 0.001f))
                     {
-                        HeHalfEdge _, __;
-                        mesh.Split(intersectingEdge.edge, intersectingEdge.vertex, out _, out __);
+                        //If this is the last child then the remaining face is exactly the space we need for this node, just subdivide it directly
+                        //If not, the the next node must fit into zero space and we have a problem!
+                        if (i == children.Length - 1)
+                            SubdivideFace(child, mesh, face);
+                        else
+                            throw new InvalidOperationException("All space has been used and this is not the last node to fit into this space");
                     }
-
-                    //Split the face with the two vertices
-                    HeFace f1, f2;
-                    mesh.Split(face, intersectingEdges[0].vertex, intersectingEdges[1].vertex, out f1, out f2);
-
-                    //Recursively subdivide this face
-                    SubdivideFace(child, mesh, f1);
-
-                    //If this is the second to last child then the remainder is exactly the right space for the remaining node. In which case recursively subdivide that too
-                    //otherwise set face to be the remainder and move onto the next child node
-                    if (i == children.Length - 2)
-                        SubdivideFace(children[i + 1], mesh, f2);
+                    else if (total > node.Length)
+                    {
+                        throw new InvalidOperationException("Total space used is greater than total space available");
+                    }
                     else
+                    {
+                        //Find the two edges which intersect this line
+                        var intersectingEdges = (from edge in face.Edges
+                                                 let seg = new LineSegment2(edge.Pair.EndVertex.Position, edge.EndVertex.Position)
+                                                 let intersection = seg.Intersects(splitRay)
+                                                 where intersection != null
+                                                 select new {
+                                                     edge, vertex = mesh.GetOrConstructVertex(intersection.Value.Position)
+                                                 }).ToArray();
+
+                        //Sanity check: The shape is convex, and split by a line. It should be intersected in exactly 2 places.
+                        if (intersectingEdges.Length != 2)
+                            throw new InvalidOperationException(string.Format("Expected split line to intersect 2 edges, found {0}", intersectingEdges.Length));
+
+                        //Split both the edges with their associated vertex
+                        foreach (var intersectingEdge in intersectingEdges)
+                        {
+                            HeHalfEdge _, __;
+                            mesh.Split(intersectingEdge.edge, intersectingEdge.vertex, out _, out __);
+                        }
+
+                        //Split the face with the two vertices
+                        var fv = face.Vertices.Select(p => p.Position).ToArray();
+                        HeFace f1, f2;
+                        mesh.Split(face, intersectingEdges[0].vertex, intersectingEdges[1].vertex, out f1, out f2);
+
+                        //Swap the split parts as necessary
+                        if (TolerantEquals(BoundingRectangle.CreateFromPoints(f1.Vertices.Select(p => p.Position)), child.Bounds))
+                        {
+                            var tmp = f1;
+                            f1 = f2;
+                            f2 = tmp;
+                        }
+
+                        //Recursively subdivide this face
+                        SubdivideFace(child, mesh, f1);
+
+                        //Set the remainder of the face as the entire face for the next node
                         face = f2;
+                    }
                 }
             }
         }
