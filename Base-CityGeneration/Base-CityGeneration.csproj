@@ -152,10 +152,6 @@
     <StartupObject>Base_CityGeneration.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Cassowary, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cassowary.4.0.0.0\lib\net35-Client\Cassowary.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="CGAL_StraightSkeleton_Dotnet, Version=3.0.0.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>..\packages\CGAL_StraightSkeleton_Dotnet.3.0.0.0\lib\net46\CGAL_StraightSkeleton_Dotnet.dll</HintPath>
       <Private>True</Private>
@@ -300,8 +296,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Datastructures\Constraints\ConstrainedRectangle.cs" />
-    <Compile Include="Datastructures\Constraints\Range.cs" />
     <Compile Include="Datastructures\Edges\NeighbourSet.cs" />
     <Compile Include="Datastructures\Extensions\MeshExtensions.cs" />
     <Compile Include="Datastructures\Extensions\ParcelExtensions.cs" />
