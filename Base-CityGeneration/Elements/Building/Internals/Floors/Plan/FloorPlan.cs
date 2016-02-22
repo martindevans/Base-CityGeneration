@@ -17,7 +17,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
     {
         #region fields/properties
         private const float SCALE = 100000;
-
         private const float SAFE_DISTANCE = 0.01f;
 
         private bool _isFrozen;
@@ -44,6 +43,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         }
 
         private readonly NeighbourData _neighbourhood;
+        private int _nextRoomId;
         #endregion
 
         public FloorPlanBuilder(IReadOnlyList<Vector2> footprint)
@@ -61,6 +61,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             Contract.Invariant(_clipper != null);
         }
 
+        /// <summary>
+        /// Freeze the floorplan builder (making it immutable).
+        /// </summary>
+        /// <returns>An immutable view of this floorplan</returns>
         public IFloorPlan Freeze()
         {
             _isFrozen = true;
@@ -69,8 +73,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
             return this;
         }
-
-        private int _nextRoomId;
 
         /// <summary>
         /// Calculate what shape would be created if you tried to add the given room to the plan
@@ -161,6 +163,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 if (Clipper.Orientation(shape))
                     shape.Reverse();
 
+                //Create room
                 var r = new RoomPlan(this, shape.Select(ToVector2).Shrink(SAFE_DISTANCE).ToArray(), wallThickness, s, _nextRoomId++, name);
                 result.Add(r);
                 _rooms.Add(r);
