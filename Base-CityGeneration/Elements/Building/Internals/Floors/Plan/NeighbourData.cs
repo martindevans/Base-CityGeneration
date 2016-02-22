@@ -15,20 +15,20 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         internal const float SAME_POINT_EPSILON = 0.1f;
         internal const float SAME_POINT_EPSILON_SQR = SAME_POINT_EPSILON * SAME_POINT_EPSILON;
 
-        private readonly FloorPlan _plan;
+        private readonly FloorPlanBuilder _plan;
 
         public bool Dirty { get; set; }
 
-        private Dictionary<RoomPlan, List<FloorPlan.Neighbour>> _neighbours;
+        private Dictionary<RoomPlan, List<Neighbour>> _neighbours;
 
-        public IEnumerable<FloorPlan.Neighbour> this[RoomPlan key]
+        public IEnumerable<Neighbour> this[RoomPlan key]
         {
             get
             {
                 Contract.Requires(key != null);
-                Contract.Ensures(Contract.Result<IEnumerable<FloorPlan.Neighbour>>() != null);
+                Contract.Ensures(Contract.Result<IEnumerable<Neighbour>>() != null);
 
-                List<FloorPlan.Neighbour> value;
+                List<Neighbour> value;
                 if (!_neighbours.TryGetValue(key, out value) || value == null)
                     throw new InvalidOperationException("Failed to find neighbour information for given room");
 
@@ -37,7 +37,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         }
         #endregion
 
-        public NeighbourData(FloorPlan plan)
+        public NeighbourData(FloorPlanBuilder plan)
         {
             Contract.Requires(plan != null);
 
@@ -57,7 +57,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             if (!Dirty)
                 return;
 
-            _neighbours = _plan.Rooms.ToDictionary(a => a, a => new List<FloorPlan.Neighbour>());
+            _neighbours = _plan.Rooms.ToDictionary(a => a, a => new List<Neighbour>());
 
             foreach (var room in _plan.Rooms)
             {
@@ -83,10 +83,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             Dirty = false;
         }
 
-        private static IEnumerable<FloorPlan.Neighbour> ExtractNeighbourSections(RoomPlan room, Edge edge)
+        private static IEnumerable<Neighbour> ExtractNeighbourSections(RoomPlan room, Edge edge)
         {
             if (edge.EdgeList.Count == 0)
-                return new FloorPlan.Neighbour[0];
+                return new Neighbour[0];
 
             //Sort by distance along this edge
             //Ties are resolved by putting the closer point first
@@ -101,7 +101,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             //Now we have a load of markers along the edge of this room which mark where the edge of other rooms project onto this edge
             //Walk along list pairing them up
 
-            List<FloorPlan.Neighbour> neighbours = new List<FloorPlan.Neighbour>();
+            List<Neighbour> neighbours = new List<Neighbour>();
 
             for (int i = 0; i < edge.EdgeList.Count; i++)
             {
@@ -116,7 +116,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 var overlaps = edge.EdgeList.Where(x => SegmentOverlap(a, b, x)).ToArray();
 
                 //Create segment
-                var segmentNeighbours = new List<FloorPlan.Neighbour>();
+                var segmentNeighbours = new List<Neighbour>();
                 AddNeighbour(segmentNeighbours, edge.Index, room, a, b);
 
                 //Narrow down segment by slicing out parts where an occluding overlap occurs
@@ -210,7 +210,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return a.Pt <= point.Pt && b.Pt >= point.Pt;
         }
 
-        private static void AddNeighbour_N_To_Info(ICollection<FloorPlan.Neighbour> neighbours, uint edgeIndex, RoomPlan room, FloorPlan.Neighbour n, bool nA, NeighbourInfo info)
+        private static void AddNeighbour_N_To_Info(ICollection<Neighbour> neighbours, uint edgeIndex, RoomPlan room, Neighbour n, bool nA, NeighbourInfo info)
         {
             Contract.Requires(neighbours != null);
             Contract.Requires(room != null);
@@ -238,7 +238,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             });
         }
 
-        private static NeighbourInfo ToNeighbourInfoAD(FloorPlan.Neighbour n)
+        private static NeighbourInfo ToNeighbourInfoAD(Neighbour n)
         {
             Contract.Requires(n != null);
             Contract.Ensures(Contract.Result<NeighbourInfo>() != null);
@@ -256,7 +256,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             };
         }
 
-        private static NeighbourInfo ToNeighbourInfoBC(FloorPlan.Neighbour n)
+        private static NeighbourInfo ToNeighbourInfoBC(Neighbour n)
         {
             Contract.Requires(n != null);
             Contract.Ensures(Contract.Result<NeighbourInfo>() != null);
@@ -274,7 +274,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             };
         }
 
-        private static void AddNeighbour(ICollection<FloorPlan.Neighbour> list, uint edgeIndex, RoomPlan room, NeighbourInfo a, NeighbourInfo b)
+        private static void AddNeighbour(ICollection<Neighbour> list, uint edgeIndex, RoomPlan room, NeighbourInfo a, NeighbourInfo b)
         {
             Contract.Requires(list != null);
             Contract.Requires(room != null);
@@ -292,7 +292,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             if (Vector2.Distance(a.Point, b.Point) < 0.05f)
                 return;
 
-            list.Add(new FloorPlan.Neighbour(edgeIndex, room, a.OtherEdgeIndex, a.OtherRoom,
+            list.Add(new Neighbour(edgeIndex, room, a.OtherEdgeIndex, a.OtherRoom,
                 a.Point, a.Pt,
                 b.Point, b.Pt,
                 b.OtherPoint, b.OPt,

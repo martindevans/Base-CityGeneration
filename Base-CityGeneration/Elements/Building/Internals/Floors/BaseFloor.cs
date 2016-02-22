@@ -29,8 +29,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         private readonly float _ceilingThickness;
 
         private float _roomHeight;
-
-        public FloorPlan Plan { get; private set; }
+        
+        private IFloorPlan _plan;
 
         /// <summary>
         /// The index of this floor
@@ -64,13 +64,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             var roomOffsetY = -bounds.Height / 2 + _roomHeight / 2 + _floorThickness;
 
             //Create an empty floor plan
-            Plan = new FloorPlan(Bounds.Footprint);
+            var builder = new FloorPlanBuilder(Bounds.Footprint);
 
             //Create rooms for vertical features which overlap this floor
-            var verticalSubsections = CreateVerticalOverlapRooms(Plan);
+            var verticalSubsections = CreateVerticalOverlapRooms(builder);
 
             //Create other rooms in the plan
-            CreateFloorPlan(bounds, Plan);
+            _plan = CreateFloorPlan(bounds, builder);
 
             //Create Floor and ceiling (with holes for vertical sections)
             CreateFloors(bounds, geometry, verticalSubsections, null);
@@ -79,16 +79,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             //todo: rooms need information on external facades, such that they can ensure rooms are not created splitting windows
 
             //Create room scripts
-            CreateRoomScripts(roomOffsetY, _roomHeight, Plan);
+            CreateRoomScripts(roomOffsetY, _roomHeight, _plan);
 
             //Rooms have been created
-            CreatedRooms(Plan);
+            CreatedRooms(_plan);
 
             //Create external facades (subsections of building over this floor facade)
-            var externalFacades = CreateExternalFacades(bounds);
+            var externalFacades = CreateExternalFacades(bounds, _plan);
 
             //Create facades for rooms
-            CreateRoomFacades(externalFacades, roomOffsetY, Plan);
+            CreateRoomFacades(externalFacades, roomOffsetY, _plan);
         }
 
         #region floors and ceilings
@@ -139,7 +139,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         #endregion
 
         #region facades
-        private List<IConfigurableFacade> CreateExternalFacades(Prism bounds)
+        private List<IConfigurableFacade> CreateExternalFacades(Prism bounds, IFloorPlan plan)
         {
             var externalSections = new List<IConfigurableFacade>();
 
@@ -151,14 +151,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             //Get all facades which cross this floor
             var facades = building.Facades(FloorIndex);
 
-            for (int i = 0; i < Plan.ExternalFootprint.Count; i++)
+            for (int i = 0; i < plan.ExternalFootprint.Count; i++)
             {
                 //Nb. There's lots of "WS" going on here, this stands for "World Space"
                 //We have the footprint in floor space and the facades in facade space, we transform both into world space to compare them
 
                 //Get start and end points of this edge
-                var start = Plan.ExternalFootprint[i];
-                var end = Plan.ExternalFootprint[(i + 1) % Plan.ExternalFootprint.Count];
+                var start = plan.ExternalFootprint[i];
+                var end = plan.ExternalFootprint[(i + 1) % plan.ExternalFootprint.Count];
                 var footprintSegWS = new LineSegment2(start, end).Transform(WorldTransformation);
                 var footprintLineWS = footprintSegWS.Line;
 
@@ -201,7 +201,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             return externalSections;
         }
 
-        private void CreateRoomFacades(IReadOnlyCollection<IConfigurableFacade> externalFacades, float yOffset, FloorPlan plan)
+        private void CreateRoomFacades(IReadOnlyCollection<IConfigurableFacade> externalFacades, float yOffset, IFloorPlan plan)
         {
             Contract.Requires(externalFacades != null);
             Contract.Requires(plan != null);
@@ -378,6 +378,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         /// </summary>
         /// <param name="roomPlan"></param>
         /// <returns></returns>
+        // ReSharper disable once UnusedParameter.Global (Justification: External API)
         protected virtual IEnumerable<ScriptReference> InternalFacadeScripts(RoomPlan roomPlan)
         {
             Contract.Requires(roomPlan != null);
@@ -391,6 +392,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         /// </summary>
         /// <param name="roomPlan"></param>
         /// <returns></returns>
+        // ReSharper disable once UnusedParameter.Global (Justification: External API)
         protected virtual IEnumerable<ScriptReference> InternalNeighbourFacadeScripts(RoomPlan roomPlan)
         {
             yield return new ScriptReference(typeof(ConfigurableFacade));
@@ -398,7 +400,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         #endregion
 
         #region rooms
-        private Dictionary<RoomPlan, IVerticalFeature> CreateVerticalOverlapRooms(FloorPlan plan)
+        private Dictionary<RoomPlan, IVerticalFeature> CreateVerticalOverlapRooms(FloorPlanBuilder plan)
         {
             Dictionary<RoomPlan, IVerticalFeature> verticalSubsections = (Overlaps ?? new IVerticalFeature[0]).Select(overlap =>
             {
@@ -422,15 +424,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             return verticalSubsections;
         }
 
-        private void CreateFloorPlan(Prism bounds, FloorPlan plan)
+        private IFloorPlan CreateFloorPlan(Prism bounds, FloorPlanBuilder plan)
         {
             Contract.Requires(plan != null);
 
             CreateRooms(plan);
-            plan.Freeze();
+            return plan.Freeze();
         }
 
-        private void CreateRoomScripts(float yOffset, float height, FloorPlan plan)
+        private void CreateRoomScripts(float yOffset, float height, IFloorPlan plan)
         {
             Contract.Requires(plan != null);
 
@@ -446,7 +448,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             }
         }
 
-        protected virtual void CreatedRooms(FloorPlan plan)
+        // ReSharper disable once UnusedParameter.Global (Justification: External API)
+        protected virtual void CreatedRooms(IFloorPlan plan)
         {
         }
 
@@ -460,13 +463,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         /// Call Plan.AddRoom to put new rooms into the floor plan
         /// </summary>
         /// <param name="plan"></param>
-        protected abstract void CreateRooms(FloorPlan plan);
+        protected abstract void CreateRooms(FloorPlanBuilder plan);
         #endregion
 
         #region IRoomPlanProvider implementation
         public RoomPlan GetPlan(IPlannedRoom room)
         {
-            return Plan.Rooms.SingleOrDefault(r => ReferenceEquals(r.Node, room));
+            if (_plan == null)
+                throw new InvalidOperationException("Cannot search for room plan before plan has been generated");
+
+            return _plan.Rooms.SingleOrDefault(r => ReferenceEquals(r.Node, room));
         }
         #endregion
     }

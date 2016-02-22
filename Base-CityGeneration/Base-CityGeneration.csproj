@@ -368,29 +368,7 @@
     <Compile Include="Elements\Building\Design\Spec\Ref\SearchDirection.cs" />
     <Compile Include="Elements\Building\Design\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Design\Spec\RepeatSpec.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\ExteriorDoor.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\ExteriorWindow.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\FloorplanRegion.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\SpaceMapping\ISpaceMapper.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\SpaceMapping\Treemapper.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\SpaceMapping\RoomTreemapNode.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\BaseSpaceSpec.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\Either.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\Invert.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\RegexIdRef.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\TaggedRef.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\BaseSpaceConstraintSpec.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\BaseSpaceConnectionSpec.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\BaseExterior.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Constraints\Area.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\FloorDesigner.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\ISpaceSpecProducer.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\GroupSpec.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Connections\IdRef.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\RequirementStrength.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\RepeatSpec.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\RoomSpec.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Design\FloorPlanner.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Plan\Neighbour.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\EmptyRoom.cs" />
     <Compile Include="Elements\Building\SpecBuilding.cs" />
     <Compile Include="Elements\Building\SpecBuildingContainer.cs" />
@@ -507,7 +485,6 @@
     </None>
     <None Include="Elements\Blocks\Spec\BlockSpec.md" />
     <None Include="Elements\Building\Building Hierarchy.md" />
-    <None Include="Elements\Building\Internals\Floors\Design\FloorSpec.md" />
     <None Include="Elements\Roads\Hyperstreamline\Hyperstreamline.md" />
     <None Include="packages.config" />
   </ItemGroup>

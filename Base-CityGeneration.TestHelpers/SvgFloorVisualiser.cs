@@ -12,13 +12,13 @@ namespace Base_CityGeneration.TestHelpers
     {
         public static XElement FloorNodeToSvg(IFloorTester tester, params Vector2[] footprint)
         {
-            FloorPlan plan = new FloorPlan(new ReadOnlyCollection<Vector2>(footprint));
+            var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(footprint));
             tester.CreateRooms(plan);
 
             return FloorplanToSvg(plan);
         }
 
-        public static XElement FloorplanToSvg(FloorPlan plan, float scalePosition = 1)
+        public static XElement FloorplanToSvg(FloorPlanBuilder plan, float scalePosition = 1)
         {
             var rand = new Random();
 
@@ -61,7 +61,7 @@ namespace Base_CityGeneration.TestHelpers
                 new XAttribute("transform", string.Format("translate({0},{1}) scale(2,-2)", w/2, h/2))
             });
 
-            List<XObject> svgContents = new List<XObject>
+            var svgContents = new List<XObject>
             {
                 new XAttribute("height", h),
                 new XAttribute("width", w),
@@ -103,6 +103,6 @@ namespace Base_CityGeneration.TestHelpers
 
     public interface IFloorTester
     {
-        void CreateRooms(FloorPlan plan);
+        void CreateRooms(FloorPlanBuilder plan);
     }
 }

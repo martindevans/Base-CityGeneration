@@ -15,7 +15,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
     [DebuggerDisplay("RoomPlan Id={Uid}")]
     public class RoomPlan
     {
-        private readonly FloorPlan _plan;
+        private readonly FloorPlanBuilder _plan;
 
         public readonly IReadOnlyList<Vector2> InnerFootprint;
         public readonly IReadOnlyList<Vector2> OuterFootprint;
@@ -30,7 +30,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public IPlannedRoom Node;
 
-        internal RoomPlan(FloorPlan plan, Vector2[] footprint, float wallThickness, ScriptReference[] scripts, int uid, string name)
+        internal RoomPlan(FloorPlanBuilder plan, Vector2[] footprint, float wallThickness, ScriptReference[] scripts, int uid, string name)
         {
             Contract.Requires(plan != null);
             Contract.Requires(footprint != null);
@@ -70,7 +70,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 var section = sections[s];
                 var nextSection = sections[(s + 1) % sections.Length];
 
-                FloorPlan.Neighbour[] sectionNeighbours;
+                Floors.Plan.Neighbour[] sectionNeighbours;
 
                 if (IsNeighbourSection(section, roomNeighbours, out sectionNeighbours))
                 {
@@ -95,7 +95,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return result;
         }
 
-        private IEnumerable<Facade> CreateNeighbourFacades(Walls.Section previousSection, Walls.Section nextSection, Walls.Section section, FloorPlan.Neighbour[] sectionNeighbours)
+        private IEnumerable<Facade> CreateNeighbourFacades(Walls.Section previousSection, Walls.Section nextSection, Walls.Section section, Floors.Plan.Neighbour[] sectionNeighbours)
         {
             Contract.Requires(sectionNeighbours != null);
             Contract.Ensures(Contract.Result<IEnumerable<Facade>>() != null);
@@ -115,7 +115,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             var endT = endCornerLength / totalLength;
 
             //Move through the neighbour sections in order
-            Array.Sort<FloorPlan.Neighbour>(sectionNeighbours, CompareNeighboursAlongCommonEdge);
+            Array.Sort<Floors.Plan.Neighbour>(sectionNeighbours, CompareNeighboursAlongCommonEdge);
 
             float previousMax = 0;
             for (int i = 0; i < sectionNeighbours.Length; i++)
@@ -213,7 +213,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return result;
         }
 
-        private int CompareNeighboursAlongCommonEdge(FloorPlan.Neighbour a, FloorPlan.Neighbour b)
+        private int CompareNeighboursAlongCommonEdge(Floors.Plan.Neighbour a, Floors.Plan.Neighbour b)
         {
             Contract.Requires(a != null);
             Contract.Requires(b != null);
@@ -234,7 +234,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 return 0;
         }
 
-        private bool IsNeighbourSection(Walls.Section section, IEnumerable<FloorPlan.Neighbour> neighbours, out FloorPlan.Neighbour[] neighbourSection)
+        private bool IsNeighbourSection(Walls.Section section, IEnumerable<Floors.Plan.Neighbour> neighbours, out Floors.Plan.Neighbour[] neighbourSection)
         {
             if (section.IsCorner)
             {

@@ -21,12 +21,12 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
     [TestClass]
     public class FloorPlanTest
     {
-        private FloorPlan _plan;
+        private FloorPlanBuilder _plan;
 
         [TestInitialize]
         public void Initialize()
         {
-            _plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(100, 100), new Vector2(100, -100) }));
+            _plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(100, 100), new Vector2(100, -100) }));
         }
 
         [TestMethod]
@@ -749,7 +749,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             const int floorCount = 1;
             for (int i = 0; i < floorCount; i++)
             {
-                FloorPlan plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
+                var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
 
                 for (int j = 0; j < 3; j++)
                 {
@@ -912,7 +912,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             Func<Vector2, float, float, Vector2> Offset = (start, length, width) => start + new Vector2(Length * length, -Width * width);
 
-            Func<FloorPlan, bool, float, IEnumerable<RoomPlan>> CreateBalcony = (pl, start, bl) =>
+            Func<FloorPlanBuilder, bool, float, IEnumerable<RoomPlan>> CreateBalcony = (pl, start, bl) =>
             {
                 var p = pl.ExternalFootprint.First();
 
@@ -940,7 +940,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 }
             };
 
-            var plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new Vector2[]
+            var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new Vector2[]
             {
                 new Vector2(-Length / 2f, Width / 2f),
                 new Vector2(Length / 2f, Width / 2f),
@@ -1026,7 +1026,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             Func<Vector2, float, float, Vector2> Offset = (start, length, width) => start + new Vector2(Length * length, -Width * width);
 
-            Func<FloorPlan, bool, float, IEnumerable<RoomPlan>> CreateBalcony = (pl, start, bl) =>
+            Func<FloorPlanBuilder, bool, float, IEnumerable<RoomPlan>> CreateBalcony = (pl, start, bl) =>
             {
                 var p = pl.ExternalFootprint.First();
 
@@ -1054,7 +1054,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 }
             };
 
-            var plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new Vector2[]
+            var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new Vector2[]
             {
                 new Vector2(-Length / 2f, Width / 2f),
                 new Vector2(Length / 2f, Width / 2f),
@@ -1115,7 +1115,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
                 try
                 {
-                    FloorPlan plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
+                    var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
 
                     for (int j = 0; j < 3; j++)
                     {
@@ -1155,9 +1155,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             // Shrinking a shape can generate *several* separate shapes if the original shape was convex.
             // This used to fail, now shrinking discards all the generated shapes except the largest (fixed with a change in EpimetheusPlugins).
 
-            Random r = new Random(738);
+            var r = new Random(738);
 
-            FloorPlan plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new[] {new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25)}));
+            var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
 
             for (int j = 0; j < 3; j++)
             {
@@ -1297,9 +1297,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             // Sometimes matching up inner and outer sections of wall data used to fail (fixed in EpimetheusPlugins).
             // This test will fail in that case
 
-            Random r = new Random(189);
+            var r = new Random(189);
 
-            FloorPlan plan = new FloorPlan(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
+            var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
 
             for (int j = 0; j < 3; j++)
             {
