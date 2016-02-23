@@ -368,6 +368,12 @@
     <Compile Include="Elements\Building\Design\Spec\Ref\SearchDirection.cs" />
     <Compile Include="Elements\Building\Design\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Design\Spec\RepeatSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\FloorDesigner.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\BaseSpaceSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\GroupSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\ISpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\RepeatSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\RoomSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\Neighbour.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\EmptyRoom.cs" />
     <Compile Include="Elements\Building\SpecBuilding.cs" />
@@ -514,6 +520,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
