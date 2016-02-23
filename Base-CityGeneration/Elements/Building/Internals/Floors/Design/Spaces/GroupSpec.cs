@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces.Constraints;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces.Selector;
 using JetBrains.Annotations;
 using Myre.Collections;
 
@@ -14,23 +16,23 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
     {
         private readonly IReadOnlyList<ISpec> _specs;
 
-        /// <summary>
-        /// Indicates if this space may be used to connect to other spaces (i.e. people may walk through this space to get to the spaces)
-        /// </summary>
         public bool Walkthrough { get; private set; }
 
-        /// <summary>
-        /// Indicates if entry elements (vertical elements or external doors) may be attached directly to this space (e.g. some kind of lobby)
-        /// </summary>
         public bool EntrySpace { get; private set; }
 
-        public GroupSpec(string id, bool walkthrough, bool entrySpace, IReadOnlyList<ISpec> specs)
+        public IEnumerable<Weighted<BaseConstraint>> Constraints { get; private set; }
+
+        public IEnumerable<Weighted<BaseSpecSelector>> Connections { get; private set; }
+
+        public GroupSpec(string id, bool walkthrough, bool entrySpace, IReadOnlyList<Weighted<BaseConstraint>> constraints, IReadOnlyList<Weighted<BaseSpecSelector>> connections, IReadOnlyList<ISpec> specs)
             : base(id)
         {
             _specs = specs;
 
             Walkthrough = walkthrough;
             EntrySpace = entrySpace;
+            Constraints = constraints;
+            Connections = connections;
         }
 
         public IEnumerable<ISpec> Expand(Func<double> random, INamedDataCollection metadata)
@@ -41,18 +43,28 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
         internal class Container
             : BaseContainer
         {
-            //todo: public List<object> Constraints { get; [UsedImplicitly] set; }
-            //todo: public List<object> Connections { get; [UsedImplicitly] set; }
+            // ReSharper disable CollectionNeverUpdated.Global
+            // ReSharper disable MemberCanBePrivate.Global
+            public List<Weighted<BaseConstraint>.Container<BaseConstraint.BaseContainer>> Constraints { get; [UsedImplicitly] set; }
+            public List<Weighted<BaseSpecSelector>.Container<BaseSpecSelector.BaseContainer>> Connections { get; [UsedImplicitly] set; }
 
             public bool Walkthrough { get; [UsedImplicitly]set; }
             public bool EntrySpace { get; [UsedImplicitly]set; }
 
-            // ReSharper disable once CollectionNeverUpdated.Global
             public List<BaseContainer> Children { get; [UsedImplicitly]set; }
+            // ReSharper restore MemberCanBePrivate.Global
+            // ReSharper restore CollectionNeverUpdated.Global
 
             public override BaseSpaceSpec Unwrap()
             {
-                return new GroupSpec(Id, Walkthrough, EntrySpace, Children.Select(a => a.Unwrap()).ToArray());
+                return new GroupSpec(
+                    Id,
+                    Walkthrough,
+                    EntrySpace,
+                    Constraints.UnwrapEnumerable().ToArray(),
+                    Connections.UnwrapEnumerable().ToArray(),
+                    Children.Select(a => a.Unwrap()).ToArray()
+                );
             }
         }
     }
