@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using Myre.Collections;
 
 namespace Base_CityGeneration
@@ -19,6 +21,17 @@ namespace Base_CityGeneration
             Contract.Ensures(Contract.Result<T>() != null);
 
             return default(T);
+        }
+    }
+
+    public static class IUnwrappableExtensions
+    {
+        internal static IEnumerable<T> UnwrapEnumerable<T>(this IEnumerable<IUnwrappable<T>> collection)
+        {
+            if (collection == null)
+                return new T[0];
+
+            return collection.Select(a => a.Unwrap());
         }
     }
 

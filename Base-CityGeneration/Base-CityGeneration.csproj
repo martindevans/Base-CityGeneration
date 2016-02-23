@@ -370,10 +370,13 @@
     <Compile Include="Elements\Building\Design\Spec\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\FloorDesigner.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\BaseSpaceSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\Selector\BaseSpecSelector.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\Constraints\BaseConstraint.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\GroupSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\ISpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\RoomSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Weighted.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\Neighbour.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\EmptyRoom.cs" />
     <Compile Include="Elements\Building\SpecBuilding.cs" />

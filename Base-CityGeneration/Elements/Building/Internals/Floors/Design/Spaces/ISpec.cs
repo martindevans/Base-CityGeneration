@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces.Constraints;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces.Selector;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
 {
     public interface ISpec
     {
-        string Id { get; }
     }
 
     /// <summary>
@@ -14,6 +15,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
     /// </summary>
     public interface ISpaceSpec
     {
+        /// <summary>
+        /// ID of this space
+        /// </summary>
+        string Id { get; }
+
         /// <summary>
         /// Indicates if this space may be used to connect to other spaces (i.e. people may walk through this space to get to the spaces)
         /// </summary>
@@ -24,8 +30,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces
         /// </summary>
         bool EntrySpace { get; }
 
-        //todo: constraints
-        //todo: connections
+        /// <summary>
+        /// Constraints on the layout of this space
+        /// </summary>
+        IEnumerable<Weighted<BaseConstraint>> Constraints { get; }
+
+        /// <summary>
+        /// Connections to other spaces
+        /// </summary>
+        IEnumerable<Weighted<BaseSpecSelector>> Connections { get; }
     }
 
     /// <summary>
