@@ -415,6 +415,7 @@ namespace Base_CityGeneration.Elements.Building.Design
         }
 
         internal class Container
+            : IUnwrappable<BuildingDesigner>
         {
             // ReSharper disable once CollectionNeverUpdated.Global
             public Dictionary<string, string> Tags { get; set; }
