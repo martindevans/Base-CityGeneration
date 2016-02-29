@@ -70,7 +70,7 @@ namespace Base_CityGeneration.Utilities.Numbers
             return new ConstantValue.Container { Value = v };
         }
 
-        public static IValueGenerator FromObject(object v, float? defaultValue = null)
+        public static IValueGenerator FromObject(object v, object defaultValue = null)
         {
             Contract.Ensures(Contract.Result<IValueGenerator>() != null);
 
@@ -80,8 +80,8 @@ namespace Base_CityGeneration.Utilities.Numbers
 
             if (v == null)
             {
-                if (defaultValue.HasValue)
-                    v = defaultValue.Value;
+                if (defaultValue != null)
+                    return FromObject(defaultValue);
                 else
                     throw new ArgumentException("Value is null (and no default value was provided", "v");
             }
