@@ -160,16 +160,16 @@
       <HintPath>..\packages\ClipperRedux.1.0.0.0\lib\net46\ClipperRedux.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5884.3238, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5884.3238\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5899.34969, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5899.34969\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FortuneVoronoi, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\FortuneVoronoi.4.0.0.0\lib\net46\FortuneVoronoi.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="HandyCollections, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\HandyCollections.4.3.0.0\lib\net46\HandyCollections.dll</HintPath>
+    <Reference Include="HandyCollections, Version=4.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HandyCollections.4.4.0.0\lib\net46\HandyCollections.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
@@ -221,8 +221,8 @@
       <HintPath>..\packages\Placeholder.AI.Pathfinding.9.2.1.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.Audio2, Version=5.2.4.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.Audio2.5.2.4.0\lib\net46\Placeholder.Audio2.dll</HintPath>
+    <Reference Include="Placeholder.Audio2, Version=5.2.6.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.Audio2.5.2.6.0\lib\net46\Placeholder.Audio2.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=11.1.1.0, Culture=neutral, processorArchitecture=x86">
@@ -233,12 +233,12 @@
       <HintPath>..\packages\Placeholder.Entities.2.1.1.0\lib\net46\Placeholder.Entities.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.Networking, Version=2.1.1.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.Networking.2.1.1.0\lib\net46\Placeholder.Networking.dll</HintPath>
+    <Reference Include="Placeholder.Networking, Version=2.2.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.Networking.2.2.0.0\lib\net46\Placeholder.Networking.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.Serialization, Version=2.2.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.Serialization.2.2.0.0\lib\net46\Placeholder.Serialization.dll</HintPath>
+    <Reference Include="Placeholder.Serialization, Version=2.4.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.Serialization.2.4.1.0\lib\net46\Placeholder.Serialization.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Poly2Tri, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
@@ -261,8 +261,8 @@
       <HintPath>..\packages\SupersonicSound.4.1.1.0\lib\net46\SupersonicSound.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SwizzleMyVectors, Version=6.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SwizzleMyVectors.6.3.0.0\lib\net46\SwizzleMyVectors.dll</HintPath>
+    <Reference Include="SwizzleMyVectors, Version=6.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SwizzleMyVectors.6.4.0.0\lib\net46\SwizzleMyVectors.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -369,6 +369,9 @@
     <Compile Include="Elements\Building\Design\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Design\Spec\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\FloorDesigner.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Planning\FloorPlanner.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Planning\GrowthMap.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Region.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\BaseSpaceSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\Selector\BaseSpecSelector.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\Constraints\BaseConstraint.cs" />

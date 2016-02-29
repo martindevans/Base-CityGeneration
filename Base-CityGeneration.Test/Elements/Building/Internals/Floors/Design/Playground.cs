@@ -1,6 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Numerics;
+using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
+using Base_CityGeneration.Elements.Roads.Hyperstreamline;
+using Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing;
+using Base_CityGeneration.Test.Elements.Building.Design;
+using Base_CityGeneration.TestHelpers;
+using EpimetheusPlugins.Scripts;
+using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Myre.Collections;
 
@@ -45,45 +55,55 @@ Aliases:
         - *lounge
         - *lounge
 
+SeedSpacing: !NormalValue { Min: 4, Mean: 6, Max: 10, Vary: true }
+
 Spaces:
     - !Repeat
       Count: !NormalValue { Min: 1, Max: 100 }
       Space: *apartment
 "));
 
-            //////Octagon
-            ////var floorplan = designer.Design(random, meta, null, new Vector2[] {
-            ////    new Vector2(2,  4),
-            ////    new Vector2(4,  2),
-            ////    new Vector2(4,  -2),
-            ////    new Vector2(2,  -4),
-            ////    new Vector2(-2, -4),
-            ////    new Vector2(-4, -2),
-            ////    new Vector2(-4, 2),
-            ////    new Vector2(-2, 4),
-            ////});
+            Func<IEnumerable<KeyValuePair<string, string>>, Type[], ScriptReference> finder = (tags, types) =>
+            {
 
-            //Func<IEnumerable<KeyValuePair<string, string>>, Type[], ScriptReference> finder = (tags, types) =>
-            //{
+                var tagsClean = from tag in tags
+                                let k = string.IsNullOrEmpty(tag.Key)
+                                let v = string.IsNullOrEmpty(tag.Value)
+                                where !k || !v
+                                select (!k && !v) ? (tag.Key + ":" + tag.Value) : (k ? tag.Value : tag.Key);
 
-            //    var tagsClean = from tag in tags
-            //                    let k = string.IsNullOrEmpty(tag.Key)
-            //                    let v = string.IsNullOrEmpty(tag.Value)
-            //                    where !k || !v
-            //                    select (!k && !v) ? (tag.Key + ":" + tag.Value) : (k ? tag.Value : tag.Key);
-
-            //    return ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tagsClean));
-            //};
+                return ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", tagsClean));
+            };
 
             ////Corner shape
-            //var floorplan = designer.Design(random, meta, finder, new[] {
-            //    new FloorplanRegion.Side(new Vector2(9, 5), new Vector2(9, -6), new Section[] { new Section(0, 1, Section.Types.Window) }),
-            //    new FloorplanRegion.Side(new Vector2(9, -6), new Vector2(0, -6), new Section[0]),
-            //    new FloorplanRegion.Side(new Vector2(0, -6), new Vector2(0, 0), new Section[0]),
-            //    new FloorplanRegion.Side(new Vector2(0, 0), new Vector2(-4, 0), new Section[0]),
-            //    new FloorplanRegion.Side(new Vector2(-4, 0), new Vector2(-4, 5), new Section[] { new Section(0, 1, Section.Types.Window) }),
-            //    new FloorplanRegion.Side(new Vector2(-4, 5), new Vector2(9, 5), new Section[0]),
-            //}, 0.075f, new List<IReadOnlyList<Vector2>>(), new List<VerticalSelection>());
+            //var shape = new[] {
+            //    new Vector2(9, 5), new Vector2(9, -6), new Vector2(0, -6), new Vector2(0, 0), new Vector2(-4, 0), new Vector2(-4, 5)
+            //};
+            //var sections = new[] {
+            //    new Subsection[] { new Subsection(0, 1, Subsection.Types.Window) },
+            //    new Subsection[0],
+            //    new Subsection[0],
+            //    new Subsection[0],
+            //    new Subsection[] { new Subsection(0, 1, Subsection.Types.Window) },
+            //    new Subsection[0]
+            //};
+
+            //Diagonal bend shape
+            var shape = new[] {
+                new Vector2(10, 10), new Vector2(20, 0), new Vector2(23, 0), new Vector2(33, 10), new Vector2(43, 0),
+                new Vector2(28, -15), new Vector2(15, -15), new Vector2(0, 0)
+            };
+            var sections = new[] {
+                new Subsection[0],
+                new Subsection[0],
+                new Subsection[0],
+                new Subsection[0],
+                new Subsection[0],
+                new Subsection[0],
+                new Subsection[0],
+                new Subsection[0]
+            };
+            
 
             ////var floorplan = designer.Design(random, meta, finder, new[] {
             ////    new FloorplanRegion.Side(new Vector2(-25, 17), new Vector2(0, 17), new Section[0]),
@@ -102,24 +122,8 @@ Spaces:
             ////    new FloorplanRegion.Side(new Vector2(0, 0), new Vector2(9, 0), new Section[0]),
             ////}, 0.075f);
 
-            //Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 15));
-
-            //////Weird spikey shape (unlikely to be generated)
-            ////var floorplan = designer.Design(random, meta, null, new Vector2[] {
-            ////    new Vector2(-10, 10),
-            ////    new Vector2(-8, 10),
-            ////    new Vector2(-6, 6),
-            ////    new Vector2(-4, 10),
-            ////    new Vector2(10, 10),
-            ////    new Vector2(10, 3),
-            ////    new Vector2(6, 0),
-            ////    new Vector2(10, -3),
-            ////    new Vector2(-10, -10),
-            ////});
-
-            ////Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 4).ToString());
-
-            //Assert.IsTrue(true);
+            var floorplan = designer.Design(random, metadata, finder, shape, sections, 0.075f, new List<IReadOnlyList<Vector2>>(), new List<VerticalSelection>());
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 4).ToString());
         }
     }
 }
