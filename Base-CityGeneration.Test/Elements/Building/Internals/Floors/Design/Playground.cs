@@ -55,7 +55,7 @@ Aliases:
         - *lounge
         - *lounge
 
-SeedSpacing: !NormalValue { Min: 4, Mean: 6, Max: 10, Vary: true }
+SeedSpacing: !NormalValue { Min: 2, Mean: 5, Max: 6, Vary: true }
 
 Spaces:
     - !Repeat
