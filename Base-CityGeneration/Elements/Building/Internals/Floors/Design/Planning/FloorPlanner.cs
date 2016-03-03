@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design;
@@ -17,17 +18,28 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         private readonly INamedDataCollection _metadata;
         private readonly Func<KeyValuePair<string, string>[], Type[], ScriptReference> _finder;
         private readonly float _wallThickness;
-        private readonly IValueGenerator _seedSpacing;
-        private readonly float _internalAngleBisectChance;
 
-        public FloorPlanner(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float wallThickness, IValueGenerator seedSpacing, float bisectChance)
+        private readonly IValueGenerator _seedSpacing;
+        private readonly IValueGenerator _parallelCheckLength;
+        private readonly IValueGenerator _parallelCheckWidth;
+        private readonly IValueGenerator _parallelAngleThreshold;
+
+        public FloorPlanner(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float wallThickness, IValueGenerator seedSpacing, IValueGenerator parallelCheckLength, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold)
         {
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(seedSpacing != null);
+
             _random = random;
             _metadata = metadata;
             _finder = finder;
             _wallThickness = wallThickness;
+
             _seedSpacing = seedSpacing;
-            _internalAngleBisectChance = bisectChance;
+            _parallelCheckLength = parallelCheckLength;
+            _parallelCheckWidth = parallelCheckWidth;
+            _parallelAngleThreshold = parallelAngleThreshold;
         }
 
         public FloorPlanBuilder Plan(Region region, IList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
@@ -42,7 +54,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
         private void PlanRegion(FloorPlanBuilder builder, Region region, IList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
-            var map = new GrowthMap(region.Points.ToArray(), _seedSpacing, _internalAngleBisectChance, _random, _metadata);
+            var map = new GrowthMap(region.Points.ToArray(), _seedSpacing, _random, _metadata, _parallelCheckLength, _parallelCheckWidth, _parallelAngleThreshold);
             map.Grow();
 
             //todo: seed along edges of region

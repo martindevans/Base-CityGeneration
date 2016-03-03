@@ -74,9 +74,15 @@ namespace Base_CityGeneration.Utilities.Numbers
         {
             Contract.Ensures(Contract.Result<IValueGenerator>() != null);
 
-            var @explicit = v as IValueGeneratorContainer;
-            if (@explicit != null)
-                return @explicit.Unwrap();
+            //If we've been passed a container just unwrap that
+            var container = v as IValueGeneratorContainer;
+            if (container != null)
+                return container.Unwrap();
+
+            //Maybe we've actually been handed a generator directly? If so, use that
+            var generator = v as IValueGenerator;
+            if (generator != null)
+                return generator;
 
             if (v == null)
             {

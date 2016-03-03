@@ -8,6 +8,7 @@ using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
+using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
 using JetBrains.Annotations;
@@ -40,19 +41,24 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         #endregion
 
         private readonly IReadOnlyList<BaseSpaceSpec> _spaces;
+
         private readonly IValueGenerator _seedSpacing;
-        private readonly IValueGenerator _internalAngleBisectChance;
+        private readonly IValueGenerator _parallelCheckLength;
+        private readonly IValueGenerator _parallelCheckWidth;
+        private readonly IValueGenerator _parallelAngleThreshold;
         #endregion
 
         #region constructor
-        private FloorDesigner(Dictionary<string, string> tags, Guid guid, string description, IReadOnlyList<BaseSpaceSpec> spaces, IValueGenerator seedSpacing, IValueGenerator internalAngleBisectChance)
+        private FloorDesigner(Dictionary<string, string> tags, Guid guid, string description, IReadOnlyList<BaseSpaceSpec> spaces, IValueGenerator seedSpacing, IValueGenerator parallelCheckLength, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold)
         {
             _tags = tags;
             _guid = guid;
             _description = description;
             _spaces = spaces;
             _seedSpacing = seedSpacing;
-            _internalAngleBisectChance = internalAngleBisectChance;
+            _parallelCheckLength = parallelCheckLength;
+            _parallelCheckWidth = parallelCheckWidth;
+            _parallelAngleThreshold = parallelAngleThreshold;
         }
         #endregion
 
@@ -70,9 +76,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             var region = CreateRegion(footprint, sections);
 
-            var bisectChance = _internalAngleBisectChance.SelectFloatValue(random, metadata);
-
-            var planner = new FloorPlanner(random, metadata, finder, wallThickness, _seedSpacing, bisectChance);
+            var planner = new FloorPlanner(random, metadata, finder, wallThickness, _seedSpacing, _parallelCheckLength, _parallelCheckWidth, _parallelAngleThreshold);
             return planner.Plan(region, overlappingVerticals, startingVerticals, _spaces);
         }
 
@@ -145,6 +149,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             return CreateSerializer().Deserialize<Container>(reader).Unwrap();
         }
 
+        internal struct ParallelCheckParameters
+        {
+            public object Length { get; set; }
+            public object Width { get; set; }
+            public object Angle { get; set; }
+        }
+
         internal class Container
             : IUnwrappable<FloorDesigner>
         {
@@ -155,23 +166,31 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             public string Id { get; [UsedImplicitly] set; }
             public string Description { get; [UsedImplicitly] set; }
             public object SeedSpacing { get; [UsedImplicitly] set; }
-            public object AngleBisectChance { get; [UsedImplicitly] set; }
+            public ParallelCheckParameters? ParallelCheck { get; [UsedImplicitly] set; }
             public List<BaseSpaceSpec.BaseContainer> Spaces { get; [UsedImplicitly] set; }
             // ReSharper restore CollectionNeverUpdated.Global
             // ReSharper restore MemberCanBePrivate.Global
 
             public FloorDesigner Unwrap()
             {
-                var bisect = IValueGeneratorContainer.FromObject(AngleBisectChance, 0);
-                Contract.Assert(bisect.MinValue >= 0 && bisect.MaxValue <= 1);
+                var spacing = IValueGeneratorContainer.FromObject(SeedSpacing);
+
+                var defaultParallel = new ParallelCheckParameters {
+                    Length = 1.25f,
+                    Width = spacing.Transform(a => a / 2),
+                    Angle = 10
+                };
+                var parallelParams = ParallelCheck ?? defaultParallel;
 
                 return new FloorDesigner(
                     Tags,
                     Guid.Parse(Id ?? Guid.NewGuid().ToString()),
                     Description ?? "",
                     Spaces.Select(a => a.Unwrap()).ToArray(),
-                    IValueGeneratorContainer.FromObject(SeedSpacing),
-                    bisect
+                    IValueGeneratorContainer.FromObject(spacing),
+                    IValueGeneratorContainer.FromObject(parallelParams.Length, defaultParallel.Length),
+                    IValueGeneratorContainer.FromObject(parallelParams.Width, defaultParallel.Width),
+                    IValueGeneratorContainer.FromObject(parallelParams.Angle, defaultParallel.Angle).Transform(Microsoft.Xna.Framework.MathHelper.ToRadians)
                 );
             }
         }
