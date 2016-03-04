@@ -46,10 +46,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         private readonly IValueGenerator _parallelCheckLength;
         private readonly IValueGenerator _parallelCheckWidth;
         private readonly IValueGenerator _parallelAngleThreshold;
+        private readonly float _intersectionContinuationChance;
         #endregion
 
         #region constructor
-        private FloorDesigner(Dictionary<string, string> tags, Guid guid, string description, IReadOnlyList<BaseSpaceSpec> spaces, IValueGenerator seedSpacing, IValueGenerator parallelCheckLength, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold)
+        private FloorDesigner(Dictionary<string, string> tags, Guid guid, string description, IReadOnlyList<BaseSpaceSpec> spaces, IValueGenerator seedSpacing, IValueGenerator parallelCheckLength, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold, float intersectionContinuationChance)
         {
             _tags = tags;
             _guid = guid;
@@ -76,7 +77,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             var region = CreateRegion(footprint, sections);
 
-            var planner = new FloorPlanner(random, metadata, finder, wallThickness, _seedSpacing, _parallelCheckLength, _parallelCheckWidth, _parallelAngleThreshold);
+            var planner = new FloorPlanner(random, metadata, finder, wallThickness, _seedSpacing, _parallelCheckLength, _parallelCheckWidth, _parallelAngleThreshold, _intersectionContinuationChance);
             return planner.Plan(region, overlappingVerticals, startingVerticals, _spaces);
         }
 
@@ -149,6 +150,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             return CreateSerializer().Deserialize<Container>(reader).Unwrap();
         }
 
+        internal class GrowthParameters
+        {
+            public ParallelCheckParameters? ParallelCheck { get; [UsedImplicitly] set; }
+            public object SeedSpacing { get; [UsedImplicitly] set; }
+        }
+
         internal struct ParallelCheckParameters
         {
             public object Length { get; set; }
@@ -165,21 +172,24 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             public Dictionary<string, string> Tags { get; [UsedImplicitly] set; }
             public string Id { get; [UsedImplicitly] set; }
             public string Description { get; [UsedImplicitly] set; }
-            public object SeedSpacing { get; [UsedImplicitly] set; }
-            public ParallelCheckParameters? ParallelCheck { get; [UsedImplicitly] set; }
+
+            public GrowthParameters GrowthParameters { get; [UsedImplicitly] set; }
+
             public List<BaseSpaceSpec.BaseContainer> Spaces { get; [UsedImplicitly] set; }
             // ReSharper restore CollectionNeverUpdated.Global
             // ReSharper restore MemberCanBePrivate.Global
 
             public FloorDesigner Unwrap()
             {
-                var spacing = IValueGeneratorContainer.FromObject(SeedSpacing);
+                Contract.Requires(GrowthParameters != null);
+
+                var spacing = IValueGeneratorContainer.FromObject(GrowthParameters.SeedSpacing);
                 var defaultParallel = new ParallelCheckParameters {
                     Length = 1.25f,
                     Width = 1,
                     Angle = 10
                 };
-                var parallelParams = ParallelCheck ?? defaultParallel;
+                var parallelParams = GrowthParameters.ParallelCheck ?? defaultParallel;
 
                 return new FloorDesigner(
                     Tags,
@@ -189,7 +199,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     IValueGeneratorContainer.FromObject(spacing),
                     IValueGeneratorContainer.FromObject(parallelParams.Length, defaultParallel.Length),
                     IValueGeneratorContainer.FromObject(parallelParams.Width, defaultParallel.Width),
-                    IValueGeneratorContainer.FromObject(parallelParams.Angle, defaultParallel.Angle).Transform(Microsoft.Xna.Framework.MathHelper.ToRadians)
+                    IValueGeneratorContainer.FromObject(parallelParams.Angle, defaultParallel.Angle).Transform(Microsoft.Xna.Framework.MathHelper.ToRadians),
+                    0.5f
                 );
             }
         }

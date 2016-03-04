@@ -23,8 +23,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         private readonly IValueGenerator _parallelCheckLength;
         private readonly IValueGenerator _parallelCheckWidth;
         private readonly IValueGenerator _parallelAngleThreshold;
+        private readonly float _intersectionContinuationChance;
 
-        public FloorPlanner(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float wallThickness, IValueGenerator seedSpacing, IValueGenerator parallelCheckLength, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold)
+        public FloorPlanner(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float wallThickness, IValueGenerator seedSpacing, IValueGenerator parallelCheckLength, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold, float intersectionContinuationChance)
         {
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
@@ -40,6 +41,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             _parallelCheckLength = parallelCheckLength;
             _parallelCheckWidth = parallelCheckWidth;
             _parallelAngleThreshold = parallelAngleThreshold;
+            _intersectionContinuationChance = intersectionContinuationChance;
         }
 
         public FloorPlanBuilder Plan(Region region, IList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
@@ -54,7 +56,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
         private void PlanRegion(FloorPlanBuilder builder, Region region, IList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
-            var map = new GrowthMap(region.Points.ToArray(), _seedSpacing, _random, _metadata, _parallelCheckLength, _parallelCheckWidth, _parallelAngleThreshold);
+            var map = new GrowthMap(region.Points.ToArray(), _seedSpacing, _random, _metadata, _parallelCheckLength, _parallelCheckWidth, _parallelAngleThreshold, _intersectionContinuationChance);
             map.Grow();
 
             //todo: seed along edges of region
