@@ -102,7 +102,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             );
 
             //Check for intersections with other edges
-            var firstIntersection = FindFirstIntersection(seed, length + _seedDistance.MinValue);
+            var firstIntersection = FindFirstIntersection(seed, length + _seedDistance.MinValue );
 
             //Reject seeds with parallel edges in certain circumstances
             if (firstParallel.HasValue)
@@ -281,7 +281,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 else if (angle <= Math.PI * 1.01)
                 {
                     //90 -> 180
-                    BisectorSeed(b, ab, bc);
+                    if (_random.RandomBoolean())
+                        PerpendicularSeed(b, ab);
+                    else
+                        PerpendicularSeed(b, bc);
                 }
                 else if (angle <= Math.PI * 1.51)
                 {

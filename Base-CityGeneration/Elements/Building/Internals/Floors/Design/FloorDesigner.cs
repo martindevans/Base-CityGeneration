@@ -174,10 +174,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             public FloorDesigner Unwrap()
             {
                 var spacing = IValueGeneratorContainer.FromObject(SeedSpacing);
-
                 var defaultParallel = new ParallelCheckParameters {
                     Length = 1.25f,
-                    Width = spacing.Transform(a => a / 2),
+                    Width = 1,
                     Angle = 10
                 };
                 var parallelParams = ParallelCheck ?? defaultParallel;
