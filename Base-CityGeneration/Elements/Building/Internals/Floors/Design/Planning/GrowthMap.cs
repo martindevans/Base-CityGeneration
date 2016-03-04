@@ -30,9 +30,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         private readonly IValueGenerator _parallelLengthMultiplier;
         private readonly IValueGenerator _parallelCheckDistance;
         private readonly IValueGenerator _cosineParallelAngleThreshold;
+        private readonly float _intersectionContinuationChance;
 
         private readonly Quadtree<Edge> _edges;
         private readonly MinHeap<Seed> _seeds = new MinHeap<Seed>();
+        private readonly List<Vertex> _vertices;
 
         //todo: remove this!
         private readonly SvgBuilder _builder = new SvgBuilder(10);
@@ -44,7 +46,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         /// <param name="seedDistance">Distance between seeds placed on walls</param>
         /// <param name="random">PRNG (0-1)</param>
         /// <param name="metadata">Metadata used in random generation</param>
-        public GrowthMap(IReadOnlyList<Vector2> outline, IValueGenerator seedDistance, Func<double> random, INamedDataCollection metadata, IValueGenerator parallelLengthMultiplier, IValueGenerator parallelCheckDistance, IValueGenerator parallelAngleThreshold)
+        public GrowthMap(IReadOnlyList<Vector2> outline, IValueGenerator seedDistance, Func<double> random, INamedDataCollection metadata, IValueGenerator parallelLengthMultiplier, IValueGenerator parallelCheckDistance, IValueGenerator parallelAngleThreshold, float intersectionContinuationChance)
         {
             Contract.Requires(outline != null);
             Contract.Requires(seedDistance != null);
@@ -60,8 +62,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             _parallelLengthMultiplier = parallelLengthMultiplier;
             _parallelCheckDistance = parallelCheckDistance;
             _cosineParallelAngleThreshold = parallelAngleThreshold.Transform(a => (float)Math.Cos(a));
+            _intersectionContinuationChance = intersectionContinuationChance;
 
             _edges = new Quadtree<Edge>(BoundingRectangle.CreateFromPoints(outline).Inflate(0.2f), 10);
+            _vertices = new List<Vertex>(100);
         }
 
         public void Grow()
@@ -128,22 +132,22 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 //Create an edge to this intersection point
                 InsertEdge(new Edge(seed.Origin, intersectVert));
 
-                ////If this is not an external wall we can create a seed continuing forward
-                //if (!intersection.Value.Key.External && _random.RandomBoolean())
-                //{
-                //    //New wall will be perpendicular to the wall we've hit...
-                //    var direction = intersection.Value.Key.Segment.Line.Direction.Perpendicular();
+                //If this is not an external wall we can create a seed continuing forward
+                if (!firstIntersection.Value.Key.External && _random.RandomBoolean(1 - _intersectionContinuationChance))
+                {
+                    //New wall will be perpendicular to the wall we've hit...
+                    var direction = firstIntersection.Value.Key.Segment.Line.Direction.Perpendicular();
 
-                //    //...but which perpendicular?
-                //    var dotRight = Vector2.Dot(direction, seed.Direction);
-                //    var dotLeft = Vector2.Dot(-direction, seed.Direction);
-                //    if (dotLeft > dotRight)
-                //        direction *= -1;
+                    //...but which perpendicular?
+                    var dotRight = Vector2.Dot(direction, seed.Direction);
+                    var dotLeft = Vector2.Dot(-direction, seed.Direction);
+                    if (dotLeft > dotRight)
+                        direction *= -1;
 
-                //    //create new seed
-                //    var wallLength = Vector2.Distance(seed.Origin.Position, intersectVert.Position);
-                //    CreateSeed(intersectVert, direction, seed.T + wallLength);
-                //}
+                    //create new seed
+                    var wallLength = Vector2.Distance(seed.Origin.Position, intersectVert.Position);
+                    CreateSeed(intersectVert, direction, seed.T + wallLength);
+                }
             }
             else
             {
