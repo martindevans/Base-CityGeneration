@@ -1,11 +1,8 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
-using SharpYaml.Tokens;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {

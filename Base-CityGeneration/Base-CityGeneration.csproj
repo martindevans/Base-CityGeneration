@@ -370,6 +370,7 @@
     <Compile Include="Elements\Building\Design\Spec\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\FloorDesigner.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Planning\FloorPlanner.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Design\Planning\FloorplanHalfEdgeTags.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Planning\GrowthMap.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Region.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Spaces\BaseSpaceSpec.cs" />
