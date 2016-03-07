@@ -10,13 +10,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
     {
         #region fields and properties
         private readonly HashSet<Face<TVertexTag, THalfEdgeTag, TFaceTag>> _faces = new HashSet<Face<TVertexTag, THalfEdgeTag, TFaceTag>>();
+        private readonly List<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> _vertices = new List<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>();
 
         private const float VERTEX_EPSILON = 0.05f;
-
-        /// <summary>
-        /// Maps from vertex to the list of edges starting at that vertex
-        /// </summary>
-        private readonly Dictionary<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>, HashSet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>> _halfEdges = new Dictionary<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>, HashSet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>();
 
         public IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>> Faces
         {
@@ -34,7 +30,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             {
                 Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
                 Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>(), a => a != null));
-                return _halfEdges.Values.SelectMany(a => a);
+                return _vertices.SelectMany(a => a.Edges);
             }
         }
 
@@ -44,7 +40,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             {
                 Contract.Ensures(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
                 Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>(), a => a != null));
-                return _halfEdges.Keys;
+                return _vertices;
             }
         }
         #endregion
@@ -60,8 +56,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             if (start.Mesh != this)
                 throw new ArgumentException("start");
 
-            var edgeList = _halfEdges[start];
-            var edge = (from e in edgeList
+            var edge = (from e in start.Edges
                         where e.EndVertex.Equals(end)
                         select e).SingleOrDefault();
 
@@ -72,8 +67,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 edge.Pair = pair;
                 pair.Pair = edge;
 
-                var addedA = edgeList.Add(edge);
-                var addedB = _halfEdges[end].Add(pair);
+                var addedA = start.AddEdge(edge);
+                var addedB = end.AddEdge(pair);
 
                 if (!addedA || !addedB)
                     throw new InvalidOperationException("Constructing new half edge found duplicate edge");
@@ -92,10 +87,10 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             if (start.Mesh != this)
                 throw new ArgumentException("start");
 
-            var edgeList = _halfEdges[start];
-            return (from e in edgeList
-                        where e.EndVertex.Equals(end)
-                        select e).SingleOrDefault();
+            return (from e in start.Edges
+                    where e.EndVertex.Equals(end)
+                    select e
+                   ).SingleOrDefault();
         }
 
         internal void Split(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edge, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> middle, out HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> am, out HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> mb)
@@ -119,10 +114,10 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             if (edge.Pair.Face != null)
                 edgeBeforeEdgePair = edge.Pair.Face.Edges.Single(e => e.Next.Equals(edge.Pair));
 
-            //delete existing edge
-            if (!_halfEdges[b].Remove(edge.Pair))
+            //Delete existing edge
+            if (!b.DeleteEdge(edge.Pair))
                 throw new InvalidOperationException("Detaching edge from vertex failed");
-            if (!_halfEdges[a].Remove(edge))
+            if (!a.DeleteEdge(edge))
                 throw new InvalidOperationException("Detaching edge from vertex failed");
 
             //Construct two new edges
@@ -166,7 +161,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 return existing;
 
             var v = new Vertex<TVertexTag, THalfEdgeTag, TFaceTag>(this, vector2);
-            _halfEdges.Add(v, new HashSet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>());
+            _vertices.Add(v);
             return v;
         }
 
@@ -174,35 +169,48 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             Contract.Ensures(Contract.Result<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
 
-            return _halfEdges.Keys.Single(k => k.Position == vector2);
+            return _vertices.Single(v => v.Position == vector2);
         }
 
-        public Face<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructFace(params Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] vertices)
+        private Face<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructFace(bool constructEdges, params Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] vertices)
         {
             Contract.Requires(vertices != null);
             Contract.Requires(vertices.Length >= 3);
-            Contract.Ensures(Contract.Result<Face<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
 
             var edges = new List<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>();
-            var faces = new HashSet<Face<TVertexTag, THalfEdgeTag, TFaceTag>>();
+            Face<TVertexTag, THalfEdgeTag, TFaceTag> foundFace = null;
             for (var i = 0; i < vertices.Length; i++)
             {
                 var v = vertices[i];
                 var n = vertices[(i + 1) % vertices.Length];
-                var e = GetOrConstructHalfEdge(v, n);
+                var e = constructEdges ? GetOrConstructHalfEdge(v, n) : GetHalfEdge(v, n);
+
+                //Can't find an edge for this pair, this will only happen if ~constructEdges
+                if (e == null)
+                    return null;
 
                 edges.Add(e);
                 if (e.Face != null)
-                    faces.Add(e.Face);
+                {
+                    //If this edge is already connected to a face take note of that
+                    //If we've *already* taken such a note (and it wasn't to the same face) we have a problem!
+                    if (foundFace != null && !foundFace.Equals(e.Face))
+                        throw new InvalidOperationException("Some edges are already connected to multiple different faces");
+                    foundFace = e.Face;
+                }
             }
 
             Contract.Assert(edges.Count == vertices.Length);
 
-            if (faces.Count > 1)
-                throw new InvalidOperationException("Some edges are already connected to a different face");
-
-            if (faces.Count == 1)
-                return faces.Single();
+            //If we found a face let's see if it's the face we want
+            //If all the edges of the found face are in out constructed edge set then we're good to go
+            if (foundFace != null)
+            {
+                if (foundFace.Edges.All(edges.Contains))
+                    return foundFace;
+                else
+                    throw new InvalidOperationException("Some edges are already connected to a different face");
+            }
 
             //Create new face
             var f = new Face<TVertexTag, THalfEdgeTag, TFaceTag> { Edge = edges.First() };
@@ -216,6 +224,37 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 e.Next = edges[(i + 1) % edges.Count];
             }
             return f;
+        }
+
+        /// <summary>
+        /// Attempt to construct a face connecting the given vertices. Only succeeds if all edges *already* have half edges as appropriate
+        /// </summary>
+        /// <param name="vertices"></param>
+        /// <returns></returns>
+        public Face<TVertexTag, THalfEdgeTag, TFaceTag> TryGetOrConstructFace(params Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] vertices)
+        {
+            Contract.Requires(vertices != null);
+            Contract.Requires(vertices.Length >= 3);
+
+            return GetOrConstructFace(false, vertices);
+        }
+
+        /// <summary>
+        /// Construct a face connecting the given vertices
+        /// </summary>
+        /// <param name="vertices"></param>
+        /// <returns></returns>
+        public Face<TVertexTag, THalfEdgeTag, TFaceTag> GetOrConstructFace(params Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] vertices)
+        {
+            Contract.Requires(vertices != null);
+            Contract.Requires(vertices.Length >= 3);
+            Contract.Ensures(Contract.Result<Face<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
+
+            var face = GetOrConstructFace(true, vertices);
+
+            Contract.Assert(face != null);
+
+            return face;
         }
 
         internal void Delete(Face<TVertexTag, THalfEdgeTag, TFaceTag> f)
@@ -235,13 +274,6 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             }
 
             _faces.Remove(f);
-        }
-
-        internal IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> EdgesFromVertex(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> v)
-        {
-            Contract.Requires(v != null);
-
-            return _halfEdges[v];
         }
 
         public Vertex<TVertexTag, THalfEdgeTag, TFaceTag> FindClosestVertex(Vector2 v)
@@ -320,18 +352,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public void Transform(Func<Vector2, Vector2> transform)
         {
-            //Copy all the values out from halfEdges dictionary
-            //We're about to mutate on a field which is in the hashcode and break the entire data structure
-            var index = _halfEdges.ToArray();
-            _halfEdges.Clear();
-
             //We can't use the this.Vertices property because that's backed by the _halfEdges collection which we just broke!
-            foreach (var vertex in index)
-                vertex.Key.Transform(transform);
-
-            //Rebuild index
-            foreach (var keyValuePair in index)
-                _halfEdges.Add(keyValuePair.Key, keyValuePair.Value);
+            foreach (var vertex in _vertices)
+                vertex.Transform(transform);
         }
     }
 }
