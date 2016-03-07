@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using Base_CityGeneration.Datastructures.Extensions;
+using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Extensions;
@@ -9,6 +11,7 @@ using EpimetheusPlugins.Procedural;
 using HandyCollections.Geometry;
 using HandyCollections.Heap;
 using Myre.Collections;
+using Placeholder.AI.Pathfinding.Graph;
 using PrimitiveSvgBuilder;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
@@ -32,9 +35,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         private readonly IValueGenerator _cosineParallelAngleThreshold;
         private readonly float _intersectionContinuationChance;
 
+        private readonly BoundingRectangle _bounds;
         private readonly Quadtree<Edge> _edges;
         private readonly MinHeap<Seed> _seeds = new MinHeap<Seed>();
-        private readonly List<Vertex> _vertices;
+        private readonly Quadtree<Vertex> _vertices;
 
         //todo: remove this!
         private readonly SvgBuilder _builder = new SvgBuilder(10);
@@ -64,32 +68,32 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             _cosineParallelAngleThreshold = parallelAngleThreshold.Transform(a => (float)Math.Cos(a));
             _intersectionContinuationChance = intersectionContinuationChance;
 
-            _edges = new Quadtree<Edge>(BoundingRectangle.CreateFromPoints(outline).Inflate(0.2f), 10);
-            _vertices = new List<Vertex>(100);
+            _bounds = BoundingRectangle.CreateFromPoints(outline).Inflate(0.2f);
+            _edges = new Quadtree<Edge>(_bounds, 10);
+            _vertices = new Quadtree<Vertex>(_bounds, 10);
         }
 
-        public void Grow()
+        public Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> Grow()
         {
+            //Create initial seeds along the outline of the building
             CreateInitialSeeds();
 
-            //Pull seeds out of heap and grow them
-            //todo: remove temp limit
-            int count = 0;
-            while (_seeds.Count > 0 && count++ < 1000)
-            {
-                var seed = _seeds.RemoveMin();
+            //Pull seeds out of heap and grow them (eventually we will run out of valid seeds and exit this loop)
+            while (_seeds.Count > 0)
+                GrowSeed(_seeds.RemoveMin());
 
-                GrowSeed(seed);
-            }
+            //Sometimes we create edges which lead to a vertex and then nothing else, remove all these dead end edges
+            CleanupDeadEnds();
 
             //todo: remove temp visualisation code
             foreach (var edge in _edges.Intersects(BoundingRectangle.CreateFromPoints(_outline).Inflate(0.2f)))
                 _builder.Line(edge.A.Position, edge.B.Position, 1, "blue");
             Console.WriteLine(_builder.ToString());
 
-            throw new NotImplementedException();
+            return ConvertToMesh();
         }
 
+        #region growth
         private void GrowSeed(Seed seed)
         {
             //Decide how far we're going to grow this seed
@@ -123,14 +127,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
             if (firstIntersection.HasValue)
             {
-                var intersectVert = CreateVertex(firstIntersection.Value.Value.Position);
+                var intersectVert = GetOrCreateVertex(firstIntersection.Value.Value.Position);
 
                 //Split the edge we've hit
                 Edge ab, bc;
                 SplitEdge(firstIntersection.Value.Key, intersectVert, out ab, out bc);
 
                 //Create an edge to this intersection point
-                InsertEdge(new Edge(seed.Origin, intersectVert));
+                InsertEdge(Edge.Create(seed.Origin, intersectVert));
 
                 //If this is not an external wall we can create a seed continuing forward
                 if (!firstIntersection.Value.Key.External && _random.RandomBoolean(1 - _intersectionContinuationChance))
@@ -152,8 +156,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             else
             {
                 //Create edge along this distance
-                var end = CreateVertex(seed.Origin.Position + seed.Direction * length);
-                InsertEdge(new Edge(seed.Origin, end));
+                var end = GetOrCreateVertex(seed.Origin.Position + seed.Direction * length);
+                InsertEdge(Edge.Create(seed.Origin, end));
 
                 // Choose which directions to grow in (LF, LR, FR, LFR) we're going to do
                 var newWalls = _random.RandomInteger(0, 3);
@@ -250,11 +254,40 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             }
             return result;
         }
+        #endregion
+
+        #region cleanup
+        private void CleanupDeadEnds()
+        {
+            //Get all vertices
+            var vertices = _vertices.Intersects(BoundingRectangle.CreateFromPoints(_outline).Inflate(0.2f)).ToArray();
+
+            //Delete vertices with only one (or less) attached edge
+            foreach (var vertex in vertices)
+            {
+                if (vertex.OutwardEdges.Count <= 1)
+                {
+                    var edge = vertex.OutwardEdges.SingleOrDefault();
+                    if (edge != null)
+                        DeleteEdge(edge);
+
+                    _vertices.Remove(new BoundingRectangle(vertex.Position, vertex.Position).Inflate(0.2f), vertex);
+                }
+            }
+        }
+
+        private Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> ConvertToMesh()
+        {
+            var m = new Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>();
+
+            return m.FromGraph(_vertices.Intersects(_bounds).First(), a => a.Position);
+        }
+        #endregion
 
         #region initialisation
         private void CreateInitialSeeds()
         {
-            var vertices = _outline.Select(CreateVertex).ToArray();
+            var vertices = _outline.Select(GetOrCreateVertex).ToArray();
 
             // Create the outer edges of the floor
             for (var i = 0; i < vertices.Length; i++)
@@ -311,14 +344,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             }
         }
 
-        private void BisectorSeed(Vertex b, Vector2 ab, Vector2 bc)
-        {
-            //Average of -in and out is the bisector
-            var bi = Vector2.Normalize(-ab * 0.5f + bc * 0.5f);
-
-            CreateSeed(b, bi, (float)_random());
-        }
-
         private void PerpendicularSeed(Vertex a, Vector2 ab)
         {
             CreateSeed(a, ab.Perpendicular(), (float)_random());
@@ -346,17 +371,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                     break;
 
                 //Create the vertex at this point
-                var v = CreateVertex(a.Position + direction * used);
+                var v = GetOrCreateVertex(a.Position + direction * used);
 
                 //Create edge up to this vertex and a seed (pointing to the right, which is inwards assuming the outline is clockwise wound)
                 CreateSeed(v, direction.Perpendicular(), (float)_random());
-                InsertEdge(new Edge(current, v, true));
+                InsertEdge(Edge.Create(current, v, true));
 
                 current = v;
             }
 
             //Finish off the end of the edge
-            InsertEdge(new Edge(current, b, true));
+            InsertEdge(Edge.Create(current, b, true));
         }
         #endregion
 
@@ -370,10 +395,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         #endregion
 
         #region vertices
-        private Vertex CreateVertex(Vector2 position)
+        private Vertex GetOrCreateVertex(Vector2 position)
         {
-            //todo: remake this into GetOrCreate, with very careful consideration for how to do that exactly!
-            return new Vertex(position);
+            var bounds = new BoundingRectangle(position, position).Inflate(0.2f);
+
+            var vertex = _vertices.Intersects(bounds).SingleOrDefault(v => v.Position == position);
+            if (vertex != null)
+                return vertex;
+
+            vertex = new Vertex(position);
+            _vertices.Insert(bounds, vertex);
+            return vertex;
         }
         #endregion
 
@@ -411,15 +443,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             DeleteEdge(edge);
 
             //...replace two new edges
-            ab = InsertEdge(new Edge(edge.A, mid, edge.External));
-            bc = InsertEdge(new Edge(mid, edge.B, edge.External));
+            ab = InsertEdge(Edge.Create(edge.A, mid, edge.External));
+            bc = InsertEdge(Edge.Create(mid, edge.B, edge.External));
         }
 
         private void DeleteEdge(Edge edge)
         {
             Contract.Requires(edge != null);
 
+            //Remove from quadtree
             _edges.Remove(new BoundingRectangle(Vector2.Min(edge.A.Position, edge.B.Position), Vector2.Max(edge.A.Position, edge.B.Position)).Inflate(0.2f), edge);
+
+            //Remove from vertices
+            edge.A.Remove(edge);
         }
         #endregion
 
@@ -445,6 +481,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         }
 
         private class Edge
+            : IEdge
         {
             private readonly bool _external;
             public bool External
@@ -474,7 +511,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
             public LineSegment2 Segment { get { return new LineSegment2(A.Position, B.Position); } }
 
-            public Edge(Vertex a, Vertex b, bool external = false)
+            private Edge(Vertex a, Vertex b, bool external = false)
             {
                 Contract.Requires(a != null);
                 Contract.Requires(b != null);
@@ -484,16 +521,77 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 _b = b;
                 _external = external;
             }
+
+            public static Edge Create(Vertex a, Vertex b, bool external = false)
+            {
+                Contract.Requires(a != null);
+                Contract.Requires(b != null);
+                Contract.Requires(!a.Equals(b), "Cannot create edge from a vertex to itself");
+
+                var edge = new Edge(a, b, external);
+
+                a.Add(edge);
+
+                return edge;
+            }
+
+            public bool Connects(Vertex a, Vertex b)
+            {
+                return ((A.Equals(a) && B.Equals(b)) || (A.Equals(b) && B.Equals(a)));
+            }
+
+            IVertex IEdge.Start
+            {
+                get { return A; }
+            }
+
+            IVertex IEdge.End
+            {
+                get { return B; }
+            }
+
+            float IEdge.TraversalCost
+            {
+                get { return Vector2.Distance(A.Position, B.Position); }
+            }
         }
 
         private class Vertex
+            : IVertex
         {
             private readonly Vector2 _position;
             public Vector2 Position { get { return _position; } }
 
+            private readonly List<Edge> _outwardEdges = new List<Edge>();
+            public IReadOnlyList<Edge> OutwardEdges
+            {
+                get { return _outwardEdges; }
+            }
+
+            IEnumerable<IEdge> IVertex.OutwardEdges
+            {
+                get { return _outwardEdges; }
+            }
+
             public Vertex(Vector2 position)
             {
                 _position = position;
+            }
+
+            public void Add(Edge edge)
+            {
+                Contract.Requires(edge != null);
+                Contract.Requires(edge.A.Equals(this));
+
+                _outwardEdges.Add(edge);
+            }
+
+            public void Remove(Edge edge)
+            {
+                Contract.Requires(edge != null);
+
+                if (!_outwardEdges.Remove(edge))
+                    throw new ArgumentException("Cannot remove edge, not found in collection", "edge");
             }
         }
         #endregion
