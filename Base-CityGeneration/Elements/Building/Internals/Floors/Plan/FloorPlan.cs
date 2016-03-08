@@ -27,7 +27,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         {
             get
             {
-                Contract.Ensures(Contract.Result<IReadOnlyList<Vector2>>() != null);
+                
                 return _externalFootprint;
             }
         }
@@ -37,7 +37,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         {
             get
             {
-                Contract.Ensures(Contract.Result<IEnumerable<RoomPlan>>() != null);
                 return _rooms;
             }
         }
@@ -234,9 +233,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public IEnumerable<Neighbour> GetNeighbours(RoomPlan room)
         {
-            Contract.Requires(room != null);
-            Contract.Ensures(Contract.Result<IEnumerable<Neighbour>>() != null);
-
             _neighbourhood.GenerateNeighbours();
             return _neighbourhood[room];
         }
@@ -257,6 +253,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
     /// <summary>
     /// An immutable floorplan, a set of rooms in an enclosed space.
     /// </summary>
+    [ContractClass(typeof(IFloorPlanContracts))]
     public interface IFloorPlan
     {
         IReadOnlyList<Vector2> ExternalFootprint { get; }
@@ -264,5 +261,37 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         IEnumerable<RoomPlan> Rooms { get; }
 
         IEnumerable<Neighbour> GetNeighbours(RoomPlan room);
+    }
+
+    [ContractClassFor(typeof(IFloorPlan))]
+    internal abstract class IFloorPlanContracts
+        : IFloorPlan
+    {
+        public IReadOnlyList<Vector2> ExternalFootprint
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IReadOnlyList<Vector2>>() != null);
+                return null;
+            }
+        }
+
+        public IEnumerable<RoomPlan> Rooms
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<RoomPlan>>() != null);
+
+                return null;
+            }
+        }
+
+        public IEnumerable<Neighbour> GetNeighbours(RoomPlan room)
+        {
+            Contract.Requires(room != null);
+            Contract.Ensures(Contract.Result<IEnumerable<Neighbour>>() != null);
+
+            return null;
+        }
     }
 }

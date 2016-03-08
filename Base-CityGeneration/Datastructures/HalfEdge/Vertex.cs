@@ -18,10 +18,15 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
     {
         public Vector2 Position { get; private set; }
 
+        private readonly Mesh<TVertexTag, THalfEdgeTag, TFaceTag> _mesh;
+
         /// <summary>
         /// The mesh this vertex is part of
         /// </summary>
-        internal readonly Mesh<TVertexTag, THalfEdgeTag, TFaceTag> Mesh;
+        public Mesh<TVertexTag, THalfEdgeTag, TFaceTag> Mesh
+        {
+            get { return _mesh; }
+        }
 
         internal IVertexBuilder Builder;
 
@@ -51,8 +56,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             Contract.Requires(m != null);
 
-            Mesh = m;
             Position = position;
+            _mesh = m;
         }
 
         [ContractInvariantMethod]
@@ -88,11 +93,13 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return _edges.Remove(edge);
         }
 
+        [Pure]
         public override int GetHashCode()
         {
             return Position.GetHashCode();
         }
 
+        [Pure]
         public override bool Equals(object obj)
         {
             var a = obj as Vertex<TVertexTag, THalfEdgeTag, TFaceTag>;
@@ -101,6 +108,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return ReferenceEquals(this, obj);
         }
 
+        [Pure]
         public bool Equals(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> other)
         {
             return other != null && other.Position == Position;

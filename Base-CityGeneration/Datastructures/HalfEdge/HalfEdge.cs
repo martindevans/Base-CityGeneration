@@ -11,10 +11,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         :IEdge
     {
         #region fields
+        private HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> _pair;
         /// <summary>
         /// The oppositely oriented adjacent half-edge
         /// </summary>
-        public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Pair { get; internal set; }
+        public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Pair { get { return _pair; } }
 
         private readonly Vertex<TVertexTag, THalfEdgeTag, TFaceTag> _end;
         /// <summary>
@@ -45,12 +46,22 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         #endregion
 
         #region constructor
-        public HalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end, bool isPrimary)
+        public HalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
+            : this(end, (HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>)null)
+        {
+            Contract.Requires(start != null);
+            Contract.Requires(end != null);
+
+            IsPrimaryEdge = true;
+            _pair = new HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>(start, this);
+        }
+
+        private HalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end, HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> pair)
         {
             Contract.Requires(end != null);
 
             _end = end;
-            IsPrimaryEdge = isPrimary;
+            IsPrimaryEdge = false;
         }
         #endregion
 
