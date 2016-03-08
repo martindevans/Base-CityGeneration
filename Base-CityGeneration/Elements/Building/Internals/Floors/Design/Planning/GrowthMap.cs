@@ -259,21 +259,48 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         #region cleanup
         private void CleanupDeadEnds()
         {
-            //Get all vertices
-            var vertices = _vertices.Intersects(BoundingRectangle.CreateFromPoints(_outline).Inflate(0.2f)).ToArray();
+            //Keep running this until we reach a fixpoint (i.e. nothing changed)
+            Func<List<Vertex>, bool> cleanup = verts => {
 
-            //Delete vertices with only one (or less) attached edge
-            foreach (var vertex in vertices)
-            {
-                if (vertex.OutwardEdges.Count <= 1)
+                var modified = false;
+
+                //Delete vertices with only one (or less) attached edge
+                for (var i = verts.Count - 1; i >= 0; i--)
                 {
-                    var edge = vertex.OutwardEdges.SingleOrDefault();
-                    if (edge != null)
-                        DeleteEdge(edge);
+                    var vertex = verts[i];
 
-                    _vertices.Remove(new BoundingRectangle(vertex.Position, vertex.Position).Inflate(0.2f), vertex);
+                    if (vertex.OutwardEdges.Count <= 1)
+                    {
+                        var edge = vertex.OutwardEdges.SingleOrDefault();
+                        if (edge != null)
+                            DeleteEdge(edge);
+
+                        _vertices.Remove(new BoundingRectangle(vertex.Position, vertex.Position).Inflate(0.2f), vertex);
+                        verts.RemoveAt(i);
+
+                        modified = true;
+                    }
                 }
-            }
+
+                //Delete edges which point to dead vertices
+                modified |= CleanupInvalidEdges();
+
+                return modified;
+            };
+            cleanup.Fixpoint(_vertices.Intersects(_bounds).ToList());
+        }
+
+        private bool CleanupInvalidEdges()
+        {
+            var vertices = new HashSet<Vertex>(_vertices.Intersects(_bounds));
+
+            var modified = false;
+
+            //Remove all edges which point to non-existant vertices
+            foreach (var vertex in vertices)
+                modified |= vertex.Remove(e => !vertices.Contains(e.B)) != 0;
+
+            return modified;
         }
 
         private Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> ConvertToMesh()
@@ -535,11 +562,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 return edge;
             }
 
-            public bool Connects(Vertex a, Vertex b)
-            {
-                return ((A.Equals(a) && B.Equals(b)) || (A.Equals(b) && B.Equals(a)));
-            }
-
             IVertex IEdge.Start
             {
                 get { return A; }
@@ -592,6 +614,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
                 if (!_outwardEdges.Remove(edge))
                     throw new ArgumentException("Cannot remove edge, not found in collection", "edge");
+            }
+
+            public int Remove(Predicate<Edge> predicate)
+            {
+                return _outwardEdges.RemoveAll(predicate);
             }
         }
         #endregion
