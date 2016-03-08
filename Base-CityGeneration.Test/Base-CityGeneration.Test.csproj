@@ -70,8 +70,8 @@
       <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5905.31223\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="HandyCollections, Version=4.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\HandyCollections.4.4.0.0\lib\net46\HandyCollections.dll</HintPath>
+    <Reference Include="HandyCollections, Version=5.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HandyCollections.5.2.0.0\lib\net46\HandyCollections.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">

@@ -25,12 +25,13 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         internal IVertexBuilder Builder;
 
+        private readonly ISet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> _edges = new HashSet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>();
         /// <summary>
         /// Edges emanating out from this edge
         /// </summary>
         public IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> Edges
         {
-            get { return Mesh.EdgesFromVertex(this); }
+            get { return _edges; }
         }
 
         public IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>> Faces
@@ -73,6 +74,20 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             }
         }
 
+        internal bool AddEdge(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edge)
+        {
+            Contract.Requires(edge != null);
+
+            return _edges.Add(edge);
+        }
+
+        public bool DeleteEdge(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edge)
+        {
+            Contract.Requires(edge != null);
+
+            return _edges.Remove(edge);
+        }
+
         public override int GetHashCode()
         {
             return Position.GetHashCode();
@@ -95,5 +110,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             Position = transform(Position);
         }
+
+        
     }
 }
