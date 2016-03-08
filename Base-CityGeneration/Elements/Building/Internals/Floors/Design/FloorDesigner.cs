@@ -60,6 +60,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             _parallelCheckLength = parallelCheckLength;
             _parallelCheckWidth = parallelCheckWidth;
             _parallelAngleThreshold = parallelAngleThreshold;
+            _intersectionContinuationChance = intersectionContinuationChance;
         }
         #endregion
 
@@ -181,7 +182,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             public FloorDesigner Unwrap()
             {
-                Contract.Requires(GrowthParameters != null);
+                Contract.Assert(GrowthParameters != null);
 
                 var spacing = IValueGeneratorContainer.FromObject(GrowthParameters.SeedSpacing);
                 var defaultParallel = new ParallelCheckParameters {

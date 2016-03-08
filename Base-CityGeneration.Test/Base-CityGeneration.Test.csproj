@@ -62,12 +62,12 @@
       <HintPath>..\packages\ClipperRedux.1.0.0.0\lib\net46\ClipperRedux.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5905.31221, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5905.31223\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5911.5592, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5911.5594\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5905.31223, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5905.31223\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
+    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5911.5594, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5911.5594\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=5.2.0.0, Culture=neutral, processorArchitecture=MSIL">

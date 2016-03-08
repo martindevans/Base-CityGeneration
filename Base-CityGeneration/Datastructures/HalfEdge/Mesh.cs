@@ -19,6 +19,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         #region fields and properties
         private readonly HashSet<Face<TVTag, TETag, TFTag>> _faces = new HashSet<Face<TVTag, TETag, TFTag>>();
         private readonly Quadtree<Vertex<TVTag, TETag, TFTag>> _vertices;
+        private readonly Quadtree<HalfEdge<TVTag, TETag, TFTag>> _halfEdges;  
 
         private const float VERTEX_EPSILON = 0.05f;
 
@@ -55,37 +56,44 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public Mesh(float bounds = 1000, int threshold = 10)
         {
-            _vertices = new Quadtree<Vertex<TVTag, TETag, TFTag>>(new BoundingRectangle(-new Vector2(bounds) / 2, new Vector2(bounds) / 2), 10);
+            var bound = new BoundingRectangle(-new Vector2(bounds) / 2, new Vector2(bounds) / 2);
+
+            _vertices = new Quadtree<Vertex<TVTag, TETag, TFTag>>(bound, 10);
+            _halfEdges = new Quadtree<HalfEdge<TVTag, TETag, TFTag>>(bound, 10);
         }
 
         #region edges
         public HalfEdge<TVTag, TETag, TFTag> GetOrConstructHalfEdge(Vertex<TVTag, TETag, TFTag> start, Vertex<TVTag, TETag, TFTag> end)
         {
             Contract.Requires(start != null);
+            Contract.Requires(start.Mesh == this);
             Contract.Requires(end != null);
+            Contract.Requires(end.Mesh == this);
+            Contract.Requires(!start.Equals(end));
             Contract.Ensures(Contract.Result<HalfEdge<TVTag, TETag, TFTag>>() != null);
 
-            if (start.Equals(end))
-                throw new InvalidOperationException("Attempted to create a degenerate edge");
-            if (start.Mesh != this)
-                throw new ArgumentException("start");
-
+            //Try to find an edge which already connects these vertices
             var edge = (from e in start.Edges
                         where e.EndVertex.Equals(end)
                         select e).SingleOrDefault();
 
+            //No luck, create a new edge
             if (edge == null)
             {
-                edge = new HalfEdge<TVTag, TETag, TFTag>(end, true);
-                var pair = new HalfEdge<TVTag, TETag, TFTag>(start, false);
-                edge.Pair = pair;
-                pair.Pair = edge;
+                //Create edge and pair and associate with one another
+                edge = new HalfEdge<TVTag, TETag, TFTag>(start, end);
+                var pair = edge.Pair;
 
+                //Add to vertices
                 var addedA = start.AddEdge(edge);
                 var addedB = end.AddEdge(pair);
-
                 if (!addedA || !addedB)
                     throw new InvalidOperationException("Constructing new half edge found duplicate edge");
+
+                //Add to quadtree
+                var bb = new BoundingRectangle(start.Position, end.Position).Inflate(0.2f);
+                _halfEdges.Insert(bb, edge);
+                _halfEdges.Insert(bb, pair);
             }
 
             return edge;
@@ -164,6 +172,16 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             am.Pair.Face = edge.Pair.Face;
             mb.Face = edge.Face;
             mb.Pair.Face = edge.Pair.Face;
+        }
+
+        /// <summary>
+        /// Find edges which itnersect the given bounds
+        /// </summary>
+        /// <param name="rectangle"></param>
+        /// <returns></returns>
+        public IEnumerable<HalfEdge<TVTag, TETag, TFTag>> FindEdges(BoundingRectangle rectangle)
+        {
+            return _halfEdges.Intersects(rectangle);
         }
         #endregion
 
@@ -261,43 +279,48 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return f;
         }
 
-        public Vertex<TVTag, TETag, TFTag> FindClosestVertex(Vector2 v)
+        //public Vertex<TVTag, TETag, TFTag> FindClosestVertex(Vector2 v)
+        //{
+        //    var shortest = float.MaxValue;
+        //    Vertex<TVTag, TETag, TFTag> closest = null;
+
+        //    //Search for the best vertex, initially starting with a small bounds query and progressively expanding it
+        //    var size = 10;
+        //    var queried = new HashSet<Vertex<TVTag, TETag, TFTag>>();
+        //    while (closest == null && queried.Count < _vertices.Count)
+        //    {
+        //        var bounds = new BoundingRectangle(v - new Vector2(size), v + new Vector2(size));
+
+        //        var vertices = _vertices.Intersects(bounds);
+
+        //        foreach (var vertex in vertices)
+        //        {
+        //            //Skip this vertex, we've already tried it
+        //            if (queried.Contains(vertex))
+        //                continue;
+
+        //            //Check all found vertices and pick the closest
+        //            var d = (v - vertex.Position).LengthSquared();
+        //            if (d < shortest)
+        //            {
+        //                shortest = d;
+        //                closest = vertex;
+        //            }
+        //        }
+
+        //        if (closest != null)
+        //        {
+        //            queried.UnionWith(vertices);
+        //            size *= 2;
+        //        }
+        //    }
+
+        //    return closest;
+        //}
+
+        public IEnumerable<Vertex<TVTag, TETag, TFTag>> FindVertices(BoundingRectangle rectangle)
         {
-            var shortest = float.MaxValue;
-            Vertex<TVTag, TETag, TFTag> closest = null;
-
-            //Search for the best vertex, initially starting with a small bounds query and progressively expanding it
-            var size = 10;
-            var queried = new HashSet<Vertex<TVTag, TETag, TFTag>>();
-            while (closest == null && queried.Count < _vertices.Count)
-            {
-                var bounds = new BoundingRectangle(v - new Vector2(size), v + new Vector2(size));
-
-                var vertices = _vertices.Intersects(bounds);
-
-                foreach (var vertex in vertices)
-                {
-                    //Skip this vertex, we've already tried it
-                    if (queried.Contains(vertex))
-                        continue;
-
-                    //Check all found vertices and pick the closest
-                    var d = (v - vertex.Position).LengthSquared();
-                    if (d < shortest)
-                    {
-                        shortest = d;
-                        closest = vertex;
-                    }
-                }
-
-                if (closest != null)
-                {
-                    queried.UnionWith(vertices);
-                    size *= 2;
-                }
-            }
-
-            return closest;
+            return _vertices.Intersects(rectangle).Where(a => rectangle.Contains(a.Position));
         }
         #endregion
 

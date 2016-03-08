@@ -415,7 +415,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         #region seeds
         private void CreateSeed(Vertex start, Vector2 direction, float t)
         {
-            Contract.Requires(direction.LengthSquared().TolerantEquals(1, 0.001f));
+            //This could be written as `direction.LengthSquared().TolerantEquals(1, 0.001f)` However, LengthSquared() is not marked as [Pure]
+            Contract.Requires((direction.X * direction.X + direction.Y * direction.Y).TolerantEquals(1, 0.001f));
 
             _seeds.Add(new Seed(start, direction, t + (float)_random() * 0.1f));
         }
