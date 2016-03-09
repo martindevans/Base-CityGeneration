@@ -6,6 +6,12 @@
 
     public class FloorplanHalfEdgeTag
     {
+        public bool IsExternal { get; private set; }
+
+        public FloorplanHalfEdgeTag(bool isExternal)
+        {
+            IsExternal = isExternal;
+        }
     }
 
     public class FloorplanFaceTag
