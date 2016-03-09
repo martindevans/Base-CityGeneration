@@ -5,8 +5,6 @@ using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
-using Base_CityGeneration.Elements.Roads.Hyperstreamline;
-using Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing;
 using Base_CityGeneration.Test.Elements.Building.Design;
 using Base_CityGeneration.TestHelpers;
 using EpimetheusPlugins.Scripts;
@@ -57,6 +55,12 @@ Aliases:
 
 GrowthParameters:
     SeedSpacing: !NormalValue { Min: 2.5, Mean: 5, Max: 6.5, Vary: true }
+    SeedChance: 0.65
+    IntersectionContinuationChance: 0.3
+    ParallelCheck:
+        Length: 1
+        Width: 2.5
+        Angle: 10
 
 Spaces:
     - !Repeat

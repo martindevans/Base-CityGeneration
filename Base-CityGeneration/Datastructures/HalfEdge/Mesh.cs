@@ -54,6 +54,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         }
         #endregion
 
+        #region constructors
         public Mesh(float bounds = 1000, int threshold = 10)
         {
             var bound = new BoundingRectangle(-new Vector2(bounds) / 2, new Vector2(bounds) / 2);
@@ -61,6 +62,13 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             _vertices = new Quadtree<Vertex<TVTag, TETag, TFTag>>(bound, 10);
             _halfEdges = new Quadtree<HalfEdge<TVTag, TETag, TFTag>>(bound, 10);
         }
+
+        public Mesh(BoundingRectangle  bounds, int threshold = 10)
+        {
+            _vertices = new Quadtree<Vertex<TVTag, TETag, TFTag>>(bounds, 10);
+            _halfEdges = new Quadtree<HalfEdge<TVTag, TETag, TFTag>>(bounds, 10);
+        }
+        #endregion
 
         #region edges
         public HalfEdge<TVTag, TETag, TFTag> GetOrConstructHalfEdge(Vertex<TVTag, TETag, TFTag> start, Vertex<TVTag, TETag, TFTag> end)
@@ -71,6 +79,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             Contract.Requires(end.Mesh == this);
             Contract.Requires(!start.Equals(end));
             Contract.Ensures(Contract.Result<HalfEdge<TVTag, TETag, TFTag>>() != null);
+            Contract.Ensures(!Contract.Result<HalfEdge<TVTag, TETag, TFTag>>().IsDeleted);
 
             //Try to find an edge which already connects these vertices
             var edge = (from e in start.Edges
@@ -91,7 +100,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                     throw new InvalidOperationException("Constructing new half edge found duplicate edge");
 
                 //Add to quadtree
-                var bb = new BoundingRectangle(start.Position, end.Position).Inflate(0.2f);
+                var bb = edge.Bounds;
                 _halfEdges.Insert(bb, edge);
                 _halfEdges.Insert(bb, pair);
             }
@@ -103,6 +112,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             Contract.Requires(start != null);
             Contract.Requires(end != null);
+            Contract.Ensures(Contract.Result<HalfEdge<TVTag, TETag, TFTag>>() == null || !Contract.Result<HalfEdge<TVTag, TETag, TFTag>>().IsDeleted);
 
             if (start.Equals(end))
                 throw new InvalidOperationException("Attempted to create a degenerate edge");
@@ -117,7 +127,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         internal void Split(HalfEdge<TVTag, TETag, TFTag> edge, Vertex<TVTag, TETag, TFTag> middle, out HalfEdge<TVTag, TETag, TFTag> am, out HalfEdge<TVTag, TETag, TFTag> mb)
         {
-            Contract.Requires(edge != null && edge.Pair != null);
+            Contract.Requires(edge != null);
+            Contract.Requires(!edge.IsDeleted);
             Contract.Requires(middle != null);
             Contract.Ensures(Contract.ValueAtReturn<HalfEdge<TVTag, TETag, TFTag>>(out am) != null);
             Contract.Ensures(Contract.ValueAtReturn<HalfEdge<TVTag, TETag, TFTag>>(out mb) != null);
@@ -139,15 +150,18 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             //Delete existing edge
             if (!b.DeleteEdge(edge.Pair))
                 throw new InvalidOperationException("Detaching edge from vertex failed");
+            if (!_halfEdges.Remove(edge.Pair.Bounds, edge.Pair))
+                throw new InvalidOperationException("Failed to remove half edge from spatial index");
+            edge.Pair.IsDeleted = true;
             if (!a.DeleteEdge(edge))
                 throw new InvalidOperationException("Detaching edge from vertex failed");
+            if (!_halfEdges.Remove(edge.Bounds, edge))
+                throw new InvalidOperationException("Failed to remove half edge from spatial index");
+            edge.IsDeleted = true;
 
             //Construct two new edges
             am = GetOrConstructHalfEdge(a, middle);
             mb = GetOrConstructHalfEdge(middle, b);
-
-            if (ReferenceEquals(am, edge) || ReferenceEquals(mb, edge))
-                throw new InvalidOperationException("creating new edge fetched an existing edge");
 
             //Update next pointers in one direction
             if (edgeBeforeEdge != null)
@@ -181,14 +195,39 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <returns></returns>
         public IEnumerable<HalfEdge<TVTag, TETag, TFTag>> FindEdges(BoundingRectangle rectangle)
         {
+            Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<HalfEdge<TVTag, TETag, TFTag>>>(), a => !a.IsDeleted));
+
             return _halfEdges.Intersects(rectangle);
+        }
+
+        public void Delete(HalfEdge<TVTag, TETag, TFTag> edge)
+        {
+            Contract.Requires(edge != null && !edge.IsDeleted);
+
+            DeleteHalf(edge);
+            DeleteHalf(edge.Pair);
+        }
+
+        private void DeleteHalf(HalfEdge<TVTag, TETag, TFTag> edge)
+        {
+            if (!edge.StartVertex.DeleteEdge(edge))
+                throw new InvalidOperationException("Detaching edge from vertex failed");
+            if (!_halfEdges.Remove(edge.Bounds, edge))
+                throw new InvalidOperationException("Failed to remove half edge from spatial index");
+            edge.IsDeleted = true;
         }
         #endregion
 
         #region vertices
+        /// <summary>
+        /// Get the vertex at the given position or, if it does not exist, construct a new vertex
+        /// </summary>
+        /// <param name="vector2"></param>
+        /// <returns></returns>
         public Vertex<TVTag, TETag, TFTag> GetOrConstructVertex(Vector2 vector2)
         {
             Contract.Ensures(Contract.Result<Vertex<TVTag, TETag, TFTag>>() != null);
+            Contract.Ensures(!Contract.Result<Vertex<TVTag, TETag, TFTag>>().IsDeleted);
 
             //Select candidate vertices within range (square query)
             var candidates = _vertices.Intersects(new BoundingRectangle(vector2 - new Vector2(VERTEX_EPSILON / 2), vector2 + new Vector2(VERTEX_EPSILON / 2)));
@@ -216,15 +255,130 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return v;
         }
 
+        /// <summary>
+        /// Get the vertex at the given location or null
+        /// </summary>
+        /// <param name="vector2"></param>
+        /// <returns></returns>
         public Vertex<TVTag, TETag, TFTag> GetVertex(Vector2 vector2)
         {
-            Contract.Ensures(Contract.Result<Vertex<TVTag, TETag, TFTag>>() != null);
+            Contract.Ensures(
+                Contract.Result<Vertex<TVTag, TETag, TFTag>>() == null
+                || (
+                    Contract.Result<Vertex<TVTag, TETag, TFTag>>().Position == vector2
+                    && !Contract.Result<Vertex<TVTag, TETag, TFTag>>().IsDeleted
+                )
+            );
 
             return _vertices
                 .Intersects(new BoundingRectangle(vector2, vector2).Inflate(0.1f))
-                .Single(a => a.Position == vector2);
+                .SingleOrDefault(a => a.Position == vector2);
         }
 
+        /// <summary>
+        /// Find the closest vertex to the given point
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        //public Vertex<TVTag, TETag, TFTag> FindClosestVertex(Vector2 v)
+        //{
+        //    var shortest = float.MaxValue;
+        //    Vertex<TVTag, TETag, TFTag> closest = null;
+
+        //    //Search for the best vertex, initially starting with a small bounds query and progressively expanding it
+        //    var size = 10;
+        //    var queried = new HashSet<Vertex<TVTag, TETag, TFTag>>();
+        //    while (closest == null && queried.Count < _vertices.Count)
+        //    {
+        //        var bounds = new BoundingRectangle(v - new Vector2(size), v + new Vector2(size));
+
+        //        var vertices = _vertices.Intersects(bounds);
+
+        //        foreach (var vertex in vertices)
+        //        {
+        //            //Skip this vertex, we've already tried it
+        //            if (queried.Contains(vertex))
+        //                continue;
+
+        //            //Check all found vertices and pick the closest
+        //            var d = (v - vertex.Position).LengthSquared();
+        //            if (d < shortest)
+        //            {
+        //                shortest = d;
+        //                closest = vertex;
+        //            }
+        //        }
+
+        //        if (closest != null)
+        //        {
+        //            queried.UnionWith(vertices);
+        //            size *= 2;
+        //        }
+        //    }
+
+        //    return closest;
+        //}
+
+        /// <summary>
+        /// Find all vertices in the given rectangle
+        /// </summary>
+        /// <param name="rectangle"></param>
+        /// <returns></returns>
+        public IEnumerable<Vertex<TVTag, TETag, TFTag>> FindVertices(BoundingRectangle rectangle)
+        {
+            Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<Vertex<TVTag, TETag, TFTag>>>(), a => a != null && !a.IsDeleted));
+
+            //We need to do intersection then containment because the bounding box for a vertex is slightly larger than the vertex!
+            return _vertices
+                .Intersects(rectangle)
+                .Where(a => rectangle.Contains(a.Position));
+        }
+
+        /// <summary>
+        /// Delete the given vertex.
+        /// This will also delete:
+        ///  - This vertex
+        ///  - Attached edges (inwards and outwards)
+        ///  - All faces which contain this vertex
+        /// </summary>
+        /// <param name="vertex"></param>
+        public void Delete(Vertex<TVTag, TETag, TFTag> vertex)
+        {
+            Contract.Requires(vertex != null);
+            Contract.Requires(!vertex.IsDeleted);
+
+            foreach (var face in vertex.Faces)
+                Delete(face);
+
+            foreach (var halfEdge in vertex.Edges.ToArray())
+                Delete(halfEdge);
+
+            _vertices.Remove(_vertices.Bounds, vertex);
+
+            vertex.IsDeleted = true;
+        }
+        #endregion
+
+        #region faces
+        /// <summary>
+        /// Attempt to construct a face connecting the given vertices. Only succeeds if all edges *already* have half edges as appropriate
+        /// </summary>
+        /// <param name="vertices"></param>
+        /// <returns></returns>
+        public Face<TVTag, TETag, TFTag> TryGetOrConstructFace(params Vertex<TVTag, TETag, TFTag>[] vertices)
+        {
+            Contract.Requires(vertices != null);
+            Contract.Requires(vertices.Length >= 3);
+
+            return GetOrConstructFace(false, vertices);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="constructEdges"></param>
+        /// <param name="vertices"></param>
+        /// <returns></returns>
         private Face<TVTag, TETag, TFTag> GetOrConstructFace(bool constructEdges, params Vertex<TVTag, TETag, TFTag>[] vertices)
         {
             Contract.Requires(vertices != null);
@@ -279,65 +433,6 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return f;
         }
 
-        //public Vertex<TVTag, TETag, TFTag> FindClosestVertex(Vector2 v)
-        //{
-        //    var shortest = float.MaxValue;
-        //    Vertex<TVTag, TETag, TFTag> closest = null;
-
-        //    //Search for the best vertex, initially starting with a small bounds query and progressively expanding it
-        //    var size = 10;
-        //    var queried = new HashSet<Vertex<TVTag, TETag, TFTag>>();
-        //    while (closest == null && queried.Count < _vertices.Count)
-        //    {
-        //        var bounds = new BoundingRectangle(v - new Vector2(size), v + new Vector2(size));
-
-        //        var vertices = _vertices.Intersects(bounds);
-
-        //        foreach (var vertex in vertices)
-        //        {
-        //            //Skip this vertex, we've already tried it
-        //            if (queried.Contains(vertex))
-        //                continue;
-
-        //            //Check all found vertices and pick the closest
-        //            var d = (v - vertex.Position).LengthSquared();
-        //            if (d < shortest)
-        //            {
-        //                shortest = d;
-        //                closest = vertex;
-        //            }
-        //        }
-
-        //        if (closest != null)
-        //        {
-        //            queried.UnionWith(vertices);
-        //            size *= 2;
-        //        }
-        //    }
-
-        //    return closest;
-        //}
-
-        public IEnumerable<Vertex<TVTag, TETag, TFTag>> FindVertices(BoundingRectangle rectangle)
-        {
-            return _vertices.Intersects(rectangle).Where(a => rectangle.Contains(a.Position));
-        }
-        #endregion
-
-        #region faces
-        /// <summary>
-        /// Attempt to construct a face connecting the given vertices. Only succeeds if all edges *already* have half edges as appropriate
-        /// </summary>
-        /// <param name="vertices"></param>
-        /// <returns></returns>
-        public Face<TVTag, TETag, TFTag> TryGetOrConstructFace(params Vertex<TVTag, TETag, TFTag>[] vertices)
-        {
-            Contract.Requires(vertices != null);
-            Contract.Requires(vertices.Length >= 3);
-
-            return GetOrConstructFace(false, vertices);
-        }
-
         /// <summary>
         /// Construct a face connecting the given vertices
         /// </summary>
@@ -360,8 +455,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             Contract.Requires(f != null);
 
-            if (!_faces.Contains(f))
-                throw new InvalidOperationException("Face is not part of this mesh, cannot delete it");
+            if (!_faces.Remove(f))
+                throw new InvalidOperationException("Face was not in face set");
 
             var edges = f.Edges.ToArray();
             foreach (var halfEdge in edges)
@@ -371,8 +466,6 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 halfEdge.Face = null;
                 halfEdge.Next = null;
             }
-
-            _faces.Remove(f);
         }
 
         /// <summary>

@@ -16,10 +16,10 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
     public class Vertex<TVertexTag, THalfEdgeTag, TFaceTag>
         :IVertex
     {
+        #region fields and properties
         public Vector2 Position { get; private set; }
 
         private readonly Mesh<TVertexTag, THalfEdgeTag, TFaceTag> _mesh;
-
         /// <summary>
         /// The mesh this vertex is part of
         /// </summary>
@@ -39,6 +39,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             get { return _edges; }
         }
 
+        public int EdgeCount
+        {
+            get { return _edges.Count; }
+        }
+
         public IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>> Faces
         {
             get
@@ -51,7 +56,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                        select face).Distinct();
             }
         }
+        #endregion
 
+        #region constructor
         internal Vertex(Mesh<TVertexTag, THalfEdgeTag, TFaceTag> m, Vector2 position)
         {
             Contract.Requires(m != null);
@@ -59,6 +66,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             Position = position;
             _mesh = m;
         }
+        #endregion
 
         [ContractInvariantMethod]
         private void ObjectInvariant()
@@ -79,9 +87,12 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             }
         }
 
+        public bool IsDeleted { get; internal set; }
+
         internal bool AddEdge(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edge)
         {
             Contract.Requires(edge != null);
+            Contract.Requires(edge.StartVertex.Equals(this));
 
             return _edges.Add(edge);
         }

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.Contracts;
+using System.Numerics;
 using Placeholder.AI.Pathfinding.Graph;
 using SwizzleMyVectors.Geometry;
 
@@ -11,11 +12,18 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         :IEdge
     {
         #region fields
-        private HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> _pair;
+        private readonly HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> _pair;
         /// <summary>
         /// The oppositely oriented adjacent half-edge
         /// </summary>
-        public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Pair { get { return _pair; } }
+        public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Pair
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
+                return _pair;
+            }
+        }
 
         private readonly Vertex<TVertexTag, THalfEdgeTag, TFaceTag> _end;
         /// <summary>
@@ -31,6 +39,18 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         }
 
         /// <summary>
+        /// Vertex at the end of the pair of this half-edge
+        /// </summary>
+        public Vertex<TVertexTag, THalfEdgeTag, TFaceTag> StartVertex
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
+                return _pair._end;
+            }
+        }
+
+        /// <summary>
         /// The face that this half edge is a border of
         /// </summary>
         public Face<TVertexTag, THalfEdgeTag, TFaceTag> Face { get; internal set; }
@@ -40,9 +60,22 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// </summary>
         public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Next { get; internal set; }
 
-        public bool IsPrimaryEdge { get; private set; }
+        private readonly bool _isPrimary;
+        public bool IsPrimaryEdge { get { return _isPrimary; } }
 
         public THalfEdgeTag Tag;
+
+        public bool IsDeleted { get; internal set; }
+
+        internal BoundingRectangle Bounds
+        {
+            get
+            {
+                var min = Vector2.Min(StartVertex.Position, EndVertex.Position);
+                var max = Vector2.Max(StartVertex.Position, EndVertex.Position);
+                return new BoundingRectangle(min, max).Inflate(0.2f);
+            }
+        }
         #endregion
 
         #region constructor
@@ -52,7 +85,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             Contract.Requires(start != null);
             Contract.Requires(end != null);
 
-            IsPrimaryEdge = true;
+            _isPrimary = true;
             _pair = new HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>(start, this);
         }
 
@@ -61,7 +94,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             Contract.Requires(end != null);
 
             _end = end;
-            IsPrimaryEdge = false;
+            _pair = pair;
+            _isPrimary = false;
         }
         #endregion
 
@@ -69,6 +103,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         private void ObjectInvariants()
         {
             Contract.Invariant(_end != null);
+            Contract.Invariant(_pair != null);
         }
 
         /// <summary>
@@ -76,6 +111,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// </summary>
         /// <param name="start">The start.</param>
         /// <param name="end">The end.</param>
+        [Pure]
         private void GetVertices(out Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, out Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
             Contract.Requires(Pair != null);
@@ -91,6 +127,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// </summary>
         /// <param name="a">The face this edge bounds</param>
         /// <param name="b">The face the pair of this edge bounds</param>
+        [Pure]
         public void GetFaces(out Face<TVertexTag, THalfEdgeTag, TFaceTag> a, out Face<TVertexTag, THalfEdgeTag, TFaceTag> b)
         {
             Contract.Requires(Pair != null);
@@ -108,6 +145,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <param name="start">Vertex at the start</param>
         /// <param name="end">Vertex at the end</param>
         /// <returns>true, if this edge runs from A to B, false if this edge has no pair, or does not connect the given vertices</returns>
+        [Pure]
         public bool Connects(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
             if (Pair == null)
@@ -115,6 +153,13 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return EndVertex.Equals(end) && Pair.EndVertex.Equals(start);
         }
 
+        [Pure]
+        public bool ConnectsTo(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> vertex)
+        {
+            return EndVertex.Equals(vertex) || StartVertex.Equals(vertex);
+        }
+
+        [Pure]
         public override bool Equals(object obj)
         {
             Contract.Assume(Pair != null);
@@ -126,6 +171,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return ReferenceEquals(this, obj);
         }
 
+        [Pure]
         public bool Equals(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> e)
         {
             Contract.Requires(e == null|| e.Pair != null);
@@ -145,12 +191,14 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return a.Equals(x) && b.Equals(y);
         }
 
+        [Pure]
         public override int GetHashCode()
         {
             return 31 + (IsPrimaryEdge ? 17 : -29)
-                   * 11 * EndVertex.GetHashCode();
+                 + 11 * EndVertex.GetHashCode();
         }
 
+        [Pure]
         public override string ToString()
         {
             Contract.Assume(Pair != null);

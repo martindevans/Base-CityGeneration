@@ -20,12 +20,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         private readonly float _wallThickness;
 
         private readonly IValueGenerator _seedSpacing;
+        private readonly IValueGenerator _seedChance;
         private readonly IValueGenerator _parallelCheckLength;
         private readonly IValueGenerator _parallelCheckWidth;
         private readonly IValueGenerator _parallelAngleThreshold;
-        private readonly float _intersectionContinuationChance;
+        private readonly IValueGenerator _intersectionContinuationChance;
 
-        public FloorPlanner(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float wallThickness, IValueGenerator seedSpacing, IValueGenerator parallelCheckLength, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold, float intersectionContinuationChance)
+        public FloorPlanner(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float wallThickness, IValueGenerator seedSpacing, IValueGenerator parallelCheckLength, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold, IValueGenerator intersectionContinuationChance, IValueGenerator seedChance)
         {
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
@@ -38,6 +39,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             _wallThickness = wallThickness;
 
             _seedSpacing = seedSpacing;
+            _seedChance = seedChance;
             _parallelCheckLength = parallelCheckLength;
             _parallelCheckWidth = parallelCheckWidth;
             _parallelAngleThreshold = parallelAngleThreshold;
@@ -56,7 +58,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
         private void PlanRegion(FloorPlanBuilder builder, Region region, IList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
-            var map = new GrowthMap(region.Points.ToArray(), _seedSpacing, _random, _metadata, _parallelCheckLength, _parallelCheckWidth, _parallelAngleThreshold, _intersectionContinuationChance);
+            var map = new GrowthMap(region.Points.ToArray(), _seedSpacing, _random, _metadata, _parallelCheckLength, _parallelCheckWidth, _parallelAngleThreshold, _intersectionContinuationChance, _seedChance);
             map.Grow();
 
             //todo: seed along edges of region

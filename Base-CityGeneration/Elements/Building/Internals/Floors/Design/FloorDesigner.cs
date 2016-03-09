@@ -43,20 +43,23 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         private readonly IReadOnlyList<BaseSpaceSpec> _spaces;
 
         private readonly IValueGenerator _seedSpacing;
+        private readonly IValueGenerator _seedChance;
         private readonly IValueGenerator _parallelCheckLength;
         private readonly IValueGenerator _parallelCheckWidth;
         private readonly IValueGenerator _parallelAngleThreshold;
-        private readonly float _intersectionContinuationChance;
+        private readonly IValueGenerator _intersectionContinuationChance;
         #endregion
 
         #region constructor
-        private FloorDesigner(Dictionary<string, string> tags, Guid guid, string description, IReadOnlyList<BaseSpaceSpec> spaces, IValueGenerator seedSpacing, IValueGenerator parallelCheckLength, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold, float intersectionContinuationChance)
+        private FloorDesigner(Dictionary<string, string> tags, Guid guid, string description, IReadOnlyList<BaseSpaceSpec> spaces, IValueGenerator seedSpacing, IValueGenerator parallelCheckLength, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold, IValueGenerator intersectionContinuationChance, IValueGenerator seedChance)
         {
             _tags = tags;
             _guid = guid;
             _description = description;
             _spaces = spaces;
+
             _seedSpacing = seedSpacing;
+            _seedChance = seedChance;
             _parallelCheckLength = parallelCheckLength;
             _parallelCheckWidth = parallelCheckWidth;
             _parallelAngleThreshold = parallelAngleThreshold;
@@ -78,7 +81,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             var region = CreateRegion(footprint, sections);
 
-            var planner = new FloorPlanner(random, metadata, finder, wallThickness, _seedSpacing, _parallelCheckLength, _parallelCheckWidth, _parallelAngleThreshold, _intersectionContinuationChance);
+            var planner = new FloorPlanner(random, metadata, finder, wallThickness, _seedSpacing, _parallelCheckLength, _parallelCheckWidth, _parallelAngleThreshold, _intersectionContinuationChance, _seedChance);
             return planner.Plan(region, overlappingVerticals, startingVerticals, _spaces);
         }
 
@@ -151,16 +154,47 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             return CreateSerializer().Deserialize<Container>(reader).Unwrap();
         }
 
+        /// <summary>
+        /// Parameters passed into the wall growth generator
+        /// </summary>
         internal class GrowthParameters
         {
+            /// <summary>
+            /// Parameters for parallelism checking
+            /// </summary>
             public ParallelCheckParameters? ParallelCheck { get; [UsedImplicitly] set; }
+
+            /// <summary>
+            /// Distance between seeds along walls
+            /// </summary>
             public object SeedSpacing { get; [UsedImplicitly] set; }
+
+            /// <summary>
+            /// Chance that a seed will be placed at a seed point (otherwise the wall will continue straight on)
+            /// </summary>
+            public object SeedChance { get; [UsedImplicitly] set; }
+
+            /// <summary>
+            /// When a wall hits another wall chance that the wall will continue out the other side
+            /// </summary>
+            public object IntersectionContinuationChance { get; [UsedImplicitly] set; }
         }
 
         internal struct ParallelCheckParameters
         {
+            /// <summary>
+            /// Multiplier of length to check for parallel walls (e.g. 1.5 to check for the length of the proposed wall and half again)
+            /// </summary>
             public object Length { get; set; }
+
+            /// <summary>
+            /// Distance to check for parallel walls either side
+            /// </summary>
             public object Width { get; set; }
+
+            /// <summary>
+            /// Maximum angle between this wall and the other to consider parallel
+            /// </summary>
             public object Angle { get; set; }
         }
 
@@ -182,9 +216,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             public FloorDesigner Unwrap()
             {
-                Contract.Assert(GrowthParameters != null);
+                Contract.Assert(GrowthParameters != null
+                             && GrowthParameters.SeedSpacing != null
+                );
 
-                var spacing = IValueGeneratorContainer.FromObject(GrowthParameters.SeedSpacing);
                 var defaultParallel = new ParallelCheckParameters {
                     Length = 1.25f,
                     Width = 1,
@@ -197,11 +232,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     Guid.Parse(Id ?? Guid.NewGuid().ToString()),
                     Description ?? "",
                     Spaces.Select(a => a.Unwrap()).ToArray(),
-                    IValueGeneratorContainer.FromObject(spacing),
+                    IValueGeneratorContainer.FromObject(GrowthParameters.SeedSpacing, new NormallyDistributedValue(2.5f, 5, 6.5f, 1.5f)),
                     IValueGeneratorContainer.FromObject(parallelParams.Length, defaultParallel.Length),
                     IValueGeneratorContainer.FromObject(parallelParams.Width, defaultParallel.Width),
                     IValueGeneratorContainer.FromObject(parallelParams.Angle, defaultParallel.Angle).Transform(Microsoft.Xna.Framework.MathHelper.ToRadians),
-                    0.5f
+                    IValueGeneratorContainer.FromObject(GrowthParameters.IntersectionContinuationChance, 0.75f),
+                    IValueGeneratorContainer.FromObject(GrowthParameters.SeedChance, 0.5f)
                 );
             }
         }
