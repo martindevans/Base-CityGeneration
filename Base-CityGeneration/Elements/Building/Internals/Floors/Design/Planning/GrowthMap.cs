@@ -106,10 +106,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //Put faces in between the walls we've created
             _mesh.CreateImplicitFaces();
 
-            Stopwatch w = new Stopwatch();
-            w.Start();
+            //Remove vertices which lie on a perfectly straight line with no branches
             _mesh.SimplifyFaces();
-            Console.WriteLine(w.ElapsedMilliseconds + "ms");
 
             //todo: remove temp visualisation code
             //foreach (var edge in _mesh.HalfEdges.Where(a => a.IsPrimaryEdge))
@@ -335,6 +333,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
         private Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> ConvertToMesh()
         {
+            //this method seems rather trivial! Why is it here?
+            //If we want to change the *tags* which we emit publically from this class this is where we could take the internal mesh with private tag types and convert...
+            //...to the public tag types
             return _mesh;
         }
         #endregion
