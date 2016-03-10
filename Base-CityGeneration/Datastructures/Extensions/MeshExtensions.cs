@@ -7,7 +7,6 @@ using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Extensions;
 using HandyCollections.Set;
 using Placeholder.AI.Pathfinding.AStar;
-using SquarifiedTreemap.Extensions;
 using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Datastructures.Extensions
@@ -161,68 +160,69 @@ namespace Base_CityGeneration.Datastructures.Extensions
         /// <typeparam name="TFTag"></typeparam>
         /// <param name="mesh"></param>
         /// <param name="angleThreshold"></param>
-        public static void SimplifyFaces<TVTag, THTag, TFTag>(this Mesh<TVTag, THTag, TFTag> mesh, float angleThreshold = 0.00872665f)
+        public static void SimplifyFaces<TVTag, THTag, TFTag>(this Mesh<TVTag, THTag, TFTag> mesh, float angleThreshold = 0.015f)
         {
             Contract.Requires(mesh != null);
 
-            float threshold = 1 - (float)Math.Cos(angleThreshold);
+            var threshold = 1 - (float)Math.Cos(angleThreshold);
 
-            //Build a set of all faces to process
-            var todo = new List<Face<TVTag, THTag, TFTag>>(mesh.Faces);
+            Func<IEnumerable<Vertex<TVTag, THTag, TFTag>>, bool> simplify = vertices => {
+                var remove = vertices.FirstOrDefault(v => {
 
-            while (todo.Count > 0)
-            {
-                //Remove the last item (more efficient than the first)
-                var face = todo[todo.Count - 1];
-                todo.RemoveAt(todo.Count - 1);
+                    //Must be on a line, that means two attached edges
+                    if (v.EdgeCount != 2)
+                        return false;
 
-                //Faces could be deleted before we get to them
-                if (face.IsDeleted)
-                    continue;
+                    //Must be between two faces, or nulls
+                    var av = v.Edges.Skip(1).First().Pair;
+                    var vb = v.Edges.First();
 
-                var edges = face.Edges.ToArray();
-                for (var i = 0; i < edges.Length; i++)
-                {
-                    var ab = edges[i];
-                    var bc = edges[(i + 1) % edges.Length];
+                    //Check if in and out edges do not border same face
+                    if (!ReferenceEquals(av.Face, vb.Face))
+                        return false;
 
-                    //We can only consider removing this vertex if the faces on both sides are the same!
-                    if (ab.Pair.Face == null || bc.Pair.Face == null || !ab.Pair.Face.Equals(bc.Pair.Face))
-                        continue;
+                    //Same check for the other side
+                    if (!ReferenceEquals(av.Pair.Face, vb.Pair.Face))
+                        return false;
 
-                    var abDir = Vector2.Normalize(ab.EndVertex.Position - ab.StartVertex.Position);
-                    var bcDir = Vector2.Normalize(bc.EndVertex.Position - bc.StartVertex.Position);
+                    //Must be on a *straight* line
+                    var avd = Vector2.Normalize(av.EndVertex.Position - av.StartVertex.Position);
+                    var vbd = Vector2.Normalize(vb.EndVertex.Position - vb.StartVertex.Position);
+                    if (!Vector2.Dot(avd, vbd).TolerantEquals(1, threshold))
+                        return false;
 
-                    //Check if these two lines point in the same direction, if so we can collapse them into one edge
-                    if (Vector2.Dot(abDir, bcDir).TolerantEquals(1, threshold))
-                    {
-                        //Get lists of vertices in both faces (except the vertex we're removing)
-                        var f1 = ab.Face;
-                        var f1Vertices = f1.Vertices.Where(v => !v.Equals(ab.EndVertex)).ToArray();
+                    return true;
+                });
 
-                        var f2 = ab.Pair.Face;
-                        var f2Vertices = f2.Vertices.Where(v => !v.Equals(ab.EndVertex)).ToArray();
+                if (remove == null)
+                    return false;
 
-                        //Delete the faces
-                        mesh.Delete(f1);
-                        mesh.Delete(f2);
+                var ab = remove.Edges.Skip(1).First().Pair;
 
-                        //Delete the vertex
-                        mesh.Delete(ab.EndVertex);
+                //Get lists of vertices in both faces (except the vertex we're removing)
+                var f1 = ab.Face;
+                var f1Vertices = f1.Vertices.Where(v => !v.Equals(ab.EndVertex)).ToArray();
 
-                        //Create 2 new faces (copy across tags)
-                        var fn1 = mesh.GetOrConstructFace(f1Vertices);
-                        fn1.Tag = f1.Tag;
-                        var fn2 = mesh.GetOrConstructFace(f2Vertices);
-                        fn2.Tag = f2.Tag;
+                var f2 = ab.Pair.Face;
+                var f2Vertices = f2.Vertices.Where(v => !v.Equals(ab.EndVertex)).ToArray();
 
-                        //Add these two new faces to the queue
-                        todo.Add(fn1);
-                        todo.Add(fn2);
-                        break;
-                    }
-                }
-            }
+                //Delete the faces
+                mesh.Delete(f1);
+                mesh.Delete(f2);
+
+                //Delete the vertex
+                mesh.Delete(ab.EndVertex);
+
+                //Create 2 new faces (copy across tags)
+                var fn1 = mesh.GetOrConstructFace(f1Vertices);
+                fn1.Tag = f1.Tag;
+                var fn2 = mesh.GetOrConstructFace(f2Vertices);
+                fn2.Tag = f2.Tag;
+
+                return true;
+            };
+
+            simplify.Fixpoint(mesh.Vertices);
         }
         #endregion
     }
