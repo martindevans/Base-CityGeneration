@@ -39,6 +39,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                         select e.EndVertex);
             }
         }
+
+        public bool IsDeleted { get; internal set; }
         #endregion
     }
 }

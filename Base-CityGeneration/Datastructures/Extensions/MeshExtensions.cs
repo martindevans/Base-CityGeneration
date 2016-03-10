@@ -4,25 +4,29 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Datastructures.HalfEdge;
+using EpimetheusPlugins.Extensions;
+using HandyCollections.Set;
 using Placeholder.AI.Pathfinding.AStar;
-using Placeholder.AI.Pathfinding.Graph;
+using SquarifiedTreemap.Extensions;
+using SwizzleMyVectors;
 
 namespace Base_CityGeneration.Datastructures.Extensions
 {
     public static class MeshExtensions
     {
-// ReSharper disable UnusedParameter.Global
-        public static IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> Pathfind<TVertexTag, THalfEdgeTag, TFaceTag>(
-            this Mesh<TVertexTag, THalfEdgeTag, TFaceTag> m,
+        #region pathfind
+        // ReSharper disable UnusedParameter.Global
+        public static IEnumerable<HalfEdge<TVTag, THTag, TFTag>> Pathfind<TVTag, THTag, TFTag>(
+            this Mesh<TVTag, THTag, TFTag> m,
 // ReSharper restore UnusedParameter.Global
-            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start,
-            Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end
+            Vertex<TVTag, THTag, TFTag> start,
+            Vertex<TVTag, THTag, TFTag> end
         )
         {
             Contract.Requires(m != null);
             Contract.Requires(start != null);
             Contract.Requires(end != null);
-            Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+            Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TVTag, THTag, TFTag>>>() != null);
 
             if (start.Mesh != m)
                 throw new ArgumentException("Start vertex is not contained in mesh for pathfind", "start");
@@ -33,103 +37,34 @@ namespace Base_CityGeneration.Datastructures.Extensions
             try
             {
                 // ReSharper disable once HeapView.SlowDelegateCreation
-                var edges = p.FindPath(start, end, (a, b) => (((Vertex<TVertexTag, THalfEdgeTag, TFaceTag>)a).Position - ((Vertex<TVertexTag, THalfEdgeTag, TFaceTag>)b).Position).Length());
+                var edges = p.FindPath(start, end, (a, b) => (((Vertex<TVTag, THTag, TFTag>)a).Position - ((Vertex<TVTag, THTag, TFTag>)b).Position).Length());
 
-                return edges.Cast<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>();
+                return edges.Cast<HalfEdge<TVTag, THTag, TFTag>>();
             }
             finally
             {
                 Pathfinder.Return(p);
             }
         }
+        #endregion
 
-        /// <summary>
-        /// Starting from an arbitrary vertex in a graph, construct a half edge mesh representing the graph (may fail if graph is not topologically sound)
-        /// </summary>
-        /// <typeparam name="TVertexTag"></typeparam>
-        /// <typeparam name="THalfEdgeTag"></typeparam>
-        /// <typeparam name="TFaceTag"></typeparam>
-        /// <typeparam name="TVertex"></typeparam>
-        /// <param name="mesh"></param>
-        /// <param name="seedVertex"></param>
-        /// <param name="position"></param>
-        /// <param name="autoPair">If set then edges will automatically be made two way (if A->B exists then B->A will be created, even if it's not in the graph)</param>
-        /// <returns></returns>
-        public static Mesh<TVertexTag, THalfEdgeTag, TFaceTag> FromGraph<TVertexTag, THalfEdgeTag, TFaceTag, TVertex>(this Mesh<TVertexTag, THalfEdgeTag, TFaceTag> mesh, TVertex seedVertex, Func<TVertex, Vector2> position, bool autoPair = true)
-            where TVertex : IVertex
-        {
-            Contract.Requires(mesh != null);
-            Contract.Requires(seedVertex != null);
-
-            //Create map from graph->mesh vertex
-            var vertexMap = CreateVerticesFromGraph(mesh, seedVertex, position);
-
-            //Add edges between vertices
-            CreateEdgesFromGraph(mesh, autoPair, vertexMap);
-
-            //Now we need to insert faces between the existing edges
-            return CreateImplicitFaces(mesh);
-        }
-
-        private static void CreateEdgesFromGraph<TVertexTag, THalfEdgeTag, TFaceTag, TVertex>(Mesh<TVertexTag, THalfEdgeTag, TFaceTag> mesh, bool autoPair, Dictionary<TVertex, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> vertexMap) where TVertex : IVertex
-        {
-            foreach (var kvp in vertexMap)
-            {
-                var vertex = kvp.Key;
-                var start = kvp.Value;
-
-                foreach (var edge in vertex.OutwardEdges)
-                {
-                    if (!edge.End.OutwardEdges.Any(e => e.End.Equals(vertex)) && !autoPair)
-                        throw new ArgumentException("Input graph contains a vertex with a directed edge without a reverse edge (A->B exists but B->A does not)", "seedVertex");
-
-                    //Map must contain this because we built map *from* connected edges
-                    var end = vertexMap[(TVertex)edge.End];
-                    mesh.GetOrConstructHalfEdge(start, end);
-                }
-            }
-        }
-
-        private static Dictionary<TVertex, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> CreateVerticesFromGraph<TVertexTag, THalfEdgeTag, TFaceTag, TVertex>(Mesh<TVertexTag, THalfEdgeTag, TFaceTag> mesh, TVertex seedVertex, Func<TVertex, Vector2> position) where TVertex : IVertex
-        {
-            var vertexMap = new Dictionary<TVertex, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>();
-            var verticesToProcess = new List<TVertex>() {
-                seedVertex
-            };
-            while (verticesToProcess.Count > 0)
-            {
-                //Get a vertex to process
-                var vertex = verticesToProcess[verticesToProcess.Count - 1];
-                verticesToProcess.RemoveAt(verticesToProcess.Count - 1);
-
-                //skip it if we're already done
-                if (vertexMap.ContainsKey(vertex))
-                    continue;
-
-                //Construct a vertex and add it to the map
-                vertexMap.Add(vertex, mesh.GetOrConstructVertex(position(vertex)));
-
-                //Add connected vertices to vertices collection
-                verticesToProcess.AddRange(vertex.OutwardEdges.Select(e => e.End).Cast<TVertex>());
-            }
-            return vertexMap;
-        }
-
+        #region implicit faces
         /// <summary>
         /// Find areas of space which are surrounded by half edges and create a face in this space
         /// </summary>
-        /// <typeparam name="TVertexTag"></typeparam>
-        /// <typeparam name="THalfEdgeTag"></typeparam>
-        /// <typeparam name="TFaceTag"></typeparam>
+        /// <typeparam name="TVTag"></typeparam>
+        /// <typeparam name="TETag"></typeparam>
+        /// <typeparam name="TFTag"></typeparam>
         /// <param name="mesh"></param>
         /// <returns></returns>
-        public static Mesh<TVertexTag, THalfEdgeTag, TFaceTag> CreateImplicitFaces<TVertexTag, THalfEdgeTag, TFaceTag>(this Mesh<TVertexTag, THalfEdgeTag, TFaceTag> mesh)
+        public static void CreateImplicitFaces<TVTag, TETag, TFTag>(this Mesh<TVTag, TETag, TFTag> mesh)
         {
             //Build a list of edges which do not have a face attached
-            var todo = new List<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>(mesh.HalfEdges.Where(a => a.Face == null));
+            var todo = new List<HalfEdge<TVTag, TETag, TFTag>>(mesh.HalfEdges.Where(a => a.Face == null));
 
             while (todo.Count > 0)
             {
+                //Remove *last* face (more efficient than removing first)
                 var edge = todo[todo.Count - 1];
                 todo.RemoveAt(todo.Count - 1);
 
@@ -137,71 +72,158 @@ namespace Base_CityGeneration.Datastructures.Extensions
                 if (edge.Face != null)
                     continue;
 
-                var path = TryWalkConnectedPath(edge);
-
-                if (path == null)
-                    continue;
-                else
+                //From this edge walk a path of edges (always turning as tight as possible to the right)
+                var path = TryWalkClosedClockwisePath(edge);
+                if (path != null)
                 {
-                   
+                    if (path.Select(a => a.EndVertex.Position).IsClockwise())
+                        mesh.GetOrConstructFace(path.Select(a => a.EndVertex).ToArray());
+                }
+            }
+        }
+
+        private static IEnumerable<HalfEdge<TVTag, THTag, TFTag>> TryWalkClosedClockwisePath<TVTag, THTag, TFTag>(HalfEdge<TVTag, THTag, TFTag> edge)
+        {
+            //Path we have walked
+            var path = new OrderedSet<HalfEdge<TVTag, THTag, TFTag>> { edge };
+
+            var current = edge;
+            do
+            {
+
+                current = SelectTightestClockwiseTurn(current);
+
+                //Check for failing to find an edge
+                if (current == null)
+                    break;
+
+                if (!path.Add(current))
+                {
+                    //We failed to add this edge
+                    //if this is the first edge that's great we've found a closed path
+                    //if not, then it's an invalid path todo: does this imply topology is broken?
+                    if (current.Equals(path.First()))
+                        break;
+                    else
+                        return null;
+                }
+            } while (true);
+
+            //Check for invalid face
+            if (path.Count < 3)
+                return null;
+
+            //Yay, it's valid
+            return path;
+        }
+
+        private static HalfEdge<TVTag, THTag, TFTag> SelectTightestClockwiseTurn<TVTag, THTag, TFTag>(HalfEdge<TVTag, THTag, TFTag> edge)
+        {
+            var dir = Vector2.Normalize(edge.EndVertex.Position - edge.StartVertex.Position);
+
+            //Find the edge which makes the *largest* turn:
+            //  180 degrees is a complete reversal, very large and very tight
+            //  0 degrees is straight on, not very tight
+            //  -179 is a complete reversal on the otherside, loosest possible turn
+            var bestAngle = float.NegativeInfinity;
+            HalfEdge<TVTag, THTag, TFTag> bestEdge = null;
+            foreach (var e in edge.EndVertex.Edges)
+            {
+                //don't try to walk back along your own pair!
+                if (e.Pair.Equals(edge))
+                    continue;
+
+                var eDir = Vector2.Normalize(e.EndVertex.Position - e.Pair.EndVertex.Position);
+
+                //Calculate clockwise turn angle (from -pi to +pi)
+                var dot = Vector2.Dot(dir, eDir);
+                var det = dir.Cross(eDir);
+                var angle = -(float)Math.Atan2(det, dot);
+
+                //Keep track of the best edge so far
+                if (angle > bestAngle)
+                {
+                    bestAngle = angle;
+                    bestEdge = e;
                 }
             }
 
-
-            throw new NotImplementedException();
+            return bestEdge;
         }
+        #endregion
 
-        private static LinkedList<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> TryWalkConnectedPath<TVertexTag, THalfEdgeTag, TFaceTag>(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edge)
+        #region simplify
+        /// <summary>
+        /// Find pairs of edges along the boundary of two faces which are completely linear (i.e. the middle vertex is useless) and remove middle vertex
+        /// </summary>
+        /// <typeparam name="TVTag"></typeparam>
+        /// <typeparam name="THTag"></typeparam>
+        /// <typeparam name="TFTag"></typeparam>
+        /// <param name="mesh"></param>
+        /// <param name="angleThreshold"></param>
+        public static void SimplifyFaces<TVTag, THTag, TFTag>(this Mesh<TVTag, THTag, TFTag> mesh, float angleThreshold = 0.00872665f)
         {
-            //We have a half edge with no face attached...
-            //...let's see if we can walk a path which comes back to this edge in which case we have found an enclosed space and can build a face
-            var path = new LinkedList<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>();
-            path.AddLast(edge);
+            Contract.Requires(mesh != null);
 
-            //Walk along path, always selecting the next half edge with the tightest turn
-            var current = edge;
-            var dir = Vector2.Normalize(current.EndVertex.Position - current.Pair.EndVertex.Position);
-            do
+            float threshold = 1 - (float)Math.Cos(angleThreshold);
+
+            //Build a set of all faces to process
+            var todo = new List<Face<TVTag, THTag, TFTag>>(mesh.Faces);
+
+            while (todo.Count > 0)
             {
-                //Find the edge which makes the tightest turn
-                var smallestDot = float.PositiveInfinity;
-                HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> bestEdge = null;
-                var bestEdgeDir = Vector2.Zero;
-                foreach (var e in current.EndVertex.Edges)
+                //Remove the last item (more efficient than the first)
+                var face = todo[todo.Count - 1];
+                todo.RemoveAt(todo.Count - 1);
+
+                //Faces could be deleted before we get to them
+                if (face.IsDeleted)
+                    continue;
+
+                var edges = face.Edges.ToArray();
+                for (var i = 0; i < edges.Length; i++)
                 {
-                    //don't try to walk back along your own pair!
-                    if (e.Pair.Equals(edge))
+                    var ab = edges[i];
+                    var bc = edges[(i + 1) % edges.Length];
+
+                    //We can only consider removing this vertex if the faces on both sides are the same!
+                    if (ab.Pair.Face == null || bc.Pair.Face == null || !ab.Pair.Face.Equals(bc.Pair.Face))
                         continue;
 
-                    var eDir = Vector2.Normalize(e.EndVertex.Position - e.Pair.EndVertex.Position);
-                    var dot = Vector2.Dot(dir, eDir);
-                    if (dot < smallestDot)
+                    var abDir = Vector2.Normalize(ab.EndVertex.Position - ab.StartVertex.Position);
+                    var bcDir = Vector2.Normalize(bc.EndVertex.Position - bc.StartVertex.Position);
+
+                    //Check if these two lines point in the same direction, if so we can collapse them into one edge
+                    if (Vector2.Dot(abDir, bcDir).TolerantEquals(1, threshold))
                     {
-                        smallestDot = dot;
-                        bestEdge = e;
-                        bestEdgeDir = eDir;
+                        //Get lists of vertices in both faces (except the vertex we're removing)
+                        var f1 = ab.Face;
+                        var f1Vertices = f1.Vertices.Where(v => !v.Equals(ab.EndVertex)).ToArray();
+
+                        var f2 = ab.Pair.Face;
+                        var f2Vertices = f2.Vertices.Where(v => !v.Equals(ab.EndVertex)).ToArray();
+
+                        //Delete the faces
+                        mesh.Delete(f1);
+                        mesh.Delete(f2);
+
+                        //Delete the vertex
+                        mesh.Delete(ab.EndVertex);
+
+                        //Create 2 new faces (copy across tags)
+                        var fn1 = mesh.GetOrConstructFace(f1Vertices);
+                        fn1.Tag = f1.Tag;
+                        var fn2 = mesh.GetOrConstructFace(f2Vertices);
+                        fn2.Tag = f2.Tag;
+
+                        //Add these two new faces to the queue
+                        todo.Add(fn1);
+                        todo.Add(fn2);
+                        break;
                     }
                 }
-
-                //Failed to find a next edge (dead end vertex)
-                if (bestEdge == null)
-                    break;
-
-                //If we stepped from an edge not linked to a face to an edge linked to a face something is seriously wrong with the topology!
-                if (bestEdge.Face != null)
-                    throw new InvalidOperationException("Walking edges found an edge already connected to a face");
-
-                //Save stuff for the next iteration
-                current = bestEdge;
-                path.AddLast(bestEdge);
-                dir = bestEdgeDir;
-            } while (path.Last.Value.Equals(path.First.Value));
-
-            //Check for failure conditions
-            if (path.Count < 3 || !path.Last.Value.Equals(path.First.Value))
-                return null;
-
-            return path;
+            }
         }
+        #endregion
     }
 }

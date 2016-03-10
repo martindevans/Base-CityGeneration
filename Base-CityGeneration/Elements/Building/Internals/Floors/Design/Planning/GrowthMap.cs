@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using Base_CityGeneration.Datastructures.Extensions;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural;
+using EpimetheusPlugins.Procedural.Utilities;
 using HandyCollections.Heap;
 using Myre.Collections;
 using PrimitiveSvgBuilder;
@@ -14,8 +17,16 @@ using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
 using Vector2 = System.Numerics.Vector2;
 
-using MVertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<int, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, int>;
-using MHEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<int, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, int>;
+using MVertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag
+>;
+using MHEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag,
+    Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag
+>;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 {
@@ -32,11 +43,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         private readonly IValueGenerator _seedDistance;
         private readonly IValueGenerator _seedChance;
         private readonly IValueGenerator _parallelLengthMultiplier;
-        private readonly IValueGenerator _parallelCheckDistance;
+        private readonly IValueGenerator _parallelCheckWidth;
         private readonly IValueGenerator _cosineParallelAngleThreshold;
         private readonly IValueGenerator _intersectionContinuationChance;
 
-        private readonly Mesh<int, FloorplanHalfEdgeTag, int> _mesh; 
+        private readonly Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> _mesh; 
         private readonly MinHeap<Seed> _seeds = new MinHeap<Seed>();
 
         //todo: remove this!
@@ -49,13 +60,21 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         /// <param name="seedDistance">Distance between seeds placed on walls</param>
         /// <param name="random">PRNG (0-1)</param>
         /// <param name="metadata">Metadata used in random generation</param>
-        public GrowthMap(IReadOnlyList<Vector2> outline, IValueGenerator seedDistance, Func<double> random, INamedDataCollection metadata, IValueGenerator parallelLengthMultiplier, IValueGenerator parallelCheckDistance, IValueGenerator parallelAngleThreshold, IValueGenerator intersectionContinuationChance, IValueGenerator seedChance)
+        /// <param name="parallelLengthMultiplier"></param>
+        /// <param name="parallelCheckWidth"></param>
+        /// <param name="seedChance"></param>
+        /// <param name="parallelAngleThreshold"></param>
+        public GrowthMap(IReadOnlyList<Vector2> outline, IValueGenerator seedDistance, Func<double> random, INamedDataCollection metadata, IValueGenerator parallelLengthMultiplier, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold, IValueGenerator intersectionContinuationChance, IValueGenerator seedChance)
         {
             Contract.Requires(outline != null);
             Contract.Requires(seedDistance != null);
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
             Contract.Requires(outline.IsClockwise());
+            Contract.Requires(parallelLengthMultiplier != null);
+            Contract.Requires(parallelCheckWidth != null);
+            Contract.Requires(seedChance != null);
+            Contract.Requires(parallelAngleThreshold != null);
 
             _outline = outline;
             _seedDistance = seedDistance;
@@ -64,12 +83,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             _metadata = metadata;
 
             _parallelLengthMultiplier = parallelLengthMultiplier;
-            _parallelCheckDistance = parallelCheckDistance;
+            _parallelCheckWidth = parallelCheckWidth;
             _cosineParallelAngleThreshold = parallelAngleThreshold.Transform(a => (float)Math.Cos(a));
             _intersectionContinuationChance = intersectionContinuationChance;
 
             var bounds = BoundingRectangle.CreateFromPoints(outline).Inflate(0.2f);
-            _mesh = new Mesh<int, FloorplanHalfEdgeTag, int>(bounds);
+            _mesh = new Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>(bounds);
         }
 
         public Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> Grow()
@@ -84,11 +103,21 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //Sometimes we create edges which lead to a vertex and then nothing else, remove all these dead end edges
             CleanupDeadEnds();
 
+            //Put faces in between the walls we've created
+            _mesh.CreateImplicitFaces();
+
+            Stopwatch w = new Stopwatch();
+            w.Start();
+            _mesh.SimplifyFaces();
+            Console.WriteLine(w.ElapsedMilliseconds + "ms");
+
             //todo: remove temp visualisation code
             //foreach (var edge in _mesh.HalfEdges.Where(a => a.IsPrimaryEdge))
             //    _builder.Outline(edge.Bounds.GetCorners(), "red");
-            foreach (var edge in _mesh.HalfEdges.Where(a => a.IsPrimaryEdge))
-                _builder.Line(edge.StartVertex.Position, edge.EndVertex.Position, 1, "blue");
+            foreach (var face in _mesh.Faces)
+                _builder.Outline(face.Vertices.Select(a => a.Position).Shrink(0.1f).ToArray(), stroke: "none", fill: "red");
+            //foreach (var edge in _mesh.HalfEdges.Where(a => a.IsPrimaryEdge))
+            //    _builder.Line(edge.StartVertex.Position, edge.EndVertex.Position, 1, "blue");
             foreach (var vertex in _mesh.Vertices)
                 _builder.Circle(vertex.Position, 0.15f, "green");
             Console.WriteLine(_builder.ToString());
@@ -108,7 +137,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             var firstParallel = FindFirstParallelEdge(
                 seed,
                 length * _parallelLengthMultiplier.SelectFloatValue(_random, _metadata),
-                _parallelCheckDistance.SelectFloatValue(_random, _metadata),
+                _parallelCheckWidth.SelectFloatValue(_random, _metadata),
                 _cosineParallelAngleThreshold.SelectFloatValue(_random, _metadata)
             );
 
@@ -282,8 +311,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         private void CleanupDeadEnds()
         {
             //Keep running this until we reach a fixpoint (i.e. nothing changed)
-            Func<IEnumerable<MVertex>, bool> cleanup = verts => {
-
+            Func<IEnumerable<MVertex>, bool> cleanup = verts =>
+            {
                 //Try to find a vertex to remove
                 var vertex = verts.FirstOrDefault(v => v.EdgeCount <= 1);
                 if (vertex == null)
@@ -292,32 +321,21 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 //Delete it and return a value indicating we changed something
                 _mesh.Delete(vertex);
                 return true;
+
             };
+
+            //At this point you're thinking to yourself "this could be optimized loads! Why are we constructing a Func and then only doing one thing at a time in each iteration?"
+            //You're wrong - it's always 12ms runtime!
+            //Failed optimizing attempts:
+            // - while (true) { modify list of all vertices }
+            // - fixpoint(() => { do several vertices in each iteration })
+            // - Define cleanup as an instance method and cast to Func for fixpoint
             cleanup.Fixpoint(_mesh.Vertices);
-        }
-
-        private bool CleanupInvalidEdges()
-        {
-            //var vertices = new HashSet<Vertex>(_vertices.Intersects(_bounds));
-
-            //var modified = false;
-
-            ////Remove all edges which point to non-existant vertices
-            //foreach (var vertex in vertices)
-            //    modified |= vertex.Remove(e => !vertices.Contains(e.B)) != 0;
-
-            //return modified;
-
-            throw new NotImplementedException();
         }
 
         private Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> ConvertToMesh()
         {
-            //var m = new Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>();
-
-            //return m.FromGraph(_vertices.Intersects(_bounds).First(), a => a.Position);
-
-            throw new NotImplementedException();
+            return _mesh;
         }
         #endregion
 
@@ -334,7 +352,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 var c = vertices[(i + 1) % vertices.Length];
 
                 //Create a series of edges between these two vertices (not just one edge, because we drop seeds along the line as we go)
-                CreateOutlineEdge(b, c);
+                CreateExternalEdge(b, c);
 
                 //We want to measure the internal angle at vertex "b", for that we need the previous vertex (which we'll call "a")
                 var a = vertices[(i + vertices.Length - 1) % vertices.Length];
@@ -392,7 +410,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        private void CreateOutlineEdge(MVertex a, MVertex b)
+        private void CreateExternalEdge(MVertex a, MVertex b)
         {
             //step along the gap between these vertices in steps of *seedDistance* placing vertices
             var direction = b.Position - a.Position;
