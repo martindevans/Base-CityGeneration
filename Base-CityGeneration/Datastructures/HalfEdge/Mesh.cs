@@ -147,17 +147,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             if (edge.Pair.Face != null)
                 edgeBeforeEdgePair = edge.Pair.Face.Edges.Single(e => e.Next.Equals(edge.Pair));
 
-            //Delete existing edge
-            if (!b.DeleteEdge(edge.Pair))
-                throw new InvalidOperationException("Detaching edge from vertex failed");
-            if (!_halfEdges.Remove(edge.Pair.Bounds, edge.Pair))
-                throw new InvalidOperationException("Failed to remove half edge from spatial index");
-            edge.Pair.IsDeleted = true;
-            if (!a.DeleteEdge(edge))
-                throw new InvalidOperationException("Detaching edge from vertex failed");
-            if (!_halfEdges.Remove(edge.Bounds, edge))
-                throw new InvalidOperationException("Failed to remove half edge from spatial index");
-            edge.IsDeleted = true;
+            //Delete existing edge (but preserve faces, this potentially leaves the mesh in an invalid state if the face was pointing at the edge we're deleting)
+            Delete(edge, preserveFaces: true);
 
             //Construct two new edges
             am = GetOrConstructHalfEdge(a, middle);
@@ -175,7 +166,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             mb.Pair.Next = am.Pair;
             am.Pair.Next = edge.Pair.Next;
 
-            //Update faces to point at the newly created edges
+            //Update faces to point at the newly created edges (fixing potentially invalid state created when the edge was deleted)
             if (edge.Face != null)
                 edge.Face.Edge = am;
             if (edge.Pair.Face != null)
@@ -204,16 +195,25 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             Contract.Requires(edge != null && !edge.IsDeleted);
 
-            DeleteHalf(edge);
-            DeleteHalf(edge.Pair);
+            Delete(edge, false);
         }
 
-        private void DeleteHalf(HalfEdge<TVTag, TETag, TFTag> edge)
+        private void Delete(HalfEdge<TVTag, TETag, TFTag> edge, bool preserveFaces = false)
+        {
+            DeleteHalf(edge, preserveFaces);
+            DeleteHalf(edge.Pair, preserveFaces);
+        }
+
+        private void DeleteHalf(HalfEdge<TVTag, TETag, TFTag> edge, bool preserveFaces = false)
         {
             if (!edge.StartVertex.DeleteEdge(edge))
                 throw new InvalidOperationException("Detaching edge from vertex failed");
             if (!_halfEdges.Remove(edge.Bounds, edge))
                 throw new InvalidOperationException("Failed to remove half edge from spatial index");
+
+            if (!preserveFaces && edge.Face != null)
+                Delete(edge.Face);
+
             edge.IsDeleted = true;
         }
         #endregion
@@ -354,7 +354,6 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 Delete(halfEdge);
 
             _vertices.Remove(_vertices.Bounds, vertex);
-
             vertex.IsDeleted = true;
         }
         #endregion
@@ -453,10 +452,12 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         internal void Delete(Face<TVTag, TETag, TFTag> f)
         {
-            Contract.Requires(f != null);
+            Contract.Requires(f != null && !f.IsDeleted);
 
             if (!_faces.Remove(f))
                 throw new InvalidOperationException("Face was not in face set");
+
+            f.IsDeleted = true;
 
             var edges = f.Edges.ToArray();
             foreach (var halfEdge in edges)
