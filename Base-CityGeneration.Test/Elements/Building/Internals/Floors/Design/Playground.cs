@@ -7,6 +7,7 @@ using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
 using Base_CityGeneration.Test.Elements.Building.Design;
 using Base_CityGeneration.TestHelpers;
+using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,7 +21,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors.Design
         [TestMethod]
         public void TestMethod1()
         {
-            var rnd = new Random(2);
+            var rnd = new Random(3);
             var random = (Func<double>)rnd.NextDouble;
             var metadata = new NamedBoxCollection();
 
@@ -55,12 +56,12 @@ Aliases:
 
 GrowthParameters:
     SeedSpacing: !NormalValue { Min: 2.5, Mean: 5, Max: 6.5, Vary: true }
-    SeedChance: 0.65
+    SeedChance: 0.75
     IntersectionContinuationChance: 0.3
     ParallelCheck:
         Length: 1
-        Width: 2.5
-        Angle: 10
+        Width: 3.5
+        Angle: 15
 
 Spaces:
     - !Repeat
@@ -93,10 +94,30 @@ Spaces:
             //    new Subsection[0]
             //};
 
-            //Diagonal bend shape
+            ////Diagonal bend shape
+            //var shape = new[] {
+            //    new Vector2(10, 10), new Vector2(20, 0), new Vector2(23, 0), new Vector2(33, 10), new Vector2(43, 0),
+            //    new Vector2(28, -15), new Vector2(15, -15), new Vector2(0, 0)
+            //};
+            //var sections = new[] {
+            //    new Subsection[0],
+            //    new Subsection[0],
+            //    new Subsection[0],
+            //    new Subsection[0],
+            //    new Subsection[0],
+            //    new Subsection[0],
+            //    new Subsection[0],
+            //    new Subsection[0]
+            //};
+
+            //Actual office floorplan
             var shape = new[] {
-                new Vector2(10, 10), new Vector2(20, 0), new Vector2(23, 0), new Vector2(33, 10), new Vector2(43, 0),
-                new Vector2(28, -15), new Vector2(15, -15), new Vector2(0, 0)
+                new Vector2(-25, 17),
+                new Vector2(0, 17),
+                new Vector2(3, 15),
+                new Vector2(33, 15),
+                new Vector2(38, 0),
+                new Vector2(-25, -25)
             };
             var sections = new[] {
                 new Subsection[0],
@@ -104,31 +125,33 @@ Spaces:
                 new Subsection[0],
                 new Subsection[0],
                 new Subsection[0],
-                new Subsection[0],
-                new Subsection[0],
                 new Subsection[0]
             };
-            
+            var verticals = new[] {
+                new[] {
+                    new Vector2(0, 0),
+                    new Vector2(7, 0),
+                    new Vector2(7, -7),
+                    new Vector2(0, -7),
+                }
+            };
 
-            ////var floorplan = designer.Design(random, meta, finder, new[] {
-            ////    new FloorplanRegion.Side(new Vector2(-25, 17), new Vector2(0, 17), new Section[0]),
-            ////    new FloorplanRegion.Side(new Vector2(0, 17), new Vector2(3, 15), new Section[] { new Section(0, 1, Section.Types.Window) }),
-            ////    new FloorplanRegion.Side(new Vector2(3, 15), new Vector2(33, 15), new Section[] { new Section(0, 1, Section.Types.Window) }),
-            ////    new FloorplanRegion.Side(new Vector2(33, 15), new Vector2(38, 0), new Section[0]),
-            ////    new FloorplanRegion.Side(new Vector2(38, 0), new Vector2(-25, -25), new Section[] { new Section(0, 1, Section.Types.Window) }),
-            ////    new FloorplanRegion.Side(new Vector2(-25, -25), new Vector2(-25, 17), new Section[] { new Section(0, 1, Section.Types.Window) }),
-            ////}, 0.075f, new List<IReadOnlyList<Vector2>>(), new List<VerticalSelection>());
+            ////rectangle
+            //var shape = new[] {
+            //    new Vector2(9, 0),
+            //    new Vector2(9, -6),
+            //    new Vector2(0, -6),
+            //    new Vector2(0, 0)
+            //};
+            //var sections = new[] {
+            //    new Subsection[0],
+            //    new Subsection[0],
+            //    new Subsection[0],
+            //    new Subsection[0],
+            //};
 
-            //////simple rectangle shape
-            ////var floorplan = designer.Design(random, meta, finder, new[] {
-            ////    new FloorplanRegion.Side(new Vector2(9, 0), new Vector2(9, -6), new Section[]  { new Section(0, 1, Section.Types.Window) }),
-            ////    new FloorplanRegion.Side(new Vector2(9, -6), new Vector2(0, -6), new Section[0]),
-            ////    new FloorplanRegion.Side(new Vector2(0, -6), new Vector2(0, 0), new Section[0]),
-            ////    new FloorplanRegion.Side(new Vector2(0, 0), new Vector2(9, 0), new Section[0]),
-            ////}, 0.075f);
-
-            var floorplan = designer.Design(random, metadata, finder, shape, sections, 0.075f, new List<IReadOnlyList<Vector2>>(), new List<VerticalSelection>());
-            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 4).ToString());
+            var floorplan = designer.Design(random, metadata, finder, shape, sections, 0.075f, verticals, new List<VerticalSelection>());
+            //Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 4).ToString());
         }
     }
 }

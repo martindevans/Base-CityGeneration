@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Datastructures.Extensions;
@@ -9,10 +8,9 @@ using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Procedural.Utilities;
 using HandyCollections.Heap;
+using JetBrains.Annotations;
 using Myre.Collections;
-using PrimitiveSvgBuilder;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
 using Vector2 = System.Numerics.Vector2;
@@ -30,12 +28,160 @@ using MHEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 {
+    public class WallGrowthParameters
+    {
+        private readonly IValueGenerator _seedDistance;
+        private readonly IValueGenerator _seedChance;
+        private readonly IValueGenerator _parallelLengthMultiplier;
+        private readonly IValueGenerator _parallelCheckWidth;
+        private readonly IValueGenerator _parallelAngleThreshold;
+        private readonly IValueGenerator _intersectionContinuationChance;
+
+        public IValueGenerator SeedDistance
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+                return _seedDistance;
+            }
+        }
+
+        public IValueGenerator SeedChance
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+                return _seedChance;
+            }
+        }
+
+        public IValueGenerator ParallelLengthMultiplier
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+                return _parallelLengthMultiplier;
+            }
+        }
+
+        public IValueGenerator ParallelCheckWidth
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+                return _parallelCheckWidth;
+            }
+        }
+
+        public IValueGenerator ParallelAngleThreshold
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+                return _parallelAngleThreshold;
+            }
+        }
+
+        public IValueGenerator IntersectionContinuationChance
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
+                return _intersectionContinuationChance;
+            }
+        }
+
+        public WallGrowthParameters(IValueGenerator seedDistance, IValueGenerator seedChance, IValueGenerator parallelLengthMultiplier, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold, IValueGenerator intersectionContinuationChance)
+        {
+            Contract.Requires(seedDistance != null);
+            Contract.Requires(seedChance != null);
+            Contract.Requires(parallelLengthMultiplier != null);
+            Contract.Requires(parallelCheckWidth != null);
+            Contract.Requires(parallelAngleThreshold != null);
+            Contract.Requires(intersectionContinuationChance != null);
+
+            _seedDistance = seedDistance;
+            _seedChance = seedChance;
+            _parallelLengthMultiplier = parallelLengthMultiplier;
+            _parallelCheckWidth = parallelCheckWidth;
+            _parallelAngleThreshold = parallelAngleThreshold;
+            _intersectionContinuationChance = intersectionContinuationChance;
+        }
+
+        internal class Container
+            : IUnwrappable<WallGrowthParameters>
+        {
+            /// <summary>
+            /// Parameters for parallelism checking
+            /// </summary>
+            public ParallelCheckParameters? ParallelCheck { get; [UsedImplicitly] set; }
+
+            /// <summary>
+            /// Distance between seeds along walls
+            /// </summary>
+            public object SeedSpacing { get; [UsedImplicitly] set; }
+
+            /// <summary>
+            /// Chance that a seed will be placed at a seed point (otherwise the wall will continue straight on)
+            /// </summary>
+            public object SeedChance { get; [UsedImplicitly] set; }
+
+            /// <summary>
+            /// When a wall hits another wall chance that the wall will continue out the other side
+            /// </summary>
+            public object IntersectionContinuationChance { get; [UsedImplicitly] set; }
+
+            public WallGrowthParameters Unwrap()
+            {
+                Contract.Assert(SeedSpacing != null);
+                Contract.Assert(SeedChance != null);
+
+                //Get parallel parameters (or use defaults)
+                var defaultParallel = new ParallelCheckParameters
+                {
+                    Length = 1.25f,
+                    Width = 1,
+                    Angle = 10
+                };
+                var parallelParams = ParallelCheck ?? defaultParallel;
+
+                return new WallGrowthParameters(
+                    IValueGeneratorContainer.FromObject(SeedSpacing, new NormallyDistributedValue(1.5f, 3, 4.5f, 0.5f)),
+                    IValueGeneratorContainer.FromObject(SeedChance, 0.5f),
+                    IValueGeneratorContainer.FromObject(parallelParams.Length, defaultParallel.Length),
+                    IValueGeneratorContainer.FromObject(parallelParams.Width, defaultParallel.Width),
+                    IValueGeneratorContainer.FromObject(parallelParams.Angle, defaultParallel.Angle).Transform(Microsoft.Xna.Framework.MathHelper.ToRadians),
+                    IValueGeneratorContainer.FromObject(IntersectionContinuationChance, 0.75f)
+                );
+            }
+        }
+
+        internal struct ParallelCheckParameters
+        {
+            /// <summary>
+            /// Multiplier of length to check for parallel walls (e.g. 1.5 to check for the length of the proposed wall and half again)
+            /// </summary>
+            public object Length { get; set; }
+
+            /// <summary>
+            /// Distance to check for parallel walls either side
+            /// </summary>
+            public object Width { get; set; }
+
+            /// <summary>
+            /// Maximum angle between this wall and the other to consider parallel
+            /// </summary>
+            public object Angle { get; set; }
+        }
+    }
+
     /// <summary>
     /// Given an outline and a set of seed points (on the outline) grow lines inwards to fill the space
     /// </summary>
     internal class GrowthMap
     {
         private readonly IReadOnlyList<Vector2> _outline;
+        private readonly IReadOnlyList<IReadOnlyList<Vector2>> _internalRooms;
 
         private readonly Func<double> _random;
         private readonly INamedDataCollection _metadata;
@@ -50,42 +196,32 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         private readonly Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> _mesh; 
         private readonly MinHeap<Seed> _seeds = new MinHeap<Seed>();
 
-        //todo: remove this!
-        private readonly SvgBuilder _builder = new SvgBuilder(10);
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="outline">Polygon outline of this map (clockwise wound, potentially concave)</param>
-        /// <param name="seedDistance">Distance between seeds placed on walls</param>
+        /// <param name="internalRooms">Set of rooms which must be included unchanged in this map</param>
         /// <param name="random">PRNG (0-1)</param>
         /// <param name="metadata">Metadata used in random generation</param>
-        /// <param name="parallelLengthMultiplier"></param>
-        /// <param name="parallelCheckWidth"></param>
-        /// <param name="seedChance"></param>
-        /// <param name="parallelAngleThreshold"></param>
-        public GrowthMap(IReadOnlyList<Vector2> outline, IValueGenerator seedDistance, Func<double> random, INamedDataCollection metadata, IValueGenerator parallelLengthMultiplier, IValueGenerator parallelCheckWidth, IValueGenerator parallelAngleThreshold, IValueGenerator intersectionContinuationChance, IValueGenerator seedChance)
+        /// <param name="parameters"></param>
+        public GrowthMap(IReadOnlyList<Vector2> outline, IReadOnlyList<IReadOnlyList<Vector2>> internalRooms, Func<double> random, INamedDataCollection metadata, WallGrowthParameters parameters)
         {
             Contract.Requires(outline != null);
-            Contract.Requires(seedDistance != null);
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
-            Contract.Requires(outline.IsClockwise());
-            Contract.Requires(parallelLengthMultiplier != null);
-            Contract.Requires(parallelCheckWidth != null);
-            Contract.Requires(seedChance != null);
-            Contract.Requires(parallelAngleThreshold != null);
+            Contract.Requires(parameters != null);
 
             _outline = outline;
-            _seedDistance = seedDistance;
-            _seedChance = seedChance;
+            _internalRooms = internalRooms;
             _random = random;
             _metadata = metadata;
 
-            _parallelLengthMultiplier = parallelLengthMultiplier;
-            _parallelCheckWidth = parallelCheckWidth;
-            _cosineParallelAngleThreshold = parallelAngleThreshold.Transform(a => (float)Math.Cos(a));
-            _intersectionContinuationChance = intersectionContinuationChance;
+            _seedDistance = parameters.SeedDistance;
+            _seedChance = parameters.SeedChance;
+            _parallelLengthMultiplier = parameters.ParallelLengthMultiplier;
+            _parallelCheckWidth = parameters.ParallelCheckWidth;
+            _cosineParallelAngleThreshold = parameters.ParallelAngleThreshold.Transform(a => (float)Math.Cos(a));
+            _intersectionContinuationChance = parameters.IntersectionContinuationChance;
 
             var bounds = BoundingRectangle.CreateFromPoints(outline).Inflate(0.2f);
             _mesh = new Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>(bounds);
@@ -94,7 +230,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         public Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> Grow()
         {
             //Create initial seeds along the outline of the building
-            CreateInitialSeeds();
+            CreateOutline(_outline);
+            foreach (var room in _internalRooms)
+                CreateOutline(room.Reverse());
 
             //Pull seeds out of heap and grow them (eventually we will run out of valid seeds and exit this loop)
             while (_seeds.Count > 0)
@@ -108,17 +246,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
             //Remove vertices which lie on a perfectly straight line with no branches
             _mesh.SimplifyFaces();
-
-            //todo: remove temp visualisation code
-            //foreach (var edge in _mesh.HalfEdges.Where(a => a.IsPrimaryEdge))
-            //    _builder.Outline(edge.Bounds.GetCorners(), "red");
-            foreach (var face in _mesh.Faces)
-                _builder.Outline(face.Vertices.Select(a => a.Position).Shrink(0.1f).ToArray(), stroke: "none", fill: "red");
-            //foreach (var edge in _mesh.HalfEdges.Where(a => a.IsPrimaryEdge))
-            //    _builder.Line(edge.StartVertex.Position, edge.EndVertex.Position, 1, "blue");
-            foreach (var vertex in _mesh.Vertices)
-                _builder.Circle(vertex.Position, 0.15f, "green");
-            Console.WriteLine(_builder.ToString());
 
             return ConvertToMesh();
         }
@@ -168,8 +295,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                     _mesh.Split(firstIntersection.Value.Key, intersectVert, out ab, out bc);
 
                     var t = firstIntersection.Value.Key.Tag ?? firstIntersection.Value.Key.Pair.Tag;
-                    ab.Tag = new FloorplanHalfEdgeTag(t.IsExternal);
-                    bc.Tag = new FloorplanHalfEdgeTag(t.IsExternal);
+                    ab.Tag = new FloorplanHalfEdgeTag(t.IsImpassable);
+                    bc.Tag = new FloorplanHalfEdgeTag(t.IsImpassable);
                 }
 
                 //Create an edge to this intersection point
@@ -178,7 +305,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 //If this is not an external wall we can create a seed continuing forward
                 var tag = firstIntersection.Value.Key.Tag ?? firstIntersection.Value.Key.Pair.Tag;
                 var continuationChance = _intersectionContinuationChance.SelectFloatValue(_random, _metadata);
-                if (!tag.IsExternal && _random.RandomBoolean(1 - continuationChance))
+                if (!tag.IsImpassable && _random.RandomBoolean(1 - continuationChance))
                 {
                     //New wall will be perpendicular to the wall we've hit...
                     var direction = firstIntersection.Value.Key.Segment.Line.Direction.Perpendicular();
@@ -341,9 +468,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         #endregion
 
         #region initialisation
-        private void CreateInitialSeeds()
+        private void CreateOutline(IEnumerable<Vector2> shape)
         {
-            var vertices = _outline.Select(_mesh.GetOrConstructVertex).ToArray();
+            var vertices = shape.Select(_mesh.GetOrConstructVertex).ToArray();
 
             // Create the outer edges of the floor
             for (var i = 0; i < vertices.Length; i++)
@@ -353,7 +480,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 var c = vertices[(i + 1) % vertices.Length];
 
                 //Create a series of edges between these two vertices (not just one edge, because we drop seeds along the line as we go)
-                CreateExternalEdge(b, c);
+                CreateImpassableEdge(b, c);
 
                 //We want to measure the internal angle at vertex "b", for that we need the previous vertex (which we'll call "a")
                 var a = vertices[(i + vertices.Length - 1) % vertices.Length];
@@ -411,7 +538,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        private void CreateExternalEdge(MVertex a, MVertex b)
+        private void CreateImpassableEdge(MVertex a, MVertex b)
         {
             //step along the gap between these vertices in steps of *seedDistance* placing vertices
             var direction = b.Position - a.Position;

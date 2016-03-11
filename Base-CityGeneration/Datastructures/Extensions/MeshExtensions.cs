@@ -201,28 +201,47 @@ namespace Base_CityGeneration.Datastructures.Extensions
 
                 //Get lists of vertices in both faces (except the vertex we're removing)
                 var f1 = ab.Face;
-                var f1Vertices = f1.Vertices.Where(v => !v.Equals(ab.EndVertex)).ToArray();
+                var f1Vertices = f1 == null ? null :f1.Vertices.Where(v => !v.Equals(ab.EndVertex)).ToArray();
 
                 var f2 = ab.Pair.Face;
-                var f2Vertices = f2.Vertices.Where(v => !v.Equals(ab.EndVertex)).ToArray();
+                var f2Vertices = f2 == null ? null : f2.Vertices.Where(v => !v.Equals(ab.EndVertex)).ToArray();
 
                 //Delete the faces
-                mesh.Delete(f1);
+                if (f1 != null)
+                    mesh.Delete(f1);
+                if (f2 != null)
                 mesh.Delete(f2);
 
                 //Delete the vertex
                 mesh.Delete(ab.EndVertex);
 
                 //Create 2 new faces (copy across tags)
-                var fn1 = mesh.GetOrConstructFace(f1Vertices);
-                fn1.Tag = f1.Tag;
-                var fn2 = mesh.GetOrConstructFace(f2Vertices);
-                fn2.Tag = f2.Tag;
+                if (f1 != null)
+                {
+                    var fn1 = mesh.GetOrConstructFace(f1Vertices);
+                    fn1.Tag = f1.Tag;
+                }
+
+                if (f2 != null)
+                {
+                    var fn2 = mesh.GetOrConstructFace(f2Vertices);
+                    fn2.Tag = f2.Tag;
+                }
 
                 return true;
             };
 
             simplify.Fixpoint(mesh.Vertices);
+        }
+        #endregion
+
+        #region Face extensions
+        public static float Area<TV, TE, TF>(this Face<TV, TE, TF> face)
+        {
+            return face
+                .Vertices
+                .Select(a => a.Position)
+                .Area();
         }
         #endregion
     }

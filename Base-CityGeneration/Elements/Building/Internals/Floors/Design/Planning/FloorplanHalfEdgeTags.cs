@@ -6,11 +6,11 @@
 
     public class FloorplanHalfEdgeTag
     {
-        public bool IsExternal { get; private set; }
+        public bool IsImpassable { get; private set; }
 
-        public FloorplanHalfEdgeTag(bool isExternal)
+        public FloorplanHalfEdgeTag(bool isImpassable)
         {
-            IsExternal = isExternal;
+            IsImpassable = isImpassable;
         }
     }
 
