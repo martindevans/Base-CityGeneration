@@ -109,6 +109,9 @@ Spaces:
             //    new Subsection[0],
             //    new Subsection[0]
             //};
+            //var verticals = new Vector2[0][] {
+
+            //};
 
             //Actual office floorplan
             var shape = new[] {

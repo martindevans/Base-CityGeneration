@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Contracts;
+﻿using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using Placeholder.AI.Pathfinding.Graph;
 using SwizzleMyVectors.Geometry;
@@ -60,10 +61,46 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// </summary>
         public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Next { get; internal set; }
 
+        /// <summary>
+        /// Enumerate edges around the face (starting with thos edge)
+        /// </summary>
+        public IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> Around
+        {
+            get
+            {
+                var next = this;
+                do
+                {
+                    yield return next;
+                    next = next.Next;
+                } while (!next.Equals(this));
+            }
+        }
+
         private readonly bool _isPrimary;
         public bool IsPrimaryEdge { get { return _isPrimary; } }
 
-        public THalfEdgeTag Tag;
+        private THalfEdgeTag _tag;
+        /// <summary>
+        /// The tag attached to this half edge (may be null).
+        /// If this tag implements IHalfEdgeTag then Attach and Detach will be called appropriately
+        /// </summary>
+        public THalfEdgeTag Tag
+        {
+            get { return _tag; }
+            set
+            {
+                var oldTag = _tag as IHalfEdgeTag<TVertexTag, THalfEdgeTag, TFaceTag>;
+                if (oldTag != null)
+                    oldTag.Detach(this);
+
+                var newTag = value as IHalfEdgeTag<TVertexTag, THalfEdgeTag, TFaceTag>;
+                if (newTag != null)
+                    newTag.Attach(this);
+
+                _tag = value;
+            }
+        }
 
         public bool IsDeleted { get; internal set; }
 

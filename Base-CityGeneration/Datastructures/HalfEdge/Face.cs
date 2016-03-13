@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
@@ -12,7 +13,33 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// </summary>
         public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Edge { get; internal set; }
 
-        public TFaceTag Tag;
+        private readonly int _uid;
+        private int Id
+        {
+            get { return _uid; }
+        }
+
+        private TFaceTag _tag;
+        /// <summary>
+        /// The tag attached to this face (may be null).
+        /// If this tag implements IFaceTag then Attach and Detach will be called appropriately
+        /// </summary>
+        public TFaceTag Tag
+        {
+            get { return _tag; }
+            set
+            {
+                var oldTag = _tag as IFaceTag<TVertexTag, THalfEdgeTag, TFaceTag>;
+                if (oldTag != null)
+                    oldTag.Detach(this);
+
+                var newTag = value as IFaceTag<TVertexTag, THalfEdgeTag, TFaceTag>;
+                if (newTag != null)
+                    newTag.Attach(this);
+
+                _tag = value;
+            }
+        }
 
         public IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> Edges
         {
@@ -42,5 +69,19 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public bool IsDeleted { get; internal set; }
         #endregion
+
+        internal Face(int uid)
+        {
+            _uid = uid;
+        }
+
+        internal class Comparer
+            : IComparer<Face<TVertexTag, THalfEdgeTag, TFaceTag>>
+        {
+            public int Compare(Face<TVertexTag, THalfEdgeTag, TFaceTag> a, Face<TVertexTag, THalfEdgeTag, TFaceTag> b)
+            {
+                return a.Id.CompareTo(b.Id);
+            }
+        }
     }
 }

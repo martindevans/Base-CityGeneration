@@ -17,9 +17,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
     public class Mesh<TVTag, TETag, TFTag>
     {
         #region fields and properties
-        private readonly HashSet<Face<TVTag, TETag, TFTag>> _faces = new HashSet<Face<TVTag, TETag, TFTag>>();
+        private readonly SortedSet<Face<TVTag, TETag, TFTag>> _faces = new SortedSet<Face<TVTag, TETag, TFTag>>(new Face<TVTag, TETag, TFTag>.Comparer());
         private readonly Quadtree<Vertex<TVTag, TETag, TFTag>> _vertices;
-        private readonly Quadtree<HalfEdge<TVTag, TETag, TFTag>> _halfEdges;  
+        private readonly Quadtree<HalfEdge<TVTag, TETag, TFTag>> _halfEdges;
 
         private const float VERTEX_EPSILON = 0.05f;
 
@@ -52,6 +52,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 return _vertices.Select(a => a.Value);
             }
         }
+
+        private int _nextFaceId;
         #endregion
 
         #region constructors
@@ -419,7 +421,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             }
 
             //Create new face
-            var f = new Face<TVTag, TETag, TFTag> { Edge = edges.First() };
+            var f = new Face<TVTag, TETag, TFTag>(_nextFaceId++){ Edge = edges.First() };
             _faces.Add(f);
 
             //Connect edges to new face
