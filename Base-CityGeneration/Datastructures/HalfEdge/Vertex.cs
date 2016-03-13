@@ -28,7 +28,28 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             get { return _mesh; }
         }
 
-        internal IVertexBuilder Builder;
+        private TVertexTag _tag;
+
+        /// <summary>
+        /// The tag attached to this vertex (may be null).
+        /// If this tag implements IVertexTag then Attach and Detach will be called appropriately
+        /// </summary>
+        public TVertexTag Tag
+        {
+            get { return _tag; }
+            set
+            {
+                var oldTag = _tag as IVertexTag<TVertexTag, THalfEdgeTag, TFaceTag>;
+                if (oldTag != null)
+                    oldTag.Detach(this);
+
+                var newTag = value as IVertexTag<TVertexTag, THalfEdgeTag, TFaceTag>;
+                if (newTag != null)
+                    newTag.Attach(this);
+
+                _tag = value;
+            }
+        }
 
         private readonly ISet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> _edges = new HashSet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>();
         /// <summary>

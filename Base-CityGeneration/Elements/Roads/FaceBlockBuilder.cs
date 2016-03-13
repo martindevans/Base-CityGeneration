@@ -52,7 +52,7 @@ namespace Base_CityGeneration.Elements.Roads
                 var n = builders[(i + 1) % builders.Length];
 
                 //Get the junction shape
-                var j = b.HalfEdge.EndVertex.Builder.Shape;
+                var j = b.HalfEdge.EndVertex.Tag.Shape;
 
                 //b.RightEnd and n.RightStart are the points on this junction, adjacent to this block
                 //Trace a path along the boundary between these points, use the path which does *not* include the other points

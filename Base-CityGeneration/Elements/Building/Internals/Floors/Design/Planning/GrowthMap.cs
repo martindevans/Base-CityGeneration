@@ -180,6 +180,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
     /// </summary>
     internal class GrowthMap
     {
+        #region properties and fields
         private readonly IReadOnlyList<Vector2> _outline;
         private readonly IReadOnlyList<IReadOnlyList<Vector2>> _internalRooms;
 
@@ -195,6 +196,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
         private readonly Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> _mesh; 
         private readonly MinHeap<Seed> _seeds = new MinHeap<Seed>();
+        #endregion
 
         /// <summary>
         /// 
@@ -232,7 +234,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //Create initial seeds along the outline of the building
             CreateOutline(_outline);
             foreach (var room in _internalRooms)
-                CreateOutline(room.Reverse());
+                CreateOutline(room.Reverse());  //todo: <-- pass in additional detail about this vertical feature, create face and tag it with additional info
 
             //Pull seeds out of heap and grow them (eventually we will run out of valid seeds and exit this loop)
             while (_seeds.Count > 0)
@@ -242,7 +244,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             CleanupDeadEnds();
 
             //Put faces in between the walls we've created
-            _mesh.CreateImplicitFaces();
+            _mesh.CreateImplicitFaces(f => new FloorplanFaceTag());
 
             //Remove vertices which lie on a perfectly straight line with no branches
             _mesh.SimplifyFaces();

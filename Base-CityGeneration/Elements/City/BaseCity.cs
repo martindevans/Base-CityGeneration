@@ -138,8 +138,8 @@ namespace Base_CityGeneration.Elements.City
             HierarchicalParameters.MaximumBuildingHeight(Random);
 
             //Attach builders to each part of the topological mesh
-            foreach (var vertex in mesh.Vertices.Where(v => v.Builder == null))
-                vertex.Builder = CreateVertexBuilder(vertex);
+            foreach (var vertex in mesh.Vertices.Where(v => v.Tag == null))
+                vertex.Tag = CreateVertexBuilder(vertex);
             foreach (var halfEdge in mesh.HalfEdges.Where(e => e.IsPrimaryEdge && e.Tag == null))
                 halfEdge.Tag = CreateHalfEdgeBuilder(halfEdge, RoadLanes(halfEdge));
             foreach (var face in mesh.Faces.Where(f => f.Tag == null))
@@ -185,7 +185,7 @@ namespace Base_CityGeneration.Elements.City
         {
             Contract.Requires(topology != null);
 
-            var result = Create<Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>>(height, topology, topology.Builder.Shape, ChooseJunctionScript);
+            var result = Create<Vertex<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder>>(height, topology, topology.Tag.Shape, ChooseJunctionScript);
 
             var junction = result as IJunction;
             if (junction != null)

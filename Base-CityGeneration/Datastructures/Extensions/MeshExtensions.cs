@@ -55,8 +55,9 @@ namespace Base_CityGeneration.Datastructures.Extensions
         /// <typeparam name="TETag"></typeparam>
         /// <typeparam name="TFTag"></typeparam>
         /// <param name="mesh"></param>
+        /// <param name="createTag"></param>
         /// <returns></returns>
-        public static void CreateImplicitFaces<TVTag, TETag, TFTag>(this Mesh<TVTag, TETag, TFTag> mesh)
+        public static void CreateImplicitFaces<TVTag, TETag, TFTag>(this Mesh<TVTag, TETag, TFTag> mesh, Func<Face<TVTag, TETag, TFTag>, TFTag> createTag = null)
         {
             //Build a list of edges which do not have a face attached
             var todo = new List<HalfEdge<TVTag, TETag, TFTag>>(mesh.HalfEdges.Where(a => a.Face == null));
@@ -76,7 +77,12 @@ namespace Base_CityGeneration.Datastructures.Extensions
                 if (path != null)
                 {
                     if (path.Select(a => a.EndVertex.Position).IsClockwise())
-                        mesh.GetOrConstructFace(path.Select(a => a.EndVertex).ToArray());
+                    {
+                        var face = mesh.GetOrConstructFace(path.Select(a => a.EndVertex).ToArray());
+
+                        if (createTag != null && face.Tag == null)
+                            face.Tag = createTag(face);
+                    }
                 }
             }
         }
@@ -167,6 +173,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
             var threshold = 1 - (float)Math.Cos(angleThreshold);
 
             Func<IEnumerable<Vertex<TVTag, THTag, TFTag>>, bool> simplify = vertices => {
+
                 var remove = vertices.FirstOrDefault(v => {
 
                     //Must be on a line, that means two attached edges
@@ -210,7 +217,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
                 if (f1 != null)
                     mesh.Delete(f1);
                 if (f2 != null)
-                mesh.Delete(f2);
+                    mesh.Delete(f2);
 
                 //Delete the vertex
                 mesh.Delete(ab.EndVertex);
@@ -219,13 +226,17 @@ namespace Base_CityGeneration.Datastructures.Extensions
                 if (f1 != null)
                 {
                     var fn1 = mesh.GetOrConstructFace(f1Vertices);
-                    fn1.Tag = f1.Tag;
+                    var t1 = f1.Tag;
+                    f1.Tag = default(TFTag);
+                    fn1.Tag = t1;
                 }
 
                 if (f2 != null)
                 {
                     var fn2 = mesh.GetOrConstructFace(f2Vertices);
-                    fn2.Tag = f2.Tag;
+                    var t2 = f2.Tag;
+                    f2.Tag = default(TFTag);
+                    fn2.Tag = t2;
                 }
 
                 return true;
