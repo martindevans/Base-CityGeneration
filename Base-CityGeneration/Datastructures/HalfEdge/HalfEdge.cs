@@ -124,6 +124,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
             _isPrimary = true;
             _pair = new HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>(start, this);
+
+            Contract.Assert(_pair != null);
+            Contract.Assert(_pair.Pair.Equals(this));
         }
 
         private HalfEdge(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end, HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> pair)
@@ -151,7 +154,6 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         [Pure]
         private void GetVertices(out Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, out Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
-            Contract.Requires(Pair != null);
             Contract.Ensures(Contract.ValueAtReturn(out start) != null);
             Contract.Ensures(Contract.ValueAtReturn(out end) != null);
 
@@ -167,7 +169,6 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         [Pure]
         public void GetFaces(out Face<TVertexTag, THalfEdgeTag, TFaceTag> a, out Face<TVertexTag, THalfEdgeTag, TFaceTag> b)
         {
-            Contract.Requires(Pair != null);
             Contract.Requires(Face != null);
             Contract.Ensures(Contract.ValueAtReturn<Face<TVertexTag, THalfEdgeTag, TFaceTag>>(out a) != null);
             Contract.Ensures(Contract.ValueAtReturn<Face<TVertexTag, THalfEdgeTag, TFaceTag>>(out b) != null);
@@ -185,9 +186,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         [Pure]
         public bool Connects(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> start, Vertex<TVertexTag, THalfEdgeTag, TFaceTag> end)
         {
-            if (Pair == null)
-                return false;
-            return EndVertex.Equals(end) && Pair.EndVertex.Equals(start);
+            return EndVertex.Equals(end) && StartVertex.Equals(start);
         }
 
         [Pure]
@@ -211,9 +210,6 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         [Pure]
         public bool Equals(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> e)
         {
-            Contract.Requires(e == null|| e.Pair != null);
-            Contract.Requires(Pair != null);
-
             if (e == null)
                 return false;
 
