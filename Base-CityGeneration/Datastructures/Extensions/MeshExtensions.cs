@@ -59,6 +59,8 @@ namespace Base_CityGeneration.Datastructures.Extensions
         /// <returns></returns>
         public static void CreateImplicitFaces<TVTag, TETag, TFTag>(this Mesh<TVTag, TETag, TFTag> mesh, Func<Face<TVTag, TETag, TFTag>, TFTag> createTag = null)
         {
+            Contract.Requires(mesh != null);
+
             //Build a list of edges which do not have a face attached
             var todo = new List<HalfEdge<TVTag, TETag, TFTag>>(mesh.HalfEdges.Where(a => a.Face == null));
 
@@ -157,6 +159,25 @@ namespace Base_CityGeneration.Datastructures.Extensions
         }
         #endregion
 
+        #region cleaning
+        public static void RemoveDisconnectedEdges<TVTag, THTag, TFTag>(this Mesh<TVTag, THTag, TFTag> mesh)
+        {
+            Contract.Requires(mesh != null);
+
+            foreach (var edge in mesh.HalfEdges.Where(a => a.IsPrimaryEdge && a.Face == null && a.Pair.Face == null).ToArray())
+                mesh.Delete(edge);
+        }
+
+        public static void RemoveDisconnectedVertices<TVTag, THTag, TFTag>(this Mesh<TVTag, THTag, TFTag> mesh)
+        {
+            Contract.Requires(mesh != null);
+
+            foreach (var vertex in mesh.Vertices.Where(a => a.EdgeCount == 0).ToArray())
+                mesh.Delete(vertex);
+            
+        }
+        #endregion
+
         #region simplify
         /// <summary>
         /// Find pairs of edges along the boundary of two faces which are completely linear (i.e. the middle vertex is useless) and remove middle vertex
@@ -180,7 +201,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
                     if (v.EdgeCount != 2)
                         return false;
 
-                    //Must be between two faces, or nulls
+                    //Must be between two faces (or nulls)
                     var av = v.Edges.Skip(1).First().Pair;
                     var vb = v.Edges.First();
 
@@ -249,10 +270,44 @@ namespace Base_CityGeneration.Datastructures.Extensions
         #region Face extensions
         public static float Area<TV, TE, TF>(this Face<TV, TE, TF> face)
         {
+            Contract.Requires(face != null);
+
             return face
                 .Vertices
                 .Select(a => a.Position)
                 .Area();
+        }
+        #endregion
+
+        #region delete enumerables
+        public static void Delete<TV, TE, TF>(this Mesh<TV, TE, TF> mesh, IEnumerable<Face<TV, TE, TF>> faces)
+        {
+            Contract.Requires(mesh != null);
+            Contract.Requires(faces != null);
+
+            foreach (var face in faces)
+                if (!face.IsDeleted)
+                    mesh.Delete(face);
+        }
+
+        public static void Delete<TV, TE, TF>(this Mesh<TV, TE, TF> mesh, IEnumerable<HalfEdge<TV, TE, TF>> edges)
+        {
+            Contract.Requires(mesh != null);
+            Contract.Requires(edges != null);
+
+            foreach (var edge in edges)
+                if (!edge.IsDeleted)
+                    mesh.Delete(edge);
+        }
+
+        public static void Delete<TV, TE, TF>(this Mesh<TV, TE, TF> mesh, IEnumerable<Vertex<TV, TE, TF>> vertices)
+        {
+            Contract.Requires(mesh != null);
+            Contract.Requires(vertices != null);
+
+            foreach (var vertex in vertices)
+                if (!vertex.IsDeleted)
+                    mesh.Delete(vertex);
         }
         #endregion
     }

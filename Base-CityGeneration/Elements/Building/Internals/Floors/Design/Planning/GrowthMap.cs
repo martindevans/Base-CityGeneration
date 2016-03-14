@@ -232,9 +232,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         public Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> Grow()
         {
             //Create initial seeds along the outline of the building
-            CreateOutline(_outline);
+            CreateOutline(_outline, false);
             foreach (var room in _internalRooms)
-                CreateOutline(room.Reverse());  //todo: <-- pass in additional detail about this vertical feature, create face and tag it with additional info
+                CreateOutline(room.Reverse(), true);  //todo: <-- pass in additional detail about this vertical feature, create face and tag it with additional info
 
             //Pull seeds out of heap and grow them (eventually we will run out of valid seeds and exit this loop)
             while (_seeds.Count > 0)
@@ -244,7 +244,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             CleanupDeadEnds();
 
             //Put faces in between the walls we've created
-            _mesh.CreateImplicitFaces(f => new FloorplanFaceTag());
+            _mesh.CreateImplicitFaces(f => new FloorplanFaceTag(true));
 
             //Remove vertices which lie on a perfectly straight line with no branches
             _mesh.SimplifyFaces();
@@ -470,22 +470,23 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         #endregion
 
         #region initialisation
-        private void CreateOutline(IEnumerable<Vector2> shape)
+        private void CreateOutline(IEnumerable<Vector2> shape, bool createFace)
         {
-            var vertices = shape.Select(_mesh.GetOrConstructVertex).ToArray();
+            var vertices = (IReadOnlyList<MVertex>)shape.Select(_mesh.GetOrConstructVertex).ToArray();
+            var edges = new List<MHEdge>(vertices.Count * 3);
 
             // Create the outer edges of the floor
-            for (var i = 0; i < vertices.Length; i++)
+            for (var i = 0; i < vertices.Count; i++)
             {
                 //Start and end vertex of this wall
                 var b = vertices[i];
-                var c = vertices[(i + 1) % vertices.Length];
+                var c = vertices[(i + 1) % vertices.Count];
 
                 //Create a series of edges between these two vertices (not just one edge, because we drop seeds along the line as we go)
-                CreateImpassableEdge(b, c);
+                CreateImpassableEdge(b, c, edges);
 
                 //We want to measure the internal angle at vertex "b", for that we need the previous vertex (which we'll call "a")
-                var a = vertices[(i + vertices.Length - 1) % vertices.Length];
+                var a = vertices[(i + vertices.Count - 1) % vertices.Count];
 
                 //Calculate the inner angle between these vectors (not always clockwise!)
                 var ab = Vector2.Normalize(b.Position - a.Position);
@@ -527,6 +528,22 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                     PerpendicularSeed(b, bc);
                 }
             }
+
+            if (createFace)
+            {
+                //Ensure we're always creating the clockwise face
+                if (!edges.Select(a => a.EndVertex.Position).IsClockwise())
+                {
+                    edges.Reverse();
+                    for (var i = 0; i < edges.Count; i++)
+                        edges[i] = edges[i].Pair;
+                }
+
+                //Create face
+                //todo: attach spacespec metadata (passed in instead of bool:createFace)
+                var f = _mesh.GetOrConstructFace(edges);
+                f.Tag = new FloorplanFaceTag(false);
+            }
         }
 
         private void PerpendicularSeed(MVertex a, Vector2 ab)
@@ -539,8 +556,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
+        /// <param name="edges"></param>
         /// <returns></returns>
-        private void CreateImpassableEdge(MVertex a, MVertex b)
+        private void CreateImpassableEdge(MVertex a, MVertex b, List<MHEdge> edges = null)
         {
             //step along the gap between these vertices in steps of *seedDistance* placing vertices
             var direction = b.Position - a.Position;
@@ -560,13 +578,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
                 //Create edge up to this vertex and a seed (pointing to the right, which is inwards assuming the outline is clockwise wound)
                 CreateSeed(v, direction.Perpendicular(), (float)_random());
-                _mesh.GetOrConstructHalfEdge(current, v).Tag = new FloorplanHalfEdgeTag(true);
+                var edge = _mesh.GetOrConstructHalfEdge(current, v);
+                edge.Tag = new FloorplanHalfEdgeTag(true);
+                if (edges != null)
+                    edges.Add(edge);
 
                 current = v;
             }
 
             //Finish off the end of the edge
-            _mesh.GetOrConstructHalfEdge(current, b).Tag = new FloorplanHalfEdgeTag(true);
+            var finalEdge = _mesh.GetOrConstructHalfEdge(current, b);
+            finalEdge.Tag = new FloorplanHalfEdgeTag(true);
+            if (edges != null)
+                edges.Add(finalEdge);
         }
         #endregion
 

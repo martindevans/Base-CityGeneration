@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using HandyCollections.Geometry;
+using Placeholder.AI.Pathfinding.Graph.NavigationMesh;
 using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
@@ -107,6 +108,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 _halfEdges.Insert(bb, pair);
             }
 
+            Contract.Assert(!edge.IsDeleted);
             return edge;
         }
 
@@ -196,6 +198,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         public void Delete(HalfEdge<TVTag, TETag, TFTag> edge)
         {
             Contract.Requires(edge != null && !edge.IsDeleted);
+            Contract.Ensures(edge.IsDeleted);
 
             Delete(edge, false);
         }
@@ -346,8 +349,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <param name="vertex"></param>
         public void Delete(Vertex<TVTag, TETag, TFTag> vertex)
         {
-            Contract.Requires(vertex != null);
-            Contract.Requires(!vertex.IsDeleted);
+            Contract.Requires(vertex != null && !vertex.IsDeleted);
+            Contract.Ensures(vertex.IsDeleted);
 
             foreach (var face in vertex.Faces)
                 Delete(face);
@@ -380,17 +383,17 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <param name="constructEdges"></param>
         /// <param name="vertices"></param>
         /// <returns></returns>
-        private Face<TVTag, TETag, TFTag> GetOrConstructFace(bool constructEdges, params Vertex<TVTag, TETag, TFTag>[] vertices)
+        private Face<TVTag, TETag, TFTag> GetOrConstructFace(bool constructEdges, IReadOnlyList<Vertex<TVTag, TETag, TFTag>> vertices)
         {
             Contract.Requires(vertices != null);
-            Contract.Requires(vertices.Length >= 3);
+            Contract.Requires(vertices.Count >= 3);
 
             var edges = new List<HalfEdge<TVTag, TETag, TFTag>>();
             Face<TVTag, TETag, TFTag> foundFace = null;
-            for (var i = 0; i < vertices.Length; i++)
+            for (var i = 0; i < vertices.Count; i++)
             {
                 var v = vertices[i];
-                var n = vertices[(i + 1) % vertices.Length];
+                var n = vertices[(i + 1) % vertices.Count];
                 var e = constructEdges ? GetOrConstructHalfEdge(v, n) : GetHalfEdge(v, n);
 
                 //Can't find an edge for this pair, this will only happen if ~constructEdges
@@ -408,7 +411,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 }
             }
 
-            Contract.Assert(edges.Count == vertices.Length);
+            Contract.Assert(edges.Count == vertices.Count);
 
             //If we found a face let's see if it's the face we want
             //If all the edges of the found face are in out constructed edge set then we're good to go
@@ -434,6 +437,69 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return f;
         }
 
+        public Face<TVTag, TETag, TFTag> GetOrConstructFace(IReadOnlyList<Vertex<TVTag, TETag, TFTag>> vertices)
+        {
+            Contract.Requires(vertices != null);
+            Contract.Requires(vertices.Count >= 3);
+            Contract.Ensures(Contract.Result<Face<TVTag, TETag, TFTag>>() != null);
+
+            var face = GetOrConstructFace(true, vertices);
+
+            Contract.Assert(face != null);
+
+            return face;
+        }
+
+        public Face<TVTag, TETag, TFTag> GetOrConstructFace(IReadOnlyList<HalfEdge<TVTag, TETag, TFTag>> edges)
+        {
+            Contract.Requires(edges != null);
+            Contract.Requires(edges.Count >= 3);
+            Contract.Ensures(Contract.Result<Face<TVTag, TETag, TFTag>>() != null);
+
+            //If we find an edge already attached to a face while walking the edges keep hold of it for later
+            Face<TVTag, TETag, TFTag> foundFace = null;
+            for (int i = 0; i < edges.Count; i++)
+            {
+                var ab = edges[i];
+                var bc = edges[(i + 1) % edges.Count];
+
+                //Check that edges lead on from one another
+                if (!ab.EndVertex.Equals(bc.StartVertex))
+                    throw new ArgumentNullException("edges", "end vertex of one edge is not the start vertex of the next edge");
+
+                //Keep track of attached faces and sanity check
+                if (ab.Face != null)
+                {
+                    if (foundFace != null && !foundFace.Equals(ab.Face))
+                        throw new InvalidOperationException("Some edges are already connected to multiple different faces");
+                    foundFace = ab.Face;
+                }
+            }
+
+            //If we found a face let's see if it's the face we want
+            //If all the edges of the found face are in the edge set then we're good to go
+            if (foundFace != null)
+            {
+                if (foundFace.Edges.All(edges.Contains))
+                    return foundFace;
+                else
+                    throw new InvalidOperationException("Some edges are already connected to a different face");
+            }
+
+            //Create new face
+            var f = new Face<TVTag, TETag, TFTag>(_nextFaceId++) { Edge = edges.First() };
+            _faces.Add(f);
+
+            //Connect edges to new face
+            for (var i = 0; i < edges.Count; i++)
+            {
+                var e = edges[i];
+                e.Face = f;
+                e.Next = edges[(i + 1) % edges.Count];
+            }
+            return f;
+        }
+
         /// <summary>
         /// Construct a face connecting the given vertices
         /// </summary>
@@ -445,7 +511,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             Contract.Requires(vertices.Length >= 3);
             Contract.Ensures(Contract.Result<Face<TVTag, TETag, TFTag>>() != null);
 
-            var face = GetOrConstructFace(true, vertices);
+            var face = GetOrConstructFace((IReadOnlyList<Vertex<TVTag, TETag, TFTag>>)vertices);
 
             Contract.Assert(face != null);
 
@@ -455,20 +521,39 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         internal void Delete(Face<TVTag, TETag, TFTag> f)
         {
             Contract.Requires(f != null && !f.IsDeleted);
+            Contract.Requires(f.Edges.All(he => he.Face.Equals(f)));
+            Contract.Ensures(f.IsDeleted);
 
             if (!_faces.Remove(f))
                 throw new InvalidOperationException("Face was not in face set");
 
-            f.IsDeleted = true;
-
-            var edges = f.Edges.ToArray();
-            foreach (var halfEdge in edges)
+            var start = f.Edge;
+            var e = start;
+            do
             {
-                if (halfEdge.Face != f)
+                //Store edge, move to next before mutating
+                var p = e;
+
+                //Sanity checks
+                if (e == null)
+                    throw new InvalidMeshException("Found a null 'Next' pointer while walking around a face");
+                if (e.Face == null)
+                    throw new InvalidOperationException("Face edge does not point at correct face (null)");
+                if (!e.Face.Equals(f))
                     throw new InvalidOperationException("Face edge does not point at correct face");
-                halfEdge.Face = null;
-                halfEdge.Next = null;
-            }
+
+                //Move to next edge
+                e = e.Next;
+
+                //Mutate the edge, which obviously has to be done after reading values and sanity checking
+                p.Next = null;
+                p.Face = null;
+
+            } while (!ReferenceEquals(e, start));
+
+            //Set face to deleted
+            f.Edge = null;
+            f.IsDeleted = true;
         }
 
         /// <summary>

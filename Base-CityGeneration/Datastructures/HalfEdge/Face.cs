@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using Placeholder.AI.Pathfinding.Graph.NavigationMesh;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
@@ -14,7 +14,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Edge { get; internal set; }
 
         private readonly int _uid;
-        private int Id
+        internal int Id
         {
             get { return _uid; }
         }
@@ -45,6 +45,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             get
             {
+                Contract.Ensures(IsDeleted || Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                Contract.Ensures(IsDeleted || Contract.ForAll(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>(), h => h != null));
                 Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
 
                 var e = Edge;
@@ -52,7 +54,26 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 {
                     yield return e;
                     e = e.Next;
+
+                    if (e == null)
+                        throw new InvalidMeshException("Found a null 'Next' pointer while walking around a face");
+
                 } while (!ReferenceEquals(e, Edge));
+            }
+        }
+
+        public IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>> Neighbours
+        {
+            get
+            {
+                Contract.Ensures(IsDeleted || Contract.Result<IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                Contract.Ensures(IsDeleted || Contract.ForAll(Contract.Result<IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>>>(), f => f != null));
+                Contract.Ensures(Contract.Result<IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+
+                return Edges
+                    .Select(e => e.Pair.Face)
+                    .Where(f => f != null)
+                    .Distinct();
             }
         }
 
@@ -60,6 +81,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             get
             {
+                Contract.Ensures(IsDeleted || Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                Contract.Ensures(IsDeleted || Contract.ForAll(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>(), v => v != null));
                 Contract.Ensures(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
 
                 return (from e in Edges
@@ -73,6 +96,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         internal Face(int uid)
         {
             _uid = uid;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id;
         }
 
         internal class Comparer

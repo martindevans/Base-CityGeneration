@@ -47,6 +47,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         #region constructor
         private FloorDesigner(Dictionary<string, string> tags, Guid guid, string description, IReadOnlyList<BaseSpaceSpec> spaces, WallGrowthParameters wallGrowthParameters)
         {
+            Contract.Requires(wallGrowthParameters != null);
+            Contract.Requires(spaces != null);
+            Contract.Requires(tags != null);
+
             _tags = tags;
             _guid = guid;
             _description = description;

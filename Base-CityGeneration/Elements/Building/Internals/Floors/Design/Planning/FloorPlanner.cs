@@ -14,6 +14,11 @@ using HandyCollections.Extensions;
 using Myre.Collections;
 using PrimitiveSvgBuilder;
 
+using Face = Base_CityGeneration.Datastructures.HalfEdge.Face<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
+using HalfEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
+using Vertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
+using Mesh = Base_CityGeneration.Datastructures.HalfEdge.Mesh<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
+
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 {
     /// <summary>
@@ -58,22 +63,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             var map = new GrowthMap(region.Points.ToArray(), overlappingVerticals, _random, _metadata, _wallGrowthParameters).Grow();
 
             //Remove faces which are too small
-            Func<IEnumerable<Face<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>>, bool> removeUndersizedFace = faces => {
-
-                //Find a single face to remove (area too small)
-                var f = faces.FirstOrDefault(a => a.Area() < 10);
-                if (f == null)
-                    return false;
-
-                //Remove this face by merging it with a neighbour (score by -num vertices in merge)
-                return MergeRoomWithNeighbour(map, f, a => -a.Count);
-            };
-            removeUndersizedFace.Fixpoint(map.Faces);
-
-            //Remove rooms which are too small
-            var undersized = map.Faces.Where(a => a.Area() < 10);
-            //todo: look through specs we want to fit into this plan and find the smallest, that's our min area
-            // ^ consider just dolling out specs, and then merging spaces which have nothing assigned
+            RemoveFaces(map, a => a.Area() < 500, a => a.Tag.Mergeable, a => -a.Count, MergeTags);
 
             //todo: remove temp visualisation code
             var svg = new SvgBuilder(10);
@@ -82,13 +72,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 //Area highlighting
                 //var col = undersized.Contains(face) ? "red" : "cornflowerblue";
 
-                
 
-                ////Angular variance highlighting
-                //var variance = face.Tag.AngularDeviation;
-                //var col = string.Format("rgb({0},0,255)", (int)Math.Min(255, 255f * variance * 2));
-                //if (variance < 0.25)
-                //    col = "white";
+
+                //Angular variance highlighting
+                var variance = face.Tag.AngularDeviation;
+                var col = string.Format("rgb({0},0,255)", (int)Math.Min(255, 255f * variance * 3));
+                if (variance < 0.3)
+                    col = "white";
 
                 ////Length highlighting
                 //var variance = face.Tag.LengthDeviation;
@@ -102,12 +92,21 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 //if (lv || av)
                 //    col = string.Format("rgb(255,0,255)");
 
-                var col = "cornflowerblue";
-                svg.Outline(face.Vertices.Select(a => a.Position).ToArray(), stroke: "none", fill: col);
-                //svg.Text(variance.ToString("##.##"), face.Vertices.Select(a => a.Position).Aggregate((a, b) => a + b) / face.Vertices.Count(), fontSize: 10);
+                //var col = "cornflowerblue";
+
+                if (!face.Tag.Mergeable)
+                    col = "darkgray";
+                else
+                    col = "cornflowerblue";
+
+                //svg.Outline(face.Vertices.Select(a => a.Position).ToArray(), stroke: "none", fill: col);
+                svg.Text(face.GetHashCode().ToString(), face.Vertices.Select(a => a.Position).Aggregate((a, b) => a + b) / face.Vertices.Count(), fontSize: 10);
             }
             foreach (var edge in map.HalfEdges.Where(a => a.IsPrimaryEdge))
+            {
                 svg.Line(edge.StartVertex.Position, edge.EndVertex.Position, 1, "black");
+                svg.Text((edge.Face == null ? "null" : edge.Face.Id.ToString()) + " " + (edge.Pair.Face == null ? "null" : edge.Pair.Face.Id.ToString()), edge.StartVertex.Position * 0.5f + edge.EndVertex.Position * 0.5f, fontSize: 10);
+            }
             foreach (var vertex in map.Vertices)
                 svg.Circle(vertex.Position, 0.2f, "black");
             Console.WriteLine(svg.ToString());
@@ -117,26 +116,94 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //todo: recursive for groups
         }
 
+        #region removing/merging faces
+        private static FloorplanFaceTag MergeTags(FloorplanFaceTag a, FloorplanFaceTag b)
+        {
+            Contract.Requires(a != null && a.Mergeable);
+            Contract.Requires(b != null && b.Mergeable);
+
+            return new FloorplanFaceTag(true);
+        }
+
+        /// <summary>
+        /// Remove certain faces from the mesh
+        /// </summary>
+        /// <param name="mesh">The mesh to modify</param>
+        /// <param name="predicate">A predicate function for selecting faces which need removing</param>
+        /// <param name="mergeCandidate">A predicate which decides if a face may be deleted as part of a merge</param>
+        /// <param name="score">A score function for the potential shape of merged faces (best scoring potential shape will be created)</param>
+        /// <param name="merge">A method for merging tags</param>
+        private static void RemoveFaces(Mesh mesh, Func<Face, bool> predicate, Func<Face, bool> mergeCandidate, Func<IReadOnlyList<Vertex>, float> score, Func<FloorplanFaceTag, FloorplanFaceTag, FloorplanFaceTag> merge)
+        {
+            Contract.Requires(mesh != null);
+            Contract.Requires(predicate != null);
+            Contract.Requires(score != null);
+
+            //Remove faces which pass the predicates (keep repeating until we find no more to merge)
+            int merged;
+            do
+            {
+                merged = 0;
+                var candidates = mesh.Faces.Where(mergeCandidate).Where(predicate).ToArray();
+                foreach (var candidate in candidates)
+                {
+                    //Skip over deleted candidates, but consider them a reason to do another try at the overall loop
+                    if (candidate.IsDeleted)
+                    {
+                        merged++;
+                        continue;
+                    }
+
+                    //Remove this face by merging it with a neighbour (score by -num vertices in merge)
+                    IEnumerable<Face> removed;
+                    var face = MergeRoomWithNeighbour(mesh, candidate, mergeCandidate, score, out removed);
+
+                    if (face != null)
+                    {
+                        merged++;
+
+                        //Create a new tag (by recursive merging of tags)
+                        face.Tag = removed.Select(a => a.Tag).Aggregate(merge);
+                    }
+                }
+            } while (merged > 0);
+
+            //Remove edges which are floating in space, not attached to a face
+            mesh.RemoveDisconnectedEdges();
+
+            //Remove vertices which are floating in space, disconnected from all edges
+            mesh.RemoveDisconnectedVertices();
+
+            //Removed vertices which lie on a perfectly straight line between 2 faces (linear reduction)
+            mesh.SimplifyFaces();
+        }
+
         /// <summary>
         /// Remove the given room from the plan by merging it with an adjacent room
         /// </summary>
         /// <param name="mesh"></param>
         /// <param name="faceToRemove">Room to remove</param>
+        /// <param name="mergeCandidate"></param>
         /// <param name="scoreFunc">Score function - Given a candidate set of vertices for a new room, calculate a score for this room (higher is better)</param>
-        private static bool MergeRoomWithNeighbour(
-            Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> mesh,
-            Face<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> faceToRemove,
-            Func<IReadOnlyList<Vertex<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>>, float> scoreFunc
-        )
+        /// <param name="merged"></param>
+        private static Face MergeRoomWithNeighbour(Mesh mesh, Face faceToRemove, Func<Face, bool> mergeCandidate, Func<IReadOnlyList<Vertex>, float> scoreFunc, out IEnumerable<Face> merged)
         {
             //find the best neighbouring room
             var bestShape = faceToRemove
                 .Edges
                 .Where(e => e.Pair.Face != null)
+                .Where(e => mergeCandidate(e.Pair.Face))
                 .Select(MergedFacesShape)
                 .MaxItem(scoreFunc);
 
-            //Walk edges of this new shape and find all the faces
+            //Nothing to merge with? give up!
+            if (bestShape == null)
+            {
+                merged = null;
+                return null;
+            }
+
+            //Walk edges of this new shape and find all the faces *inside* (i.e. one we're replacing)
             var faces = new HashSet<Face<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>>();
             for (var i = 0; i < bestShape.Count; i++)
             {
@@ -144,21 +211,53 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 var b = bestShape[(i + 1) % bestShape.Count];
                 var e = mesh.GetOrConstructHalfEdge(a, b);
 
-                faces.Add(e.Face);
+                if (e.Face != null)
+                    faces.Add(e.Face);
             }
 
-            ////Now delete both faces and create a new face
-            ////todo: temp! this only works if the faces have just one common edge
-            //if (bestEdge != null)
-            //{
-            //    mesh.Delete(bestEdge.Face);
-            //    mesh.Delete(bestEdge.Pair.Face);
-            //    mesh.Delete(bestEdge);
-            //    mesh.GetOrConstructFace(bestShape);
-            //    return true;
-            //}
+            //Find common edges between all the faces we're deleting (i.e. edges we're deleting)
+            var commonEdges = new HashSet<HalfEdge<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>>(
+                faces
+                .SelectMany(f => f.Edges)
+                .Where(e => faces.Contains(e.Face))
+                .Where(e => faces.Contains(e.Pair.Face))
+                .Distinct()
+            );
 
-            return false;
+            //Get all the neighbouring faces
+            //This face new could have completely surrounded another face which is not topologically valid (faces cannot have holes)
+            //Check for this case and delete the surrounded face
+            var neighboursToDelete = faces
+                .SelectMany(f => f.Neighbours)
+                .Where(f => !faces.Contains(f))
+                .Distinct()
+                .Where(f => f.Edges.All(e => faces.Contains(e.Pair.Face)))
+                .ToArray();
+
+            if (!neighboursToDelete.All(mergeCandidate))
+            {
+                //We need to delete a neighbour, but it's not a merge candidate - Bail!
+                merged = null;
+                return null;
+            }
+            else
+            {
+                foreach (var face in neighboursToDelete)
+                    if (!face.IsDeleted)
+                        mesh.Delete(face);
+            }
+
+            //throw new NotImplementedException("Check if we're about to maroon a face and bail if it's an unmergeable face");
+
+            //Delete all the faces and common edges
+            mesh.Delete(faces);
+            mesh.Delete(commonEdges);
+
+            //Create a new face
+            var newFace = mesh.GetOrConstructFace(bestShape);
+
+            merged = faces;
+            return newFace;
         }
 
         /// <summary>
@@ -166,27 +265,58 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         /// </summary>
         /// <param name="commonEdge"></param>
         /// <returns></returns>
-        private static Vertex<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>[] MergedFacesShape(
-            HalfEdge<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> commonEdge
-        )
+        private static IReadOnlyList<Vertex> MergedFacesShape(
+            HalfEdge commonEdge
+            )
         {
             Contract.Requires(commonEdge != null);
             Contract.Requires(commonEdge.Face != null);
             Contract.Requires(commonEdge.Pair.Face != null);
-            //Contract.Ensures(Contract.Result<Vertex<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>[]>() != null);
+            Contract.Ensures(Contract.Result<IReadOnlyList<Vertex<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>>>() != null);
+            Contract.Ensures(Contract.Result<IReadOnlyList<Vertex<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>>>().Count >= 3);
 
+            //The two faces (by definition - this is the common edge between those faces)
             var left = commonEdge.Face;
             var right = commonEdge.Pair.Face;
-            var commonEdges = left.Edges.Where(e => right.Equals(e.Pair.Face));
 
-            if (commonEdges.Count() > 1)
-                throw new NotImplementedException();
+            //Edges which are in both faces
+            var commonEdges = new HashSet<HalfEdge<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>>(left.Edges.Where(e => right.Equals(e.Pair.Face)));
+            commonEdges.UnionWith(right.Edges.Where(e => left.Equals(e.Pair.Face)));
 
-            //todo: temp merging code for special case of a single common edge
-            var lv = commonEdge.Next.Around.TakeWhile(a => !a.StartVertex.Equals(commonEdge.StartVertex));
-            var rv = commonEdge.Pair.Next.Around.TakeWhile(a => !a.StartVertex.Equals(commonEdge.Pair.StartVertex));
+            //This is the final shape we have walked
+            var shape = new List<Vertex<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>>();
 
-            return lv.Concat(rv).Select(a => a.EndVertex).ToArray();
+            //Pick an arbitrary half edge which is not a common edge
+            var startEdge = right.Edges.First(e => !commonEdges.Contains(e));
+            var current = startEdge;
+            do
+            {
+                //If we've found a common vertex we need to start walking around the other face
+                if (commonEdges.Contains(current))
+                {
+                    current = current.Pair.Next;
+
+                    ////Swap to the other face
+                    //var nextFace = walkingRightFace ? left : right;
+                    //walkingRightFace = !walkingRightFace;
+
+                    ////Find an edge leading out from this vertex which borders the correct face
+                    //current = current.EndVertex.Edges.Single(e => e.Face.Equals(nextFace) && !commonEdges.Contains(e));
+                }
+                else
+                {
+                    //Store up the start vertices of the edges as we walk around the shape
+                    shape.Add(current.StartVertex);
+
+                    //Move to next edge around this face
+                    current = current.Next;
+                }
+
+            } while (!current.Equals(startEdge));
+
+            Contract.Assume(shape.Count >= 3);
+            return shape;
         }
+        #endregion
     }
 }
