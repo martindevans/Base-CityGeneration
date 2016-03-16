@@ -63,49 +63,37 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             var map = new GrowthMap(region.Points.ToArray(), overlappingVerticals, _random, _metadata, _wallGrowthParameters).Grow();
 
             //Remove faces which are too small
-            RemoveFaces(map, a => a.Area() < 500, a => a.Tag.Mergeable, a => -a.Count, MergeTags);
+            RemoveFaces(map, a => a.Tag.AngularDeviation > 0.5, a => a.Tag.Mergeable, ScoreMergeCandidate, MergeTags);
 
             //todo: remove temp visualisation code
             var svg = new SvgBuilder(10);
             foreach (var face in map.Faces)
             {
-                //Area highlighting
-                //var col = undersized.Contains(face) ? "red" : "cornflowerblue";
-
-
-
-                //Angular variance highlighting
-                var variance = face.Tag.AngularDeviation;
-                var col = string.Format("rgb({0},0,255)", (int)Math.Min(255, 255f * variance * 3));
-                if (variance < 0.3)
-                    col = "white";
-
-                ////Length highlighting
-                //var variance = face.Tag.LengthDeviation;
-                //var col = string.Format("rgb({0},0,255)", (int)Math.Min(255, 255f * variance * 10));
-                //if (variance < 0.9)
-                //    col = "white";
-
-                //bool av = face.Tag.AngularDeviation > 0.25;
-                //bool lv = face.Tag.LengthDeviation > 0.9;
-                //var col = "none";
-                //if (lv || av)
-                //    col = string.Format("rgb(255,0,255)");
-
-                //var col = "cornflowerblue";
-
+                string col;
+                float? value = null;
                 if (!face.Tag.Mergeable)
                     col = "darkgray";
                 else
-                    col = "cornflowerblue";
+                {
+                    //Angular variance highlighting
+                    value = face.Tag.AngularDeviation;
+                    col = string.Format("rgb({0},0,255)", (int)Math.Min(255, 255f * value.Value * 3));
+                    if (value < 0.3)
+                        col = "white";
 
-                //svg.Outline(face.Vertices.Select(a => a.Position).ToArray(), stroke: "none", fill: col);
-                svg.Text(face.GetHashCode().ToString(), face.Vertices.Select(a => a.Position).Aggregate((a, b) => a + b) / face.Vertices.Count(), fontSize: 10);
+                    //bool av = face.Tag.AngularDeviation > 0.25;
+                    //bool lv = face.Tag.LengthDeviation > 0.9;
+                    //if (lv || av)
+                    //    col = string.Format("rgb(255,0,255)");
+                }
+
+                svg.Outline(face.Vertices.Select(a => a.Position).ToArray(), stroke: "none", fill: col);
+                if (value.HasValue)
+                    svg.Text(value.Value.ToString("#.###"), face.Vertices.Select(a => a.Position).Aggregate((a, b) => a + b) / face.Vertices.Count(), fontSize: 10);
             }
             foreach (var edge in map.HalfEdges.Where(a => a.IsPrimaryEdge))
             {
                 svg.Line(edge.StartVertex.Position, edge.EndVertex.Position, 1, "black");
-                svg.Text((edge.Face == null ? "null" : edge.Face.Id.ToString()) + " " + (edge.Pair.Face == null ? "null" : edge.Pair.Face.Id.ToString()), edge.StartVertex.Position * 0.5f + edge.EndVertex.Position * 0.5f, fontSize: 10);
             }
             foreach (var vertex in map.Vertices)
                 svg.Circle(vertex.Position, 0.2f, "black");
@@ -114,6 +102,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //todo: order specs by constraints (most difficult to solve first), assign specs to spaces generated (best fit)
             //todo: connectivity (doors + corridors)
             //todo: recursive for groups
+        }
+
+        private static float ScoreMergeCandidate(IReadOnlyList<Vertex> vertices)
+        {
+            //return -vertices.Count;
+
+            return FloorplanFaceTag.CalculateAngularVariance(vertices);
         }
 
         #region removing/merging faces
@@ -224,30 +219,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 .Distinct()
             );
 
-            //Get all the neighbouring faces
-            //This face new could have completely surrounded another face which is not topologically valid (faces cannot have holes)
-            //Check for this case and delete the surrounded face
-            var neighboursToDelete = faces
-                .SelectMany(f => f.Neighbours)
-                .Where(f => !faces.Contains(f))
-                .Distinct()
-                .Where(f => f.Edges.All(e => faces.Contains(e.Pair.Face)))
-                .ToArray();
+            //Ensure that all edges of the faces being removed are accounted for
+            //If this merge would create an island of one or more faces (i.e. a hole in the new face) that's invalid and we should bail
+            bool edgesAllUsed = faces.SelectMany(f => f.Edges)
+                 .All(e => commonEdges.Contains(e) || (bestShape.Contains(e.StartVertex) && bestShape.Contains(e.EndVertex)));
 
-            if (!neighboursToDelete.All(mergeCandidate))
+            //Bail!
+            if (!edgesAllUsed)
             {
-                //We need to delete a neighbour, but it's not a merge candidate - Bail!
                 merged = null;
                 return null;
             }
-            else
-            {
-                foreach (var face in neighboursToDelete)
-                    if (!face.IsDeleted)
-                        mesh.Delete(face);
-            }
-
-            //throw new NotImplementedException("Check if we're about to maroon a face and bail if it's an unmergeable face");
 
             //Delete all the faces and common edges
             mesh.Delete(faces);
@@ -295,13 +277,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 if (commonEdges.Contains(current))
                 {
                     current = current.Pair.Next;
-
-                    ////Swap to the other face
-                    //var nextFace = walkingRightFace ? left : right;
-                    //walkingRightFace = !walkingRightFace;
-
-                    ////Find an edge leading out from this vertex which borders the correct face
-                    //current = current.EndVertex.Edges.Single(e => e.Face.Equals(nextFace) && !commonEdges.Contains(e));
                 }
                 else
                 {
