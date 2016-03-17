@@ -7,8 +7,8 @@ using System.Numerics;
 using System;
 using System.Linq;
 using Base_CityGeneration.Datastructures;
+using EpimetheusPlugins.Extensions;
 using Myre.Collections;
-using Placeholder.ConstructiveSolidGeometry;
 
 namespace Base_CityGeneration.Test.Parcelling
 {
@@ -80,7 +80,7 @@ namespace Base_CityGeneration.Test.Parcelling
             Assert.IsTrue(parcels.All(a => a.Area() <= 50));
 
             foreach (var parcel in parcels)
-                Assert.IsTrue(parcel.Points().ConvexHullArea() > 0);
+                Assert.IsTrue(parcel.Points().ConvexHull().Area() > 0);
         }
     }
 }
