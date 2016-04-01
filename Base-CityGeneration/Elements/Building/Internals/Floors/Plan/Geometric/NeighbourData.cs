@@ -7,7 +7,7 @@ using System.Numerics;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
 
-namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
+namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
 {
     internal class NeighbourData
     {
@@ -15,13 +15,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         internal const float SAME_POINT_EPSILON = 0.1f;
         internal const float SAME_POINT_EPSILON_SQR = SAME_POINT_EPSILON * SAME_POINT_EPSILON;
 
-        private readonly FloorPlanBuilder _plan;
+        private readonly IFloorPlanBuilder _plan;
 
         public bool Dirty { get; set; }
 
-        private Dictionary<RoomPlan, List<Neighbour>> _neighbours;
+        private Dictionary<IRoomPlan, List<Neighbour>> _neighbours;
 
-        public IEnumerable<Neighbour> this[RoomPlan key]
+        public IEnumerable<Neighbour> this[IRoomPlan key]
         {
             get
             {
@@ -37,7 +37,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         }
         #endregion
 
-        public NeighbourData(FloorPlanBuilder plan)
+        public NeighbourData(IFloorPlanBuilder plan)
         {
             Contract.Requires(plan != null);
 
@@ -83,7 +83,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             Dirty = false;
         }
 
-        private static IEnumerable<Neighbour> ExtractNeighbourSections(RoomPlan room, Edge edge)
+        private static IEnumerable<Neighbour> ExtractNeighbourSections(IRoomPlan room, Edge edge)
         {
             if (edge.EdgeList.Count == 0)
                 return new Neighbour[0];
@@ -210,7 +210,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return a.Pt <= point.Pt && b.Pt >= point.Pt;
         }
 
-        private static void AddNeighbour_N_To_Info(ICollection<Neighbour> neighbours, uint edgeIndex, RoomPlan room, Neighbour n, bool nA, NeighbourInfo info)
+        private static void AddNeighbour_N_To_Info(ICollection<Neighbour> neighbours, uint edgeIndex, IRoomPlan room, Neighbour n, bool nA, NeighbourInfo info)
         {
             Contract.Requires(neighbours != null);
             Contract.Requires(room != null);
@@ -274,7 +274,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             };
         }
 
-        private static void AddNeighbour(ICollection<Neighbour> list, uint edgeIndex, RoomPlan room, NeighbourInfo a, NeighbourInfo b)
+        private static void AddNeighbour(ICollection<Neighbour> list, uint edgeIndex, IRoomPlan room, NeighbourInfo a, NeighbourInfo b)
         {
             Contract.Requires(list != null);
             Contract.Requires(room != null);
@@ -300,7 +300,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             ));
         }
 
-        private static void ProjectPointsOntoEdge(RoomPlan otherRoom, Ray2 edgeLine, Edge edge)
+        private static void ProjectPointsOntoEdge(IRoomPlan otherRoom, Ray2 edgeLine, Edge edge)
         {
             Contract.Requires(otherRoom != null);
 
@@ -408,7 +408,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             }
         }
 
-        private static void CreateNeighbourInfoPair(RoomPlan otherRoom,
+        private static void CreateNeighbourInfoPair(IRoomPlan otherRoom,
             Edge edge, float point1DistanceAlongEdge, float point1ProjDistanceAlongOtherEdge,
             Edge otherEdge, float point2DistanceAlongEdge, float point2ProjDistanceAlongOtherEdge)
         {
@@ -452,7 +452,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             edge.EdgeList.Add(y);
         }
 
-        private static IEnumerable<Edge> Edges(RoomPlan room)
+        private static IEnumerable<Edge> Edges(IRoomPlan room)
         {
             Contract.Requires(room != null);
             Contract.Ensures(Contract.Result<IEnumerable<Edge>>() != null);
@@ -460,7 +460,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return room.Edges().Select((e, i) => new Edge(e.Start, e.End, (uint)i));
         }
 
-        private static Edge GetEdge(RoomPlan room, uint index)
+        private static Edge GetEdge(IRoomPlan room, uint index)
         {
             Contract.Requires(room != null);
 
@@ -500,7 +500,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             public Vector2 Point;
             public Vector2 OtherPoint;
 
-            public RoomPlan OtherRoom;
+            public IRoomPlan OtherRoom;
 
             public uint OtherEdgeIndex;
 

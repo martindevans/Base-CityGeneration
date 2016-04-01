@@ -6,11 +6,11 @@ using System.Linq;
 using System.Xml.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Styles;
-using Base_CityGeneration.TestHelpers;
 using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Numerics;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric;
+using Base_CityGeneration.TestHelpers;
 using Myre.Collections;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
@@ -21,21 +21,23 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
     [TestClass]
     public class FloorPlanTest
     {
-        private FloorPlanBuilder _plan;
+        private IFloorPlanBuilder _plan;
 
         [TestInitialize]
         public void Initialize()
         {
-            _plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(100, 100), new Vector2(100, -100) }));
+            _plan = new GeometricFloorplan(
+                new ReadOnlyCollection<Vector2>(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(100, 100), new Vector2(100, -100) })
+            );
         }
 
         [TestMethod]
         public void RoomInternalBordersAreSmaller()
         {
-            var r = _plan.AddRoom(new Vector2[]
+            var r = _plan.Add(new Vector2[]
             {
                 new Vector2(-10, -10), new Vector2(-10, 10), new Vector2(10, 10), new Vector2(10, -10)
-            }, 0.1f, new ScriptReference[0], "n", false).Single();
+            }, 0.1f).Single();
 
             Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(-9.9f, 9.9f), 0.1f));
             Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(-9.9f, -9.9f), 0.1f));
@@ -46,10 +48,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void RoomInternalBordersAreSmallerWhenNotAtOrigin()
         {
-            var r = _plan.AddRoom(new Vector2[]
+            var r = _plan.Add(new Vector2[]
             {
                 new Vector2(10, 10), new Vector2(10, 30), new Vector2(30, 30), new Vector2(30, 10)
-            }, 0.1f, new ScriptReference[0], "n", false).Single();
+            }, 0.1f).Single();
 
             Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(10.11f, 29.889f), 0.1f));
             Assert.IsTrue(r.InnerFootprint.RoughlyContains(new Vector2(10.11f, 10.11f), 0.1f));
@@ -62,83 +64,77 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         public void CannotAddToFloorPlanAfterFreeze()
         {
             _plan.Freeze();
-            _plan.AddRoom(new Vector2[0], 0.1f, new ScriptReference[0], "n", false);
+            _plan.Add(new Vector2[0], 0.1f);
         }
 
         [TestMethod]
         public void AddNewRoomToEmptyFloorPlanSucceeds()
         {
-            Assert.IsTrue(_plan.AddRoom(
+            Assert.IsTrue(_plan.Add(
                 new Vector2[] { new Vector2(-10, -10), new Vector2(-10, 10), new Vector2(10, 10), new Vector2(10, -10) },
-                0.1f,
-                new ScriptReference[0], "n").Any()
+                0.1f).Any()
             );
         }
 
         [TestMethod]
         public void AddNewSplitRoomsFails()
         {
-            Assert.IsTrue(_plan.AddRoom(
+            Assert.IsTrue(_plan.Add(
                 new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
-                0.1f,
-                new ScriptReference[0], "n").Any()
+                0.1f).Any()
             );
 
-            Assert.IsFalse(_plan.AddRoom(
+            Assert.IsFalse(_plan.Add(
                 new Vector2[] { new Vector2(-10, -100), new Vector2(-10, 100), new Vector2(10, 100), new Vector2(10, -100) },
-                0.1f,
-                new ScriptReference[0], "n").Any()
+                0.1f).Any()
             );
         }
 
         [TestMethod]
         public void AddNewSplitRoomsSucceeds()
         {
-            Assert.IsTrue(_plan.AddRoom(
+            Assert.IsTrue(_plan.Add(
                 new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
-                0.1f,
-                new ScriptReference[0], "n").Any()
+                0.1f).Any()
             );
 
-            Assert.IsTrue(_plan.AddRoom(
-                new Vector2[] { new Vector2(-10, -100), new Vector2(-10, 100), new Vector2(10, 100), new Vector2(10, -100) },
-                0.1f,
-                new ScriptReference[0], "n",
-                true).Any()
+            Assert.AreEqual(2,
+                _plan.Add(
+                    new Vector2[] { new Vector2(-10, -100), new Vector2(-10, 100), new Vector2(10, 100), new Vector2(10, -100) },
+                    0.1f,
+                    true
+                ).Count()
             );
         }
 
         [TestMethod]
         public void AddNewRoomOutsideFloorBoundsIsClipped()
         {
-            Assert.IsTrue(_plan.AddRoom(
+            Assert.IsTrue(_plan.Add(
                 new Vector2[] { new Vector2(-200, -10), new Vector2(-200, 10), new Vector2(100, 10), new Vector2(100, -10) },
-                0.1f,
-                new ScriptReference[0], "n").Any()
+                0.1f).Any()
             );
         }
 
         [TestMethod]
         public void ExactlyMirroredRoomsAreNeighbours()
         {
-            var a = _plan.AddRoom(new Vector2[] { new Vector2(-10, -10), new Vector2(-10, 10), new Vector2(0, 10), new Vector2(0, -10) }, 1, new ScriptReference[0], "n", false).Single();
-            var b = _plan.AddRoom(new Vector2[] { new Vector2(0, -10), new Vector2(0, 10), new Vector2(10, 10), new Vector2(10, -10) }, 1, new ScriptReference[0], "n", false).Single();
+            var a = _plan.Add(new Vector2[] { new Vector2(-10, -10), new Vector2(-10, 10), new Vector2(0, 10), new Vector2(0, -10) }, 1).Single();
+            var b = _plan.Add(new Vector2[] { new Vector2(0, -10), new Vector2(0, 10), new Vector2(10, 10), new Vector2(10, -10) }, 1).Single();
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
 
-            Assert.IsTrue(_plan.GetNeighbours(a).Any(n => n.Other(a) == b));
+            Assert.IsTrue(a.Neighbours.Any(n => n.Other(a) == b));
         }
 
         [TestMethod]
         public void NeighboursOfSingleRoomAreNone()
         {
-            var r = _plan.AddRoom(
+            var r = _plan.Add(
                 new Vector2[] { new Vector2(-200, -10), new Vector2(-200, 10), new Vector2(100, 10), new Vector2(100, -10) },
-                0.1f,
-                new ScriptReference[0], "n").Single();
+                0.1f).Single();
 
-            var n = _plan.GetNeighbours(r);
-            Assert.IsFalse(n.Any());
+            Assert.IsFalse(r.Neighbours.Any());
         }
 
         [TestMethod]
@@ -146,26 +142,23 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         public void GetRoomNeighboursFindsBasicPair()
         {
             //A really wide room
-            RoomPlan wide = _plan.AddRoom(
+            var wide = _plan.Add(
                 new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             //Low room
-            RoomPlan low = _plan.AddRoom(
+            var low = _plan.Add(
                 new Vector2[] { new Vector2(-10, -100), new Vector2(-10, -90), new Vector2(10, -90), new Vector2(10, -100) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             _plan.Freeze();
 
-            var wideNeighbours = _plan.GetNeighbours(wide);
-            Assert.AreEqual(1, wideNeighbours.Count());
+            Assert.AreEqual(1, wide.Neighbours.Count());
 
             //Check that points C and D lies on the edge of low room
-            var n = wideNeighbours.Single(a => a.RoomCD == low);
+            var n = wide.Neighbours.Single(a => a.RoomCD == low);
             Assert.IsTrue(Math.Abs(new Ray2(new Vector2(-10, -90f), new Vector2(1, 0)).DistanceToPoint(n.C)) < 0.1f);
             Assert.IsTrue(Math.Abs(new Ray2(new Vector2(-10, -90f), new Vector2(1, 0)).DistanceToPoint(n.D)) < 0.1f);
 
@@ -174,9 +167,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             Assert.IsTrue(Math.Abs(new Ray2(new Vector2(-10, -10f), new Vector2(1, 0)).DistanceToPoint(n.B)) < 0.1f);
 
             //Check that neighbour data is the same going the other direction
-            var lowNeighbours = _plan.GetNeighbours(low);
-            Assert.AreEqual(1, lowNeighbours.Count());
-            Assert.IsTrue(lowNeighbours.Any(a => a.RoomCD == wide));
+            Assert.AreEqual(1, low.Neighbours.Count());
+            Assert.IsTrue(low.Neighbours.Any(a => a.RoomCD == wide));
 
             //Check that point is close to the edge it is supposed to lie on
             var segment = new LineSegment2(wide.OuterFootprint[(int)n.EdgeIndexRoomAB], wide.OuterFootprint[(int)(n.EdgeIndexRoomAB + 1) % wide.OuterFootprint.Count]);
@@ -201,17 +193,15 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         public void RoomNeighbourInfoIsCorrectlyWound_AntiClockwise()
         {
             //A really wide room
-            RoomPlan wide = _plan.AddRoom(
+            var wide = _plan.Add(
                 new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             //High room
-            RoomPlan high = _plan.AddRoom(
+            var high = _plan.Add(
                 new Vector2[] { new Vector2(-10, 100), new Vector2(10, 100), new Vector2(10, 90), new Vector2(-10, 90) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             _plan.Freeze();
@@ -219,7 +209,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             Assert.IsNotNull(wide);
             Assert.IsNotNull(high);
 
-            var wideNeighbours = _plan.GetNeighbours(wide).Single();
+            var wideNeighbours = wide.Neighbours.Single();
 
             Assert.IsTrue(new[] { wideNeighbours.A, wideNeighbours.B, wideNeighbours.C, wideNeighbours.D }.Area() < 0);
         }
@@ -229,28 +219,24 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         public void GetRoomNeighboursFindsBasicPairReversed()
         {
             //A really wide room
-            RoomPlan wide = _plan.AddRoom(
+            var wide = _plan.Add(
                 new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             //High room
-            RoomPlan high = _plan.AddRoom(
+            var high = _plan.Add(
                 new Vector2[] { new Vector2(-10, 100), new Vector2(10, 100), new Vector2(10, 90), new Vector2(-10, 90) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             _plan.Freeze();
 
-            var wideNeighbours = _plan.GetNeighbours(wide);
-            Assert.AreEqual(1, wideNeighbours.Count());
-            Assert.IsTrue(wideNeighbours.Any(a => a.RoomCD == high));
+            Assert.AreEqual(1, wide.Neighbours.Count());
+            Assert.IsTrue(wide.Neighbours.Any(a => a.RoomCD == high));
 
-            var lowNeighbours = _plan.GetNeighbours(high);
-            Assert.AreEqual(1, lowNeighbours.Count());
-            Assert.IsTrue(lowNeighbours.Any(a => a.RoomCD == wide));
+            Assert.AreEqual(1, high.Neighbours.Count());
+            Assert.IsTrue(high.Neighbours.Any(a => a.RoomCD == wide));
         }
 
         [TestMethod]
@@ -268,24 +254,21 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             // Overlap from X: -10 -> 0
 
 
-            RoomPlan a = _plan.AddRoom(
+            var a = _plan.Add(
                 new Vector2[] { new Vector2(-10, -10), new Vector2(-10, 10), new Vector2(10, 10), new Vector2(10, -10) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
-            RoomPlan b = _plan.AddRoom(
+            var b = _plan.Add(
                 new Vector2[] { new Vector2(-15, -30), new Vector2(-15, -20), new Vector2(0, -20), new Vector2(0, -30) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             _plan.Freeze();
 
-            var aNeighbours = _plan.GetNeighbours(a);
-            Assert.AreEqual(1, aNeighbours.Count());
-            var n1 = aNeighbours.Single(x => x.RoomCD == b);
-            var n2 = aNeighbours.Single(x => x.RoomAB == a);
+            Assert.AreEqual(1, a.Neighbours.Count());
+            var n1 = a.Neighbours.Single(x => x.RoomCD == b);
+            var n2 = a.Neighbours.Single(x => x.RoomAB == a);
 
             Assert.AreEqual(n1, n2);
 
@@ -297,16 +280,14 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         public void DisjointRoomsAreHandled()
         {
             //A really wide room
-            RoomPlan a = _plan.AddRoom(
+            var a = _plan.Add(
                 new Vector2[] { new Vector2(-10, -10), new Vector2(-10, 10), new Vector2(10, 10), new Vector2(10, -10) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
-            RoomPlan b = _plan.AddRoom(
+            var b = _plan.Add(
                 new Vector2[] { new Vector2(15, -30), new Vector2(15, -20), new Vector2(20, -20), new Vector2(20, -30) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             _plan.Freeze();
@@ -314,107 +295,93 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             Assert.IsNotNull(a);
             Assert.IsNotNull(b);
 
-            var aNeighbours = _plan.GetNeighbours(a);
-            Assert.AreEqual(0, aNeighbours.Count());
+            Assert.AreEqual(0, a.Neighbours.Count());
         }
 
         [TestMethod]
         public void RoomsOccludeFartherRoomsFromBeingNeighbours()
         {
             //Low room
-            RoomPlan low = _plan.AddRoom(
+            var low = _plan.Add(
                 new Vector2[] { new Vector2(-10, -100), new Vector2(-10, -90), new Vector2(10, -90), new Vector2(10, -100) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             //High room
-            RoomPlan high = _plan.AddRoom(
+            var high = _plan.Add(
                 new Vector2[] { new Vector2(-10, 100), new Vector2(10, 100), new Vector2(10, 90), new Vector2(-10, 90) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             //A really wide room (which should occlude low and high from being neighbours)
-            RoomPlan wide = _plan.AddRoom(
+            var wide = _plan.Add(
                 new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             _plan.Freeze();
 
-            var wideNeighbours = _plan.GetNeighbours(wide);
-            Assert.AreEqual(2, wideNeighbours.Count());
-            Assert.IsTrue(wideNeighbours.Any(a => a.RoomCD == low));
-            Assert.IsTrue(wideNeighbours.Any(a => a.RoomCD == high));
+            Assert.AreEqual(2, wide.Neighbours.Count());
+            Assert.IsTrue(wide.Neighbours.Any(a => a.RoomCD == low));
+            Assert.IsTrue(wide.Neighbours.Any(a => a.RoomCD == high));
 
-            var lowNeighbours = _plan.GetNeighbours(low);
-            Assert.AreEqual(1, lowNeighbours.Count());
-            Assert.IsTrue(lowNeighbours.Any(a => a.RoomCD == wide));
+            Assert.AreEqual(1, low.Neighbours.Count());
+            Assert.IsTrue(low.Neighbours.Any(a => a.RoomCD == wide));
 
-            var highNeighbours = _plan.GetNeighbours(high);
-            Assert.AreEqual(1, highNeighbours.Count());
-            Assert.IsTrue(highNeighbours.Any(a => a.RoomCD == wide));
+            Assert.AreEqual(1, high.Neighbours.Count());
+            Assert.IsTrue(high.Neighbours.Any(a => a.RoomCD == wide));
         }
 
         [TestMethod]
         public void GetRoomNeighboursFindsNeighbours()
         {
             //A really wide room
-            RoomPlan wide = _plan.AddRoom(
+            var wide = _plan.Add(
                 new Vector2[] { new Vector2(-100, -10), new Vector2(-100, 10), new Vector2(100, 10), new Vector2(100, -10) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             //Low room
-            RoomPlan low = _plan.AddRoom(
+            var low = _plan.Add(
                 new Vector2[] { new Vector2(-10, -100), new Vector2(-10, -90), new Vector2(10, -90), new Vector2(10, -100) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             //High room
-            RoomPlan high = _plan.AddRoom(
+            var high = _plan.Add(
                 new Vector2[] { new Vector2(-10, 100), new Vector2(10, 100), new Vector2(10, 90), new Vector2(-10, 90) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             //High left
-            RoomPlan highLeft = _plan.AddRoom(
+            var highLeft = _plan.Add(
                 new Vector2[] { new Vector2(-100, 100), new Vector2(-90, 100), new Vector2(-90, 90), new Vector2(-100, 90) },
-                0.1f,
-                new ScriptReference[0], "n"
+                0.1f
             ).Single();
 
             _plan.Freeze();
 
-            var wideNeighbours = _plan.GetNeighbours(wide);
-            Assert.AreEqual(3, wideNeighbours.Count());
-            Assert.IsTrue(wideNeighbours.Any(a => a.RoomCD == low));
-            Assert.IsTrue(wideNeighbours.Any(a => a.RoomCD == high));
-            Assert.IsTrue(wideNeighbours.Any(a => a.RoomCD == highLeft));
+            Assert.AreEqual(3, wide.Neighbours.Count());
+            Assert.IsTrue(wide.Neighbours.Any(a => a.RoomCD == low));
+            Assert.IsTrue(wide.Neighbours.Any(a => a.RoomCD == high));
+            Assert.IsTrue(wide.Neighbours.Any(a => a.RoomCD == highLeft));
 
-            var lowNeighbours = _plan.GetNeighbours(low);
-            Assert.AreEqual(1, lowNeighbours.Count());
-            Assert.IsTrue(lowNeighbours.Any(a => a.RoomCD == wide));
+            Assert.AreEqual(1, low.Neighbours.Count());
+            Assert.IsTrue(low.Neighbours.Any(a => a.RoomCD == wide));
 
-            var highNeighbours = _plan.GetNeighbours(high);
-            Assert.AreEqual(2, highNeighbours.Count());
-            Assert.IsTrue(highNeighbours.Any(a => a.RoomCD == wide));
-            Assert.IsTrue(highNeighbours.Any(a => a.RoomCD == highLeft));
+            Assert.AreEqual(2, high.Neighbours.Count());
+            Assert.IsTrue(high.Neighbours.Any(a => a.RoomCD == wide));
+            Assert.IsTrue(high.Neighbours.Any(a => a.RoomCD == highLeft));
         }
 
         [TestMethod]
         public void RoomSectionGenerationGeneratesExternalSections()
         {
-            var room = _plan.AddRoom(_plan.ExternalFootprint, 0.25f, new ScriptReference[0], "n").Single();
+            var room = _plan.Add(_plan.ExternalFootprint, 0.25f).Single();
 
             _plan.Freeze();
 
-            var facades = room.GetFacades().ToArray();
+            var facades = room.GetWalls().ToArray();
 
             Assert.AreEqual(8, facades.Length);
             Assert.AreEqual(4, facades.Count(f => f.Section.IsCorner));
@@ -425,11 +392,11 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void RoomSectionGenerationGeneratesExternalSectionsForHalfExternalRoom()
         {
-            var room = _plan.AddRoom(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(0, 100), new Vector2(0, -100) }, 0.25f, new ScriptReference[0], "n").Single();
+            var room = _plan.Add(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(0, 100), new Vector2(0, -100) }, 0.25f).Single();
 
             _plan.Freeze();
 
-            var facades = room.GetFacades().ToArray();
+            var facades = room.GetWalls().ToArray();
 
             Assert.AreEqual(4, facades.Count(f => f.Section.IsCorner));
             Assert.AreEqual(7, facades.Count(f => f.IsExternal));
@@ -438,11 +405,11 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void RoomSectionGenerationGeneratesInternalSections()
         {
-            var room = _plan.AddRoom(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(0, 100), new Vector2(0, -100) }, 0.25f, new ScriptReference[0], "n").Single();
+            var room = _plan.Add(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(0, 100), new Vector2(0, -100) }, 0.25f).Single();
 
             _plan.Freeze();
 
-            var facades = room.GetFacades().ToArray();
+            var facades = room.GetWalls().ToArray();
 
             Assert.AreEqual(4, facades.Count(f => !f.Section.IsCorner));
             Assert.AreEqual(1, facades.Count(f => !f.IsExternal));
@@ -451,12 +418,12 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void RoomSectionGenerationGeneratesNeighbourSections()
         {
-            var roomA = _plan.AddRoom(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(0, 100), new Vector2(0, -100) }, 3.25f, new ScriptReference[0], "n").Single();
-            var roomB = _plan.AddRoom(new Vector2[] { new Vector2(10, -10), new Vector2(10, 10), new Vector2(20, 10), new Vector2(20, -10) }, 3.25f, new ScriptReference[0], "n").Single();
+            var roomA = _plan.Add(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(0, 100), new Vector2(0, -100) }, 3.25f).Single();
+            var roomB = _plan.Add(new Vector2[] { new Vector2(10, -10), new Vector2(10, 10), new Vector2(20, 10), new Vector2(20, -10) }, 3.25f).Single();
 
             _plan.Freeze();
 
-            var facades = roomA.GetFacades().ToArray();
+            var facades = roomA.GetWalls().ToArray();
 
             var internalFacades = facades.Where(f => !f.IsExternal).ToArray();
 
@@ -465,8 +432,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Check that the neighbour section has points lying on both rooms
             var n = internalFacades.Single(f => f.NeighbouringRoom == roomB);
-            Assert.IsTrue(roomB.Edges().Any(e => e.DistanceToPoint(n.Section.C) <= roomB.WallThickness));
-            Assert.IsTrue(roomA.Edges().Any(e => e.DistanceToPoint(n.Section.A) <= roomA.WallThickness));
+            Assert.IsTrue(roomB.Edges().Any(e => e.DistanceToPoint(n.Section.C) <= 3.25f));
+            Assert.IsTrue(roomA.Edges().Any(e => e.DistanceToPoint(n.Section.A) <= 3.25f));
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
@@ -475,18 +442,18 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         {
             foreach (var roomInfo in _plan.Rooms)
             {
-                foreach (var neighbour in _plan.GetNeighbours(roomInfo))
+                foreach (var neighbour in roomInfo.Neighbours)
                 {
-                    Assert.IsTrue(new Vector2[] {neighbour.A, neighbour.B, neighbour.C, neighbour.D}.Area() < 0);
+                    Assert.IsTrue(new Vector2[] { neighbour.A, neighbour.B, neighbour.C, neighbour.D }.Area() < 0);
                 }
             }
         }
 
         private void AssertAllSections()
         {
-            Func<RoomPlan, LineSegment2[]> edges = r => r.OuterFootprint.Select((a, i) => new LineSegment2(a, r.OuterFootprint[(i + 1) % r.OuterFootprint.Count])).ToArray();
+            Func<IRoomPlan, LineSegment2[]> edges = r => r.OuterFootprint.Select((a, i) => new LineSegment2(a, r.OuterFootprint[(i + 1) % r.OuterFootprint.Count])).ToArray();
 
-            foreach (var neighbour in _plan.Rooms.SelectMany(roomInfo => _plan.GetNeighbours(roomInfo)))
+            foreach (var neighbour in _plan.Rooms.SelectMany(roomInfo => roomInfo.Neighbours))
             {
                 Assert.IsTrue(edges(neighbour.RoomAB).Any(e => e.DistanceToPoint(neighbour.A) < 0.1f));
                 Assert.IsTrue(edges(neighbour.RoomAB).Any(e => e.DistanceToPoint(neighbour.B) < 0.1f));
@@ -498,13 +465,13 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void Floorplan_SeparateRooms_HaveNoNeighbours()
         {
-            var roomA = _plan.AddRoom(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, -80), new Vector2(-80, -80), new Vector2(-80, -100) }, 3f, new ScriptReference[0], "n").Single();
-            var roomB = _plan.AddRoom(new Vector2[] { new Vector2(100, 100), new Vector2(100, 80), new Vector2(80, 80), new Vector2(80, 100) }, 3f, new ScriptReference[0], "n").Single();
+            var roomA = _plan.Add(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, -80), new Vector2(-80, -80), new Vector2(-80, -100) }, 3f).Single();
+            var roomB = _plan.Add(new Vector2[] { new Vector2(100, 100), new Vector2(100, 80), new Vector2(80, 80), new Vector2(80, 100) }, 3f).Single();
 
             _plan.Freeze();
 
-            Assert.AreEqual(0, _plan.GetNeighbours(roomA).Count());
-            Assert.AreEqual(0, _plan.GetNeighbours(roomB).Count());
+            Assert.AreEqual(0, roomA.Neighbours.Count());
+            Assert.AreEqual(0, roomB.Neighbours.Count());
 
             //Check all neighbour data is correctly wound
             AssertAllWindings();
@@ -518,16 +485,16 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void Floorplan_NeighbourRooms_HaveSymmetricNeighbours()
         {
-            var roomA = _plan.AddRoom(new Vector2[] { new Vector2(-40, -40), new Vector2(-40, 0), new Vector2(-20, 0), new Vector2(-20, -40) }, 3f, new ScriptReference[0], "n").Single();
-            var roomB = _plan.AddRoom(new Vector2[] { new Vector2(40, 20), new Vector2(40, -20), new Vector2(20, -20), new Vector2(20, 20) }, 3f, new ScriptReference[0], "n").Single();
+            var roomA = _plan.Add(new Vector2[] { new Vector2(-40, -40), new Vector2(-40, 0), new Vector2(-20, 0), new Vector2(-20, -40) }, 3f).Single();
+            var roomB = _plan.Add(new Vector2[] { new Vector2(40, 20), new Vector2(40, -20), new Vector2(20, -20), new Vector2(20, 20) }, 3f).Single();
 
             _plan.Freeze();
 
-            Assert.AreEqual(1, _plan.GetNeighbours(roomA).Count());
-            Assert.AreEqual(1, _plan.GetNeighbours(roomB).Count());
+            Assert.AreEqual(1, roomA.Neighbours.Count());
+            Assert.AreEqual(1, roomB.Neighbours.Count());
 
             //Check that section is in right place
-            var n = _plan.GetNeighbours(roomA).Single();
+            var n = roomA.Neighbours.Single();
             Assert.IsTrue(Math.Abs(n.At - 0) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Bt - 0.5f) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Ct - 0) < 0.01f);
@@ -545,25 +512,25 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void Floorplan_StartOverlap_OccludesNeighbour()
         {
-            var roomLeft = _plan.AddRoom(new Vector2[] { new Vector2(-100, -20), new Vector2(-100, 20), new Vector2(-80, 20), new Vector2(-80, -20) }, 3f, new ScriptReference[0], "n").Single();
-            var roomMid = _plan.AddRoom(new Vector2[] { new Vector2(20, 0), new Vector2(20, -40), new Vector2(-20, -40), new Vector2(-20, 0) }, 3f, new ScriptReference[0], "n").Single();
-            var roomRight = _plan.AddRoom(new Vector2[] { new Vector2(100, 20), new Vector2(100, -20), new Vector2(80, -20), new Vector2(80, 20) }, 3f, new ScriptReference[0], "n").Single();
+            var roomLeft = _plan.Add(new Vector2[] { new Vector2(-100, -20), new Vector2(-100, 20), new Vector2(-80, 20), new Vector2(-80, -20) }, 3f).Single();
+            var roomMid = _plan.Add(new Vector2[] { new Vector2(20, 0), new Vector2(20, -40), new Vector2(-20, -40), new Vector2(-20, 0) }, 3f).Single();
+            var roomRight = _plan.Add(new Vector2[] { new Vector2(100, 20), new Vector2(100, -20), new Vector2(80, -20), new Vector2(80, 20) }, 3f).Single();
 
             _plan.Freeze();
 
-            Assert.AreEqual(2, _plan.GetNeighbours(roomLeft).Count());
-            Assert.AreEqual(2, _plan.GetNeighbours(roomRight).Count());
-            Assert.AreEqual(2, _plan.GetNeighbours(roomMid).Count());
+            Assert.AreEqual(2, roomLeft.Neighbours.Count());
+            Assert.AreEqual(2, roomRight.Neighbours.Count());
+            Assert.AreEqual(2, roomMid.Neighbours.Count());
 
             //Check that section to mid room is in right place
-            var n = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomMid);
+            var n = roomLeft.Neighbours.Single(a => a.RoomCD == roomMid);
             Assert.IsTrue(Math.Abs(n.At - 0.5f) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Bt - 1) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Ct - 0.5f) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Dt - 1) < 0.01f);
 
             //Check that section to right room does not overlap with mid room
-            var m = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomRight);
+            var m = roomLeft.Neighbours.Single(a => a.RoomCD == roomRight);
             Assert.IsTrue(Math.Abs(m.At - 0) < 0.01f);
             Assert.IsTrue(Math.Abs(m.Bt - 0.5f) < 0.01f);
             Assert.IsTrue(Math.Abs(m.Ct - 0.5f) < 0.01f);
@@ -581,25 +548,25 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void Floorplan_EndOverlap_OccludesNeighbour()
         {
-            var roomLeft = _plan.AddRoom(new Vector2[] { new Vector2(-100, -20), new Vector2(-100, 20), new Vector2(-80, 20), new Vector2(-80, -20) }, 3f, new ScriptReference[0], "n").Single();
-            var roomMid = _plan.AddRoom(new Vector2[] { new Vector2(20, 40), new Vector2(20, 0), new Vector2(-20, 0), new Vector2(-20, 40) }, 3f, new ScriptReference[0], "n").Single();
-            var roomRight = _plan.AddRoom(new Vector2[] { new Vector2(100, 20), new Vector2(100, -20), new Vector2(80, -20), new Vector2(80, 20) }, 3f, new ScriptReference[0], "n").Single();
+            var roomLeft = _plan.Add(new Vector2[] { new Vector2(-100, -20), new Vector2(-100, 20), new Vector2(-80, 20), new Vector2(-80, -20) }, 3f).Single();
+            var roomMid = _plan.Add(new Vector2[] { new Vector2(20, 40), new Vector2(20, 0), new Vector2(-20, 0), new Vector2(-20, 40) }, 3f).Single();
+            var roomRight = _plan.Add(new Vector2[] { new Vector2(100, 20), new Vector2(100, -20), new Vector2(80, -20), new Vector2(80, 20) }, 3f).Single();
 
             _plan.Freeze();
 
-            Assert.AreEqual(2, _plan.GetNeighbours(roomLeft).Count());
-            Assert.AreEqual(2, _plan.GetNeighbours(roomRight).Count());
-            Assert.AreEqual(2, _plan.GetNeighbours(roomMid).Count());
+            Assert.AreEqual(2, roomLeft.Neighbours.Count());
+            Assert.AreEqual(2, roomRight.Neighbours.Count());
+            Assert.AreEqual(2, roomMid.Neighbours.Count());
 
             //Check that section to mid room is in right place
-            var n = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomMid);
+            var n = roomLeft.Neighbours.Single(a => a.RoomCD == roomMid);
             Assert.IsTrue(Math.Abs(n.At - 0f) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Bt - 0.5f) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Ct - 0) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Dt - 0.5f) < 0.01f);
 
             //Check that section to right room does not overlap with mid room
-            var m = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomRight);
+            var m = roomLeft.Neighbours.Single(a => a.RoomCD == roomRight);
             Assert.IsTrue(Math.Abs(m.At - 0.5f) < 0.01f);
             Assert.IsTrue(Math.Abs(m.Bt - 1) < 0.01f);
             Assert.IsTrue(Math.Abs(m.Ct - 0) < 0.01f);
@@ -617,28 +584,28 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void Floorplan_TotalOverlap_OccludesNeighbour()
         {
-            var roomLeft = _plan.AddRoom(new Vector2[] { new Vector2(-100, -20), new Vector2(-100, 20), new Vector2(-80, 20), new Vector2(-80, -20) }, 3f, new ScriptReference[0], "n").Single();
-            var roomRight = _plan.AddRoom(new Vector2[] { new Vector2(100, 20), new Vector2(100, -20), new Vector2(80, -20), new Vector2(80, 20) }, 3f, new ScriptReference[0], "n").Single();
-            var roomMid = _plan.AddRoom(new Vector2[] { new Vector2(20, 40), new Vector2(20, -40), new Vector2(-20, -40), new Vector2(-20, 40) }, 3f, new ScriptReference[0], "n").Single();
+            var roomLeft = _plan.Add(new Vector2[] { new Vector2(-100, -20), new Vector2(-100, 20), new Vector2(-80, 20), new Vector2(-80, -20) }, 3f).Single();
+            var roomRight = _plan.Add(new Vector2[] { new Vector2(100, 20), new Vector2(100, -20), new Vector2(80, -20), new Vector2(80, 20) }, 3f).Single();
+            var roomMid = _plan.Add(new Vector2[] { new Vector2(20, 40), new Vector2(20, -40), new Vector2(-20, -40), new Vector2(-20, 40) }, 3f).Single();
 
             _plan.Freeze();
 
-            Assert.AreEqual(1, _plan.GetNeighbours(roomLeft).Count());
-            Assert.AreEqual(1, _plan.GetNeighbours(roomRight).Count());
-            Assert.AreEqual(2, _plan.GetNeighbours(roomMid).Count());
+            Assert.AreEqual(1, roomLeft.Neighbours.Count());
+            Assert.AreEqual(1, roomRight.Neighbours.Count());
+            Assert.AreEqual(2, roomMid.Neighbours.Count());
 
             //Check that section to mid room is in right place
-            var n = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomMid);
+            var n = roomLeft.Neighbours.Single(a => a.RoomCD == roomMid);
             Assert.IsTrue(Math.Abs(n.At - 0f) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Bt - 1f) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Ct - 0.25f) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Dt - 0.75f) < 0.01f);
 
             //Check that left does not neighbour right
-            Assert.IsFalse(_plan.GetNeighbours(roomLeft).Any(a => a.RoomCD == roomRight));
+            Assert.IsFalse(roomLeft.Neighbours.Any(a => a.RoomCD == roomRight));
 
             //Check that section to right room does not overlap with mid room
-            var m = _plan.GetNeighbours(roomRight).Single(a => a.RoomCD == roomMid);
+            var m = roomRight.Neighbours.Single(a => a.RoomCD == roomMid);
             Assert.IsTrue(Math.Abs(m.At - 0f) < 0.01f);
             Assert.IsTrue(Math.Abs(m.Bt - 1) < 0.01f);
             Assert.IsTrue(Math.Abs(m.Ct - 0.25f) < 0.01f);
@@ -656,35 +623,35 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void Floorplan_MidOverlap_SplitsNeighbour()
         {
-            var roomLeft = _plan.AddRoom(new Vector2[] { new Vector2(-100, -20), new Vector2(-100, 20), new Vector2(-80, 20), new Vector2(-80, -20) }, 3f, new ScriptReference[0], "n").Single();
-            var roomRight = _plan.AddRoom(new Vector2[] { new Vector2(100, 20), new Vector2(100, -20), new Vector2(80, -20), new Vector2(80, 20) }, 3f, new ScriptReference[0], "n").Single();
-            var roomMid = _plan.AddRoom(new Vector2[] { new Vector2(20, 10), new Vector2(20, -10), new Vector2(-20, -10), new Vector2(-20, 10) }, 3f, new ScriptReference[0], "n").Single();
+            var roomLeft = _plan.Add(new Vector2[] { new Vector2(-100, -20), new Vector2(-100, 20), new Vector2(-80, 20), new Vector2(-80, -20) }, 3f).Single();
+            var roomRight = _plan.Add(new Vector2[] { new Vector2(100, 20), new Vector2(100, -20), new Vector2(80, -20), new Vector2(80, 20) }, 3f).Single();
+            var roomMid = _plan.Add(new Vector2[] { new Vector2(20, 10), new Vector2(20, -10), new Vector2(-20, -10), new Vector2(-20, 10) }, 3f).Single();
 
             _plan.Freeze();
 
-            Assert.AreEqual(3, _plan.GetNeighbours(roomLeft).Count());
-            Assert.AreEqual(3, _plan.GetNeighbours(roomRight).Count());
-            Assert.AreEqual(2, _plan.GetNeighbours(roomMid).Count());
+            Assert.AreEqual(3, roomLeft.Neighbours.Count());
+            Assert.AreEqual(3, roomRight.Neighbours.Count());
+            Assert.AreEqual(2, roomMid.Neighbours.Count());
 
             //Check that section to mid room is in right place
-            var n = _plan.GetNeighbours(roomLeft).Single(a => a.RoomCD == roomMid);
+            var n = roomLeft.Neighbours.Single(a => a.RoomCD == roomMid);
             Assert.IsTrue(Math.Abs(n.At - 0.25f) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Bt - 0.75f) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Ct - 0) < 0.01f);
             Assert.IsTrue(Math.Abs(n.Dt - 1) < 0.01f);
 
             //Check that section to right room does not overlap with mid room
-            var m1 = _plan.GetNeighbours(roomLeft).First(a => a.RoomCD == roomRight);
+            var m1 = roomLeft.Neighbours.First(a => a.RoomCD == roomRight);
             Assert.IsTrue(Math.Abs(m1.At - 0) < 0.01f);
             Assert.IsTrue(Math.Abs(m1.Bt - 0.25f) < 0.01f);
             Assert.IsTrue(Math.Abs(m1.Ct - 0.75f) < 0.01f);
             Assert.IsTrue(Math.Abs(m1.Dt - 1) < 0.01f);
 
-            var m2 = _plan.GetNeighbours(roomLeft).Where(a => a.RoomCD == roomRight).Skip(1).First();
-            Assert.IsTrue(Math.Abs(m1.At - 0f) < 0.01f);
-            Assert.IsTrue(Math.Abs(m1.Bt - 0.25f) < 0.01f);
-            Assert.IsTrue(Math.Abs(m1.Ct - 0.75f) < 0.01f);
-            Assert.IsTrue(Math.Abs(m1.Dt - 1f) < 0.01f);
+            var m2 = roomLeft.Neighbours.Where(a => a.RoomCD == roomRight).Skip(1).First();
+            Assert.IsTrue(Math.Abs(m2.At - 0.75f) < 0.01f);
+            Assert.IsTrue(Math.Abs(m2.Bt - 1) < 0.01f);
+            Assert.IsTrue(Math.Abs(m2.Ct - 0) < 0.01f);
+            Assert.IsTrue(Math.Abs(m2.Dt - 0.25f) < 0.01f);
 
             //Check all neighbour data is correctly wound
             AssertAllWindings();
@@ -698,11 +665,11 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void Floorplan_CornerOverlap_GeneratesNoNeighbours()
         {
-            var roomLeft = _plan.AddRoom(new Vector2[] { new Vector2(-20, -20), new Vector2(-20, 0), new Vector2(0, 0), new Vector2(0, -20) }, 5, new ScriptReference[0], "n").Single();
-            var roomRight = _plan.AddRoom(new Vector2[] { new Vector2(5, -2), new Vector2(5, 20), new Vector2(25, 20), new Vector2(25, -2) }, 5, new ScriptReference[0], "n").Single();
+            var roomLeft = _plan.Add(new Vector2[] { new Vector2(-20, -20), new Vector2(-20, 0), new Vector2(0, 0), new Vector2(0, -20) }, 5).Single();
+            var roomRight = _plan.Add(new Vector2[] { new Vector2(5, -2), new Vector2(5, 20), new Vector2(25, 20), new Vector2(25, -2) }, 5).Single();
 
-            Assert.IsFalse(roomLeft.GetFacades().Any(f => f.NeighbouringRoom != null));
-            Assert.IsFalse(roomRight.GetFacades().Any(f => f.NeighbouringRoom != null));
+            Assert.IsFalse(roomLeft.GetWalls().Any(f => f.NeighbouringRoom != null));
+            Assert.IsFalse(roomRight.GetWalls().Any(f => f.NeighbouringRoom != null));
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
@@ -710,8 +677,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void Floorplan_ClippingRooms_GeneratesNonOverlappingRooms()
         {
-            var roomLeft = _plan.AddRoom(new Vector2[] { new Vector2(-20, -20), new Vector2(-20, 0), new Vector2(0, 0), new Vector2(0, -20) }, 5, new ScriptReference[0], "n").Single();
-            var roomRight = _plan.AddRoom(new Vector2[] { new Vector2(-5, -5), new Vector2(-5, 20), new Vector2(25, 20), new Vector2(25, -5) }, 5, new ScriptReference[0], "n").Single();
+            var roomLeft = _plan.Add(new Vector2[] { new Vector2(-20, -20), new Vector2(-20, 0), new Vector2(0, 0), new Vector2(0, -20) }, 5).Single();
+            var roomRight = _plan.Add(new Vector2[] { new Vector2(-5, -5), new Vector2(-5, 20), new Vector2(25, 20), new Vector2(25, -5) }, 5).Single();
 
             _plan.Freeze();
 
@@ -724,7 +691,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void Floorplan_RoomOutsideFloor_GeneratesNoRoom()
         {
-            var roomLeft = _plan.AddRoom(new Vector2[] { new Vector2(200, -20), new Vector2(200, 0), new Vector2(220, 0), new Vector2(220, -20) }, 5, new ScriptReference[0], "n").Any();
+            var roomLeft = _plan.Add(new Vector2[] { new Vector2(200, -20), new Vector2(200, 0), new Vector2(220, 0), new Vector2(220, -20) }, 5).Any();
 
             Assert.IsFalse(roomLeft);
         }
@@ -732,8 +699,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void Floorplan_RoomTotallyInsideOtherRoom_GeneratesNoRoom()
         {
-            var roomBig = _plan.AddRoom(new Vector2[] { new Vector2(-50, -50), new Vector2(-50, 50), new Vector2(50, 50), new Vector2(50, -50) }, 5, new ScriptReference[0], "n").Single();
-            var roomNone = _plan.AddRoom(new Vector2[] { new Vector2(0, 0), new Vector2(0, 10), new Vector2(10, 10), new Vector2(10, 0) }, 5, new ScriptReference[0], "n").Any();
+            var roomBig = _plan.Add(new Vector2[] { new Vector2(-50, -50), new Vector2(-50, 50), new Vector2(50, 50), new Vector2(50, -50) }, 5).Single();
+            var roomNone = _plan.Add(new Vector2[] { new Vector2(0, 0), new Vector2(0, 10), new Vector2(10, 10), new Vector2(10, 0) }, 5).Any();
 
             Assert.IsNotNull(roomBig);
             Assert.IsNotNull(roomNone);
@@ -744,12 +711,12 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void SvgFloorplan()
         {
-            Random r = new Random(23523);
+            var r = new Random(23523);
 
             const int floorCount = 1;
             for (int i = 0; i < floorCount; i++)
             {
-                var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
+                var plan = new GeometricFloorplan(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
 
                 for (int j = 0; j < 3; j++)
                 {
@@ -757,10 +724,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                     var minY = r.Next(-25, 20);
                     var width = r.Next(10, 20);
                     var height = r.Next(10, 20);
-                    plan.AddRoom(new[] { new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY) },
-                        r.Next(1, 5),
-                        new ScriptReference[0], "n"
-                        );
+                    plan.Add(new[] { new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY) },
+                        r.Next(1, 5)
+                    );
                 }
 
                 plan.Freeze();
@@ -772,7 +738,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void InnerWallTurn()
         {
-            _plan.AddRoom(new[]
+            _plan.Add(new[]
             {
                 new Vector2(-70, -75),
                 new Vector2(0, -25),
@@ -785,7 +751,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
                 new Vector2(50, 75),
                 new Vector2(50, -75),
-            }, 5, new ScriptReference[0], "n", false);
+            }, 5);
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
@@ -793,29 +759,29 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void ConcaveRoomNeighbours()
         {
-            var a = _plan.AddRoom(new[]
+            var a = _plan.Add(new[]
             {
                 new Vector2(-100, 20),
                 new Vector2(-100, 75),
                 new Vector2(0, 75),
                 new Vector2(0, 20),
-            }, 5, new ScriptReference[0], "n", false).Single();
+            }, 5).Single();
 
-            var b = _plan.AddRoom(new[]
+            var b = _plan.Add(new[]
             {
                 new Vector2(-100, -75),
                 new Vector2(-100, -20),
                 new Vector2(0, -20),
                 new Vector2(0, -75),
-            }, 5, new ScriptReference[0], "n", false).Single();
+            }, 5).Single();
 
-            var c = _plan.AddRoom(new[]
+            var c = _plan.Add(new[]
             {
                 new Vector2(-50, -75),
                 new Vector2(-50, 75),
                 new Vector2(50, 75),
                 new Vector2(50, -75),
-            }, 5, new ScriptReference[0], "n", false).Single();
+            }, 5).Single();
 
             Assert.IsNotNull(a);
             Assert.IsNotNull(b);
@@ -827,37 +793,37 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void TheTest()
         {
-            var b = _plan.AddRoom(new[]
+            var b = _plan.Add(new[]
             {
                 new Vector2(-99.9f, -50),
                 new Vector2(-99.99f, -10),
                 new Vector2(-30, -10),
                 new Vector2(-30, -50),
-            }, 5, new ScriptReference[0], "n", false).Single();
+            }, 5).Single();
 
-            var c = _plan.AddRoom(new[]
+            var c = _plan.Add(new[]
             {
                 new Vector2(-69.9f, -50),
                 new Vector2(-69.9f, 50),
                 new Vector2(60, 50),
                 new Vector2(60, -50),
-            }, 5, new ScriptReference[0], "n", true).Single();
+            }, 5).Single();
 
             //B neighbours A, C, ~D
-            var neighboursB = _plan.GetNeighbours(b);
+            var neighboursB = b.Neighbours;
             Assert.AreEqual(2, neighboursB.Count(x => x.Other(b) == c));
 
             //C neighbours A, B, D
-            var neighboursC = _plan.GetNeighbours(c);
+            var neighboursC = c.Neighbours;
             Assert.AreEqual(2, neighboursC.Count(x => x.Other(c) == b));
 
             //Check that B has no duplicated facades
-            var facadesB = b.GetFacades().ToArray();
+            var facadesB = b.GetWalls().ToArray();
             var duplicatesB = facadesB.Where(f => facadesB.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
             Assert.IsFalse(duplicatesB.Any());
 
             //Check that C has no duplicated facades
-            var facadesC = c.GetFacades().ToArray();
+            var facadesC = c.GetWalls().ToArray();
             var duplicatesC = facadesC.Where(f => facadesC.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
             Assert.IsFalse(duplicatesC.Any());
 
@@ -879,26 +845,6 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             Console.WriteLine(svg.ToString());
         }
 
-        //[TestMethod]
-        //public void ZClipperTest()
-        //{
-        //    Clipper clipper = new Clipper();
-
-        //    Func<Vector2, IntPoint> toPoint = a => new IntPoint((long)(a.X * 10000), (long)a.Y * 10000);
-
-        //    clipper.Clear();
-        //    clipper.AddPolygon(new[] { new Vector2(0, 0), new Vector2(0, 100), new Vector2(100,100), new Vector2(100, 0) }.Select(toPoint).ToList(), PolyType.Subject);
-        //    //clipper.AddPolygon(new[] { new Vector2(0, 0), new Vector2(0, 50), new Vector2(50, 50), new Vector2(50, 0) }.Reverse().Select(toPoint).ToList(), PolyType.Clip);
-        //    clipper.AddPolygon(new[] { new Vector2(60, 60), new Vector2(60, 90), new Vector2(60, 90), new Vector2(60, 60) }.Reverse().Select(toPoint).ToList(), PolyType.Clip);
-
-        //    //var solution = new List<List<IntPoint>>();
-        //    var solution = new PolyTree();
-        //    clipper.Execute(ClipType.Difference, solution);
-
-        //    //solution.
-        //    //Assert.AreEqual(1, solution.Count);
-        //}
-
         [TestMethod]
         public void TrainCarriageTest()
         {
@@ -912,7 +858,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             Func<Vector2, float, float, Vector2> Offset = (start, length, width) => start + new Vector2(Length * length, -Width * width);
 
-            Func<FloorPlanBuilder, bool, float, IEnumerable<RoomPlan>> CreateBalcony = (pl, start, bl) =>
+            Func<IFloorPlanBuilder, bool, float, IEnumerable<IRoomPlan>> CreateBalcony = (pl, start, bl) =>
             {
                 var p = pl.ExternalFootprint.First();
 
@@ -920,27 +866,27 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
                 if (start)
                 {
-                    return pl.AddRoom(new Vector2[]
+                    return pl.Add(new Vector2[]
                     {
                         Offset(p, 0, 0.01f),
                         Offset(p, bl / Length, 0.01f),
                         Offset(p, bl / Length, 0.99f),
                         Offset(p, 0, 0.99f),
-                    }, wt, new ScriptReference[0], "n");
+                    }, wt);
                 }
                 else
                 {
-                    return pl.AddRoom(new Vector2[]
+                    return pl.Add(new Vector2[]
                     {
                         Offset(p, 1 - (bl / Length), 0.01f),
                         Offset(p, 1, 0.01f),
                         Offset(p, 1, 0.99f),
                         Offset(p, 1 - bl / Length, 0.99f),
-                    }, wt, new ScriptReference[0], "n");
+                    }, wt);
                 }
             };
 
-            var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new Vector2[]
+            var plan = new GeometricFloorplan(new ReadOnlyCollection<Vector2>(new Vector2[]
             {
                 new Vector2(-Length / 2f, Width / 2f),
                 new Vector2(Length / 2f, Width / 2f),
@@ -965,44 +911,44 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             float toiletLength = balconyLength;
 
             //Left of the corridor
-            var toiletLeft = plan.AddRoom(new Vector2[]
+            var toiletLeft = plan.Add(new Vector2[]
             {
                 Offset(point, balconyLength / Length, 0),
                 Offset(point, (balconyLength + toiletLength) / Length, 0),
                 Offset(point, (balconyLength + toiletLength) / Length, (Width / 2 - doorWidth / 2) / Width),
                 Offset(point, balconyLength / Length, (Width / 2 - doorWidth / 2) / Width),
-            }, wallThickness, new ScriptReference[0], "n").Single();
+            }, wallThickness).Single();
 
             //Right of the corridor
-            var toiletRight = plan.AddRoom(new Vector2[]
+            var toiletRight = plan.Add(new Vector2[]
             {
                 Offset(point, balconyLength / Length, (Width / 2 + doorWidth / 2) / Width),
                 Offset(point, (balconyLength + toiletLength) / Length, (Width / 2 + doorWidth / 2) / Width),
                 Offset(point, (balconyLength + toiletLength) / Length, 1),
                 Offset(point, balconyLength / Length, 1),
-            }, wallThickness, new ScriptReference[0], "n").Single();
+            }, wallThickness).Single();
 
             //Corridor
             var corridorL = (Width / 2 - doorWidth / 2 + 0.01f) / Width;
             var corridorR = (Width / 2 + doorWidth / 2 - 0.01f) / Width;
-            var corridor = plan.AddRoom(new Vector2[]
+            var corridor = plan.Add(new Vector2[]
             {
                 Offset(point, balconyLength / Length, corridorL),
                 Offset(point, (balconyLength + toiletLength) / Length, corridorL),
                 Offset(point, (balconyLength + toiletLength) / Length, corridorR),
                 Offset(point, balconyLength / Length, corridorR),
-            }, wallThickness, new ScriptReference[0], "n").Single();
+            }, wallThickness).Single();
 
             //Add dining room
-            var diningRoom = plan.AddRoom(new Vector2[]
+            var diningRoom = plan.Add(new Vector2[]
             {
                 Offset(point, (balconyLength + toiletLength + 0.05f) / Length, 0),
                 Offset(point, (Length - balconyLength - 0.05f) / Length, 0),
                 Offset(point, (Length - balconyLength - 0.05f) / Length, 1),
                 Offset(point, (balconyLength + toiletLength + 0.05f) / Length, 1),
-            }, wallThickness, new ScriptReference[0], "n").Single();
+            }, wallThickness).Single();
 
-            Assert.IsFalse(plan.GetNeighbours(balcony2).Any(a => a.Other(balcony2) != diningRoom));
+            Assert.IsFalse(balcony2.Neighbours.Any(a => a.Other(balcony2) != diningRoom));
 
             Assert.IsNotNull(balcony1);
             Assert.IsNotNull(balcony2);
@@ -1026,7 +972,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             Func<Vector2, float, float, Vector2> Offset = (start, length, width) => start + new Vector2(Length * length, -Width * width);
 
-            Func<FloorPlanBuilder, bool, float, IEnumerable<RoomPlan>> CreateBalcony = (pl, start, bl) =>
+            Func<IFloorPlanBuilder, bool, float, IEnumerable<IRoomPlan>> CreateBalcony = (pl, start, bl) =>
             {
                 var p = pl.ExternalFootprint.First();
 
@@ -1034,27 +980,27 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
                 if (start)
                 {
-                    return pl.AddRoom(new Vector2[]
+                    return pl.Add(new Vector2[]
                     {
                         Offset(p, 0, 0.01f),
                         Offset(p, bl / Length, 0.01f),
                         Offset(p, bl / Length, 0.99f),
                         Offset(p, 0, 0.99f),
-                    }, wt, new ScriptReference[0], "n");
+                    }, wt);
                 }
                 else
                 {
-                    return pl.AddRoom(new Vector2[]
+                    return pl.Add(new Vector2[]
                     {
                         Offset(p, 1 - (bl / Length), 0.01f),
                         Offset(p, 1, 0.01f),
                         Offset(p, 1, 0.99f),
                         Offset(p, 1 - bl / Length, 0.99f),
-                    }, wt, new ScriptReference[0], "n");
+                    }, wt);
                 }
             };
 
-            var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new Vector2[]
+            var plan = new GeometricFloorplan(new ReadOnlyCollection<Vector2>(new Vector2[]
             {
                 new Vector2(-Length / 2f, Width / 2f),
                 new Vector2(Length / 2f, Width / 2f),
@@ -1073,34 +1019,34 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             //Create corridor section along entire train (along one side)
             const float corridorWidth = 3;
-            plan.AddRoom(new Vector2[]
+            plan.Add(new Vector2[]
             {
                 Offset(point, (balconyLength + 0.05f) / Length, 0),
                 Offset(point, (Length - balconyLength - 0.05f) / Length, 0),
                 Offset(point, (Length - balconyLength - 0.05f) / Length, corridorWidth / Width),
                 Offset(point, (balconyLength + 0.05f) / Length, corridorWidth / Width),
-            }, 0.55f, new ScriptReference[0], "n");
+            }, 0.55f);
 
             //Create compartments
             var compartmentAreaLength = Length - (balconyLength + 0.05f) * 2;
             var compartmentCount = Random.CompartmentalizeSpace(compartmentAreaLength, 1, int.MaxValue, 6, 10);
             var compartmentLength = compartmentAreaLength / compartmentCount;
 
-            var compartments = new RoomPlan[compartmentCount];
-            for (int i = 0; i < compartmentCount; i++)
+            var compartments = new IRoomPlan[compartmentCount];
+            for (var i = 0; i < compartmentCount; i++)
             {
                 var xStart = balconyLength + 0.05f + i * compartmentLength;
                 var xEnd = xStart + compartmentLength - 0.05f;
 
                 const float yStart = corridorWidth;
 
-                compartments[i] = plan.AddRoom(new Vector2[]
+                compartments[i] = plan.Add(new Vector2[]
                 {
                     Offset(point, xStart / Length, yStart / Width),
                     Offset(point, xEnd / Length, yStart / Width),
                     Offset(point, xEnd / Length, 1),
                     Offset(point, xStart / Length, 1),
-                }, 0.55f, new ScriptReference[0], "n").Single();
+                }, 0.55f).Single();
             }
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(plan, scalePosition: 10).ToString());
@@ -1115,7 +1061,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
                 try
                 {
-                    var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
+                    var plan = new GeometricFloorplan(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
 
                     for (int j = 0; j < 3; j++)
                     {
@@ -1123,10 +1069,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                         var minY = r.Next(-25, 20);
                         var width = r.Next(10, 20);
                         var height = r.Next(10, 20);
-                        plan.AddRoom(new[] { new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY) },
-                            1,
-                            new ScriptReference[0], "n"
-                            );
+                        plan.Add(new[] { new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY) }, 1);
                     }
 
                     plan.Freeze();
@@ -1157,7 +1100,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             var r = new Random(738);
 
-            var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
+            var plan = new GeometricFloorplan(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
 
             for (int j = 0; j < 3; j++)
             {
@@ -1165,10 +1108,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 var minY = r.Next(-25, 20);
                 var width = r.Next(10, 20);
                 var height = r.Next(10, 20);
-                plan.AddRoom(new[] {new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY)},
-                    1,
-                    new ScriptReference[0], "n"
-                    );
+                plan.Add(new[] { new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY) },
+                    1
+                );
             }
 
             plan.Freeze();
@@ -1183,45 +1125,45 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             // This particular setup resulted in the right hand room (d) having *two* left walls.
             // One wall was just a wall (no neighbours) and another wall was a neighbour for the big wall in the middle (they overlapped)
 
-            var a = _plan.AddRoom(new[]
+            var a = _plan.Add(new[]
             {
                 new Vector2(-100, -50),
                 new Vector2(-100, 50),
                 new Vector2(-70, 50),
                 new Vector2(-70, -50),
-            }, 5, new ScriptReference[0], "n", false).Single();
+            }, 5).Single();
 
-            var b = _plan.AddRoom(new[]
+            var b = _plan.Add(new[]
             {
                 new Vector2(-70, -50),
                 new Vector2(-70, -10),
                 new Vector2(-30, -10),
                 new Vector2(-30, -50),
-            }, 5, new ScriptReference[0], "n", false).Single();
+            }, 5).Single();
 
-            var b2 = _plan.AddRoom(new[]
+            var b2 = _plan.Add(new[]
             {
                 new Vector2(-30, 50),
                 new Vector2(-30, 10),
                 new Vector2(-70, 10),
                 new Vector2(-70, 50),
-            }, 5, new ScriptReference[0], "n", false).Single();
+            }, 5).Single();
 
-            var c = _plan.AddRoom(new[]
+            var c = _plan.Add(new[]
             {
                 new Vector2(-69.9f, -50),
                 new Vector2(-69.9f, 50),
                 new Vector2(60, 50),
                 new Vector2(60, -50),
-            }, 5, new ScriptReference[0], "n", true).Single();
+            }, 5).Single();
 
-            var d = _plan.AddRoom(new[]
+            var d = _plan.Add(new[]
             {
                 new Vector2(70, -50),
                 new Vector2(70, 50),
                 new Vector2(100, 50),
                 new Vector2(100, -50),
-            }, 5, new ScriptReference[0], "n", false).Single();
+            }, 5).Single();
 
             Assert.IsNotNull(a);
             Assert.IsNotNull(b);
@@ -1230,31 +1172,27 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             Assert.IsNotNull(d);
 
             //A neighbours B, C, ~D
-            var neighboursA = _plan.GetNeighbours(a);
-            Assert.AreEqual(1, neighboursA.Count(x => x.Other(a) == b));
-            Assert.AreEqual(1, neighboursA.Count(x => x.Other(a) == c));
-            Assert.AreEqual(0, neighboursA.Count(x => x.Other(a) == d));
+            Assert.AreEqual(1, a.Neighbours.Count(x => x.Other(a) == b));
+            Assert.AreEqual(1, a.Neighbours.Count(x => x.Other(a) == c));
+            Assert.AreEqual(0, a.Neighbours.Count(x => x.Other(a) == d));
 
             //B neighbours A, C, ~D
-            var neighboursB = _plan.GetNeighbours(b);
-            Assert.AreEqual(1, neighboursB.Count(x => x.Other(b) == a));
-            Assert.AreEqual(2, neighboursB.Count(x => x.Other(b) == c));
-            Assert.AreEqual(0, neighboursB.Count(x => x.Other(b) == d));
+            Assert.AreEqual(1, b.Neighbours.Count(x => x.Other(b) == a));
+            Assert.AreEqual(2, b.Neighbours.Count(x => x.Other(b) == c));
+            Assert.AreEqual(0, b.Neighbours.Count(x => x.Other(b) == d));
 
             //C neighbours A, B, D
-            var neighboursC = _plan.GetNeighbours(c);
-            Assert.AreEqual(1, neighboursC.Count(x => x.Other(c) == a));
-            Assert.AreEqual(2, neighboursC.Count(x => x.Other(c) == b));
-            Assert.AreEqual(1, neighboursC.Count(x => x.Other(c) == d));
+            Assert.AreEqual(1, c.Neighbours.Count(x => x.Other(c) == a));
+            Assert.AreEqual(2, c.Neighbours.Count(x => x.Other(c) == b));
+            Assert.AreEqual(1, c.Neighbours.Count(x => x.Other(c) == d));
 
             //D neighbours ~A, ~B, C
-            var neighboursD = _plan.GetNeighbours(d);
-            Assert.AreEqual(0, neighboursD.Count(x => x.Other(d) == a));
-            Assert.AreEqual(0, neighboursD.Count(x => x.Other(d) == b));
-            Assert.AreEqual(1, neighboursD.Count(x => x.Other(d) == c));
+            Assert.AreEqual(0, d.Neighbours.Count(x => x.Other(d) == a));
+            Assert.AreEqual(0, d.Neighbours.Count(x => x.Other(d) == b));
+            Assert.AreEqual(1, d.Neighbours.Count(x => x.Other(d) == c));
 
             var duplicateCheck = c;
-            var facades = duplicateCheck.GetFacades().ToArray();
+            var facades = duplicateCheck.GetWalls().ToArray();
             var duplicates = facades.Where(f => facades.Any(g => g != f && g.Section.Matches(f.Section))).ToArray();
             Assert.IsFalse(duplicates.Any());
 
@@ -1268,24 +1206,24 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             // The start of a wall (from wall start -> start of first neighbour) didn't generate, now it does.
             // This test will fail if that happens again
 
-            var b = _plan.AddRoom(new[]
+            var b = _plan.Add(new[]
             {
                 new Vector2(-70, -50),
                 new Vector2(-70, -10),
                 new Vector2(-30, -10),
                 new Vector2(-30, -50),
-            }, 5, new ScriptReference[0], "n", false).Single();
+            }, 5).Single();
 
-            var c = _plan.AddRoom(new[]
+            var c = _plan.Add(new[]
             {
                 new Vector2(-69.9f, -50),
                 new Vector2(-69.9f, 50),
                 new Vector2(60, 50),
                 new Vector2(60, -50),
-            }, 5, new ScriptReference[0], "n", true).Single();
+            }, 5).Single();
 
-            Assert.AreEqual(8, b.GetFacades().Count());
-            Assert.AreEqual(14, c.GetFacades().Count());
+            Assert.AreEqual(8, b.GetWalls().Count());
+            Assert.AreEqual(14, c.GetWalls().Count());
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan).ToString());
         }
@@ -1299,7 +1237,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             var r = new Random(189);
 
-            var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
+            var plan = new GeometricFloorplan(new ReadOnlyCollection<Vector2>(new[] { new Vector2(-25, -25), new Vector2(-25, 25), new Vector2(25, 25), new Vector2(25, -25) }));
 
             for (int j = 0; j < 3; j++)
             {
@@ -1307,10 +1245,9 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 var minY = r.Next(-25, 20);
                 var width = r.Next(10, 20);
                 var height = r.Next(10, 20);
-                plan.AddRoom(new[] { new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY) },
-                    1,
-                    new ScriptReference[0], "n"
-                    );
+                plan.Add(new[] { new Vector2(minX, minY), new Vector2(minX, minY + height), new Vector2(minX + width, minY + height), new Vector2(minX + width, minY) },
+                    1
+                );
             }
 
             plan.Freeze();
@@ -1339,13 +1276,13 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             // The inside point is aligned with the outside point, logically this wall section is just two corners with no facade in the center.
             // Before fixing this case, some NaN sections were generated because of this case, now they aren't, and this test makes sure we don't undo that change.
 
-            var v = new[] {new Vector2(15, 14), new Vector2(2, 14), new Vector2(2, 22), new Vector2(1, 22), new Vector2(1, 25), new Vector2(15, 25)};
+            var v = new[] { new Vector2(15, 14), new Vector2(2, 14), new Vector2(2, 22), new Vector2(1, 22), new Vector2(1, 25), new Vector2(15, 25) };
 
-            var r = _plan.AddRoom(v, 1, new ScriptReference[0], "n", false);
+            var r = _plan.Add(v, 1);
 
             _plan.Freeze();
 
-            var f = r.Single().GetFacades();
+            var f = r.Single().GetWalls();
 
             foreach (var facade in f)
             {

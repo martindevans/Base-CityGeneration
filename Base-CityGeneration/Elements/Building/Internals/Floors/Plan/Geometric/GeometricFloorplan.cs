@@ -2,18 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using EpimetheusPlugins.Procedural.Utilities;
-using EpimetheusPlugins.Scripts;
 using System.Numerics;
 using ClipperRedux;
+using EpimetheusPlugins.Procedural.Utilities;
 
-namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
+namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
 {
     /// <summary>
     /// Represents an enclosed area of space with rooms. Has operations for adding rooms and querying neighbourhood relationships between rooms
     /// </summary>
-    public class FloorPlanBuilder
-        : IFloorPlan
+    public class GeometricFloorplan
+        : IFloorPlanBuilder
     {
         #region fields/properties
         private const float SCALE = 100000;
@@ -32,8 +31,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             }
         }
 
-        private readonly List<RoomPlan> _rooms = new List<RoomPlan>();
-        public IEnumerable<RoomPlan> Rooms
+        private readonly List<IRoomPlan> _rooms = new List<IRoomPlan>();
+        public IEnumerable<IRoomPlan> Rooms
         {
             get
             {
@@ -42,10 +41,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         }
 
         private readonly NeighbourData _neighbourhood;
-        private int _nextRoomId;
         #endregion
 
-        public FloorPlanBuilder(IReadOnlyList<Vector2> footprint)
+        public GeometricFloorplan(IReadOnlyList<Vector2> footprint)
         {
             Contract.Requires(footprint != null);
 
@@ -78,26 +76,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         /// </summary>
         /// <param name="roomFootprint"></param>
         /// <param name="split"></param>
-        /// <param name="shrink"></param>
         /// <returns></returns>
-        public IReadOnlyList<Vector2[]> TestRoom(IEnumerable<Vector2> roomFootprint, bool split = false, bool shrink = true)
+        public IReadOnlyList<IReadOnlyList<Vector2>> TestRoom(IEnumerable<Vector2> roomFootprint, bool split = false)
         {
-            Contract.Requires(roomFootprint != null);
-            Contract.Ensures(Contract.Result<IReadOnlyList<Vector2[]>>() != null);
-
             //Generate shapes for this room footprint, early exit if null
             var solution = ShapesForRoom(roomFootprint, split);
             if (solution == null)
                 return new Vector2[0][];
 
             //Convert shapes into vector2 shapes (scale properly)
-            return solution
-                .Select(shape => shape.Select(ToVector2)
-                    .Shrink(shrink ? SAFE_DISTANCE : 0).ToArray()
-                ).ToList();
+            return solution;
         }
 
-        private List<List<IntPoint>> ShapesForRoom(IEnumerable<Vector2> roomFootprint, bool split = false)
+        private List<List<Vector2>> ShapesForRoom(IEnumerable<Vector2> roomFootprint, bool split = false)
         {
             if (roomFootprint == null)
                 throw new ArgumentNullException("roomFootprint");
@@ -125,8 +116,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             foreach (var shape in solution)
                 if (Clipper.Orientation(shape))
                     shape.Reverse();
-            
-            return solution;
+
+            return solution
+                .Select(shape => shape.Select(ToVector2).Shrink(SAFE_DISTANCE).ToList())
+                .ToList();
         }
 
         /// <summary>
@@ -134,36 +127,24 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         /// </summary>
         /// <param name="roomFootprint">The footprint of the room to try and add</param>
         /// <param name="wallThickness">The thickness of the walls of this room</param>
-        /// <param name="scripts">Scripts to attach to this room</param>
-        /// <param name="name">Name of this room (for debugging)</param>
         /// <param name="split">If true false and this room is split into two parts no room will be added</param>
         /// <returns></returns>
-        public IReadOnlyList<RoomPlan> AddRoom(IEnumerable<Vector2> roomFootprint, float wallThickness, IEnumerable<ScriptReference> scripts, string name, bool split = false)
+        public IReadOnlyList<IRoomPlan> Add(IEnumerable<Vector2> roomFootprint, float wallThickness, bool split = false)
         {
-            Contract.Requires(roomFootprint != null);
-            Contract.Requires(scripts != null);
-            Contract.Ensures(Contract.Result<IReadOnlyList<RoomPlan>>() != null);
-
             if (_isFrozen)
                 throw new InvalidOperationException("Cannot add rooms to floorplan once it is frozen");
 
             var solution = ShapesForRoom(roomFootprint, split);
             if (solution == null)
-                return new RoomPlan[0];
+                return new IRoomPlan[0];
 
-            var s = scripts.ToArray();
-
-            var result = new List<RoomPlan>();
+            var result = new List<IRoomPlan>();
             foreach (var shape in solution)
             {
                 _neighbourhood.Dirty = true;
 
-                //Ensure shape is still clockwise wound
-                if (Clipper.Orientation(shape))
-                    shape.Reverse();
-
                 //Create room
-                var r = new RoomPlan(this, shape.Select(ToVector2).Shrink(SAFE_DISTANCE).ToArray(), wallThickness, s, _nextRoomId++, name);
+                var r = new RoomPlan(this, shape, wallThickness);
                 result.Add(r);
                 _rooms.Add(r);
             }
@@ -172,7 +153,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         }
 
         #region clipping
-        private List<List<IntPoint>> ClipToRooms(List<IntPoint> roomFootprint, bool allowSplit)
+        private List<List<IntPoint>> ClipToRooms(IReadOnlyList<IntPoint> roomFootprint, bool allowSplit)
         {
             _clipper.Clear();
             _clipper.AddPolygon(roomFootprint, PolyType.Subject);
@@ -213,7 +194,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return solution;
         }
 
-        private List<List<IntPoint>> ClipToFloor(List<IntPoint> roomFootprint, bool allowSplit)
+        private List<List<IntPoint>> ClipToFloor(IReadOnlyList<IntPoint> roomFootprint, bool allowSplit)
         {
             _clipper.Clear();
             _clipper.AddPolygon(roomFootprint, PolyType.Subject);
@@ -233,6 +214,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public IEnumerable<Neighbour> GetNeighbours(RoomPlan room)
         {
+            Contract.Requires(room != null);
+
             _neighbourhood.GenerateNeighbours();
             return _neighbourhood[room];
         }
@@ -248,50 +231,5 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return new Vector2(v.X / SCALE, v.Y / SCALE);
         }
         #endregion
-    }
-
-    /// <summary>
-    /// An immutable floorplan, a set of rooms in an enclosed space.
-    /// </summary>
-    [ContractClass(typeof(IFloorPlanContracts))]
-    public interface IFloorPlan
-    {
-        IReadOnlyList<Vector2> ExternalFootprint { get; }
-
-        IEnumerable<RoomPlan> Rooms { get; }
-
-        IEnumerable<Neighbour> GetNeighbours(RoomPlan room);
-    }
-
-    [ContractClassFor(typeof(IFloorPlan))]
-    internal abstract class IFloorPlanContracts
-        : IFloorPlan
-    {
-        public IReadOnlyList<Vector2> ExternalFootprint
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<IReadOnlyList<Vector2>>() != null);
-                return null;
-            }
-        }
-
-        public IEnumerable<RoomPlan> Rooms
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<IEnumerable<RoomPlan>>() != null);
-
-                return null;
-            }
-        }
-
-        public IEnumerable<Neighbour> GetNeighbours(RoomPlan room)
-        {
-            Contract.Requires(room != null);
-            Contract.Ensures(Contract.Result<IEnumerable<Neighbour>>() != null);
-
-            return null;
-        }
     }
 }

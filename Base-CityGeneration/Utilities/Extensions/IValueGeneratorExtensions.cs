@@ -3,7 +3,7 @@ using System.Diagnostics.Contracts;
 using Base_CityGeneration.Utilities.Numbers;
 using Myre.Collections;
 
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Utilities.Extensions
 {

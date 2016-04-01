@@ -5,7 +5,7 @@ using Base_CityGeneration.Utilities.Numbers;
 using Myre.Collections;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
 {

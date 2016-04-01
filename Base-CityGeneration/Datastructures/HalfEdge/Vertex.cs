@@ -10,54 +10,39 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
     /// <summary>
     /// A vertex in a half edge graph
     /// </summary>
-    /// <typeparam name="TVertexTag">Type of additional data associated with vertices</typeparam>
-    /// <typeparam name="THalfEdgeTag">Type of additional data associated with half edges</typeparam>
-    /// <typeparam name="TFaceTag">Type of additional data associated with faces</typeparam>
-    public class Vertex<TVertexTag, THalfEdgeTag, TFaceTag>
-        :IVertex
+    /// <typeparam name="TV">Type of additional data associated with vertices</typeparam>
+    /// <typeparam name="TE">Type of additional data associated with half edges</typeparam>
+    /// <typeparam name="TF">Type of additional data associated with faces</typeparam>
+    public class Vertex<TV, TE, TF>
+        : BaseTagged<TV, IVertexTag<TV, TE, TF>, Vertex<TV, TE, TF>>, IVertex
     {
         #region fields and properties
         public Vector2 Position { get; private set; }
 
-        private readonly Mesh<TVertexTag, THalfEdgeTag, TFaceTag> _mesh;
+        private readonly Mesh<TV, TE, TF> _mesh;
         /// <summary>
         /// The mesh this vertex is part of
         /// </summary>
-        public Mesh<TVertexTag, THalfEdgeTag, TFaceTag> Mesh
+        public Mesh<TV, TE, TF> Mesh
         {
-            get { return _mesh; }
-        }
-
-        private TVertexTag _tag;
-
-        /// <summary>
-        /// The tag attached to this vertex (may be null).
-        /// If this tag implements IVertexTag then Attach and Detach will be called appropriately
-        /// </summary>
-        public TVertexTag Tag
-        {
-            get { return _tag; }
-            set
+            get
             {
-                var oldTag = _tag as IVertexTag<TVertexTag, THalfEdgeTag, TFaceTag>;
-                if (oldTag != null)
-                    oldTag.Detach(this);
-
-                var newTag = value as IVertexTag<TVertexTag, THalfEdgeTag, TFaceTag>;
-                if (newTag != null)
-                    newTag.Attach(this);
-
-                _tag = value;
+                Contract.Ensures(Contract.Result<Mesh<TV, TE, TF>>() != null);
+                return _mesh;
             }
         }
 
-        private readonly ISet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> _edges = new HashSet<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>();
+        private readonly ISet<HalfEdge<TV, TE, TF>> _edges = new HashSet<HalfEdge<TV, TE, TF>>();
         /// <summary>
         /// Edges emanating out from this edge
         /// </summary>
-        public IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> Edges
+        public IEnumerable<HalfEdge<TV, TE, TF>> Edges
         {
-            get { return _edges; }
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TV, TE, TF>>>() != null);
+                return _edges;
+            }
         }
 
         public int EdgeCount
@@ -65,11 +50,11 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             get { return _edges.Count; }
         }
 
-        public IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>> Faces
+        public IEnumerable<Face<TV, TE, TF>> Faces
         {
             get
             {
-                Contract.Ensures(Contract.Result<IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                Contract.Ensures(Contract.Result<IEnumerable<Face<TV, TE, TF>>>() != null);
 
                 return (from edge in Edges
                        let face = edge.Face
@@ -80,7 +65,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         #endregion
 
         #region constructor
-        internal Vertex(Mesh<TVertexTag, THalfEdgeTag, TFaceTag> m, Vector2 position)
+        internal Vertex(Mesh<TV, TE, TF> m, Vector2 position)
         {
             Contract.Requires(m != null);
 
@@ -92,7 +77,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         [ContractInvariantMethod]
         private void ObjectInvariant()
         {
-            Contract.Invariant(Mesh != null);
+            Contract.Invariant(_mesh != null);
         }
 
         public override string ToString()
@@ -110,7 +95,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         public bool IsDeleted { get; internal set; }
 
-        internal bool AddEdge(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edge)
+        internal bool AddEdge(HalfEdge<TV, TE, TF> edge)
         {
             Contract.Requires(edge != null);
             Contract.Requires(edge.StartVertex.Equals(this));
@@ -118,7 +103,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return _edges.Add(edge);
         }
 
-        public bool DeleteEdge(HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> edge)
+        public bool DeleteEdge(HalfEdge<TV, TE, TF> edge)
         {
             Contract.Requires(edge != null);
 
@@ -134,23 +119,23 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         [Pure]
         public override bool Equals(object obj)
         {
-            var a = obj as Vertex<TVertexTag, THalfEdgeTag, TFaceTag>;
+            var a = obj as Vertex<TV, TE, TF>;
             if (a != null)
                 return Equals(a);
             return ReferenceEquals(this, obj);
         }
 
         [Pure]
-        public bool Equals(Vertex<TVertexTag, THalfEdgeTag, TFaceTag> other)
+        public bool Equals(Vertex<TV, TE, TF> other)
         {
             return other != null && other.Position == Position;
         }
 
         internal void Transform(Func<Vector2, Vector2> transform)
         {
+            Contract.Requires(transform != null);
+
             Position = transform(Position);
         }
-
-        
     }
 }

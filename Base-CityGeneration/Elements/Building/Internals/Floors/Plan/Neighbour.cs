@@ -13,7 +13,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         /// <summary>
         /// One of the rooms in a neighbourship pair (touching points A and B)
         /// </summary>
-        public RoomPlan RoomAB { get; private set; }
+        public IRoomPlan RoomAB { get; private set; }
 
         /// <summary>
         /// The index of the edge on roomCD
@@ -23,7 +23,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         /// <summary>
         /// One of the rooms in a neighbourship pair (touching points C and D)
         /// </summary>
-        public RoomPlan RoomCD { get; private set; }
+        public IRoomPlan RoomCD { get; private set; }
 
         /// <summary>
         /// The first point on the border of these two rooms
@@ -65,7 +65,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         /// </summary>
         public float Dt { get; private set; }
 
-        public Neighbour(uint edgeAbIndex, RoomPlan ab, uint edgeCdIndex, RoomPlan cd, Vector2 a, float at, Vector2 b, float bt, Vector2 c, float ct, Vector2 d, float dt)
+        public Neighbour(uint edgeAbIndex, IRoomPlan ab, uint edgeCdIndex, IRoomPlan cd, Vector2 a, float at, Vector2 b, float bt, Vector2 c, float ct, Vector2 d, float dt)
         {
             EdgeIndexRoomAB = edgeAbIndex;
             EdgeIndexRoomCD = edgeCdIndex;
@@ -84,7 +84,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             Dt = dt;
         }
 
-        public RoomPlan Other(RoomPlan room)
+        public IRoomPlan Other(IRoomPlan room)
         {
             if (RoomAB == room)
                 return RoomCD;
@@ -92,7 +92,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 return RoomAB;
         }
 
-        public LineSegment2 Segment(RoomPlan room)
+        public LineSegment2 Segment(IRoomPlan room)
         {
             if (RoomAB == room)
                 return new LineSegment2(A, B);

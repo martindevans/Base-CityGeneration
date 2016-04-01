@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Datastructures.Extensions;
+using EpimetheusPlugins.Extensions;
 using HandyCollections.Geometry;
 using Placeholder.AI.Pathfinding.Graph.NavigationMesh;
 using SwizzleMyVectors.Geometry;
@@ -29,7 +31,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             get
             {
                 Contract.Ensures(Contract.Result<IEnumerable<Face<TVTag, TETag, TFTag>>>() != null);
-                Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<Face<TVTag, TETag, TFTag>>>(), a => a != null));
+                Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<Face<TVTag, TETag, TFTag>>>(), a => a != null && !a.IsDeleted));
                 return _faces;
             }
         }
@@ -39,7 +41,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             get
             {
                 Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TVTag, TETag, TFTag>>>() != null);
-                Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<HalfEdge<TVTag, TETag, TFTag>>>(), a => a != null));
+                Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<HalfEdge<TVTag, TETag, TFTag>>>(), a => a != null && !a.IsDeleted));
                 return _vertices.SelectMany(a => a.Value.Edges);
             }
         }
@@ -49,27 +51,45 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             get
             {
                 Contract.Ensures(Contract.Result<IEnumerable<Vertex<TVTag, TETag, TFTag>>>() != null);
-                Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<Vertex<TVTag, TETag, TFTag>>>(), a => a != null));
+                Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<Vertex<TVTag, TETag, TFTag>>>(), a => a != null && !a.IsDeleted));
                 return _vertices.Select(a => a.Value);
             }
         }
 
         private int _nextFaceId;
+
+        private readonly bool _winding;
+        public bool ClockwiseWinding
+        {
+            get { return _winding; }
+        }
         #endregion
 
         #region constructors
-        public Mesh(float bounds = 1000, int threshold = 10)
+        public Mesh(float bounds = 1000, int threshold = 10, bool clockwiseWinding = true)
         {
             var bound = new BoundingRectangle(-new Vector2(bounds) / 2, new Vector2(bounds) / 2);
 
-            _vertices = new Quadtree<Vertex<TVTag, TETag, TFTag>>(bound, 10);
-            _halfEdges = new Quadtree<HalfEdge<TVTag, TETag, TFTag>>(bound, 10);
+            _vertices = new Quadtree<Vertex<TVTag, TETag, TFTag>>(bound, threshold);
+            _halfEdges = new Quadtree<HalfEdge<TVTag, TETag, TFTag>>(bound, threshold);
+
+            _winding = clockwiseWinding;
         }
 
-        public Mesh(BoundingRectangle  bounds, int threshold = 10)
+        public Mesh(BoundingRectangle bounds, int threshold = 10, bool clockwiseWinding = true)
         {
-            _vertices = new Quadtree<Vertex<TVTag, TETag, TFTag>>(bounds, 10);
-            _halfEdges = new Quadtree<HalfEdge<TVTag, TETag, TFTag>>(bounds, 10);
+            _vertices = new Quadtree<Vertex<TVTag, TETag, TFTag>>(bounds, threshold);
+            _halfEdges = new Quadtree<HalfEdge<TVTag, TETag, TFTag>>(bounds, threshold);
+
+            _winding = clockwiseWinding;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariant()
+        {
+            Contract.Invariant(_halfEdges != null);
+            Contract.Invariant(_faces != null);
+            Contract.Invariant(_vertices != null);
         }
         #endregion
 
@@ -205,12 +225,19 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
 
         private void Delete(HalfEdge<TVTag, TETag, TFTag> edge, bool preserveFaces = false)
         {
+            Contract.Requires(edge != null);
+            Contract.Ensures(edge.IsDeleted);
+            Contract.Ensures(edge.Pair.IsDeleted);
+
             DeleteHalf(edge, preserveFaces);
             DeleteHalf(edge.Pair, preserveFaces);
         }
 
         private void DeleteHalf(HalfEdge<TVTag, TETag, TFTag> edge, bool preserveFaces = false)
         {
+            Contract.Requires(edge != null);
+            Contract.Ensures(edge.IsDeleted);
+
             if (!edge.StartVertex.DeleteEdge(edge))
                 throw new InvalidOperationException("Detaching edge from vertex failed");
             if (!_halfEdges.Remove(edge.Bounds, edge))
@@ -243,7 +270,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             foreach (var candidate in candidates)
             {
                 var d = Vector2.DistanceSquared(candidate.Position, vector2);
-                if (d < bestDistance)
+                if (d < bestDistance && d < VERTEX_EPSILON * VERTEX_EPSILON)
                 {
                     bestDistance = d;
                     best = candidate;
@@ -251,7 +278,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             }
 
             //If we found a suitable one, return it
-            if (best != null && bestDistance <= VERTEX_EPSILON * VERTEX_EPSILON)
+            if (best != null)
                 return best;
 
             //Otherwise create a new vertex and return that
@@ -364,6 +391,15 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         #endregion
 
         #region faces
+        private void CheckWinding(IEnumerable<Vertex<TVTag, TETag, TFTag>> face)
+        {
+            Contract.Requires(face != null);
+
+            var area = face.Select(a => a.Position).Area();
+            if (area < 0 ^ !_winding)
+                throw new InvalidMeshException("Face is incorrectly wound");
+        }
+
         /// <summary>
         /// Attempt to construct a face connecting the given vertices. Only succeeds if all edges *already* have half edges as appropriate
         /// </summary>
@@ -387,6 +423,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             Contract.Requires(vertices != null);
             Contract.Requires(vertices.Count >= 3);
+            Contract.Ensures(!constructEdges || Contract.Result<Face<TVTag, TETag, TFTag>>() != null);
 
             var edges = new List<HalfEdge<TVTag, TETag, TFTag>>();
             Face<TVTag, TETag, TFTag> foundFace = null;
@@ -422,6 +459,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 else
                     throw new InvalidOperationException("Some edges are already connected to a different face");
             }
+
+            //Check face winding order
+            CheckWinding(vertices);
 
             //Create new face
             var f = new Face<TVTag, TETag, TFTag>(_nextFaceId++){ Edge = edges.First() };
@@ -485,6 +525,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 else
                     throw new InvalidOperationException("Some edges are already connected to a different face");
             }
+
+            //Check face winding order
+            CheckWinding(edges.Select(e => e.EndVertex));
 
             //Create new face
             var f = new Face<TVTag, TETag, TFTag>(_nextFaceId++) { Edge = edges.First() };

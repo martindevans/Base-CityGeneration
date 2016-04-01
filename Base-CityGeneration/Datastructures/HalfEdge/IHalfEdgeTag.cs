@@ -3,10 +3,9 @@
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
     public interface IHalfEdgeTag<TV, TE, TF>
+        : IAttachable<HalfEdge<TV, TE, TF>>
     {
-        void Attach(HalfEdge<TV, TE, TF> e);
-
-        void Detach(HalfEdge<TV, TE, TF> e);
+        HalfEdge<TV, TE, TF> Edge { get; }
     }
 
     public abstract class BaseHalfEdgeTag<TV, TE, TF>

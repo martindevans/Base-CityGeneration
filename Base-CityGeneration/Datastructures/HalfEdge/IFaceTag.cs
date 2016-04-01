@@ -3,10 +3,9 @@
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
     public interface IFaceTag<TV, TE, TF>
+        : IAttachable<Face<TV, TE, TF>>
     {
-        void Attach(Face<TV, TE, TF> f);
-
-        void Detach(Face<TV, TE, TF> f);
+        Face<TV, TE, TF> Face { get; }
     }
 
     public abstract class BaseFaceTag<TV, TE, TF>

@@ -14,7 +14,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Elements.Roads
 {

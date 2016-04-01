@@ -5,7 +5,7 @@ using EpimetheusPlugins.Procedural;
 using Myre;
 using Myre.Collections;
 
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Styles
 {

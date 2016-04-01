@@ -7,7 +7,7 @@ using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors;
 using JetBrains.Annotations;
 using Myre.Collections;
 
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Tracing
 {

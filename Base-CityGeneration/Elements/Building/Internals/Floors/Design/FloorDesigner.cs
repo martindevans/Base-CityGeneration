@@ -4,10 +4,10 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
-using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
 using JetBrains.Annotations;
@@ -23,7 +23,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         private readonly Dictionary<string, string> _tags;
         public Dictionary<string, string> Tags
         {
-            get { return _tags; }
+            get
+            {
+                Contract.Ensures(Contract.Result<Dictionary<string, string>>() != null);
+                return _tags;
+            }
         }
 
         private readonly Guid _guid;
@@ -42,10 +46,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         private readonly IReadOnlyList<BaseSpaceSpec> _spaces;
 
         private readonly WallGrowthParameters _wallGrowthParameters;
+        private readonly FloorPlanner.MergingParameters _roomMergeParameters;
         #endregion
 
         #region constructor
-        private FloorDesigner(Dictionary<string, string> tags, Guid guid, string description, IReadOnlyList<BaseSpaceSpec> spaces, WallGrowthParameters wallGrowthParameters)
+        private FloorDesigner(Dictionary<string, string> tags, Guid guid, string description, IReadOnlyList<BaseSpaceSpec> spaces, WallGrowthParameters wallGrowthParameters, FloorPlanner.MergingParameters roomMergeParameters)
         {
             Contract.Requires(wallGrowthParameters != null);
             Contract.Requires(spaces != null);
@@ -57,11 +62,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             _spaces = spaces;
 
             _wallGrowthParameters = wallGrowthParameters;
+            _roomMergeParameters = roomMergeParameters;
         }
         #endregion
 
         #region design
-        public FloorPlanBuilder Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<Vector2> footprint, IReadOnlyList<IReadOnlyList<Subsection>> sections, float wallThickness, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals)
+        public Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<Vector2> footprint, IReadOnlyList<IReadOnlyList<Subsection>> sections, float wallThickness, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals)
         {
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
@@ -70,11 +76,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             Contract.Requires(sections != null && sections.Count == footprint.Count);
             Contract.Requires(overlappingVerticals != null && Contract.ForAll(overlappingVerticals, o => o != null));
             Contract.Requires(startingVerticals != null && Contract.ForAll(startingVerticals, s => s != null));
-            Contract.Ensures(Contract.Result<FloorPlanBuilder>() != null);
+            Contract.Ensures(Contract.Result<Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>>() != null);
 
             var region = CreateRegion(footprint, sections);
 
-            var planner = new FloorPlanner(random, metadata, finder, wallThickness, _wallGrowthParameters);
+            var planner = new FloorPlanner(random, metadata, finder, wallThickness, _wallGrowthParameters, _roomMergeParameters);
             return planner.Plan(region, overlappingVerticals, startingVerticals, _spaces);
         }
 
@@ -158,6 +164,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             public string Description { get; [UsedImplicitly] set; }
 
             public WallGrowthParameters.Container GrowthParameters { get; [UsedImplicitly] set; }
+            public FloorPlanner.MergingParameters.Container MergeParameters { get; [UsedImplicitly] set; }
 
             public List<BaseSpaceSpec.BaseContainer> Spaces { get; [UsedImplicitly] set; }
             // ReSharper restore CollectionNeverUpdated.Global
@@ -170,7 +177,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     Guid.Parse(Id ?? Guid.NewGuid().ToString()),
                     Description ?? "",
                     Spaces.Select(a => a.Unwrap()).ToArray(),
-                    GrowthParameters.Unwrap()
+                    GrowthParameters.Unwrap(),
+                    FloorPlanner.MergingParameters.Container.UnwrapDefault(MergeParameters)
                 );
             }
         }

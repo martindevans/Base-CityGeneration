@@ -409,6 +409,9 @@ namespace Base_CityGeneration.Elements.Building.Design
 
         public static BuildingDesigner Deserialize(TextReader reader)
         {
+            Contract.Requires(reader != null);
+            Contract.Ensures(Contract.Result<BuildingDesigner>() != null);
+
             var s = CreateSerializer();
 
             return s.Deserialize<Container>(reader).Unwrap();

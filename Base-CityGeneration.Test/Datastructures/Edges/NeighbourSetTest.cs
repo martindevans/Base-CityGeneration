@@ -96,6 +96,19 @@ namespace Base_CityGeneration.Test.Datastructures.Edges
         }
 
         [TestMethod]
+        public void AssertThat_ColinnearSegments_AreNeighbours_WithVeryLargeDistances()
+        {
+            _set.Add(new LineSegment2(new Vector2(0, 0), new Vector2(10, 0)), 7);
+            _set.Add(new LineSegment2(new Vector2(0, 100), new Vector2(10, 100)), 8);
+
+            var neighbours = _set.Neighbours(new LineSegment2(new Vector2(0, 0), new Vector2(10, 0)), 0, 500f).ToArray();
+
+            // ReSharper disable once ExceptionNotDocumented
+            Assert.AreEqual(1, neighbours.Length);
+            Assert.AreEqual(8, neighbours.Single().Value);
+        }
+
+        [TestMethod]
         public void AssertThat_ParallelButNearlyColinnearSegments_AreNotNeighbours()
         {
             _set.Add(new LineSegment2(new Vector2(0, 0), new Vector2(10, 0)), 7);

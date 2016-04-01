@@ -5,13 +5,14 @@ using Placeholder.AI.Pathfinding.Graph.NavigationMesh;
 
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
-    public class Face<TVertexTag, THalfEdgeTag, TFaceTag>
+    public class Face<TV, TE, TF>
+        : BaseTagged<TF, IFaceTag<TV, TE, TF>, Face<TV, TE, TF>>
     {
         #region fields
         /// <summary>
         /// One of the half edges bounding this face
         /// </summary>
-        public HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> Edge { get; internal set; }
+        public HalfEdge<TV, TE, TF> Edge { get; internal set; }
 
         private readonly int _uid;
         internal int Id
@@ -19,35 +20,13 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             get { return _uid; }
         }
 
-        private TFaceTag _tag;
-        /// <summary>
-        /// The tag attached to this face (may be null).
-        /// If this tag implements IFaceTag then Attach and Detach will be called appropriately
-        /// </summary>
-        public TFaceTag Tag
-        {
-            get { return _tag; }
-            set
-            {
-                var oldTag = _tag as IFaceTag<TVertexTag, THalfEdgeTag, TFaceTag>;
-                if (oldTag != null)
-                    oldTag.Detach(this);
-
-                var newTag = value as IFaceTag<TVertexTag, THalfEdgeTag, TFaceTag>;
-                if (newTag != null)
-                    newTag.Attach(this);
-
-                _tag = value;
-            }
-        }
-
-        public IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>> Edges
+        public IEnumerable<HalfEdge<TV, TE, TF>> Edges
         {
             get
             {
-                Contract.Ensures(IsDeleted || Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
-                Contract.Ensures(IsDeleted || Contract.ForAll(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>(), h => h != null));
-                Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                Contract.Ensures(IsDeleted || Contract.Result<IEnumerable<HalfEdge<TV, TE, TF>>>() != null);
+                Contract.Ensures(IsDeleted || Contract.ForAll(Contract.Result<IEnumerable<HalfEdge<TV, TE, TF>>>(), h => h != null));
+                Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TV, TE, TF>>>() != null);
 
                 var e = Edge;
                 do
@@ -62,13 +41,13 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             }
         }
 
-        public IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>> Neighbours
+        public IEnumerable<Face<TV, TE, TF>> Neighbours
         {
             get
             {
-                Contract.Ensures(IsDeleted || Contract.Result<IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
-                Contract.Ensures(IsDeleted || Contract.ForAll(Contract.Result<IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>>>(), f => f != null));
-                Contract.Ensures(Contract.Result<IEnumerable<Face<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                Contract.Ensures(IsDeleted || Contract.Result<IEnumerable<Face<TV, TE, TF>>>() != null);
+                Contract.Ensures(IsDeleted || Contract.ForAll(Contract.Result<IEnumerable<Face<TV, TE, TF>>>(), f => f != null));
+                Contract.Ensures(Contract.Result<IEnumerable<Face<TV, TE, TF>>>() != null);
 
                 return Edges
                     .Select(e => e.Pair.Face)
@@ -77,13 +56,13 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             }
         }
 
-        public IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> Vertices
+        public IEnumerable<Vertex<TV, TE, TF>> Vertices
         {
             get
             {
-                Contract.Ensures(IsDeleted || Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
-                Contract.Ensures(IsDeleted || Contract.ForAll(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>(), v => v != null));
-                Contract.Ensures(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+                Contract.Ensures(IsDeleted || Contract.Result<IEnumerable<Vertex<TV, TE, TF>>>() != null);
+                Contract.Ensures(IsDeleted || Contract.ForAll(Contract.Result<IEnumerable<Vertex<TV, TE, TF>>>(), v => v != null));
+                Contract.Ensures(Contract.Result<IEnumerable<Vertex<TV, TE, TF>>>() != null);
 
                 return (from e in Edges
                         select e.EndVertex);
@@ -104,9 +83,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         }
 
         internal class Comparer
-            : IComparer<Face<TVertexTag, THalfEdgeTag, TFaceTag>>
+            : IComparer<Face<TV, TE, TF>>
         {
-            public int Compare(Face<TVertexTag, THalfEdgeTag, TFaceTag> a, Face<TVertexTag, THalfEdgeTag, TFaceTag> b)
+            public int Compare(Face<TV, TE, TF> a, Face<TV, TE, TF> b)
             {
                 return a.Id.CompareTo(b.Id);
             }
