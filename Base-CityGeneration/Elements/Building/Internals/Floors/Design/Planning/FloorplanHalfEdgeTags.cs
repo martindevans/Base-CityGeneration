@@ -5,6 +5,7 @@ using System.Linq;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Extensions;
 using System.Numerics;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Myre.Extensions;
 using Placeholder.ConstructiveSolidGeometry;
 using SwizzleMyVectors.Geometry;
@@ -33,15 +34,18 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
         public bool Mergeable { get; private set; }
 
-        public FloorplanFaceTag(bool mergeable)
+        public RoomSpec Spec { get; private set; }
+
+        public FloorplanFaceTag(bool mergeable, RoomSpec spec = null)
         {
-            //todo: pass in information indicating if this already has a spacespec assigned (e.g. vertical element)
-            //Use this data instead of passing in a bool directly
             Mergeable = mergeable;
+            Spec = spec;
         }
 
         public override void Attach(Face<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> f)
         {
+            Contract.Requires(f != null);
+
             base.Attach(f);
 
             AngularDeviation = CalculateAngularDeviation(f.Edges);
@@ -51,6 +55,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         #region convexity
         private static float CalculateConvexity(IEnumerable<Vector2> vertices)
         {
+            Contract.Requires(vertices != null);
+
             var area = vertices.Area();
             var convexHullArea = vertices.ConvexHull().Area();
 
@@ -59,6 +65,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
         public static float CalculateConvexity(IEnumerable<Vertex<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>> vertices)
         {
+            Contract.Requires(vertices != null);
+
             return CalculateConvexity(vertices.Select(v => v.Position));
         }
         #endregion
@@ -92,6 +100,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
         private static float CalculateAngularDeviation(IEnumerable<float> dots)
         {
+            Contract.Requires(dots != null);
+
             return (float)Math.Sqrt(
                 dots
                     .Where(dot => !dot.TolerantEquals(1, 0.015192f)) //Exclude angles which are nearly 0 degrees (to within 10 degrees)

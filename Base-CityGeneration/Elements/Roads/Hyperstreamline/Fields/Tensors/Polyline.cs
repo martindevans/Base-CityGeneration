@@ -4,7 +4,7 @@ using System.Numerics;
 using JetBrains.Annotations;
 using Myre.Collections;
 using SwizzleMyVectors.Geometry;
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
 {

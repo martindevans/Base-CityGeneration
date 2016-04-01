@@ -15,7 +15,7 @@ using Myre.Collections;
 using Myre.Extensions;
 using SwizzleMyVectors;
 
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Elements.Building.Facades
 {

@@ -1,11 +1,9 @@
 ﻿using Base_CityGeneration.Elements.Roads.Hyperstreamline;
 using Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Scalars;
-using Base_CityGeneration.Utilities.Numbers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Numerics;
 using System.IO;
 using Myre.Collections;
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Test.Elements.Roads.Hyperstreamline
 {
@@ -45,7 +43,7 @@ Minor:
 
             var c = d.Major(() => 1, new NamedBoxCollection());
 
-            Assert.AreEqual(22.5f, MathHelper.ToDegrees(c.SearchConeAngle), 0.001f);
+            Assert.AreEqual(22.5f, c.SearchConeAngle.ToDegrees(), 0.001f);
             Assert.AreEqual(25f, c.MergeDistance);
             Assert.AreEqual(10f, c.SegmentLength);
 
@@ -88,7 +86,7 @@ Minor:
 "));
             var c = d.Major(() => 1, new NamedBoxCollection());
 
-            Assert.AreEqual(22.5f, MathHelper.ToDegrees(c.SearchConeAngle), 0.001f);
+            Assert.AreEqual(22.5f, c.SearchConeAngle.ToDegrees(), 0.001f);
             Assert.AreEqual(25f, c.MergeDistance);
             Assert.AreEqual(10f, c.SegmentLength);
 

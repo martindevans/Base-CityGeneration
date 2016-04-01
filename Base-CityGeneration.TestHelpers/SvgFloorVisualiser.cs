@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Xml.Linq;
-using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using System.Numerics;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric;
 
 namespace Base_CityGeneration.TestHelpers
 {
@@ -12,13 +13,13 @@ namespace Base_CityGeneration.TestHelpers
     {
         public static XElement FloorNodeToSvg(IFloorTester tester, params Vector2[] footprint)
         {
-            var plan = new FloorPlanBuilder(new ReadOnlyCollection<Vector2>(footprint));
+            var plan = new GeometricFloorplan(new ReadOnlyCollection<Vector2>(footprint));
             tester.CreateRooms(plan);
 
             return FloorplanToSvg(plan);
         }
 
-        public static XElement FloorplanToSvg(FloorPlanBuilder plan, float scalePosition = 1)
+        public static XElement FloorplanToSvg(IFloorPlanBuilder plan, float scalePosition = 1)
         {
             var rand = new Random();
 
@@ -33,7 +34,7 @@ namespace Base_CityGeneration.TestHelpers
                 var room = r.room;
 
                 //Sections
-                foreach (var facade in room.GetFacades())
+                foreach (var facade in room.GetWalls())
                 {
                     string c = "blue";
                     if (facade.IsExternal && facade.Section.IsCorner)
@@ -48,9 +49,9 @@ namespace Base_CityGeneration.TestHelpers
                     elements.Add(ToSvgPath(new[] { facade.Section.A * scalePosition, facade.Section.B * scalePosition, facade.Section.C * scalePosition, facade.Section.D * scalePosition }, c, fill: "none"));
                 }
 
-                var scr = room.Scripts.FirstOrDefault();
-                if (scr != null)
-                    elements.Add(ToSvgText((room.InnerFootprint.Aggregate((a, b) => a + b) / room.InnerFootprint.Count) * scalePosition, scr.Name, fontSize: 7));
+                //var scr = room.Scripts.FirstOrDefault();
+                //if (scr != null)
+                //    elements.Add(ToSvgText((room.InnerFootprint.Aggregate((a, b) => a + b) / room.InnerFootprint.Count) * scalePosition, scr.Name, fontSize: 7));
             }
 
             const int w = 1000;
@@ -89,8 +90,8 @@ namespace Base_CityGeneration.TestHelpers
 
         private static XElement ToSvgPath(IEnumerable<Vector2> points, string stroke, string fill = "white", float opacity = 0.75f)
         {
-            var d = String.Format("M{0} {1}", points.First().X, points.First().Y) +
-                String.Join(" ", points.Select(p => string.Format("L{0} {1}", p.X, p.Y))) + " Z";
+            var d = string.Format("M{0} {1}", points.First().X, points.First().Y) +
+                string.Join(" ", points.Select(p => string.Format("L{0} {1}", p.X, p.Y))) + " Z";
 
             return new XElement("path",
                 new XAttribute("d", d),
@@ -103,6 +104,6 @@ namespace Base_CityGeneration.TestHelpers
 
     public interface IFloorTester
     {
-        void CreateRooms(FloorPlanBuilder plan);
+        void CreateRooms(IFloorPlanBuilder plan);
     }
 }

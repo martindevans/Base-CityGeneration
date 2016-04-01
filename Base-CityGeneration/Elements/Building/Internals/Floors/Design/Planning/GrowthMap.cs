@@ -10,6 +10,7 @@ using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural;
 using HandyCollections.Heap;
 using JetBrains.Annotations;
+using MathHelperRedux;
 using Myre.Collections;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
@@ -133,8 +134,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
             public WallGrowthParameters Unwrap()
             {
-                Contract.Assert(SeedSpacing != null);
-                Contract.Assert(SeedChance != null);
+                Contract.Assume(SeedSpacing != null);
+                Contract.Assume(SeedChance != null);
 
                 //Get parallel parameters (or use defaults)
                 var defaultParallel = new ParallelCheckParameters
@@ -150,7 +151,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                     IValueGeneratorContainer.FromObject(SeedChance, 0.5f),
                     IValueGeneratorContainer.FromObject(parallelParams.Length, defaultParallel.Length),
                     IValueGeneratorContainer.FromObject(parallelParams.Width, defaultParallel.Width),
-                    IValueGeneratorContainer.FromObject(parallelParams.Angle, defaultParallel.Angle).Transform(Microsoft.Xna.Framework.MathHelper.ToRadians),
+                    IValueGeneratorContainer.FromObject(parallelParams.Angle, defaultParallel.Angle).Transform(MathHelper.ToRadians),
                     IValueGeneratorContainer.FromObject(IntersectionContinuationChance, 0.75f)
                 );
             }
@@ -209,6 +210,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         public GrowthMap(IReadOnlyList<Vector2> outline, IReadOnlyList<IReadOnlyList<Vector2>> internalRooms, Func<double> random, INamedDataCollection metadata, WallGrowthParameters parameters)
         {
             Contract.Requires(outline != null);
+            Contract.Requires(internalRooms != null);
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
             Contract.Requires(parameters != null);
@@ -255,6 +257,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         #region growth
         private void GrowSeed(Seed seed)
         {
+            Contract.Requires(seed != null);
+
             //Decide how far we're going to grow this seed
             var length = _seedDistance.SelectFloatValue(_random, _metadata);
             if (length < 0)
@@ -352,6 +356,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
         private KeyValuePair<MHEdge, float>? FindFirstParallelEdge(Seed seed, float length, float distance, float parallelThreshold)
         {
+            Contract.Requires(seed != null);
+
             var start = seed.Origin.Position;
             var end = seed.Origin.Position + seed.Direction * length;
             var segment = new LineSegment2(start, end);
@@ -472,6 +478,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         #region initialisation
         private void CreateOutline(IEnumerable<Vector2> shape, bool createFace)
         {
+            Contract.Requires(shape != null);
+
             var vertices = (IReadOnlyList<MVertex>)shape.Select(_mesh.GetOrConstructVertex).ToArray();
             var edges = new List<MHEdge>(vertices.Count * 3);
 
@@ -558,8 +566,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         /// <param name="b"></param>
         /// <param name="edges"></param>
         /// <returns></returns>
-        private void CreateImpassableEdge(MVertex a, MVertex b, List<MHEdge> edges = null)
+        private void CreateImpassableEdge(MVertex a, MVertex b, ICollection<MHEdge> edges = null)
         {
+            Contract.Requires(a != null);
+            Contract.Requires(b != null);
+
             //step along the gap between these vertices in steps of *seedDistance* placing vertices
             var direction = b.Position - a.Position;
             var totalLength = direction.Length();

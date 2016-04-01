@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Numerics;
 using SwizzleMyVectors.Geometry;
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Datastructures.Edges
 {
@@ -32,7 +32,7 @@ namespace Base_CityGeneration.Datastructures.Edges
 
             var angle = Angle(query);
             var lowKey = ToKey(angle - angularTolerance);
-            var highKey = ToKey(angle + angularTolerance + 1);
+            var highKey = ToKey(angle + angularTolerance);
             var queryLine = query.LongLine;
             var distanceToleranceSq = distanceTolerance * distanceTolerance;
 
@@ -122,7 +122,7 @@ namespace Base_CityGeneration.Datastructures.Edges
 
         private static int ToKey(float angle)
         {
-            var degrees = MathHelper.ToDegrees(angle);
+            var degrees = angle.ToDegrees();
             while (degrees < 0)
                 degrees += 360;
             return (int)(degrees % 180);

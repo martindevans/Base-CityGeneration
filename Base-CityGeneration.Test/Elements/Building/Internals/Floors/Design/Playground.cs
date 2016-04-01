@@ -6,7 +6,6 @@ using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
 using Base_CityGeneration.Test.Elements.Building.Design;
-using Base_CityGeneration.TestHelpers;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Testing.MockScripts;
@@ -37,22 +36,22 @@ Tags:
 # Aliases block is just a list of items, not used by the system. Handy place to define objects which will be used later in the markup
 Aliases:
     # A single room, with a set of constraints
-    - &lounge !Room
-      Id: Lounge
-      Walkthrough: true
+    - &office !Room
+      Id: Office
+      Walkthrough: false
       Tags:
-        1: { LivingRoom }
+        1: { Office }
 #      Constraints: []
 #         - { Strength: 1,    Req: !ExteriorWindow { } }
 #         - { Strength: 0.5,  Req: !ExteriorDoor { Deny: true } }
 #         - { Strength: 0.5,  Req: !Area { Min: 11 } }
 
-    # An apartment
-    - &apartment !Group
-      Id: Apartment
+    # A group of rooms
+    - &office_group !Group
+      Id: Offices
       Children:
-        - *lounge
-        - *lounge
+        - *office
+        - *office
 
 GrowthParameters:
     SeedSpacing: !NormalValue { Min: 2.5, Mean: 5, Max: 6.5, Vary: true }
@@ -62,11 +61,21 @@ GrowthParameters:
         Length: 1
         Width: 3.5
         Angle: 15
+MergeParameters:
+    AngularDeviation:
+        Weight: 0.4
+        Threshold: 0.5
+    Convexity:
+        Weight: 0.3
+        Threshold: 0.9
+    Area:
+        Weight: 0.3
+        Threshold: 100
 
 Spaces:
     - !Repeat
       Count: !NormalValue { Min: 1, Max: 100 }
-      Space: *apartment
+      Space: *office_group
 "));
 
             Func<IEnumerable<KeyValuePair<string, string>>, Type[], ScriptReference> finder = (tags, types) =>
@@ -153,8 +162,8 @@ Spaces:
             //    new Subsection[0],
             //};
 
-            var floorplan = designer.Design(random, metadata, finder, shape, sections, 0.075f, verticals, new List<VerticalSelection>());
-            //Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 4).ToString());
+            //var floorplan = designer.Design(random, metadata, finder, shape, sections, 0.075f, verticals, new List<VerticalSelection>());
+            //Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 15).ToString());
         }
     }
 }

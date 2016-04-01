@@ -2,7 +2,7 @@
 using Myre.Collections;
 using System;
 using System.Diagnostics.Contracts;
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Styles
 {

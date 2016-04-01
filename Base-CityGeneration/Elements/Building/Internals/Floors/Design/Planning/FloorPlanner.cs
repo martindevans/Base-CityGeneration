@@ -6,12 +6,12 @@ using Base_CityGeneration.Datastructures.Extensions;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
-using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
+using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Scripts;
 using HandyCollections.Heap;
+using JetBrains.Annotations;
 using Myre.Collections;
-using PrimitiveSvgBuilder;
 
 using Face = Base_CityGeneration.Datastructures.HalfEdge.Face<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using HalfEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
@@ -27,43 +27,86 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
     /// </summary>
     internal class FloorPlanner
     {
+        #region helper class
+        public class MergingParameters
+        {
+            public IValueGenerator AngularWeight { get; set; }
+            public IValueGenerator AngularThreshold { get; set; }
+            public IValueGenerator ConvexWeight { get; set; }
+            public IValueGenerator ConvexThreshold { get; set; }
+            public IValueGenerator AreaWeight { get; set; }
+            public IValueGenerator AreaThreshold { get; set; }
+
+            private MergingParameters(IValueGenerator angularWeight, IValueGenerator angularThreshold, IValueGenerator convexWeight, IValueGenerator convexThreshold, IValueGenerator areaWeight, IValueGenerator areaThreshold)
+            {
+                AngularWeight = angularWeight;
+                AngularThreshold = angularThreshold;
+                ConvexWeight = convexWeight;
+                ConvexThreshold = convexThreshold;
+                AreaWeight = areaWeight;
+                AreaThreshold = areaThreshold;
+            }
+
+            internal class Container
+                : IUnwrappable<MergingParameters>
+            {
+                public struct MergeParamPair
+                {
+                    public object Weight { get; [UsedImplicitly] set; }
+                    public object Threshold { get; [UsedImplicitly] set; }
+
+                    public MergeParamPair(object weight, object threshold)
+                        : this()
+                    {
+                        Weight = weight;
+                        Threshold = threshold;
+                    }
+                }
+
+                public MergeParamPair? AngularDeviation { get; [UsedImplicitly] set; }
+                public MergeParamPair? Convexity { get; [UsedImplicitly] set; }
+                public MergeParamPair? Area { get; [UsedImplicitly] set; }
+
+                public MergingParameters Unwrap()
+                {
+                    var defaultAngular = new MergeParamPair(0.4f, 0.5f);
+                    var angular = AngularDeviation == null ? defaultAngular : new MergeParamPair(AngularDeviation.Value.Weight ?? defaultAngular.Weight, AngularDeviation.Value.Threshold ?? defaultAngular.Threshold);
+
+                    var defaultConvex = new MergeParamPair(0.3f, 0.9f);
+                    var convex = Convexity == null ? defaultConvex : new MergeParamPair(Convexity.Value.Weight ?? defaultConvex.Weight, Convexity.Value.Threshold ?? defaultConvex.Threshold);
+
+                    var defaultArea = new MergeParamPair(0.3f, 100);
+                    var area = Area == null ? defaultArea : new MergeParamPair(Area.Value.Weight ?? defaultArea.Weight, Area.Value.Threshold ?? defaultArea.Threshold);
+
+                    return new MergingParameters(
+                        IValueGeneratorContainer.FromObject(angular.Weight),
+                        IValueGeneratorContainer.FromObject(angular.Threshold),
+                        IValueGeneratorContainer.FromObject(convex.Weight),
+                        IValueGeneratorContainer.FromObject(convex.Threshold),
+                        IValueGeneratorContainer.FromObject(area.Weight),
+                        IValueGeneratorContainer.FromObject(area.Threshold)
+                    );
+                }
+
+                public static MergingParameters UnwrapDefault(Container maybeContainer)
+                {
+                    return (maybeContainer ?? new Container()).Unwrap();
+                }
+            }
+        }
+        #endregion
+
+        #region fields and properties
         private readonly Func<double> _random;
         private readonly INamedDataCollection _metadata;
         private readonly Func<KeyValuePair<string, string>[], Type[], ScriptReference> _finder;
         private readonly float _wallThickness;
         private readonly WallGrowthParameters _wallGrowthParameters;
+        private readonly MergingParameters _mergeParameters;
+        #endregion
 
-        /// <summary>
-        /// The weight of angular deviation over threshold to include in the merging score
-        /// </summary>
-        private readonly float _angularDeviationMergeWeight = 0.4f;
-
-        /// <summary>
-        /// The threshold which angular deviation must be above to be considered for merging (0 is no deviation, i.e. all angles are the same. 2Pi is max deviation)
-        /// </summary>
-        private readonly float _angularDeviationMergeThreshold = 0.5f;
-
-        /// <summary>
-        /// The weight of convexity over threshold to include in the merging score
-        /// </summary>
-        private readonly float _convexityMergeWeight = 0.3f;
-
-        /// <summary>
-        /// The threshold which convexity must be below to be considered for merging (1 is perfectly convex)
-        /// </summary>
-        private readonly float _convexityMergeThreshold = 0.9f;
-
-        /// <summary>
-        /// The weight of area over threshold to include in the merging score
-        /// </summary>
-        private readonly float _areaMergeWeight = 0.3f;
-
-        /// <summary>
-        /// Rooms with larger than this area will start being scored against during merging
-        /// </summary>
-        private readonly float _areaMergeThreshold = 100;
-
-        public FloorPlanner(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float wallThickness, WallGrowthParameters wallGrowthParameters)
+        #region constructor
+        public FloorPlanner(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float wallThickness, WallGrowthParameters wallGrowthParameters, MergingParameters mergeParameters)
         {
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
@@ -75,25 +118,98 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             _finder = finder;
             _wallThickness = wallThickness;
             _wallGrowthParameters = wallGrowthParameters;
+            _mergeParameters = mergeParameters;
         }
+        #endregion
 
-        public FloorPlanBuilder Plan(Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
+        public Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> Plan(Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
-            var builder = new FloorPlanBuilder(region.Points.ToArray());
-
-            PlanRegion(builder, region, overlappingVerticals, startingVerticals, spaces);
-
-            return builder;
             throw new NotImplementedException();
+
+            //return Build(
+            //    new FloorPlanBuilder(region.Points.ToArray()),
+            //    PlanRegion(region, overlappingVerticals, startingVerticals, spaces)
+            //);
         }
 
-        private void PlanRegion(FloorPlanBuilder builder, Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
+        //private IFloorPlanBuilder Build(IFloorPlanBuilder builder, Mesh map)
+        //{
+        //    foreach (var face in map.Faces.OrderBy(a => a.Id).Take(4))
+        //    {
+        //        ScriptReference script;
+        //        string id;
+        //        if (face.Tag.Spec != null)
+        //        {
+        //            var selected = face.Tag.Spec.Tags.SelectScript(_random, _finder, typeof(IPlannedRoom));
+        //            if (!selected.HasValue)
+        //                throw new NotImplementedException("No script found");   //todo: fall back to default room?
+
+        //            script = selected.Value.Script;
+        //            id = face.Tag.Spec.Id;
+        //        }
+        //        else
+        //        {
+        //            //todo: what should we use for default rooms? maybe parameterize this
+        //            script = new ScriptReference(typeof(EmptyRoom));
+        //            id = "default";
+        //        }
+
+        //        var room = builder.AddRoom(face.Vertices.Select(a => a.Position), _wallThickness, new[] { script }, id);
+        //        if (room == null)
+        //            throw new InvalidOperationException("A room was split when building a planned floor");
+        //    }
+
+        //    return builder;
+        //}
+
+        private Mesh PlanRegion(Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
+            Contract.Requires(region != null);
+            Contract.Requires(overlappingVerticals != null);
+            Contract.Requires(startingVerticals != null);
+            Contract.Requires(spaces != null);
+
             //Grow floorplan for region
             var map = new GrowthMap(region.Points.ToArray(), overlappingVerticals, _random, _metadata, _wallGrowthParameters).Grow();
 
-            //todo: remove temp visualisation code
-            var svg = new SvgBuilder(10);
+            //Remove oddly shaped rooms
+            ReduceFaces(map);
+
+            ////todo: remove temp visualisation code
+            //var svg = new SvgBuilder(10);
+            //foreach (var edge in map.HalfEdges.Where(a => a.IsPrimaryEdge))
+            //    svg.Line(edge.StartVertex.Position, edge.EndVertex.Position, 1, "black");
+            //foreach (var vertex in map.Vertices)
+            //    svg.Circle(vertex.Position, 0.2f, "black");
+            //Console.WriteLine(svg.ToString());
+
+            //todo: order specs by constraints (most difficult to solve first), assign specs to spaces generated (best fit)
+            //todo: connectivity (doors + corridors)
+            //todo: recursive for groups
+
+            return map;
+        }
+
+        #region removing/merging faces
+        /// <summary>
+        /// Apply merging rules to reduce faces (removing oddly shaped faces)
+        /// </summary>
+        private void ReduceFaces(Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> map)
+        {
+            //Calculate parameters for merging
+            var angularWeight = _mergeParameters.AngularWeight.SelectFloatValue(_random, _metadata);
+            var convexWeight = _mergeParameters.ConvexWeight.SelectFloatValue(_random, _metadata);
+            var areaWeight = _mergeParameters.AreaWeight.SelectFloatValue(_random, _metadata);
+
+            //Normalize weights into (0 -> 1 range)
+            var totalWeight = (angularWeight + areaWeight + convexWeight);
+            angularWeight /= totalWeight;
+            convexWeight /= totalWeight;
+            areaWeight /= totalWeight;
+
+            var angularThreshold = _mergeParameters.AngularThreshold.SelectFloatValue(_random, _metadata);
+            var convexityThreshold = _mergeParameters.ConvexThreshold.SelectFloatValue(_random, _metadata);
+            var areaThreshold = _mergeParameters.AreaThreshold.SelectFloatValue(_random, _metadata);
 
             //Keep repeating this loop (tightening the boudns each time) until an iteration does no work (i.e. merges nothing)
             var iterations = 0;
@@ -102,19 +218,20 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             {
                 workDone = 0;
 
-                var angDeviationThreshold = Math.Pow(_angularDeviationMergeThreshold, 1f / (iterations + 1));
-                var convThreshold = Math.Pow(_convexityMergeThreshold, iterations + 1);
+                var angDeviationThreshold = Math.Pow(angularThreshold, 1f / (iterations + 1));
+                var convThreshold = Math.Pow(convexityThreshold, iterations + 1);
 
                 //Remove faces with angular deviation too high or convexity too low
                 workDone += RemoveFaces(map,
                     a => a.Tag.AngularDeviation > angDeviationThreshold || a.Tag.Convexity < convThreshold,
                     a => a.Tag.Mergeable,
-                    a => {
-                        var invAdjArea = 1 / Math.Max(1, a.Select(v => v.Position).Area() - _areaMergeThreshold);
+                    a =>
+                    {
+                        var invAdjArea = 1 / Math.Max(1, a.Select(v => v.Position).Area() - areaThreshold);
                         var invAngDev = 1 - FloorplanFaceTag.CalculateAngularDeviation(a);
                         var convexity = FloorplanFaceTag.CalculateConvexity(a);
 
-                        return (_angularDeviationMergeWeight * invAngDev) + (_convexityMergeWeight * convexity) + (_areaMergeWeight * invAdjArea);
+                        return (angularWeight * invAngDev) + (convexWeight * convexity) + (areaWeight * invAdjArea);
                     },
                     MergeTags,
                     1
@@ -123,53 +240,30 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 iterations++;
 
             } while (workDone > 0);
-
-            //todo: remove temp visualisation code
-            foreach (var face in map.Faces)
-            {
-                string col;
-                float? value = null;
-                if (!face.Tag.Mergeable)
-                    col = "darkgray";
-                else
-                {
-                    ////Angular variance highlighting
-                    //value = face.Tag.AngularDeviation;
-                    //col = string.Format("rgb({0},0,255)", (int)Math.Min(255, 255f * value.Value));
-                    //if (value < 0)
-                    //    col = "white";
-
-                    ////Convexity highlighting
-                    //value = face.Tag.Convexity;
-                    //col = string.Format("rgb({0},0,255)", (int)Math.Min(255, 255f * value.Value));
-                    //if (value > 0.9)
-                    //    col = "white";
-                }
-
-                //svg.Outline(face.Vertices.Select(a => a.Position).ToArray(), stroke: "none", fill: col);
-                //if (value.HasValue)
-                //    svg.Text(value.Value.ToString("#.###"), face.Vertices.Select(a => a.Position).Aggregate((a, b) => a + b) / face.Vertices.Count(), fontSize: 10);
-            }
-            foreach (var edge in map.HalfEdges.Where(a => a.IsPrimaryEdge))
-            {
-                svg.Line(edge.StartVertex.Position, edge.EndVertex.Position, 1, "black");
-            }
-            foreach (var vertex in map.Vertices)
-                svg.Circle(vertex.Position, 0.2f, "black");
-            Console.WriteLine(svg.ToString());
-
-            //todo: order specs by constraints (most difficult to solve first), assign specs to spaces generated (best fit)
-            //todo: connectivity (doors + corridors)
-            //todo: recursive for groups
         }
 
-        #region removing/merging faces
+        /// <summary>
+        /// Merge 2 floorplan tags togehter
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         private static FloorplanFaceTag MergeTags(FloorplanFaceTag a, FloorplanFaceTag b)
         {
             Contract.Requires(a != null && a.Mergeable);
             Contract.Requires(b != null && b.Mergeable);
 
-            return new FloorplanFaceTag(true);
+            //Choose the non null spec (if either are not null)
+            RoomSpec spec = null;
+            if (a.Spec != null ^ b.Spec != null)
+                spec = a.Spec ?? b.Spec;
+            else if (a.Spec != null && b.Spec != null)
+                throw new NotImplementedException("Both faces in merge already have a room assigned");
+
+            return new FloorplanFaceTag(
+                true,   //A and B must be mergeable (see contract) so therefore this must be mergeable
+                spec
+            );
         }
 
         /// <summary>
@@ -186,7 +280,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         {
             Contract.Requires(mesh != null);
             Contract.Requires(predicate != null);
+            Contract.Requires(mergeCandidate != null);
             Contract.Requires(score != null);
+            Contract.Requires(merge != null);
 
             //Remove faces which pass the predicates (keep repeating until we find no more to merge)
             int merged;
@@ -235,6 +331,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             return removedCount;
         }
 
+        /// <summary>
+        /// Try to merge the given face with any neighbour which is a merge candidate. Try merges in order of score (best to worst)
+        /// </summary>
+        /// <param name="mesh"></param>
+        /// <param name="faceToRemove"></param>
+        /// <param name="isMergeCandidate"></param>
+        /// <param name="scoreFunc"></param>
+        /// <param name="removed"></param>
+        /// <returns></returns>
         private static Face TryMerge(Mesh mesh, Face faceToRemove, Func<Face, bool> isMergeCandidate, Func<IEnumerable<Vertex>, float> scoreFunc, out IEnumerable<Face> removed)
         {
             Contract.Requires(mesh != null);
@@ -271,8 +376,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             return null;
         }
 
+        /// <summary>
+        /// Create a new face with the given set of vertices, deleting all faces which are within those bounds.
+        /// Do not merge (returns null) if this would create topologically invalid shape
+        /// </summary>
+        /// <param name="mesh"></param>
+        /// <param name="vertices"></param>
+        /// <param name="merged"></param>
+        /// <returns></returns>
         private static Face MergeFaces(Mesh mesh, IReadOnlyList<Vertex> vertices, out IEnumerable<Face> merged)
         {
+            Contract.Requires(mesh != null);
+            Contract.Requires(vertices != null);
+
             //Walk edges of this new shape and find all the faces *inside* (i.e. one we're replacing)
             var faces = new HashSet<Face<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>>();
             for (var i = 0; i < vertices.Count; i++)

@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
 using SwizzleMyVectors.Geometry;
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Elements.Building.Facades
 {
@@ -52,6 +53,8 @@ namespace Base_CityGeneration.Elements.Building.Facades
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<BaseFacade.Stamp>>() != null);
+
                 //Transform stamp from parent space into subsection space, discard stamps which do not overlap this subsection
                 return from stamp in _parent.Stamps
 
@@ -63,8 +66,8 @@ namespace Base_CityGeneration.Elements.Building.Facades
                        )
 
                        //Check stamp intersects subsection (in depth)
-                       where MathHelper.Min(remapped.StartDepth, remapped.EndDepth) <= (_minDepth + _rangeDepth)
-                       where MathHelper.Max(remapped.StartDepth, remapped.EndDepth) >= _minDepth
+                       where Math.Min(remapped.StartDepth, remapped.EndDepth) <= (_minDepth + _rangeDepth)
+                       where Math.Max(remapped.StartDepth, remapped.EndDepth) >= _minDepth
 
                        //Calculate bounding box of stamp (in subsection space)
                        let xs = (from xy in remapped.Shape select xy.X)

@@ -91,6 +91,8 @@ namespace Base_CityGeneration.Datastructures.Extensions
 
         private static IEnumerable<HalfEdge<TVTag, THTag, TFTag>> TryWalkClosedClockwisePath<TVTag, THTag, TFTag>(HalfEdge<TVTag, THTag, TFTag> edge)
         {
+            Contract.Requires(edge != null);
+
             //Path we have walked
             var path = new OrderedSet<HalfEdge<TVTag, THTag, TFTag>> { edge };
 
@@ -126,6 +128,8 @@ namespace Base_CityGeneration.Datastructures.Extensions
 
         private static HalfEdge<TVTag, THTag, TFTag> SelectTightestClockwiseTurn<TVTag, THTag, TFTag>(HalfEdge<TVTag, THTag, TFTag> edge)
         {
+            Contract.Requires(edge != null);
+
             var dir = Vector2.Normalize(edge.EndVertex.Position - edge.StartVertex.Position);
 
             //Find the edge which makes the *largest* turn:
@@ -308,6 +312,61 @@ namespace Base_CityGeneration.Datastructures.Extensions
             foreach (var vertex in vertices)
                 if (!vertex.IsDeleted)
                     mesh.Delete(vertex);
+        }
+        #endregion
+
+        #region tags
+        /// <summary>
+        /// Get the tags of the edges leading *away* from this vertex, ordered by angle (starting with an arbitrary vertex)
+        /// </summary>
+        /// <typeparam name="TV"></typeparam>
+        /// <typeparam name="TE"></typeparam>
+        /// <typeparam name="TF"></typeparam>
+        /// <param name="vertex"></param>
+        /// <returns></returns>
+        public static IEnumerable<TE> OrderedEdgeTags<TV, TE, TF>(this Vertex<TV, TE, TF> vertex)
+        {
+            Contract.Requires(vertex != null);
+            Contract.Ensures(Contract.Result<IEnumerable<TE>>() != null);
+
+            //Order the edges by their angle around the vertex
+            return (from edge in vertex.Edges
+                    let tag = edge.Pair.Tag
+                    let direction = edge.Pair.Segment.Line.Direction
+                    let angle = (float)Math.Atan2(direction.Y, direction.X)
+                    orderby angle descending
+                    select tag);
+        }
+
+        /// <summary>
+        /// Convert each tag to a new tag, attach the new tag *without* calling detach on the old tag
+        /// </summary>
+        /// <typeparam name="TVTag"></typeparam>
+        /// <typeparam name="THTag"></typeparam>
+        /// <typeparam name="TFTag"></typeparam>
+        /// <param name="mesh"></param>
+        /// <param name="wrapV"></param>
+        /// <param name="wrapE"></param>
+        /// <param name="wrapF"></param>
+        /// <param name="wrap">if true then attach will be called, detach will not. if false, the reverse</param>
+        internal static void WrapTags<TVTag, THTag, TFTag>(
+            this Mesh<TVTag, THTag, TFTag> mesh,
+            Func<Vertex<TVTag, THTag, TFTag>, TVTag> wrapV,
+            Func<HalfEdge<TVTag, THTag, TFTag>, THTag> wrapE,
+            Func<Face<TVTag, THTag, TFTag>, TFTag> wrapF,
+            bool wrap)
+        {
+            Contract.Requires(mesh != null);
+            Contract.Requires(wrapV != null);
+            Contract.Requires(wrapE != null);
+            Contract.Requires(wrapF != null);
+
+            foreach (var vertex in mesh.Vertices)
+                vertex.SetTag(wrapV(vertex), wrap, !wrap);
+            foreach (var halfEdge in mesh.HalfEdges)
+                halfEdge.SetTag(wrapE(halfEdge), wrap, !wrap);
+            foreach (var face in mesh.Faces)
+                face.SetTag(wrapF(face), wrap, !wrap);
         }
         #endregion
     }

@@ -2,6 +2,7 @@
 using Myre.Collections;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using ClipperRedux;
@@ -34,6 +35,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
             c.Execute(ClipType.Intersection, solutions);
 
             var clipperSolution = solutions.Single();
+            Contract.Assume(clipperSolution != null);
 
             if (Clipper.Orientation(clipperSolution))
                 clipperSolution.Reverse();

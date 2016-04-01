@@ -3,10 +3,9 @@
 namespace Base_CityGeneration.Datastructures.HalfEdge
 {
     public interface IVertexTag<TV, TE, TF>
+        : IAttachable<Vertex<TV, TE, TF>>
     {
-        void Attach(Vertex<TV, TE, TF> f);
-
-        void Detach(Vertex<TV, TE, TF> f);
+        Vertex<TV, TE, TF> Vertex { get; }
     }
 
     public abstract class BaseVertexTag<TV, TE, TF>

@@ -62,30 +62,30 @@
       <HintPath>..\packages\ClipperRedux.1.0.0.0\lib\net46\ClipperRedux.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5914.29175, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5914.29177\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5927.29422, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5927.29425\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5914.29177, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5914.29177\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
+    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5927.29425, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5927.29425\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="HandyCollections, Version=5.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\HandyCollections.5.5.0.0\lib\net46\HandyCollections.dll</HintPath>
+    <Reference Include="HandyCollections, Version=5.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HandyCollections.5.6.0.0\lib\net46\HandyCollections.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Mercurial.Net, Version=1.1.1.607, Culture=neutral, PublicKeyToken=9e2fabf3af85dba9, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mercurial.Net.1.1.1.607\lib\net35-Client\Mercurial.Net.dll</HintPath>
+    <Reference Include="MathHelperRedux, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MathHelperRedux.1.0.0.0\lib\net452\MathHelperRedux.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Myre, Version=8.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Myre.8.0.0.0\lib\net46\Myre.dll</HintPath>
+    <Reference Include="Myre, Version=10.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Myre.10.0.0.0\lib\net46\Myre.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Myre.Debugging, Version=4.0.3.0, Culture=neutral, processorArchitecture=x86">
@@ -96,8 +96,8 @@
       <HintPath>..\packages\Myre.Entities.11.0.0.0\lib\net46\Myre.Entities.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Myre.Graphics, Version=11.2.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Myre.Graphics.11.2.0.0\lib\net46\Myre.Graphics.dll</HintPath>
+    <Reference Include="Myre.Graphics, Version=12.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Myre.Graphics.12.0.0.0\lib\net46\Myre.Graphics.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -112,8 +112,8 @@
       <HintPath>..\packages\NLog.4.2.3\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder, Version=3.1.1.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.3.1.1.0\lib\net46\Placeholder.dll</HintPath>
+    <Reference Include="Placeholder, Version=3.2.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.3.2.0.0\lib\net46\Placeholder.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.AI.Control, Version=14.1.1.0, Culture=neutral, processorArchitecture=x86">
@@ -124,24 +124,24 @@
       <HintPath>..\packages\Placeholder.AI.Pathfinding.9.2.1.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.Audio2, Version=5.2.6.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.Audio2.5.2.6.0\lib\net46\Placeholder.Audio2.dll</HintPath>
+    <Reference Include="Placeholder.Audio2, Version=5.2.7.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.Audio2.5.2.7.0\lib\net46\Placeholder.Audio2.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=12.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.12.0.0.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
+    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=12.0.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.12.0.1.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Entities, Version=2.1.1.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>..\packages\Placeholder.Entities.2.1.1.0\lib\net46\Placeholder.Entities.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.Networking, Version=2.2.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.Networking.2.2.0.0\lib\net46\Placeholder.Networking.dll</HintPath>
+    <Reference Include="Placeholder.Networking, Version=2.2.1.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.Networking.2.2.1.0\lib\net46\Placeholder.Networking.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.Serialization, Version=2.4.1.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.Serialization.2.4.1.0\lib\net46\Placeholder.Serialization.dll</HintPath>
+    <Reference Include="Placeholder.Serialization, Version=3.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.Serialization.3.0.0.0\lib\net46\Placeholder.Serialization.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Poly2Tri, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
@@ -200,6 +200,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Datastructures\Edges\NeighbourSetTest.cs" />
+    <Compile Include="Datastructures\HalfEdge\MeshTest.cs" />
     <Compile Include="Datastructures\PathTest.cs" />
     <Compile Include="Datastructures\Ray2DTest.cs" />
     <Compile Include="Datastructures\RectangleTest.cs" />
@@ -215,7 +216,6 @@
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\ShrinkTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\FloorplanRegionTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Playground.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\FloorPlanTest.cs" />
     <Compile Include="Elements\Building\Design\BuildingDesignerTest.cs" />
     <Compile Include="Elements\Building\Design\Playground.cs" />
     <Compile Include="Elements\Building\Design\Spec\FloorSpecTest.cs" />
@@ -223,6 +223,8 @@
     <Compile Include="Elements\Building\Design\Spec\Ref\BaseRefTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\Ref\NumRefTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\Ref\TaggedRefTest.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\FloorPlanTest.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\Plan\MeshExtensionsTest.cs" />
     <Compile Include="Utilities\Numbers\ConstantValueTest.cs" />
     <Compile Include="Utilities\Numbers\MetaValueTest.cs" />
     <Compile Include="Utilities\Numbers\UniformlyDistributedValueTest.cs" />
@@ -247,9 +249,7 @@
       <Name>Base-CityGeneration</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Datastructures\HalfEdge\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />

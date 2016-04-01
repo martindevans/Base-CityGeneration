@@ -1,61 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using Base_CityGeneration.Elements.Building.Internals.Rooms;
-using EpimetheusPlugins.Procedural.Utilities;
-using EpimetheusPlugins.Scripts;
 using System.Numerics;
+using EpimetheusPlugins.Procedural.Utilities;
 using SwizzleMyVectors.Geometry;
 using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
-namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
+namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
 {
-    [DebuggerDisplay("RoomPlan Id={Uid}")]
     public class RoomPlan
+        : IRoomPlan
     {
-        private readonly FloorPlanBuilder _plan;
+        #region fields and properties
+        private readonly GeometricFloorplan _plan;
 
-        public readonly IReadOnlyList<Vector2> InnerFootprint;
-        public readonly IReadOnlyList<Vector2> OuterFootprint;
+        private readonly IReadOnlyList<Vector2> _innerFootprint; 
+        public IReadOnlyList<Vector2> InnerFootprint { get { return _innerFootprint; } }
 
-        public readonly ScriptReference[] Scripts;
-        public readonly float WallThickness;
+        private readonly IReadOnlyList<Vector2> _outerFootprint;
+        public IReadOnlyList<Vector2> OuterFootprint { get { return _outerFootprint; } }
 
-        private readonly string _name;
-        public string Name { get { return _name; } }
+        private readonly float _wallThickness;
+        public float WallThickness { get { return _wallThickness; } }
+        #endregion
 
-        public readonly int Uid;
-
-        public IPlannedRoom Node;
-
-        internal RoomPlan(FloorPlanBuilder plan, Vector2[] footprint, float wallThickness, ScriptReference[] scripts, int uid, string name)
+        #region constructor
+        internal RoomPlan(GeometricFloorplan plan, IReadOnlyList<Vector2> footprint, float wallThickness)
         {
             Contract.Requires(plan != null);
             Contract.Requires(footprint != null);
 
             _plan = plan;
-            InnerFootprint = footprint.Shrink(wallThickness).ToArray();
+            _innerFootprint = footprint.Shrink(wallThickness).ToArray();
 
             //Sometimes shrinking creates a different length array, if so then *unsrink* the shrunk array to create a new outer array (with the same length as the inner one)
-            var outerFootprint = footprint;
+            var outerFootprint = footprint.ToArray();
             if (InnerFootprint.Count != outerFootprint.Length)
                 outerFootprint = InnerFootprint.Shrink(-wallThickness).ToArray();
             Walls.MatchUp(outerFootprint, InnerFootprint);
-            OuterFootprint = outerFootprint;
+            _outerFootprint = outerFootprint;
 
-            Scripts = scripts;
-            WallThickness = wallThickness;
-            Uid = uid;
-            _name = name;
+            _wallThickness = wallThickness;
+        }
+
+        [ContractInvariantMethod]
+        private void ObjectInvariant()
+        {
+            Contract.Invariant(_innerFootprint != null);
+            Contract.Invariant(_outerFootprint != null);
+        }
+        #endregion
+
+        public IEnumerable<Neighbour> Neighbours
+        {
+            get { return _plan.GetNeighbours(this); }
         }
 
         /// <summary>
         /// Get all facades surrounding this room. Facades either reach from the inner wall of this room, to the inner wall of a neighbouring room or they simple cover the width from inner->outer wall of this room (if there is no neighbour)
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<Facade> GetFacades()
+        public IEnumerable<Facade> GetWalls()
         {
             Contract.Ensures(Contract.Result<IEnumerable<Facade>>() != null);
 
@@ -64,13 +70,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             var roomNeighbours = _plan.GetNeighbours(this).ToArray();
 
             var sections = OuterFootprint.Sections(InnerFootprint).ToArray();
-            for (int s = 0; s < sections.Length; s++)
+            for (var s = 0; s < sections.Length; s++)
             {
                 var previousSection = sections[(s + sections.Length - 1) % sections.Length];
                 var section = sections[s];
                 var nextSection = sections[(s + 1) % sections.Length];
 
-                Floors.Plan.Neighbour[] sectionNeighbours;
+                Neighbour[] sectionNeighbours;
 
                 if (IsNeighbourSection(section, roomNeighbours, out sectionNeighbours))
                 {
@@ -86,7 +92,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 }
             }
 
-            for (int i = 0; i < result.Count; i++)
+            for (var i = 0; i < result.Count; i++)
             {
                 result[i].Next = result[(i + 1) % result.Count];
                 result[i].Previous = result[(i + result.Count - 1) % result.Count];
@@ -95,7 +101,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return result;
         }
 
-        private IEnumerable<Facade> CreateNeighbourFacades(Walls.Section previousSection, Walls.Section nextSection, Walls.Section section, Floors.Plan.Neighbour[] sectionNeighbours)
+        private IEnumerable<Facade> CreateNeighbourFacades(Walls.Section previousSection, Walls.Section nextSection, Walls.Section section, Neighbour[] sectionNeighbours)
         {
             Contract.Requires(sectionNeighbours != null);
             Contract.Ensures(Contract.Result<IEnumerable<Facade>>() != null);
@@ -115,10 +121,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             var endT = endCornerLength / totalLength;
 
             //Move through the neighbour sections in order
-            Array.Sort<Floors.Plan.Neighbour>(sectionNeighbours, CompareNeighboursAlongCommonEdge);
+            Array.Sort<Neighbour>(sectionNeighbours, CompareNeighboursAlongCommonEdge);
 
             float previousMax = 0;
-            for (int i = 0; i < sectionNeighbours.Length; i++)
+            for (var i = 0; i < sectionNeighbours.Length; i++)
             {
                 var neighbour = sectionNeighbours[i];
 
@@ -213,7 +219,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return result;
         }
 
-        private int CompareNeighboursAlongCommonEdge(Floors.Plan.Neighbour a, Floors.Plan.Neighbour b)
+        private int CompareNeighboursAlongCommonEdge(Neighbour a, Neighbour b)
         {
             Contract.Requires(a != null);
             Contract.Requires(b != null);
@@ -234,7 +240,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 return 0;
         }
 
-        private bool IsNeighbourSection(Walls.Section section, IEnumerable<Floors.Plan.Neighbour> neighbours, out Floors.Plan.Neighbour[] neighbourSection)
+        private bool IsNeighbourSection(Walls.Section section, IEnumerable<Neighbour> neighbours, out Neighbour[] neighbourSection)
         {
             if (section.IsCorner)
             {
@@ -280,7 +286,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         private bool IsExternalLineSegment(LineSegment2 segment)
         {
-            var externalLines = Edges(_plan.ExternalFootprint.ToArray()).Select(edge => new LineSegment2(edge.Start, edge.End));
+            var externalLines = IRoomPlanExtensions.Edges(_plan.ExternalFootprint.ToArray()).Select(edge => new LineSegment2(edge.Start, edge.End));
 
             return externalLines.Any(l =>
             {
@@ -296,48 +302,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             });
         }
 
-        private static IEnumerable<LineSegment2> Edges(IReadOnlyList<Vector2> array)
-        {
-            Contract.Requires(array != null);
-
-            return array
-                .Select((t, i) => new LineSegment2(t, array[(i + 1) % array.Count]));
-        }
-
-        internal IEnumerable<LineSegment2> Edges()
-        {
-            return Edges(OuterFootprint);
-
-            //for (uint i = 0; i < OuterFootprint.Count; i++)
-            //    yield return GetEdge(i);
-        }
-
-        internal LineSegment2 GetEdge(uint index)
-        {
-            var idx = ((int)index) % OuterFootprint.Count;
-            return new LineSegment2(OuterFootprint[idx], OuterFootprint[(idx + 1) % OuterFootprint.Count]);
-        }
-
-        public class Facade
-        {
-            public Facade Next { get; internal set; }
-            public Facade Previous { get; internal set; }
-
-            private readonly RoomPlan _neighbouringRoom;
-            public RoomPlan NeighbouringRoom { get { return _neighbouringRoom; } }
-
-            private readonly bool _isExternal;
-            public bool IsExternal { get { return _isExternal; } }
-
-            private readonly Walls.Section _section;
-            public Walls.Section Section { get { return _section; } }
-
-            public Facade(RoomPlan other, bool external, Walls.Section section)
-            {
-                _neighbouringRoom = other;
-                _isExternal = external;
-                _section = section;
-            }
-        }
+        
     }
 }

@@ -9,7 +9,7 @@ using EpimetheusPlugins.Procedural.Utilities;
 using HandyCollections.Geometry;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
-using MathHelper = Microsoft.Xna.Framework.MathHelper;
+using MathHelperRedux;
 
 namespace Base_CityGeneration.Utilities
 {
