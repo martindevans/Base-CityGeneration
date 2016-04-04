@@ -101,6 +101,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
         private static IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> TraceEdges<TVertexTag, THalfEdgeTag, TFaceTag>(Face<TVertexTag, THalfEdgeTag, TFaceTag> face, IList<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>> include, Vertex<TVertexTag, THalfEdgeTag, TFaceTag>[] exclude)
         {
             Contract.Requires(face != null);
+            Contract.Requires(!face.IsDeleted);
             Contract.Requires(include != null);
             Contract.Requires(exclude != null);
             Contract.Ensures(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);

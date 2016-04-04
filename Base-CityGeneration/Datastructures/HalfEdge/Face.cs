@@ -15,7 +15,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         public HalfEdge<TV, TE, TF> Edge { get; internal set; }
 
         private readonly int _uid;
-        internal int Id
+        private int Id
         {
             get { return _uid; }
         }
@@ -87,6 +87,19 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             public int Compare(Face<TV, TE, TF> a, Face<TV, TE, TF> b)
             {
+                //Consider null less than everything else
+                //Both null means they're equal
+                if (a == null || b == null)
+                {
+                    if (a == null)
+                        return b == null ? 0 : -1;
+
+                    //only B is null - A is greater
+                    return 1;
+                }
+
+                
+
                 return a.Id.CompareTo(b.Id);
             }
         }
