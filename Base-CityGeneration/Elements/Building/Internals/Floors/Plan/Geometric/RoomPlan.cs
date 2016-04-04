@@ -47,6 +47,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
         [ContractInvariantMethod]
         private void ObjectInvariant()
         {
+            Contract.Invariant(_plan != null);
             Contract.Invariant(_innerFootprint != null);
             Contract.Invariant(_outerFootprint != null);
         }

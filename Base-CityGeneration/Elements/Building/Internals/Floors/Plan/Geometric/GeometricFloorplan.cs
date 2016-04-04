@@ -82,13 +82,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             //Generate shapes for this room footprint, early exit if null
             var solution = ShapesForRoom(roomFootprint, split);
             if (solution == null)
-                return new Vector2[0][];
+                return Array.Empty<Vector2[]>();
 
             //Convert shapes into vector2 shapes (scale properly)
             return solution;
         }
 
-        private List<List<Vector2>> ShapesForRoom(IEnumerable<Vector2> roomFootprint, bool split = false)
+        private IReadOnlyList<IReadOnlyList<Vector2>> ShapesForRoom(IEnumerable<Vector2> roomFootprint, bool split = false)
         {
             if (roomFootprint == null)
                 throw new ArgumentNullException("roomFootprint");
@@ -113,13 +113,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             }
 
             //Ensure shapes are still clockwise wound (mutate in place to reverse)
-            foreach (var shape in solution)
-                if (Clipper.Orientation(shape))
-                    shape.Reverse();
+            foreach (var shape in solution.Where(Clipper.Orientation))
+                shape.Reverse();
 
+            //Convert back to vectors and apply SAFE_DISTANCE shrink (all rooms are shrunk by this distance)
             return solution
-                .Select(shape => shape.Select(ToVector2).Shrink(SAFE_DISTANCE).ToList())
-                .ToList();
+                .Select(shape =>
+                    shape
+                        .Select(ToVector2)
+                        .Shrink(SAFE_DISTANCE)
+                        .ToArray()
+                ).ToArray();
         }
 
         /// <summary>
@@ -159,7 +163,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             _clipper.AddPolygon(roomFootprint, PolyType.Subject);
             _clipper.AddPolygons(_rooms.Select(r => r.OuterFootprint.Select(ToPoint).ToList()).ToList(), PolyType.Clip);
 
-            PolyTree solution = new PolyTree();
+            var solution = new PolyTree();
             _clipper.Execute(ClipType.Difference, solution);
 
             //Rooms with holes are not supported
@@ -189,7 +193,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
 
         private static List<List<IntPoint>> ToShapes(PolyTree tree)
         {
-            List<List<IntPoint>> solution = new List<List<IntPoint>>();
+            var solution = new List<List<IntPoint>>();
             Clipper.PolyTreeToPolygons(tree, solution);
             return solution;
         }
@@ -215,6 +219,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
         public IEnumerable<Neighbour> GetNeighbours(RoomPlan room)
         {
             Contract.Requires(room != null);
+            Contract.Ensures(Contract.Result<IEnumerable<Neighbour>>() != null);
 
             _neighbourhood.GenerateNeighbours();
             return _neighbourhood[room];

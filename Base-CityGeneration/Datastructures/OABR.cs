@@ -14,6 +14,7 @@ namespace Base_CityGeneration.Datastructures
     /// </summary>
     public struct OABR
     {
+        #region field and properties
         /// <summary>
         /// Center of the bounding box
         /// </summary>
@@ -34,7 +35,9 @@ namespace Base_CityGeneration.Datastructures
         /// Total area of this OABR
         /// </summary>
         public readonly float Area;
+        #endregion
 
+        #region constructor
         public OABR(Vector2 middle, Vector2 primaryAxis, Vector2 min, Vector2 max)
         {
             Middle = middle;
@@ -45,8 +48,10 @@ namespace Base_CityGeneration.Datastructures
             var sz = Max - Min;
             Area = sz.X * sz.Y;
         }
+        #endregion
 
-        [JetBrains.Annotations.Pure]
+        #region queries
+        [Pure]
         public bool Contains(Vector2 point)
         {
             return new BoundingRectangle(Min, Max).Contains(FromWorld(point));
@@ -56,7 +61,7 @@ namespace Base_CityGeneration.Datastructures
         /// Get a vector pointing along the shortest axis (i.e. across the longest axis)
         /// </summary>
         /// <returns></returns>
-        [JetBrains.Annotations.Pure]
+        [Pure]
         internal Vector2 SplitDirection()
         {
             var size = Max - Min;
@@ -67,6 +72,76 @@ namespace Base_CityGeneration.Datastructures
                 return Perpendicular;
         }
 
+        [Pure]
+        public void Points(out Vector2 a, out Vector2 b, out Vector2 c, out Vector2 d)
+        {
+            a = ToWorld(new Vector2(Max.X, Max.Y));
+            b = ToWorld(new Vector2(Max.X, Min.Y));
+            c = ToWorld(new Vector2(Min.X, Min.Y));
+            d = ToWorld(new Vector2(Min.X, Max.Y));
+        }
+
+        /// <summary>
+        /// Convert a point from OABR space to world space
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        [Pure]
+        public Vector2 ToWorld(Vector2 point)
+        {
+            return Middle
+                + Axis * point.X
+                + Perpendicular * point.Y;
+        }
+
+        /// <summary>
+        /// Convert a point from world space to OABR space
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        [Pure]
+        public Vector2 FromWorld(Vector2 point)
+        {
+            //Transform the point back towards the middle
+            point -= Middle;
+
+            //Calculate projection axes (along and across)
+            var primary = Axis;
+            var secondary = Perpendicular;
+
+            var pd = new Ray2(Vector2.Zero, primary).ClosestPointDistanceAlongLine(point);
+            var sd = new Ray2(Vector2.Zero, secondary).ClosestPointDistanceAlongLine(point);
+
+            return new Vector2(pd, sd);
+        }
+
+        /// <summary>
+        /// Get the points from this OABR
+        /// </summary>
+        /// <param name="output">If not null, points will be written into the first 4 elements. If null, then a new array of length 4 will be returned</param>
+        /// <returns></returns>
+        [Pure]
+        public IList<Vector2> Points(IList<Vector2> output = null)
+        {
+            Contract.Requires(output == null || output.Count >= 4);
+            Contract.Ensures(Contract.Result<IList<Vector2>>() != null);
+
+            if (output == null)
+                output = new Vector2[4];
+
+            Vector2 a, b, c, d;
+            Points(out a, out b, out c, out d);
+
+            output[0] = a;
+            output[1] = b;
+            output[2] = c;
+            output[3] = d;
+
+            return output;
+        }
+        #endregion
+
+        #region OABR fitting
         /// <summary>
         /// Generate a series of OABB fittings (in no particular order)
         /// </summary>
@@ -125,65 +200,6 @@ namespace Base_CityGeneration.Datastructures
 
             return Fittings(shape).Aggregate((a, b) => a.Area < b.Area ? a : b);
         }
-
-        public void Points(out Vector2 a, out Vector2 b, out Vector2 c, out Vector2 d)
-        {
-            a = ToWorld(new Vector2(Max.X, Max.Y));
-            b = ToWorld(new Vector2(Max.X, Min.Y));
-            c = ToWorld(new Vector2(Min.X, Min.Y));
-            d = ToWorld(new Vector2(Min.X, Max.Y));
-        }
-
-        /// <summary>
-        /// Convert a point from OABR space to world space
-        /// </summary>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        public Vector2 ToWorld(Vector2 point)
-        {
-            return Middle
-                + Axis * point.X
-                + Perpendicular * point.Y;
-        }
-
-        /// <summary>
-        /// Convert a point from world space to OABR space
-        /// </summary>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        public Vector2 FromWorld(Vector2 point)
-        {
-            //Transform the point back towards the middle
-            point -= Middle;
-
-            //Calculate projection axes (along and across)
-            var primary = Axis;
-            var secondary = Perpendicular;
-
-            var pd = new Ray2(Vector2.Zero, primary).ClosestPointDistanceAlongLine(point);
-            var sd = new Ray2(Vector2.Zero, secondary).ClosestPointDistanceAlongLine(point);
-
-            return new Vector2(pd, sd);
-        }
-
-        public IList<Vector2> Points(IList<Vector2> output = null)
-        {
-            Contract.Ensures(Contract.Result<IList<Vector2>>() != null);
-
-            if (output == null)
-                output = new Vector2[4];
-            if (output.Count < 4)
-                throw new ArgumentException("Output array is too small", "output");
-
-            Vector2 a, b, c, d;
-            Points(out a, out b, out c, out d);
-
-            output[0] = a;
-            output[1] = b;
-            output[2] = c;
-            output[3] = d;
-
-            return output;
-        }
+        #endregion
     }
 }
