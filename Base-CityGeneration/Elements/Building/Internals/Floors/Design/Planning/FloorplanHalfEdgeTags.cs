@@ -31,12 +31,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
     {
         public float AngularDeviation { get; private set; }
         public float Convexity { get; private set; }
+        public float Area { get; private set; }
 
         public bool Mergeable { get; private set; }
 
-        public RoomSpec Spec { get; private set; }
+        public ISpec Spec { get; private set; }
 
-        public FloorplanFaceTag(bool mergeable, RoomSpec spec = null)
+        public FloorplanFaceTag(bool mergeable, ISpec spec = null)
         {
             Mergeable = mergeable;
             Spec = spec;
@@ -50,6 +51,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
             AngularDeviation = CalculateAngularDeviation(f.Edges);
             Convexity = CalculateConvexity(f.Vertices.Select(v => v.Position));
+            Area = f.Vertices.Select(v => v.Position).Area();
         }
 
         #region convexity

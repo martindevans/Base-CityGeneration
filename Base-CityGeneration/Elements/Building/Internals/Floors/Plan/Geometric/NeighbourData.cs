@@ -101,9 +101,9 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             //Now we have a load of markers along the edge of this room which mark where the edge of other rooms project onto this edge
             //Walk along list pairing them up
 
-            List<Neighbour> neighbours = new List<Neighbour>();
+            var neighbours = new List<Neighbour>();
 
-            for (int i = 0; i < edge.EdgeList.Count; i++)
+            for (var i = 0; i < edge.EdgeList.Count; i++)
             {
                 var a = edge.EdgeList[i];
                 var b = a.NaturalPair;
@@ -197,8 +197,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             if (potentialOverlapPoint == a || potentialOverlapPoint == b)
                 return false;
 
-            return (x.Distance < Math.Min(a.Distance, b.Distance) || y.Distance < Math.Min(a.Distance, b.Distance))
-                && (SegmentContains(x, y, a) || SegmentContains(x, y, b) || SegmentContains(a, b, x) ||SegmentContains(a, b, y));
+            return (
+                x.Distance < Math.Min(a.Distance, b.Distance)
+                || y.Distance < Math.Min(a.Distance, b.Distance)
+            ) && (
+                SegmentContains(x, y, a)
+                || SegmentContains(x, y, b)
+                || SegmentContains(a, b, x)
+                || SegmentContains(a, b, y)
+            );
         }
 
         private static bool SegmentContains(NeighbourInfo a, NeighbourInfo b, NeighbourInfo point)
@@ -482,7 +489,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             }
         }
 
-        [DebuggerDisplay("T={Pt} R={OtherRoom.Uid} D={Distance}")]
         private class NeighbourInfo
         {
             /// <summary>
@@ -505,6 +511,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             public uint OtherEdgeIndex;
 
             public NeighbourInfo NaturalPair;
+
+            public override string ToString()
+            {
+                return string.Format("T={0} D={1} R={2}", Pt, Distance, OtherRoom.Id);
+            }
         }
     }
 }

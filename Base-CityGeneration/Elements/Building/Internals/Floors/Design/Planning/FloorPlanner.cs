@@ -6,13 +6,14 @@ using Base_CityGeneration.Datastructures.Extensions;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Scripts;
 using HandyCollections.Heap;
 using JetBrains.Annotations;
 using Myre.Collections;
-
 using Face = Base_CityGeneration.Datastructures.HalfEdge.Face<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using HalfEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using Vertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
@@ -32,12 +33,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         {
             public IValueGenerator AngularWeight { get; set; }
             public IValueGenerator AngularThreshold { get; set; }
+
             public IValueGenerator ConvexWeight { get; set; }
             public IValueGenerator ConvexThreshold { get; set; }
+
             public IValueGenerator AreaWeight { get; set; }
             public IValueGenerator AreaThreshold { get; set; }
 
-            private MergingParameters(IValueGenerator angularWeight, IValueGenerator angularThreshold, IValueGenerator convexWeight, IValueGenerator convexThreshold, IValueGenerator areaWeight, IValueGenerator areaThreshold)
+            public IValueGenerator AreaCutoff { get; set; }
+
+            private MergingParameters(IValueGenerator angularWeight, IValueGenerator angularThreshold, IValueGenerator convexWeight, IValueGenerator convexThreshold, IValueGenerator areaWeight, IValueGenerator areaThreshold, IValueGenerator areaCutoff)
             {
                 AngularWeight = angularWeight;
                 AngularThreshold = angularThreshold;
@@ -45,6 +50,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 ConvexThreshold = convexThreshold;
                 AreaWeight = areaWeight;
                 AreaThreshold = areaThreshold;
+                AreaCutoff = areaCutoff;
             }
 
             internal class Container
@@ -63,9 +69,24 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                     }
                 }
 
+                public struct MergeParamPairWithCutoff
+                {
+                    public object Weight { get; [UsedImplicitly] set; }
+                    public object Threshold { get; [UsedImplicitly] set; }
+                    public object Cutoff { get; [UsedImplicitly] set; }
+
+                    public MergeParamPairWithCutoff(object weight, object threshold, object cutoff)
+                        : this()
+                    {
+                        Weight = weight;
+                        Threshold = threshold;
+                        Cutoff = cutoff;
+                    }
+                }
+
                 public MergeParamPair? AngularDeviation { get; [UsedImplicitly] set; }
                 public MergeParamPair? Convexity { get; [UsedImplicitly] set; }
-                public MergeParamPair? Area { get; [UsedImplicitly] set; }
+                public MergeParamPairWithCutoff? Area { get; [UsedImplicitly] set; }
 
                 public MergingParameters Unwrap()
                 {
@@ -75,8 +96,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                     var defaultConvex = new MergeParamPair(0.3f, 0.9f);
                     var convex = Convexity == null ? defaultConvex : new MergeParamPair(Convexity.Value.Weight ?? defaultConvex.Weight, Convexity.Value.Threshold ?? defaultConvex.Threshold);
 
-                    var defaultArea = new MergeParamPair(0.3f, 100);
-                    var area = Area == null ? defaultArea : new MergeParamPair(Area.Value.Weight ?? defaultArea.Weight, Area.Value.Threshold ?? defaultArea.Threshold);
+                    var defaultArea = new MergeParamPairWithCutoff(0.3f, 100, 4);
+                    var area = Area == null ? defaultArea : new MergeParamPairWithCutoff(Area.Value.Weight ?? defaultArea.Weight, Area.Value.Threshold ?? defaultArea.Threshold, Area.Value.Cutoff ?? defaultArea.Cutoff);
 
                     return new MergingParameters(
                         IValueGeneratorContainer.FromObject(angular.Weight),
@@ -84,7 +105,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                         IValueGeneratorContainer.FromObject(convex.Weight),
                         IValueGeneratorContainer.FromObject(convex.Threshold),
                         IValueGeneratorContainer.FromObject(area.Weight),
-                        IValueGeneratorContainer.FromObject(area.Threshold)
+                        IValueGeneratorContainer.FromObject(area.Threshold),
+                        IValueGeneratorContainer.FromObject(area.Cutoff)
                     );
                 }
 
@@ -122,14 +144,16 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         }
         #endregion
 
-        public Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> Plan(Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
+        public IFloorPlanBuilder Plan(Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
-            throw new NotImplementedException();
+            Contract.Requires(region != null);
+            Contract.Requires(overlappingVerticals != null);
+            Contract.Requires(startingVerticals != null);
+            Contract.Requires(spaces != null);
 
-            //return Build(
-            //    new FloorPlanBuilder(region.Points.ToArray()),
-            //    PlanRegion(region, overlappingVerticals, startingVerticals, spaces)
-            //);
+            var floorplan = new GeometricFloorplan(region.Points.ToArray());
+            PlanRegion(floorplan, region, overlappingVerticals, startingVerticals, spaces);
+            return floorplan;
         }
 
         //private IFloorPlanBuilder Build(IFloorPlanBuilder builder, Mesh map)
@@ -162,7 +186,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         //    return builder;
         //}
 
-        private Mesh PlanRegion(Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
+        private void PlanRegion(IFloorPlanBuilder floorplan, Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
             Contract.Requires(region != null);
             Contract.Requires(overlappingVerticals != null);
@@ -175,19 +199,24 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //Remove oddly shaped rooms
             ReduceFaces(map);
 
-            ////todo: remove temp visualisation code
-            //var svg = new SvgBuilder(10);
-            //foreach (var edge in map.HalfEdges.Where(a => a.IsPrimaryEdge))
-            //    svg.Line(edge.StartVertex.Position, edge.EndVertex.Position, 1, "black");
-            //foreach (var vertex in map.Vertices)
-            //    svg.Circle(vertex.Position, 0.2f, "black");
-            //Console.WriteLine(svg.ToString());
-
+            //Assign specs (Rooms|Groups) to spaces
             //todo: order specs by constraints (most difficult to solve first), assign specs to spaces generated (best fit)
+
+            //Ensure connectivity graph
             //todo: connectivity (doors + corridors)
+
+            //Insert faces which are rooms (i.e. not groups) into the floorplan
+            foreach (var face in map.Faces)
+            {
+                //if (face.Tag.Spec is RoomSpec)
+                    floorplan.Add(face.Vertices.Select(a => a.Position).ToArray(), _wallThickness);
+            }
+
+            //Extract subregion shapes from floorplan (a corridor may have clipped the shape, so we can't just use the face shape)
+            //Then recursive layout regions in the calculated shape
             //todo: recursive for groups
 
-            return map;
+            return;
         }
 
         #region removing/merging faces
@@ -240,6 +269,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 iterations++;
 
             } while (workDone > 0);
+
+            //We've done our best to reduce faces by merging them with neighbours
+            //It's possible some invalid faces were not merged (no good merge candidates)
+            //Now we just discard those faces which are below the *area* threshold
+            //Why not the other thresholds? It's easy to fix area, but essentially impossible to reliably fix the other two, so it would cut out too many rooms to treat those are hard cutoffs
+            var areaCutoff = _mergeParameters.AreaCutoff.SelectFloatValue(_random, _metadata);
+            var facesToRemove = map.Faces.Where(a => a.Tag.Area < areaCutoff).ToArray();
+            foreach (var face in facesToRemove)
+                map.Delete(face);
         }
 
         /// <summary>
@@ -254,11 +292,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             Contract.Requires(b != null && b.Mergeable);
 
             //Choose the non null spec (if either are not null)
-            RoomSpec spec = null;
+            ISpec spec = null;
             if (a.Spec != null ^ b.Spec != null)
                 spec = a.Spec ?? b.Spec;
             else if (a.Spec != null && b.Spec != null)
-                throw new NotImplementedException("Both faces in merge already have a room assigned");
+                throw new NotImplementedException("Both faces in merge already have a spec assigned");
 
             return new FloorplanFaceTag(
                 true,   //A and B must be mergeable (see contract) so therefore this must be mergeable

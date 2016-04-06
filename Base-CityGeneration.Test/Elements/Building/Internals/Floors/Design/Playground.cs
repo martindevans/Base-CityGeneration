@@ -6,7 +6,7 @@ using System.Numerics;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
 using Base_CityGeneration.Test.Elements.Building.Design;
-using EpimetheusPlugins.Extensions;
+using Base_CityGeneration.TestHelpers;
 using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -70,7 +70,8 @@ MergeParameters:
         Threshold: 0.9
     Area:
         Weight: 0.3
-        Threshold: 100
+        Threshold: 45
+        Cutoff: 5
 
 Spaces:
     - !Repeat
@@ -162,8 +163,8 @@ Spaces:
             //    new Subsection[0],
             //};
 
-            //var floorplan = designer.Design(random, metadata, finder, shape, sections, 0.075f, verticals, new List<VerticalSelection>());
-            //Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 15).ToString());
+            var floorplan = designer.Design(random, metadata, finder, shape, sections, 0.075f, verticals, new List<VerticalSelection>());
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 15));
         }
     }
 }

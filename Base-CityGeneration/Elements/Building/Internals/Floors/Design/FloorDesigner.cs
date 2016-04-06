@@ -8,6 +8,7 @@ using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
 using JetBrains.Annotations;
@@ -67,7 +68,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         #endregion
 
         #region design
-        public Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag> Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<Vector2> footprint, IReadOnlyList<IReadOnlyList<Subsection>> sections, float wallThickness, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals)
+        public IFloorPlanBuilder Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<Vector2> footprint, IReadOnlyList<IReadOnlyList<Subsection>> sections, float wallThickness, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals)
         {
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
@@ -76,7 +77,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             Contract.Requires(sections != null && sections.Count == footprint.Count);
             Contract.Requires(overlappingVerticals != null && Contract.ForAll(overlappingVerticals, o => o != null));
             Contract.Requires(startingVerticals != null && Contract.ForAll(startingVerticals, s => s != null));
-            Contract.Ensures(Contract.Result<Mesh<FloorplanVertexTag, FloorplanHalfEdgeTag, FloorplanFaceTag>>() != null);
+            Contract.Ensures(Contract.Result<IFloorPlanBuilder>() != null);
 
             var region = CreateRegion(footprint, sections);
 

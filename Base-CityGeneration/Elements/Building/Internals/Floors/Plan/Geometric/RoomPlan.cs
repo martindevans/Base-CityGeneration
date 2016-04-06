@@ -23,15 +23,50 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
 
         private readonly float _wallThickness;
         public float WallThickness { get { return _wallThickness; } }
+
+        private readonly uint _id;
+        public uint Id
+        {
+            get { return _id; }
+        }
         #endregion
 
         #region constructor
-        internal RoomPlan(GeometricFloorplan plan, IReadOnlyList<Vector2> footprint, float wallThickness)
+        internal static bool TryCreate(GeometricFloorplan plan, IReadOnlyList<Vector2> footprint, float wallThickness, uint id, out RoomPlan room)
+        {
+            Contract.Requires(plan != null);
+            Contract.Requires(footprint != null);
+            Contract.Requires(wallThickness > 0);
+
+            Vector2[] inner;
+            var sections = footprint.Sections(wallThickness, out inner).ToArray();
+
+            //No wall sections generated means this is not a valid room shape!
+            if (sections.Length == 0 || inner.Length == 0)
+            {
+                room = null;
+                return false;
+            }
+
+            room = new RoomPlan(plan, footprint, wallThickness, id);
+            return true;
+        }
+
+        private RoomPlan(GeometricFloorplan plan, IReadOnlyList<Vector2> footprint, float wallThickness, uint id)
         {
             Contract.Requires(plan != null);
             Contract.Requires(footprint != null);
 
             _plan = plan;
+            _id = id;
+
+            //throw new NotImplementedException();
+            ////It seems like a room which is too small causes Sections/MatchUp to crash. Need to handle this case...
+            ////...potentially by returning nothing - room is too small
+            //Vector2[] innerFootprint;
+            //var sections = footprint.Sections(wallThickness, out innerFootprint);
+            //_innerFootprint = innerFootprint;
+
             _innerFootprint = footprint.Shrink(wallThickness).ToArray();
 
             //Sometimes shrinking creates a different length array, if so then *unsrink* the shrunk array to create a new outer array (with the same length as the inner one)
