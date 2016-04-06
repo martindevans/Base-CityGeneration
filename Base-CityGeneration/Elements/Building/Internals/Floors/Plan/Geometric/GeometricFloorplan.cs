@@ -42,7 +42,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             }
         }
 
-        private readonly NeighbourData _neighbourhood;
+        private readonly NeighbourCalculator _neighbourhood;
         #endregion
 
         public GeometricFloorplan(IReadOnlyList<Vector2> footprint)
@@ -51,7 +51,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
 
             _externalFootprint = footprint;
 
-            _neighbourhood = new NeighbourData(this);
+            _neighbourhood = new NeighbourCalculator(this);
         }
 
         [ContractInvariantMethod]
@@ -67,8 +67,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
         public IFloorPlan Freeze()
         {
             _isFrozen = true;
-
-            _neighbourhood.GenerateNeighbours();
 
             return this;
         }
@@ -234,7 +232,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             Contract.Requires(room != null);
             Contract.Ensures(Contract.Result<IEnumerable<Neighbour>>() != null);
 
-            _neighbourhood.GenerateNeighbours();
             return _neighbourhood[room];
         }
 

@@ -12,7 +12,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
     internal class NeighbourCalculator
     {
         #region fields/properties
-        private const float SAME_POINT_EPSILON = 0.1f;
+        internal const float SAME_POINT_EPSILON = 0.1f;
         internal const float SAME_POINT_EPSILON_SQR = SAME_POINT_EPSILON * SAME_POINT_EPSILON;
 
         private readonly GeometricFloorplan _plan;
@@ -59,6 +59,22 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             if (!Dirty)
                 return;
 
+            /*******************************
+             * We want to find all the neighbours of every room (that is, other rooms which we can connect to using a perpendicular projection out from a wall) 
+             * 1. First we project all the points of every other rooms onto every edge of every other room. This creates us a load of "NeighbourInfo" objects, which contain
+             *    the information about projected points.
+             *    NeighbourInfo objects are stored into the EdgeList of the current edge.
+             *    Every neighbourInfo has a "NaturalPair" which is the other point which completes this pair, i.e. a neighbour relationship extends from one to the other
+             * 
+             * 2. Then we extract neighbourhood information from these projected points
+             * 
+             * 
+             * 
+             * 
+             * 
+             * 
+             *******************************/
+
             _neighbours = _plan.Rooms.ToDictionary(a => a, a => new List<Neighbour>());
 
             foreach (var room in _plan.Rooms)
@@ -68,7 +84,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
                 //Map points onto this edge
                 foreach (var edge in Edges(room))
                 {
-                    var edgeLine = new Ray2(edge.Segment.Start, edge.Segment.End - edge.Segment.Start);
+                    var edgeLine = edge.Segment.LongLine;
 
                     foreach (var otherRoom in _plan.Rooms)
                     {
@@ -95,7 +111,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
         private static IEnumerable<Neighbour> ExtractNeighbourSections(IRoomPlan room, Edge edge)
         {
             if (edge.EdgeList.Count == 0)
-                return new Neighbour[0];
+                return Array.Empty<Neighbour>();
 
             //Sort by distance along this edge
             //Ties are resolved by putting the closer point first
@@ -310,6 +326,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             ));
         }
 
+        #region projecting points
         private static void ProjectPointsOntoEdge(IRoomPlan otherRoom, Ray2 edgeLine, Edge edge)
         {
             Contract.Requires(otherRoom != null);
@@ -321,7 +338,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
                 //If the edges point in the same direction then we don't want to handle this interaction
                 //This is because of winding, e.g. the top line of a room goes left->right, the bottom goes right->left
                 //We want to compare those opposite edges, but not e.g. top of one room to top of another
-                if (Vector2.Dot(edgeLine.Direction.Perpendicular(), otherEdgeLine.Direction.Perpendicular()) >= 0)
+                var dot = Vector2.Dot(Vector2.Normalize(edgeLine.Direction.Perpendicular()), Vector2.Normalize(otherEdgeLine.Direction.Perpendicular()));
+
+                //If the walls are not roughly perpendicular (to within 5 degrees) we do not want to consider them neighbours
+                //This tests that the wall angle is 175 or *greater* because we want only walls going the exact opposite direction
+                //i.e. we're really testing anti-perpendicular here.
+                if (dot > -0.99619469809f)
                     continue;
 
                 //We want to make sure that this other edge is somewhere off to the left side (outside) of the line segment
@@ -463,9 +485,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             x.NaturalPair = y;
             y.NaturalPair = x;
 
-            edge.EdgeList.Add(x);
-            edge.EdgeList.Add(y);
+            if (x.Distance <= 1 && y.Distance <= 1)
+            {
+                edge.EdgeList.Add(x);
+                edge.EdgeList.Add(y);
+            }
         }
+        #endregion
 
         #region room edges
         private static IEnumerable<Edge> Edges(IRoomPlan room)
@@ -517,9 +543,19 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             /// </summary>
             public float OPt;
 
+            /// <summary>
+            /// Distance from point on this edge, to point on other edge
+            /// </summary>
             public float Distance;
 
+            /// <summary>
+            /// Point on this edge
+            /// </summary>
             public Vector2 Point;
+
+            /// <summary>
+            /// Point on other edge
+            /// </summary>
             public Vector2 OtherPoint;
 
             public IRoomPlan OtherRoom;

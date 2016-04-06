@@ -397,7 +397,6 @@
     <Compile Include="Elements\Building\Internals\Floors\Plan\Mesh\IVertexTag.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\Mesh\MeshCorridorExtensions.cs" />
     <Compile Include="Datastructures\Extensions\MeshWallExtensions.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\Plan\Geometric\NeighbourData.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\Geometric\RoomPlan.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\EmptyRoom.cs" />
     <Compile Include="Elements\Building\SpecBuilding.cs" />

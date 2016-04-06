@@ -222,7 +222,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
                 var reprojectedBT = intersectionABCB.Value.DistanceAlongA / section.Width;
 
                 //Create section from last neighbour to edge of this one
-                if (Math.Abs(reprojectedAT - previousMax) * section.Width > NeighbourData.SAME_POINT_EPSILON)
+                if (Math.Abs(reprojectedAT - previousMax) * section.Width > NeighbourCalculator.SAME_POINT_EPSILON)
                 {
                     var sA = section.B - section.Along * section.Width * previousMax;
                     var sC = new LineSegment2(section.C, section.D).ClosestPoint(reprojectedA);
@@ -235,7 +235,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
                 result.Add(new Facade(otherRoom, false, new Walls.Section(false, reprojectedA, reprojectedB, c, d)));
 
                 //If this is the last neighbour section, insert a facade from end of neighbour to end of wall
-                if (i == sectionNeighbours.Length - 1 && Math.Abs(1 - reprojectedBT) * section.Width > NeighbourData.SAME_POINT_EPSILON)
+                if (i == sectionNeighbours.Length - 1 && Math.Abs(1 - reprojectedBT) * section.Width > NeighbourCalculator.SAME_POINT_EPSILON)
                 {
                     var eB = section.B - section.Along * section.Width * 1;
                     var eC = section.C - section.Along * section.Width * 1;
