@@ -128,7 +128,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
                 _halfEdges.Insert(bb, pair);
             }
 
-            Contract.Assert(!edge.IsDeleted);
+            Contract.Assume(!edge.IsDeleted);
             return edge;
         }
 

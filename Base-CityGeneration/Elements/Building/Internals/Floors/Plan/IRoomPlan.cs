@@ -20,6 +20,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         IReadOnlyList<Vector2> InnerFootprint { get; }
 
         /// <summary>
+        /// A unique ID for this room
+        /// </summary>
+        uint Id { get; }
+
+        /// <summary>
         /// Get the walls surrounding this room.
         /// This is either a wall section (inner -> outer of this room) or a neighbour section (inner of this room, to inner of another room)
         /// </summary>
@@ -53,6 +58,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             }
         }
 
+        private readonly uint _id;
+        public uint Id
+        {
+            get { return _id; }
+        }
+
         public IEnumerable<Facade> GetWalls()
         {
             Contract.Ensures(Contract.Result<IEnumerable<Facade>>() != null);
@@ -66,6 +77,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
                 Contract.Ensures(Contract.Result<IEnumerable<Neighbour>>() != null);
                 return null;
             }
+        }
+
+        protected IRoomPlanContract(uint id)
+        {
+            _id = id;
         }
     }
 

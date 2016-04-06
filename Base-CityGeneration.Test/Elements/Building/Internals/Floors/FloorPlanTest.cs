@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
-using System.Xml.Linq;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
@@ -29,6 +27,36 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             _plan = new GeometricFloorplan(
                 new ReadOnlyCollection<Vector2>(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(100, 100), new Vector2(100, -100) })
             );
+        }
+
+        [TestMethod]
+        public void RegressionTest_WallsSections_Throws()
+        {
+            //This specific shape caused Walls.Sections to throws
+            //"Cannot match up arrays with different lengths"
+            var shape = new Vector2[] {
+                new Vector2(15.01f, -4.976f),
+                new Vector2(15.01f, -4.562f),
+                new Vector2(15.423f, -4.562f),
+                new Vector2(15.385f, -4.6f)
+            };
+
+            var rooms = _plan.Add(shape, 0.075f);
+
+            Assert.AreEqual(1, rooms.Count());
+        }
+
+        [TestMethod]
+        public void RoomTooSmallForWallThickness()
+        {
+            //Create a room where wall thickness > room size (2 wide room, 1.1 thick walls each side)
+            var r = _plan.Add(new Vector2[]
+            {
+                new Vector2(-1, -10), new Vector2(-1, 10), new Vector2(1, 10), new Vector2(1, -10)
+            }, 2f).Any();
+
+            //Ensure that no romos was created
+            Assert.IsFalse(r);
         }
 
         [TestMethod]
@@ -828,21 +856,8 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             Assert.IsFalse(duplicatesC.Any());
 
             var svg = SvgRoomVisualiser.FloorplanToSvg(_plan);
-            for (int i = 0; i < facadesC.Length; i++)
-            {
-                var s = facadesC[i].Section;
-                var pos = s.A * 0.5f + s.B * 0.5f + s.C * 0.25f + s.D * 0.25f;
-                svg.Descendants("g").Single().Add(
-                    new XElement("text",
-                        new XAttribute("x", pos.X),
-                        new XAttribute("y", pos.Y),
-                        new XAttribute("fill", "black"),
-                        i.ToString(CultureInfo.InvariantCulture)
-                    )
-                );
-            }
 
-            Console.WriteLine(svg.ToString());
+            Console.WriteLine(svg);
         }
 
         [TestMethod]

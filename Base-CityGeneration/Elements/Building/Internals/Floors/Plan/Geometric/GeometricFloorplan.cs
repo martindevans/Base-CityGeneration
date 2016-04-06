@@ -18,6 +18,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
         private const float SCALE = 100000;
         private const float SAFE_DISTANCE = 0.01f;
 
+        private uint _nextId;
+
         private bool _isFrozen;
         private readonly Clipper _clipper = new Clipper();
 
@@ -145,12 +147,23 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             var result = new List<IRoomPlan>();
             foreach (var shape in solution)
             {
+                //Reject rooms with zero points
+                if (shape.Count == 0)
+                    continue;
+
+                //Mark the neighbourhood cache as dirty...
+                //...this means it will recalculate all neighbourhood relationships in the entire plan next time there is a query
                 _neighbourhood.Dirty = true;
 
-                //Create room
-                var r = new RoomPlan(this, shape, wallThickness);
-                result.Add(r);
-                _rooms.Add(r);
+                //Try to create a room, this may fail in certain circumstances. e.g. if the wallThickness > size of room
+                //We simply skip failing rooms
+                RoomPlan room;
+                if (!RoomPlan.TryCreate(this, shape, wallThickness, _nextId++, out room))
+                    continue;
+
+                //Insert the new room into the appropriate data structures
+                result.Add(room);
+                _rooms.Add(room);
             }
 
             return result;
