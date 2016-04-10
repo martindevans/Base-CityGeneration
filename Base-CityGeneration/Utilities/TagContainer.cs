@@ -126,29 +126,35 @@ namespace Base_CityGeneration.Utilities
 
     internal static class TagsContainerExtensions
     {
-        public struct ScriptSelection
+        public class ScriptSelection
         {
-            public readonly ScriptReference Script;
-            public readonly KeyValuePair<string, string>[] Tags;
+            private readonly ScriptReference _script;
+            public ScriptReference Script
+            {
+                get
+                {
+                    Contract.Ensures(Contract.Result<ScriptReference>() != null);
+                    return _script;
+                }
+            }
 
-            public ScriptSelection(ScriptReference script, KeyValuePair<string, string>[] tags)
+            private readonly IReadOnlyList<KeyValuePair<string, string>> _tags;
+            public IReadOnlyList<KeyValuePair<string, string>> Tags
+            {
+                get { return _tags; }
+            }
+
+            public ScriptSelection(ScriptReference script, IReadOnlyList<KeyValuePair<string, string>> tags)
             {
                 Contract.Requires(script != null);
                 Contract.Requires(tags != null);
 
-                Script = script;
-                Tags = tags;
-            }
-
-            [ContractInvariantMethod]
-            private void ObjectInvariant()
-            {
-                Contract.Invariant(Script != null);
-                Contract.Invariant(Tags != null);
+                _script = script;
+                _tags = tags;
             }
         }
 
-        public static ScriptSelection? SelectScript(
+        public static ScriptSelection SelectScript(
             this IEnumerable<KeyValuePair<float, KeyValuePair<string, string>[]>> tagsSets,
             Func<double> random,
             Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder,
@@ -156,6 +162,9 @@ namespace Base_CityGeneration.Utilities
         )
         {
             Contract.Requires(tagsSets != null);
+            Contract.Requires(random != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(extraConstraints != null);
 
             var options = tagsSets.ToList();
             while (options.Count > 0)

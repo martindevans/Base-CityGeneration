@@ -210,6 +210,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <returns></returns>
         public IEnumerable<HalfEdge<TVTag, TETag, TFTag>> FindEdges(BoundingRectangle rectangle)
         {
+            Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TVTag, TETag, TFTag>>>() != null);
             Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<HalfEdge<TVTag, TETag, TFTag>>>(), a => !a.IsDeleted));
 
             return _halfEdges.Intersects(rectangle);
@@ -358,6 +359,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         /// <returns></returns>
         public IEnumerable<Vertex<TVTag, TETag, TFTag>> FindVertices(BoundingRectangle rectangle)
         {
+            Contract.Ensures(Contract.Result<IEnumerable<Vertex<TVTag, TETag, TFTag>>>() != null);
             Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<Vertex<TVTag, TETag, TFTag>>>(), a => a != null && !a.IsDeleted));
 
             //We need to do intersection then containment because the bounding box for a vertex is slightly larger than the vertex!

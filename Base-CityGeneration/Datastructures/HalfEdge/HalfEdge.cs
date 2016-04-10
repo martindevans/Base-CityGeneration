@@ -10,7 +10,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
     /// Half of a directed edge. The other half is directed in the opposite direction and can be found in the Pair property
     /// </summary>
     public class HalfEdge<TV, TE, TF>
-        : BaseTagged<TE, IHalfEdgeTag<TV, TE, TF>, HalfEdge<TV, TE, TF>>, IEdge
+        : BaseTagged<TE, IHalfEdgeTag<TV, TE, TF>, HalfEdge<TV, TE, TF>>,
+          IEdge<Vertex<TV, TE, TF>, HalfEdge<TV, TE, TF>>  
     {
         #region fields
         private readonly HalfEdge<TV, TE, TF> _pair;
@@ -68,6 +69,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             get
             {
+                Contract.Ensures(Contract.Result<IEnumerable<HalfEdge<TV, TE, TF>>>() != null);
+
                 var next = this;
                 do
                 {
@@ -216,7 +219,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         }
 
         #region Pathfinding IEdge
-        IVertex IEdge.Start
+        Vertex<TV, TE, TF> IEdge<Vertex<TV, TE, TF>, HalfEdge<TV, TE, TF>>.Start
         {
             get
             {
@@ -224,17 +227,32 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             }
         }
 
-        IVertex IEdge.End
+        Vertex<TV, TE, TF> IEdge<Vertex<TV, TE, TF>, HalfEdge<TV, TE, TF>>.End
         {
             get { return EndVertex; }
         }
 
-        float IEdge.TraversalCost
+        float IEdge<Vertex<TV, TE, TF>, HalfEdge<TV, TE, TF>>.TraversalCost
         {
             get
             {
                 return (EndVertex.Position - Pair.EndVertex.Position).Length();
             }
+        }
+
+        IBaseVertex IBaseEdge.End
+        {
+            get { return EndVertex; }
+        }
+
+        IBaseVertex IBaseEdge.Start
+        {
+            get { return StartVertex; }
+        }
+
+        float IBaseEdge.TraversalCost
+        {
+            get { return (this as IEdge<Vertex<TV, TE, TF>, HalfEdge<TV, TE, TF>>).TraversalCost; }
         }
 
         public LineSegment2 Segment

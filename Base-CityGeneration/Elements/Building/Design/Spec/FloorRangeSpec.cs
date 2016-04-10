@@ -37,26 +37,12 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             get { return _includes.Sum(a => a.Count.MaxValue * a.Height.MaxValue); }
         }
 
-        private readonly IValueGenerator _defaultHeightSpec;
-        public IValueGenerator DefaultHeight
-        {
-            get
-            {
-                Contract.Ensures(Contract.Result<IValueGenerator>() != null);
-                return _defaultHeightSpec;
-            }
-        }
 
-        public FloorRangeSpec(FloorRangeIncludeSpec[] includes, IValueGenerator defaultHeightSpec)
+        public FloorRangeSpec(FloorRangeIncludeSpec[] includes)
         {
             Contract.Requires(includes != null);
-            Contract.Requires(defaultHeightSpec != null);
 
             _includes = includes;
-            _defaultHeightSpec = defaultHeightSpec;
-
-            foreach (var include in includes)
-                include.Height = include.Height ?? defaultHeightSpec;
         }
 
         public override IEnumerable<FloorRun> Select(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
@@ -92,7 +78,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             {
                 IValueGenerator defaultHeight = DefaultHeight == null ? new NormallyDistributedValue(2.5f, 3, 3.5f, 0.2f) : IValueGeneratorContainer.FromObject(DefaultHeight);
 
-                return new FloorRangeSpec(Includes.Select(a => a.Unwrap(defaultHeight)).ToArray(), defaultHeight);
+                return new FloorRangeSpec(Includes.Select(a => a.Unwrap(defaultHeight)).ToArray());
             }
         }
     }
@@ -171,7 +157,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             if (result == null)
                 return null;
 
-            return new FloorSelection(id, result.Value.Tags, selector, result.Value.Script, height);
+            return new FloorSelection(id, result.Tags, selector, result.Script, height);
         }
 
         public IEnumerable<IEnumerable<FloorSelection>> Select(BaseFloorSelector selector, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
@@ -243,7 +229,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             {
                 var count = IValueGeneratorContainer.FromObject(Count);
 
-                return new FloorRangeIncludeSpec(Id ?? Guid.NewGuid().ToString(), count, Vary, Continuous, Tags.Unwrap().ToArray(), Height == null ? defaultHeight : IValueGeneratorContainer.FromObject(Height));
+                return new FloorRangeIncludeSpec(Id ?? Guid.NewGuid().ToString(), count, Vary, Continuous, Tags.Unwrap().ToArray(), IValueGeneratorContainer.FromObject(Height, defaultHeight));
             }
         }
     }

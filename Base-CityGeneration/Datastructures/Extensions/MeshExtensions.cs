@@ -32,17 +32,18 @@ namespace Base_CityGeneration.Datastructures.Extensions
             if (end.Mesh != m)
                 throw new ArgumentException("End vertex is not contained in mesh for pathfind", "end");
 
-            var p = Pathfinder.Get();
+            var p = Pathfinder<Vertex<TVTag, THTag, TFTag>, HalfEdge<TVTag, THTag, TFTag>>.Get();
+            Contract.Assume(p != null);
             try
             {
                 // ReSharper disable once HeapView.SlowDelegateCreation
-                var edges = p.FindPath(start, end, (a, b) => (((Vertex<TVTag, THTag, TFTag>)a).Position - ((Vertex<TVTag, THTag, TFTag>)b).Position).Length());
+                var edges = p.FindPath(start, end, (a, b) => (a.Position - b.Position).Length());
 
-                return edges.Cast<HalfEdge<TVTag, THTag, TFTag>>();
+                return edges;
             }
             finally
             {
-                Pathfinder.Return(p);
+                Pathfinder<Vertex<TVTag, THTag, TFTag>, HalfEdge<TVTag, THTag, TFTag>>.Return(p);
             }
         }
         #endregion

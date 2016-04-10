@@ -9,11 +9,14 @@ using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric;
 using Base_CityGeneration.Utilities.Numbers;
+using ClipperRedux;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Scripts;
 using HandyCollections.Heap;
 using JetBrains.Annotations;
 using Myre.Collections;
+using Placeholder.AI.Pathfinding.SpanningTree;
+using PrimitiveSvgBuilder;
 using Face = Base_CityGeneration.Datastructures.HalfEdge.Face<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using HalfEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using Vertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
@@ -158,7 +161,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
         //private IFloorPlanBuilder Build(IFloorPlanBuilder builder, Mesh map)
         //{
-        //    foreach (var face in map.Faces.OrderBy(a => a.Id).Take(4))
+        //    foreach (var face in map.Faces.OrderBy(a => a.Id))
         //    {
         //        ScriptReference script;
         //        string id;
@@ -186,6 +189,17 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         //    return builder;
         //}
 
+        private const float POINT_SCALE = 1000f;
+        private static IntPoint ToPoint(Vector2 p)
+        {
+            return new IntPoint((int)(p.X * POINT_SCALE), (int)(p.Y * POINT_SCALE));
+        }
+
+        private static Vector2 ToVector(IntPoint p)
+        {
+            return new Vector2(p.X / POINT_SCALE, p.Y / POINT_SCALE);
+        }
+
         private void PlanRegion(IFloorPlanBuilder floorplan, Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
             Contract.Requires(region != null);
@@ -198,6 +212,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
             //Remove oddly shaped rooms
             ReduceFaces(map);
+
+            TEMP_CORRIDOR_STUFF(map);
 
             //Assign specs (Rooms|Groups) to spaces
             //todo: order specs by constraints (most difficult to solve first), assign specs to spaces generated (best fit)
@@ -217,6 +233,40 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //todo: recursive for groups
 
             return;
+        }
+
+        private static void TEMP_CORRIDOR_STUFF(Mesh map)
+        {
+            var builder = new SvgBuilder(30);
+
+            var spanningTrees = map.Vertices.SpanningTreeKruskal<Vertex, HalfEdge>();
+
+            var outlines = (from tree in spanningTrees
+                let outline = WalkTreeOutline(tree)
+                select outline
+            ).ToArray();
+
+            var shapes = Clipper.OffsetPolygons(outlines, 150, JoinType.Miter, 1);
+            foreach (var shape in shapes)
+                builder.Outline(shape.Select(ToVector).ToArray());
+            
+
+            Console.WriteLine(builder.ToString());
+        }
+
+        private static IReadOnlyList<IntPoint> WalkTreeOutline(Tree<Vertex, HalfEdge> tree)
+        {
+            Contract.Requires(tree != null);
+            Contract.Ensures(Contract.Result<IReadOnlyList<IntPoint>>() != null);
+
+            List<IntPoint> result = new List<IntPoint>(tree.VertexCount * 2);
+
+            throw new NotImplementedException();
+        }
+
+        private static void WalkTreeOutline(ICollection<IntPoint> result)
+        {
+            Contract.Requires(result != null);
         }
 
         #region removing/merging faces

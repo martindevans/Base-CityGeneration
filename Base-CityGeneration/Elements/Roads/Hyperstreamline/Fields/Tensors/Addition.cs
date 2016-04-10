@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
+using JetBrains.Annotations;
 using Myre.Collections;
 
 namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
@@ -44,11 +45,14 @@ namespace Base_CityGeneration.Elements.Roads.Hyperstreamline.Fields.Tensors
         internal class Container
             : ITensorFieldContainer
         {
-            public ITensorFieldContainer[] Tensors { get; set; }
+            public ITensorFieldContainer[] Tensors { get; [UsedImplicitly]set; }
 
             public ITensorField Unwrap(Func<double> random, INamedDataCollection metadata)
             {
-                return new Addition(Tensors.Select(a => a.Unwrap(random, metadata)).ToArray());
+                var tensors = Tensors;
+                Contract.Assume(tensors != null);
+
+                return new Addition(tensors.Select(a => a.Unwrap(random, metadata)).ToArray());
             }
         }
     }

@@ -12,8 +12,8 @@ namespace Base_CityGeneration.Elements.Building.Design
         private readonly string _id;
         public string Id { get { return _id; } }
 
-        private readonly KeyValuePair<string, string>[] _tags;
-        public IEnumerable<KeyValuePair<string, string>> Tags
+        private readonly IReadOnlyList<KeyValuePair<string, string>> _tags;
+        public IReadOnlyList<KeyValuePair<string, string>> Tags
         {
             get
             {
@@ -67,7 +67,7 @@ namespace Base_CityGeneration.Elements.Building.Design
             Contract.Requires(selector != null);
         }
 
-        public FloorSelection(string id, KeyValuePair<string, string>[] tags, BaseFloorSelector selector, ScriptReference script, float height, int index = 0)
+        public FloorSelection(string id, IReadOnlyList<KeyValuePair<string, string>> tags, BaseFloorSelector selector, ScriptReference script, float height, int index = 0)
         {
             Contract.Requires(tags != null);
             Contract.Requires(selector != null);

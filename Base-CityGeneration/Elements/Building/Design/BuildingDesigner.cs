@@ -295,7 +295,7 @@ namespace Base_CityGeneration.Elements.Building.Design
                         //Create a face over this range of floors
                         var min = Math.Min(facade.Key.Index, facade.Value.Index);
                         var max = Math.Max(facade.Key.Index, facade.Value.Index);
-                        results.Add(new FacadeSelection(result.Value.Script, min, max));
+                        results.Add(new FacadeSelection(result.Script, min, max));
 
                         //Remove these floors from the run
                         floors.RemoveAll(a => a.Index >= min && a.Index <= max);

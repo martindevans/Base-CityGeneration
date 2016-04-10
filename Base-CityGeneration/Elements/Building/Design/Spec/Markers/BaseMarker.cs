@@ -142,6 +142,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 
             public void Clear()
             {
+                Contract.Ensures(Count == 0);
+
                 _algorithms.Clear();
             }
 
@@ -152,6 +154,10 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 
             public void CopyTo(BaseFootprintAlgorithm.BaseContainer[] array, int arrayIndex)
             {
+                Contract.Assume(arrayIndex < array.Length);
+                Contract.Assume(arrayIndex >= 0);
+                Contract.Assume(arrayIndex + _algorithms.Count < array.Length);
+
                 _algorithms.CopyTo(array, arrayIndex);
             }
 
@@ -162,33 +168,62 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers
 
             public int Count
             {
-                get { return _algorithms.Count; }
+                get
+                {
+                    Contract.Ensures(Contract.Result<int>() >= 0);
+                    return _algorithms.Count;
+                }
             }
 
             public bool IsReadOnly
             {
-                get { return false; }
+                get
+                {
+                    Contract.Ensures(!Contract.Result<bool>());
+                    return false;
+                }
             }
 
             public int IndexOf(BaseFootprintAlgorithm.BaseContainer item)
             {
+                Contract.Ensures(Contract.Result<int>() == -1 || Contract.Result<int>() < Count);
+                Contract.Ensures(Contract.Result<int>() == -1 || Contract.Result<int>() >= 0);
+
                 return _algorithms.IndexOf(item);
             }
 
             public void Insert(int index, BaseFootprintAlgorithm.BaseContainer item)
             {
+                Contract.Assume(index < Count);
+                Contract.Assume(index >= 0);
+
                 _algorithms.Insert(index, item);
             }
 
             public void RemoveAt(int index)
             {
+                Contract.Assume(index < Count);
+                Contract.Assume(index >= 0);
+
                 _algorithms.RemoveAt(index);
             }
 
             public BaseFootprintAlgorithm.BaseContainer this[int index]
             {
-                get { return _algorithms[index]; }
-                set { _algorithms[index] = value; }
+                get
+                {
+                    Contract.Assume(index < Count);
+                    Contract.Assume(index >= 0);
+
+                    return _algorithms[index];
+                }
+                set
+                {
+                    Contract.Assume(index < Count);
+                    Contract.Assume(index >= 0);
+
+                    _algorithms[index] = value;
+                }
             }
             #endregion
         }
