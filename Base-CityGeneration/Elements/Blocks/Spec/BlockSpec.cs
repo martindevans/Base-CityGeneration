@@ -99,7 +99,7 @@ namespace Base_CityGeneration.Elements.Blocks.Spec
             return (from lotSpec in _lots
                     where lotSpec.Check(parcel, random, metadata)
                     let result = lotSpec.Tags.SelectScript(random, scriptFinder, typeof(IBuildingContainer))
-                    select result.HasValue ? result.Value.Script : null
+                    select result == null ? null : result.Script
             ).FirstOrDefault();
         }
 

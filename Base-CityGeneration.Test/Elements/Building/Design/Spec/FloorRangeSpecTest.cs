@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Design.Spec;
-using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Testing.MockScripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -19,7 +18,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
             var range = new FloorRangeSpec(new[] {
                 new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, KeyValuePair<string, string>[]>(1, new [] { new KeyValuePair<string, string>("tag", "tag")
                 }) }, new ConstantValue(1))
-            }, new NormallyDistributedValue(1, 2, 3, 1).Transform(vary: false));
+            });
 
             var selected = range.Select(() => 0.5, new NamedBoxCollection(), (a, b) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
@@ -34,7 +33,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
         {
             var range = new FloorRangeSpec(new[] {
                 new FloorRangeIncludeSpec("id", new NormallyDistributedValue(2, 3, 4, 1), false, true, new[] { new KeyValuePair<float, KeyValuePair<string, string>[]>(1, null) }, new ConstantValue(1))
-            }, new NormallyDistributedValue(1, 2, 3, 1));
+            });
 
             var selected = range.Select(() => 0.5, new NamedBoxCollection(), (a, b) => ScriptReferenceFactory.Create(typeof(TestScript), Guid.NewGuid(), string.Join(",", a)));
 
@@ -54,7 +53,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec
                 new FloorRangeIncludeSpec("id", new NormallyDistributedValue(20, 30, 40, 10), false, false, new[] {
                     new KeyValuePair<float, KeyValuePair<string, string>[]>(1, new [] { new KeyValuePair<string, string>("key", "interrupt") })
                 }, new ConstantValue(1))
-            }, new NormallyDistributedValue(1, 2, 3, 1).Transform(vary: false));
+            });
 
             var r = new Random();
             var d = new NamedBoxCollection();

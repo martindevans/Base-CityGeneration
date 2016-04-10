@@ -14,7 +14,8 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
     /// <typeparam name="TE">Type of additional data associated with half edges</typeparam>
     /// <typeparam name="TF">Type of additional data associated with faces</typeparam>
     public class Vertex<TV, TE, TF>
-        : BaseTagged<TV, IVertexTag<TV, TE, TF>, Vertex<TV, TE, TF>>, IVertex
+        : BaseTagged<TV, IVertexTag<TV, TE, TF>, Vertex<TV, TE, TF>>,
+          IVertex<Vertex<TV, TE, TF>, HalfEdge<TV, TE, TF>>
     {
         #region fields and properties
         public Vector2 Position { get; private set; }
@@ -85,14 +86,6 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             return "Vertex@" + Position;
         }
 
-        IEnumerable<IEdge> IVertex.OutwardEdges
-        {
-            get
-            {
-                return Edges;
-            }
-        }
-
         public bool IsDeleted { get; internal set; }
 
         internal bool AddEdge(HalfEdge<TV, TE, TF> edge)
@@ -136,6 +129,19 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             Contract.Requires(transform != null);
 
             Position = transform(Position);
+        }
+
+        IEnumerable<HalfEdge<TV, TE, TF>> IVertex<Vertex<TV, TE, TF>, HalfEdge<TV, TE, TF>>.OutwardEdges
+        {
+            get
+            {
+                return Edges;
+            }
+        }
+
+        IEnumerable<IBaseEdge> IBaseVertex.OutwardEdges
+        {
+            get { return Edges; }
         }
     }
 }

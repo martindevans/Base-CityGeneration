@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Numerics;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
 {
+    [ContractClass(typeof(BaseFacadeConstraintContract))]
     public abstract class BaseFacadeConstraint
     {
         /// <summary>
@@ -21,6 +23,18 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.FacadeConstraints
             : IUnwrappable<BaseFacadeConstraint>
         {
             public abstract BaseFacadeConstraint Unwrap();
+        }
+    }
+
+    [ContractClassFor(typeof(BaseFacadeConstraint))]
+    internal abstract class BaseFacadeConstraintContract : BaseFacadeConstraint
+    {
+        public override bool Check(FloorSelection floor, IReadOnlyList<BuildingSideInfo> neighbours, Vector2 edgeStart, Vector2 edgeEnd, float bottom, float top)
+        {
+            Contract.Requires(floor != null);
+            Contract.Requires(neighbours != null);
+
+            return false;
         }
     }
 }

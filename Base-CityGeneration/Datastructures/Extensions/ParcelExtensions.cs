@@ -105,6 +105,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
             Contract.Requires(include != null);
             Contract.Requires(exclude != null);
             Contract.Ensures(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>() != null);
+            Contract.Ensures(Contract.ForAll(Contract.Result<IEnumerable<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>>(), a => !a.IsDeleted));
 
             var output = new List<Vertex<TVertexTag, THalfEdgeTag, TFaceTag>>();
 
@@ -156,6 +157,7 @@ namespace Base_CityGeneration.Datastructures.Extensions
         {
             Contract.Requires(face != null);
             Contract.Ensures(Contract.Result<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>() != null);
+            Contract.Ensures(!Contract.Result<HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag>>().IsDeleted);
 
             HalfEdge<TVertexTag, THalfEdgeTag, TFaceTag> winner = null;
             var score = float.MaxValue;

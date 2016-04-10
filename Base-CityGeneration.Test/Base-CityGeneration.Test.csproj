@@ -62,12 +62,12 @@
       <HintPath>..\packages\ClipperRedux.1.0.0.0\lib\net46\ClipperRedux.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5939.35598, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5939.35600\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5944.640, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5944.640\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5939.35600, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5939.35600\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
+    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5944.642, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5944.642\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=5.6.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -84,16 +84,16 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Myre, Version=10.0.3.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Myre.10.0.3.0\lib\net46\Myre.dll</HintPath>
+    <Reference Include="Myre, Version=10.1.3.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Myre.10.1.3.0\lib\net46\Myre.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Myre.Debugging, Version=4.0.5.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>..\packages\Myre.Debugging.4.0.5.0\lib\net46\Myre.Debugging.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Myre.Entities, Version=12.2.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Myre.Entities.12.2.0.0\lib\net46\Myre.Entities.dll</HintPath>
+    <Reference Include="Myre.Entities, Version=12.5.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Myre.Entities.12.5.0.0\lib\net46\Myre.Entities.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Myre.Graphics, Version=12.0.2.0, Culture=neutral, processorArchitecture=x86">
@@ -116,12 +116,12 @@
       <HintPath>..\packages\Placeholder.3.2.0.0\lib\net46\Placeholder.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.AI.Control, Version=14.1.2.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.AI.Control.14.1.2.0\lib\net46\Placeholder.AI.Control.dll</HintPath>
+    <Reference Include="Placeholder.AI.Control, Version=15.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.AI.Control.15.0.0.0\lib\net46\Placeholder.AI.Control.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.AI.Pathfinding, Version=9.2.2.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.AI.Pathfinding.9.2.2.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
+    <Reference Include="Placeholder.AI.Pathfinding, Version=10.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.AI.Pathfinding.10.0.0.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Audio2, Version=5.2.8.0, Culture=neutral, processorArchitecture=x86">

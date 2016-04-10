@@ -74,11 +74,11 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             foreach (var vertical in zipped)
             {
                 var result = _tags.SelectScript(random, finder, typeof(IVerticalFeature));
-                if (!result.HasValue)
+                if (result == null)
                     continue;
 
                 output.Add(new VerticalSelection(
-                    result.Value.Script,
+                    result.Script,
                     vertical.Key.Index,
                     vertical.Value.Index
                 ));
@@ -88,21 +88,29 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
         internal class Container
         {
-            public TagContainerContainer Tags { get; [UsedImplicitly]set; }
+            private TagContainerContainer _tags;
+            private BaseRef.BaseContainer _bottom;
+            private BaseRef.BaseContainer _top;
 
-            public BaseRef.BaseContainer Bottom { get; [UsedImplicitly]set; }
-            public BaseRef.BaseContainer Top { get; [UsedImplicitly]set; }
+            // ReSharper disable once ConvertToAutoPropertyWhenPossible (Backing field needed for CC assumptions below)
+            public TagContainerContainer Tags { get { return _tags; } [UsedImplicitly]set { _tags = value; } }
+
+            // ReSharper disable once ConvertToAutoPropertyWhenPossible (Backing field needed for CC assumptions below)
+            public BaseRef.BaseContainer Bottom { get { return _bottom; } [UsedImplicitly] set { _bottom = value; } }
+
+            // ReSharper disable once ConvertToAutoPropertyWhenPossible (Backing field needed for CC assumptions below)
+            public BaseRef.BaseContainer Top { get { return _top; } [UsedImplicitly] set { _top = value; } }
 
             public VerticalElementSpec Unwrap()
             {
-                Contract.Assume(Tags != null);
-                Contract.Assume(Bottom != null);
-                Contract.Assume(Top != null);
+                Contract.Assume(_tags != null);
+                Contract.Assume(_bottom != null);
+                Contract.Assume(_top != null);
 
                 return new VerticalElementSpec(
-                    Tags.Unwrap().ToArray(),
-                    Bottom.Unwrap(),
-                    Top.Unwrap()
+                    _tags.Unwrap().ToArray(),
+                    _bottom.Unwrap(),
+                    _top.Unwrap()
                 );
             }
         }
