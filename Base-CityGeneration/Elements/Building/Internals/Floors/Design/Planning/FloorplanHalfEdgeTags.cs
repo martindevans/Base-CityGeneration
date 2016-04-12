@@ -24,6 +24,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         {
             IsImpassable = isImpassable;
         }
+
+        public static FloorplanHalfEdgeTag Merge(FloorplanHalfEdgeTag a, FloorplanHalfEdgeTag b)
+        {
+            if (a.IsImpassable == b.IsImpassable)
+                return new FloorplanHalfEdgeTag(a.IsImpassable);
+
+            throw new InvalidOperationException("Cannot merge an impassable and non-impassable edge");
+        }
     }
 
     public class FloorplanFaceTag

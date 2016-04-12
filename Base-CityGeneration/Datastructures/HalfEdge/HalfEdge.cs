@@ -175,6 +175,9 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         [Pure]
         public bool ConnectsTo(Vertex<TV, TE, TF> vertex)
         {
+            if (vertex == null)
+                return false;
+
             return EndVertex.Equals(vertex) || StartVertex.Equals(vertex);
         }
 
