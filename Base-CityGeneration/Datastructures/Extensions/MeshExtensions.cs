@@ -6,6 +6,7 @@ using System.Numerics;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using EpimetheusPlugins.Extensions;
 using HandyCollections.Set;
+using Myre.Extensions;
 using Placeholder.AI.Pathfinding.AStar;
 using SwizzleMyVectors;
 
@@ -191,8 +192,9 @@ namespace Base_CityGeneration.Datastructures.Extensions
         /// <typeparam name="THTag"></typeparam>
         /// <typeparam name="TFTag"></typeparam>
         /// <param name="mesh"></param>
+        /// <param name="mergeTags"></param>
         /// <param name="angleThreshold"></param>
-        public static void SimplifyFaces<TVTag, THTag, TFTag>(this Mesh<TVTag, THTag, TFTag> mesh, float angleThreshold = 0.015f)
+        public static void SimplifyFaces<TVTag, THTag, TFTag>(this Mesh<TVTag, THTag, TFTag> mesh, Func<THTag, THTag, THTag> mergeTags, float angleThreshold = 0.015f)
         {
             Contract.Requires(mesh != null);
 
@@ -245,10 +247,30 @@ namespace Base_CityGeneration.Datastructures.Extensions
                 if (f2 != null)
                     mesh.Delete(f2);
 
-                //Delete the vertex
+                Func<THTag, THTag, THTag> merge2 = (a, b) =>
+                {
+                    var an = a == null || a.Equals(default(THTag));
+                    var bn = b == null || b.Equals(default(THTag));
+                    if (an && bn)
+                        return default(THTag);
+                    if (an ^ bn)
+                        return an ? b : a;
+                    return mergeTags(a, b);
+                };
+
+                //Get the 4 tags and merge to two tags
+                var otherEdge = ab.EndVertex.Edges.Single(e => !e.Equals(ab.Pair));
+                var primaryTag = merge2(ab.IsPrimaryEdge ? ab.Tag : ab.Pair.Tag, otherEdge.IsPrimaryEdge ? otherEdge.Tag : otherEdge.Pair.Tag);
+                var pairTag = merge2(!ab.IsPrimaryEdge ? ab.Tag : ab.Pair.Tag, !otherEdge.IsPrimaryEdge ? otherEdge.Tag : otherEdge.Pair.Tag);
+
+                //Get vertices before and after the vertex we are deleting
+                var startVertex = ab.StartVertex;
+                var endVertex = otherEdge.EndVertex;
+
+                //Delete the attached faces and then the vertex (this ensures that all edges in the faces are preserved)
                 mesh.Delete(ab.EndVertex);
 
-                //Create 2 new faces (copy across tags)
+                //Create 2 new faces (copy across face tags)
                 if (f1 != null)
                 {
                     var fn1 = mesh.GetOrConstructFace(f1Vertices);
@@ -264,6 +286,11 @@ namespace Base_CityGeneration.Datastructures.Extensions
                     f2.Tag = default(TFTag);
                     fn2.Tag = t2;
                 }
+
+                //Get the edge connecting the vertices either side of the vertex we deleted and give it a tag
+                var edge = mesh.GetHalfEdge(startVertex, endVertex);
+                edge.Tag = edge.IsPrimaryEdge ? primaryTag : pairTag;
+                edge.Pair.Tag = !edge.IsPrimaryEdge ? primaryTag : pairTag;
 
                 return true;
             };

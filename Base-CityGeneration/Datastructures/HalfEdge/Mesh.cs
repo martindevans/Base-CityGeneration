@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
-using Base_CityGeneration.Datastructures.Extensions;
 using EpimetheusPlugins.Extensions;
 using HandyCollections.Geometry;
 using Placeholder.AI.Pathfinding.Graph.NavigationMesh;

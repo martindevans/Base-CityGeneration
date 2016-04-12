@@ -16,12 +16,12 @@ using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
 using Vector2 = System.Numerics.Vector2;
 
-using MVertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<
+using Vertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<
     Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag,
     Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag,
     Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag
 >;
-using MHEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<
+using HalfEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<
     Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag,
     Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag,
     Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag
@@ -249,7 +249,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             _mesh.CreateImplicitFaces(f => new FloorplanFaceTag(true));
 
             //Remove vertices which lie on a perfectly straight line with no branches
-            _mesh.SimplifyFaces();
+            _mesh.SimplifyFaces(FloorplanHalfEdgeTag.Merge);
+
+            //Sanity check all primary edges have a tag
+            Contract.Assume(!_mesh.HalfEdges.Any(e => e.IsPrimaryEdge && e.Tag == null));
 
             return ConvertToMesh();
         }
@@ -297,7 +300,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 //If the edge doesn't contain this vertex already then split the edge we've hit
                 if (!firstIntersection.Value.Key.ConnectsTo(intersectVert))
                 {
-                    MHEdge ab, bc;
+                    HalfEdge ab, bc;
                     _mesh.Split(firstIntersection.Value.Key, intersectVert, out ab, out bc);
 
                     var t = firstIntersection.Value.Key.Tag ?? firstIntersection.Value.Key.Pair.Tag;
@@ -354,7 +357,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             }
         }
 
-        private KeyValuePair<MHEdge, float>? FindFirstParallelEdge(Seed seed, float length, float distance, float parallelThreshold)
+        private KeyValuePair<HalfEdge, float>? FindFirstParallelEdge(Seed seed, float length, float distance, float parallelThreshold)
         {
             Contract.Requires(seed != null);
 
@@ -376,7 +379,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //now get all lines which intersect this bounds and check them for parallelism
             var candidates = _mesh.FindEdges(queryBounds);
 
-            KeyValuePair<MHEdge, float>? firstParallel = null;
+            KeyValuePair<HalfEdge, float>? firstParallel = null;
             foreach (var candidate in candidates)
             {
                 var dirCandidate = candidate.Segment.Line.Direction;
@@ -402,7 +405,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                         var minDist = Math.Min(startDist, endDist);
 
                         if (firstParallel == null || minDist < firstParallel.Value.Value)
-                            firstParallel = new KeyValuePair<MHEdge, float>(candidate, minDist);
+                            firstParallel = new KeyValuePair<HalfEdge, float>(candidate, minDist);
                     }
                 }
 
@@ -411,10 +414,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             return firstParallel;
         }
 
-        private KeyValuePair<MHEdge, LinesIntersection2>? FindFirstIntersection(Seed seed, float length)
+        private KeyValuePair<HalfEdge, LinesIntersection2>? FindFirstIntersection(Seed seed, float length)
         {
             Contract.Requires(seed != null);
-            Contract.Ensures(!Contract.Result<KeyValuePair<MHEdge, LinesIntersection2>?>().HasValue || Contract.Result<KeyValuePair<MHEdge, LinesIntersection2>?>().Value.Key != null);
+            Contract.Ensures(!Contract.Result<KeyValuePair<HalfEdge, LinesIntersection2>?>().HasValue || Contract.Result<KeyValuePair<HalfEdge, LinesIntersection2>?>().Value.Key != null);
 
             //Create the bounds of this new line (inflated slightly, just in case it's perfectly axis aligned)
             var a = seed.Origin.Position;
@@ -425,12 +428,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //Find all edges which intersect this bounds, then test them one by one for intersection
             var results = _mesh
                 .FindEdges(bounds)
-                .Select(e => new KeyValuePair<MHEdge, LinesIntersection2?>(e, e.Segment.Intersects(segment)))
+                .Select(e => new KeyValuePair<HalfEdge, LinesIntersection2?>(e, e.Segment.Intersects(segment)))
                 .Where(i => i.Value.HasValue)
-                .Select(i => new KeyValuePair<MHEdge, LinesIntersection2>(i.Key, i.Value.Value));
+                .Select(i => new KeyValuePair<HalfEdge, LinesIntersection2>(i.Key, i.Value.Value));
 
             //Find the first intersection from all the results
-            KeyValuePair<MHEdge, LinesIntersection2>? result = null;
+            KeyValuePair<HalfEdge, LinesIntersection2>? result = null;
             foreach (var candidate in results)
             {
                 if (result == null || candidate.Value.DistanceAlongB < result.Value.Value.DistanceAlongB)
@@ -444,7 +447,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         private void CleanupDeadEnds()
         {
             //Keep running this until we reach a fixpoint (i.e. nothing changed)
-            Func<IEnumerable<MVertex>, bool> cleanup = verts =>
+            Func<IEnumerable<Vertex>, bool> cleanup = verts =>
             {
                 //Try to find a vertex to remove
                 var vertex = verts.FirstOrDefault(v => v.EdgeCount <= 1);
@@ -480,8 +483,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         {
             Contract.Requires(shape != null);
 
-            var vertices = (IReadOnlyList<MVertex>)shape.Select(_mesh.GetOrConstructVertex).ToArray();
-            var edges = new List<MHEdge>(vertices.Count * 3);
+            var vertices = (IReadOnlyList<Vertex>)shape.Select(_mesh.GetOrConstructVertex).ToArray();
+            var edges = new List<HalfEdge>(vertices.Count * 3);
 
             // Create the outer edges of the floor
             for (var i = 0; i < vertices.Count; i++)
@@ -554,7 +557,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             }
         }
 
-        private void PerpendicularSeed(MVertex a, Vector2 ab)
+        private void PerpendicularSeed(Vertex a, Vector2 ab)
         {
             CreateSeed(a, ab.Perpendicular(), (float)_random());
         }
@@ -566,7 +569,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         /// <param name="b"></param>
         /// <param name="edges"></param>
         /// <returns></returns>
-        private void CreateImpassableEdge(MVertex a, MVertex b, ICollection<MHEdge> edges = null)
+        private void CreateImpassableEdge(Vertex a, Vertex b, ICollection<HalfEdge> edges = null)
         {
             Contract.Requires(a != null);
             Contract.Requires(b != null);
@@ -606,7 +609,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         #endregion
 
         #region seeds
-        private void CreateSeed(MVertex start, Vector2 direction, float t)
+        private void CreateSeed(Vertex start, Vector2 direction, float t)
         {
             //This could be written as `direction.LengthSquared().TolerantEquals(1, 0.001f)` However, LengthSquared() is not marked as [Pure]
             Contract.Requires((direction.X * direction.X + direction.Y * direction.Y).TolerantEquals(1, 0.001f));
@@ -619,11 +622,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         private class Seed
             : IComparable<Seed>
         {
-            public MVertex Origin { get; private set; }
+            public Vertex Origin { get; private set; }
             public Vector2 Direction { get; private set; }
             public float T { get; private set; }
 
-            public Seed(MVertex origin, Vector2 direction, float t)
+            public Seed(Vertex origin, Vector2 direction, float t)
             {
                 Origin = origin;
                 Direction = direction;

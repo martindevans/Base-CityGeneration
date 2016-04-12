@@ -8,15 +8,19 @@ using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric;
+using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using ClipperRedux;
 using EpimetheusPlugins.Extensions;
+using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using HandyCollections.Heap;
 using JetBrains.Annotations;
 using Myre.Collections;
+using Myre.Graphics.Geometry.Text;
 using Placeholder.AI.Pathfinding.SpanningTree;
 using PrimitiveSvgBuilder;
+using SwizzleMyVectors.Geometry;
 using Face = Base_CityGeneration.Datastructures.HalfEdge.Face<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using HalfEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using Vertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
@@ -210,10 +214,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //Grow floorplan for region
             var map = new GrowthMap(region.Points.ToArray(), overlappingVerticals, _random, _metadata, _wallGrowthParameters).Grow();
 
+            if (map.HalfEdges.Any(e => e.IsPrimaryEdge && e.Tag == null))
+                throw new NotImplementedException();
+
             //Remove oddly shaped rooms
             ReduceFaces(map);
 
-            TEMP_CORRIDOR_STUFF(map);
+            TEMP_CORRIDOR_STUFF(map, region);
 
             //Assign specs (Rooms|Groups) to spaces
             //todo: order specs by constraints (most difficult to solve first), assign specs to spaces generated (best fit)
@@ -235,18 +242,23 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             return;
         }
 
-        private static void TEMP_CORRIDOR_STUFF(Mesh map)
+        private void TEMP_CORRIDOR_STUFF(Mesh map, Region region)
         {
             var builder = new SvgBuilder(30);
 
-            var spanningTrees = map.Vertices.SpanningTreeKruskal<Vertex, HalfEdge>();
+            builder.Outline(region.Points.ToArray());
+
+            const int DISTANCE = 150;
+
+            var spanningTrees = map.Vertices.Where(v => v.Edges.All(e => e.Tag == null || !e.Tag.IsImpassable)).SpanningTreeKruskal<Vertex, HalfEdge>();
+            var shrunkOutlineSegments = region.Points.Shrink(DISTANCE / POINT_SCALE).Segments();
 
             var outlines = (from tree in spanningTrees
-                let outline = WalkTreeOutline(tree)
+                let outline = WalkTreeOutline(tree, shrunkOutlineSegments)
                 select outline
             ).ToArray();
 
-            var shapes = Clipper.OffsetPolygons(outlines, 150, JoinType.Miter, 1);
+            var shapes = Clipper.OffsetPolygons(outlines, 150, JoinType.Miter, 10);
             foreach (var shape in shapes)
                 builder.Outline(shape.Select(ToVector).ToArray());
             
@@ -254,19 +266,43 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             Console.WriteLine(builder.ToString());
         }
 
-        private static IReadOnlyList<IntPoint> WalkTreeOutline(Tree<Vertex, HalfEdge> tree)
+        private static IReadOnlyList<IntPoint> WalkTreeOutline(Tree<Vertex, HalfEdge> tree, IEnumerable<LineSegment2> shrunkOutline)
         {
             Contract.Requires(tree != null);
             Contract.Ensures(Contract.Result<IReadOnlyList<IntPoint>>() != null);
 
-            List<IntPoint> result = new List<IntPoint>(tree.VertexCount * 2);
+            var result = new List<IntPoint>(tree.VertexCount * 2);
 
-            throw new NotImplementedException();
+            //Select a random leaf node as the start point
+            var leaf = tree.Vertices.First(v => v.Edges.Where(tree.Contains).Count() == 1);
+            WalkTreeOutline(result, tree, leaf, null, shrunkOutline);
+
+            return result;
         }
 
-        private static void WalkTreeOutline(ICollection<IntPoint> result)
+        private static void WalkTreeOutline(ICollection<IntPoint> result, Tree<Vertex, HalfEdge> tree, Vertex node, Vertex parent, IEnumerable<LineSegment2> shrunkOutline)
         {
             Contract.Requires(result != null);
+
+            //Adjust position of this node so that it is not immediately next to an external wall
+            var adjusted = node.Position;
+            //if (shrunkOutline.Any(o => o.Line.IsLeft(node.Position, 0)))
+            //{
+            //    adjusted = 
+            //}
+            //throw new NotImplementedException("Shjrink");
+
+            //Convert into the correct space for clipper (int points, 1unit = 1mm)
+            var point = ToPoint(adjusted);
+
+            result.Add(point);
+            foreach (var edge in tree.Edges.Where(e => e.ConnectsTo(node) && !e.ConnectsTo(parent)))
+            {
+                var childNode = edge.EndVertex.Equals(node) ? edge.StartVertex : edge.EndVertex;
+                WalkTreeOutline(result, tree, childNode, node, shrunkOutline);
+
+                result.Add(point);
+            }
         }
 
         #region removing/merging faces
@@ -413,7 +449,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             mesh.RemoveDisconnectedVertices();
 
             //Removed vertices which lie on a perfectly straight line between 2 faces (linear reduction)
-            mesh.SimplifyFaces();
+            mesh.SimplifyFaces(FloorplanHalfEdgeTag.Merge);
 
             //Remove the total count of removed faces
             return removedCount;

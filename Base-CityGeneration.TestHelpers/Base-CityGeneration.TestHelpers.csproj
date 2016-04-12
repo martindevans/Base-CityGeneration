@@ -116,8 +116,8 @@
       <HintPath>..\packages\Placeholder.AI.Control.15.0.0.0\lib\net46\Placeholder.AI.Control.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.AI.Pathfinding, Version=10.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.AI.Pathfinding.10.0.0.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
+    <Reference Include="Placeholder.AI.Pathfinding, Version=10.1.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.AI.Pathfinding.10.1.0.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Audio2, Version=5.2.8.0, Culture=neutral, processorArchitecture=x86">
