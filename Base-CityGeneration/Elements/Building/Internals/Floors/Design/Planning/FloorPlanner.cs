@@ -12,15 +12,13 @@ using Base_CityGeneration.Utilities.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
 using ClipperRedux;
 using EpimetheusPlugins.Extensions;
+using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using HandyCollections.Heap;
 using JetBrains.Annotations;
 using Myre.Collections;
-using Myre.Graphics.Geometry.Text;
 using Placeholder.AI.Pathfinding.SpanningTree;
-using PrimitiveSvgBuilder;
-using SwizzleMyVectors.Geometry;
 using Face = Base_CityGeneration.Datastructures.HalfEdge.Face<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using HalfEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using Vertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
@@ -35,7 +33,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
     /// </summary>
     internal class FloorPlanner
     {
-        #region helper class
+        #region helper classes
         public class MergingParameters
         {
             public IValueGenerator AngularWeight { get; set; }
@@ -123,6 +121,34 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
                 }
             }
         }
+
+        public class CorridorParameters
+        {
+            public IValueGenerator Width { get; set; }
+
+            public CorridorParameters(IValueGenerator width)
+            {
+                Width = width;
+            }
+
+            internal class Container
+                : IUnwrappable<CorridorParameters>
+            {
+                public object Width { get; [UsedImplicitly] set; }
+
+                public CorridorParameters Unwrap()
+                {
+                    return new CorridorParameters(
+                        IValueGeneratorContainer.FromObject(Width ?? new NormallyDistributedValue(1, 1.5f, 2, 0.25f))
+                    );
+                }
+
+                public static CorridorParameters UnwrapDefault(Container maybeContainer)
+                {
+                    return (maybeContainer ?? new Container()).Unwrap();
+                }
+            }
+        }
         #endregion
 
         #region fields and properties
@@ -132,10 +158,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         private readonly float _wallThickness;
         private readonly WallGrowthParameters _wallGrowthParameters;
         private readonly MergingParameters _mergeParameters;
+        private readonly CorridorParameters _corridorParameters;
         #endregion
 
         #region constructor
-        public FloorPlanner(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float wallThickness, WallGrowthParameters wallGrowthParameters, MergingParameters mergeParameters)
+        public FloorPlanner(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, float wallThickness, WallGrowthParameters wallGrowthParameters, MergingParameters mergeParameters, CorridorParameters corridorParameters)
         {
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);
@@ -148,6 +175,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             _wallThickness = wallThickness;
             _wallGrowthParameters = wallGrowthParameters;
             _mergeParameters = mergeParameters;
+            _corridorParameters = corridorParameters;
         }
         #endregion
 
@@ -162,36 +190,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             PlanRegion(floorplan, region, overlappingVerticals, startingVerticals, spaces);
             return floorplan;
         }
-
-        //private IFloorPlanBuilder Build(IFloorPlanBuilder builder, Mesh map)
-        //{
-        //    foreach (var face in map.Faces.OrderBy(a => a.Id))
-        //    {
-        //        ScriptReference script;
-        //        string id;
-        //        if (face.Tag.Spec != null)
-        //        {
-        //            var selected = face.Tag.Spec.Tags.SelectScript(_random, _finder, typeof(IPlannedRoom));
-        //            if (!selected.HasValue)
-        //                throw new NotImplementedException("No script found");   //todo: fall back to default room?
-
-        //            script = selected.Value.Script;
-        //            id = face.Tag.Spec.Id;
-        //        }
-        //        else
-        //        {
-        //            //todo: what should we use for default rooms? maybe parameterize this
-        //            script = new ScriptReference(typeof(EmptyRoom));
-        //            id = "default";
-        //        }
-
-        //        var room = builder.AddRoom(face.Vertices.Select(a => a.Position), _wallThickness, new[] { script }, id);
-        //        if (room == null)
-        //            throw new InvalidOperationException("A room was split when building a planned floor");
-        //    }
-
-        //    return builder;
-        //}
 
         private const float POINT_SCALE = 1000f;
         private static IntPoint ToPoint(Vector2 p)
@@ -214,13 +212,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //Grow floorplan for region
             var map = new GrowthMap(region.Points.ToArray(), overlappingVerticals, _random, _metadata, _wallGrowthParameters).Grow();
 
-            if (map.HalfEdges.Any(e => e.IsPrimaryEdge && e.Tag == null))
-                throw new NotImplementedException();
-
             //Remove oddly shaped rooms
             ReduceFaces(map);
 
-            TEMP_CORRIDOR_STUFF(map, region);
+            //Insert corridors into the plan
+            GenerateCorridors(floorplan, map, region);
 
             //Assign specs (Rooms|Groups) to spaces
             //todo: order specs by constraints (most difficult to solve first), assign specs to spaces generated (best fit)
@@ -232,76 +228,88 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             foreach (var face in map.Faces)
             {
                 //if (face.Tag.Spec is RoomSpec)
-                    floorplan.Add(face.Vertices.Select(a => a.Position).ToArray(), _wallThickness);
+                {
+                    var shape = face.Vertices.Select(a => a.Position).ToArray();
+                    floorplan.Add(shape, _wallThickness);
+                }
+                //else if (face.Tag.Spec is GroupSpec)
+                //{
+                //    todo: recursive create group layout
+                //    Extract subregion shapes from floorplan (a corridor may have clipped the shape, so we can't just use the face shape)
+                //    Then recursive layout regions in the calculated shape
+                //}
             }
-
-            //Extract subregion shapes from floorplan (a corridor may have clipped the shape, so we can't just use the face shape)
-            //Then recursive layout regions in the calculated shape
-            //todo: recursive for groups
 
             return;
         }
 
-        private void TEMP_CORRIDOR_STUFF(Mesh map, Region region)
+        private void GenerateCorridors(IFloorPlanBuilder builder, Mesh map, Region region)
         {
-            var builder = new SvgBuilder(30);
+            //Narrow down to only the vertices which are not on the border of this region and then generate the spanning tree(s) to connect these vertices
+            var vertices = map.Vertices.Where(v => v.Edges.All(e => e.Tag == null || !e.Tag.IsImpassable));
+            var spanningTrees = vertices.SpanningTreeKruskal<Vertex, HalfEdge>();
 
-            builder.Outline(region.Points.ToArray());
-
-            const int DISTANCE = 150;
-
-            var spanningTrees = map.Vertices.Where(v => v.Edges.All(e => e.Tag == null || !e.Tag.IsImpassable)).SpanningTreeKruskal<Vertex, HalfEdge>();
-            var shrunkOutlineSegments = region.Points.Shrink(DISTANCE / POINT_SCALE).Segments();
-
-            var outlines = (from tree in spanningTrees
-                let outline = WalkTreeOutline(tree, shrunkOutlineSegments)
+            //Convert spanning trees into polygons (with zero width on the corridors)
+            var outlines = (
+                from tree in spanningTrees
+                let outline = WalkTreeOutline(tree)
                 select outline
             ).ToArray();
 
-            var shapes = Clipper.OffsetPolygons(outlines, 150, JoinType.Miter, 10);
-            foreach (var shape in shapes)
-                builder.Outline(shape.Select(ToVector).ToArray());
-            
+            //Grow corridors to full width
+            var corridorWidth = _corridorParameters.Width.SelectFloatValue(_random, _metadata);
 
-            Console.WriteLine(builder.ToString());
+            var shapes = Clipper.OffsetPolygons(
+                outlines.Select(o => o.Select(ToPoint).ToArray()).ToArray(),
+                corridorWidth * POINT_SCALE * 0.5f,
+                JoinType.Miter,
+                2,
+                false
+            ).Select(s => s.Select(ToVector).ToArray()).ToArray();
+
+            //intersect corridors with region footprint
+            var regionShape = region.Points.Select(ToPoint).ToArray();
+            var clipper = new Clipper();
+            var results = new List<List<IntPoint>>(1);
+            foreach (var shape in shapes)
+            {
+                clipper.Clear();
+                results.Clear();
+
+                clipper.AddPolygon(regionShape, PolyType.Clip);
+                clipper.AddPolygon(shape.Select(ToPoint).ToArray(), PolyType.Subject);
+                clipper.Execute(ClipType.Intersection, results);
+
+                foreach (var result in results)
+                    builder.Add(result.Select(ToVector).Clockwise(), _wallThickness);
+            }
         }
 
-        private static IReadOnlyList<IntPoint> WalkTreeOutline(Tree<Vertex, HalfEdge> tree, IEnumerable<LineSegment2> shrunkOutline)
+        private static IReadOnlyList<Vector2> WalkTreeOutline(Tree<Vertex, HalfEdge> tree)
         {
             Contract.Requires(tree != null);
-            Contract.Ensures(Contract.Result<IReadOnlyList<IntPoint>>() != null);
+            Contract.Ensures(Contract.Result<IReadOnlyList<Vector2>>() != null);
 
-            var result = new List<IntPoint>(tree.VertexCount * 2);
+            var result = new List<Vector2>(tree.VertexCount * 2);
 
             //Select a random leaf node as the start point
             var leaf = tree.Vertices.First(v => v.Edges.Where(tree.Contains).Count() == 1);
-            WalkTreeOutline(result, tree, leaf, null, shrunkOutline);
+            WalkTreeOutline(result, tree, leaf, null);
 
             return result;
         }
 
-        private static void WalkTreeOutline(ICollection<IntPoint> result, Tree<Vertex, HalfEdge> tree, Vertex node, Vertex parent, IEnumerable<LineSegment2> shrunkOutline)
+        private static void WalkTreeOutline(ICollection<Vector2> result, Tree<Vertex, HalfEdge> tree, Vertex node, Vertex parent)
         {
             Contract.Requires(result != null);
 
-            //Adjust position of this node so that it is not immediately next to an external wall
-            var adjusted = node.Position;
-            //if (shrunkOutline.Any(o => o.Line.IsLeft(node.Position, 0)))
-            //{
-            //    adjusted = 
-            //}
-            //throw new NotImplementedException("Shjrink");
-
-            //Convert into the correct space for clipper (int points, 1unit = 1mm)
-            var point = ToPoint(adjusted);
-
-            result.Add(point);
+            result.Add(node.Position);
             foreach (var edge in tree.Edges.Where(e => e.ConnectsTo(node) && !e.ConnectsTo(parent)))
             {
                 var childNode = edge.EndVertex.Equals(node) ? edge.StartVertex : edge.EndVertex;
-                WalkTreeOutline(result, tree, childNode, node, shrunkOutline);
+                WalkTreeOutline(result, tree, childNode, node);
 
-                result.Add(point);
+                result.Add(node.Position);
             }
         }
 

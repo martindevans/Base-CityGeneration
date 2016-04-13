@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Security.Cryptography.X509Certificates;
 using Base_CityGeneration.Datastructures.HalfEdge;
 using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning;
@@ -48,10 +49,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
         private readonly WallGrowthParameters _wallGrowthParameters;
         private readonly FloorPlanner.MergingParameters _roomMergeParameters;
+        private readonly FloorPlanner.CorridorParameters _corridorParameters;
         #endregion
 
         #region constructor
-        private FloorDesigner(Dictionary<string, string> tags, Guid guid, string description, IReadOnlyList<BaseSpaceSpec> spaces, WallGrowthParameters wallGrowthParameters, FloorPlanner.MergingParameters roomMergeParameters)
+        private FloorDesigner(Dictionary<string, string> tags, Guid guid, string description, IReadOnlyList<BaseSpaceSpec> spaces, WallGrowthParameters wallGrowthParameters, FloorPlanner.MergingParameters roomMergeParameters, FloorPlanner.CorridorParameters corridorParameters)
         {
             Contract.Requires(wallGrowthParameters != null);
             Contract.Requires(spaces != null);
@@ -64,6 +66,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             _wallGrowthParameters = wallGrowthParameters;
             _roomMergeParameters = roomMergeParameters;
+            _corridorParameters = corridorParameters;
         }
         #endregion
 
@@ -81,7 +84,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             var region = CreateRegion(footprint, sections);
 
-            var planner = new FloorPlanner(random, metadata, finder, wallThickness, _wallGrowthParameters, _roomMergeParameters);
+            var planner = new FloorPlanner(random, metadata, finder, wallThickness, _wallGrowthParameters, _roomMergeParameters, _corridorParameters);
             return planner.Plan(region, overlappingVerticals, startingVerticals, _spaces);
         }
 
@@ -166,6 +169,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
 
             public WallGrowthParameters.Container GrowthParameters { get; [UsedImplicitly] set; }
             public FloorPlanner.MergingParameters.Container MergeParameters { get; [UsedImplicitly] set; }
+            public FloorPlanner.CorridorParameters.Container CorridorParameters { get; [UsedImplicitly] set; }
 
             public List<BaseSpaceSpec.BaseContainer> Spaces { get; [UsedImplicitly] set; }
             // ReSharper restore CollectionNeverUpdated.Global
@@ -179,7 +183,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
                     Description ?? "",
                     Spaces.Select(a => a.Unwrap()).ToArray(),
                     GrowthParameters.Unwrap(),
-                    FloorPlanner.MergingParameters.Container.UnwrapDefault(MergeParameters)
+                    FloorPlanner.MergingParameters.Container.UnwrapDefault(MergeParameters),
+                    FloorPlanner.CorridorParameters.Container.UnwrapDefault(CorridorParameters)
                 );
             }
         }
