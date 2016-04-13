@@ -16,7 +16,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
     {
         #region fields/properties
         private const float SCALE = 100000;
-        private const float SAFE_DISTANCE = 0.01f;
+        internal const float SAFE_DISTANCE = 0.01f;
 
         private uint _nextId;
 

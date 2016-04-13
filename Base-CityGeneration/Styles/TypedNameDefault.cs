@@ -111,7 +111,6 @@ namespace Base_CityGeneration.Styles
         /// <param name="name">The name of the value</param>
         /// <param name="update">Function to derive a new value from an old one</param>
         /// <param name="generate">Function to generate a new value if no old one existed</param>
-        /// <param name="save">Indicates if the generated value should be saved into the provider</param>
         /// <returns>The determined value</returns>
         public static T DetermineHierarchicalValue<T>(this INamedDataCollection provider, TypedName<T> name, Func<T, T> update, Func<T> generate) where T : IEquatable<T>
         {
