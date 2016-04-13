@@ -89,7 +89,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
                     var segment = new LineSegment2(a, b);
                 
                     //Get the neighbours from the neighbourset (co-linear lines, which overlap segments)
-                    var neighbours = sides.Neighbours(segment, 0, GeometricFloorplan.SAFE_DISTANCE * 2.1f, true);
+                    var neighbours = sides.Neighbours(segment, 0.0174533f, GeometricFloorplan.SAFE_DISTANCE * 3f, true);
 
                     //Convert to output format
                     foreach (var neighbour in neighbours)

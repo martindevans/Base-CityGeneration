@@ -39,7 +39,7 @@ namespace Base_CityGeneration.Datastructures.Edges
 
             List<NeighbourResult> results = new List<NeighbourResult>();
 
-            for (var i = lowKey; i <= highKey; i++)
+            foreach (var i in KeyInRange(lowKey, highKey))
             {
                 List<KeyValuePair<LineSegment2, T>> segments;
 
@@ -96,6 +96,28 @@ namespace Base_CityGeneration.Datastructures.Edges
             }
 
             return results;
+        }
+
+        private static IEnumerable<int> KeyInRange(int low, int high)
+        {
+            if (low < high)
+            {
+                for (var i = low; i <= high; i++)
+                    yield return i;
+            }
+            else if (low == high)
+            {
+                yield return low;
+            }
+            else
+            {
+                //We pass over the 180 degree mark!
+                //Iterate from low -> 179 then from 0 -> high
+                for (var i = low; i <= 179; i++)
+                    yield return i;
+                for (var i = 0; i <= high; i++)
+                    yield return i;
+            }
         }
 
         private static void Clamp(ref float t, ref Vector2 pointAtT, Ray2 line)
