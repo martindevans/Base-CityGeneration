@@ -25,16 +25,19 @@ namespace Base_CityGeneration.Datastructures.Edges
         /// <param name="query"></param>
         /// <param name="angularTolerance">Maximum angular difference (radians) between lines which is still considered parallel</param>
         /// <param name="distanceTolerance">Maximum Distance between lines which is still considered a neighbour</param>
+        /// <param name="antiParallel">Whether the angle of the query line should be inverted before querying</param>
         /// <returns></returns>
-        public IEnumerable<NeighbourResult> Neighbours(LineSegment2 query, float angularTolerance, float distanceTolerance)
+        public IEnumerable<NeighbourResult> Neighbours(LineSegment2 query, float angularTolerance, float distanceTolerance, bool antiParallel = false)
         {
             Contract.Ensures(Contract.Result<IEnumerable<NeighbourResult>>() != null);
 
-            var angle = Angle(query);
+            var angle = Angle(query, antiParallel);
             var lowKey = ToKey(angle - angularTolerance);
             var highKey = ToKey(angle + angularTolerance);
             var queryLine = query.LongLine;
             var distanceToleranceSq = distanceTolerance * distanceTolerance;
+
+            List<NeighbourResult> results = new List<NeighbourResult>();
 
             for (var i = lowKey; i <= highKey; i++)
             {
@@ -55,7 +58,7 @@ namespace Base_CityGeneration.Datastructures.Edges
                         continue;
 
                     //Check angular tolerance
-                    if (Math.Abs(angle - Angle(segment)) > angularTolerance)
+                    if (Math.Abs(angle - Angle(segment, false)) > angularTolerance)
                         continue;
 
                     //Project points from segment onto query (early exit if the point is too far from the infinite length line)
@@ -80,14 +83,19 @@ namespace Base_CityGeneration.Datastructures.Edges
                     Clamp(ref et, ref ep, queryLine);
 
                     var segmentLine = segment.LongLine;
-                    yield return new NeighbourResult(
-                        segment,
-                        segmentLine.ClosestPointDistanceAlongLine(sp), segmentLine.ClosestPointDistanceAlongLine(ep),
-                        item.Value,
-                        st, et
-                    );
+                    //yield return
+                    results.Add(
+                        new NeighbourResult(
+                            segment,
+                            segmentLine.ClosestPointDistanceAlongLine(sp), segmentLine.ClosestPointDistanceAlongLine(ep),
+                            item.Value,
+                            st, et
+                            )
+                        );
                 }
             }
+
+            return results;
         }
 
         private static void Clamp(ref float t, ref Vector2 pointAtT, Ray2 line)
@@ -106,14 +114,17 @@ namespace Base_CityGeneration.Datastructures.Edges
 
         public void Add(LineSegment2 segment, T value)
         {
-            GetList(Angle(segment)).Add(new KeyValuePair<LineSegment2, T>(segment, value));
+            GetList(Angle(segment, false)).Add(new KeyValuePair<LineSegment2, T>(segment, value));
             Count++;
         }
 
-        private static float Angle(LineSegment2 segment)
+        private static float Angle(LineSegment2 segment, bool antiParallel)
         {
             var delta = segment.End - segment.Start;
             var angle = (float)Math.Atan2(delta.Y, delta.X);
+
+            if (antiParallel)
+                angle += MathHelper.Pi;
 
             while (angle < 0)
                 angle += MathHelper.TwoPi;

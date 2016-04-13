@@ -2,10 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using Myre.Collections;
 
 namespace Base_CityGeneration
 {
+    /// <summary>
+    /// Base interface for container classes which can be "unwrapped" into another type.
+    /// Usually used for serialization, the container is the deserialized version, Unwrap() converts it into the model we really want
+    /// </summary>
+    /// <typeparam name="T">Type which this unwraps to</typeparam>
     [ContractClass(typeof(IUnwrappableContracts<>))]
     internal interface IUnwrappable<out T>
     {
@@ -28,30 +32,12 @@ namespace Base_CityGeneration
     {
         internal static IEnumerable<T> UnwrapEnumerable<T>(this IEnumerable<IUnwrappable<T>> collection)
         {
+            Contract.Ensures(Contract.Result<IEnumerable<T>>() != null);
+
             if (collection == null)
-                return new T[0];
+                return Array.Empty<T>();
 
             return collection.Select(a => a.Unwrap());
-        }
-    }
-
-    [ContractClass(typeof(IUnwrappable2Contracts<>))]
-    internal interface IUnwrappable2<out T>
-    {
-        T Unwrap(Func<double> random, INamedDataCollection metadata);
-    }
-
-    [ContractClassFor(typeof(IUnwrappable2<>))]
-    internal abstract class IUnwrappable2Contracts<T>
-        : IUnwrappable2<T>
-    {
-        public T Unwrap(Func<double> random, INamedDataCollection metadata)
-        {
-            Contract.Requires(random != null);
-            Contract.Requires(metadata != null);
-            Contract.Ensures(Contract.Result<T>() != null);
-
-            return default(T);
         }
     }
 }
