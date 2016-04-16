@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
-using ClipperRedux;
+using ClipperLib;
 using EpimetheusPlugins.Procedural.Utilities;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
@@ -168,14 +168,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
         }
 
         #region clipping
-        private List<List<IntPoint>> ClipToRooms(IReadOnlyList<IntPoint> roomFootprint, bool allowSplit)
+        private List<List<IntPoint>> ClipToRooms(List<IntPoint> roomFootprint, bool allowSplit)
         {
             _clipper.Clear();
-            _clipper.AddPolygon(roomFootprint, PolyType.Subject);
-            _clipper.AddPolygons(_rooms.Select(r => r.OuterFootprint.Select(ToPoint).ToList()).ToList(), PolyType.Clip);
+            _clipper.AddPath(roomFootprint, PolyType.ptSubject, true);
+            _clipper.AddPaths(_rooms.Select(r => r.OuterFootprint.Select(ToPoint).ToList()).ToList(), PolyType.ptClip, true);
 
             var solution = new PolyTree();
-            _clipper.Execute(ClipType.Difference, solution);
+            _clipper.Execute(ClipType.ctDifference, solution);
 
             //Rooms with holes are not supported
             if (HasHole(solution))
@@ -184,7 +184,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
                 return new List<List<IntPoint>>();
             }
 
-            var shapes = ToShapes(solution);
+            var shapes = Clipper.ClosedPathsFromPolyTree(solution);
 
             if (shapes.Count > 1 && !allowSplit)
                 return new List<List<IntPoint>>();
@@ -202,21 +202,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             return tree.Childs.Any(HasHole);
         }
 
-        private static List<List<IntPoint>> ToShapes(PolyTree tree)
-        {
-            var solution = new List<List<IntPoint>>();
-            Clipper.PolyTreeToPolygons(tree, solution);
-            return solution;
-        }
-
-        private List<List<IntPoint>> ClipToFloor(IReadOnlyList<IntPoint> roomFootprint, bool allowSplit)
+        private List<List<IntPoint>> ClipToFloor(List<IntPoint> roomFootprint, bool allowSplit)
         {
             _clipper.Clear();
-            _clipper.AddPolygon(roomFootprint, PolyType.Subject);
-            _clipper.AddPolygon(_externalFootprint.Select(ToPoint).ToList(), PolyType.Clip);
+            _clipper.AddPath(roomFootprint, PolyType.ptSubject, true);
+            _clipper.AddPath(_externalFootprint.Select(ToPoint).ToList(), PolyType.ptClip, true);
 
             var solution = new List<List<IntPoint>>();
-            _clipper.Execute(ClipType.Intersection, solution);
+            _clipper.Execute(ClipType.ctIntersection, solution);
 
             if (solution.Count > 1 && !allowSplit)
                 return null;

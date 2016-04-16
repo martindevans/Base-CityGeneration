@@ -29,10 +29,10 @@ namespace Base_CityGeneration.TestHelpers
 
                     builder.Outline(new[] {
                         facade.Section.A, facade.Section.B, facade.Section.C, facade.Section.D
-                    }, color, "grey");
+                    }, color, "dimgray");
                 }
 
-                //builder.Outline(room.OuterFootprint, fill: "red");
+                builder.Outline(room.InnerFootprint, fill: "lightsteelblue");
             }
 
             return builder.ToString();

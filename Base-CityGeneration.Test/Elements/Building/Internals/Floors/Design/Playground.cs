@@ -67,11 +67,13 @@ MergeParameters:
         Threshold: 0.5
     Convexity:
         Weight: 0.3
-        Threshold: 0.9
+        Threshold: 0.5
     Area:
         Weight: 0.3
         Threshold: 45
         Cutoff: 5
+CorridorParameters:
+    Width: 1
 
 Spaces:
     - !Repeat
@@ -104,33 +106,10 @@ Spaces:
             //    new Subsection[0]
             //};
 
-            //Diagonal bend shape
-            var shape = new[] {
-                new Vector2(10, 10), new Vector2(20, 0), new Vector2(23, 0), new Vector2(33, 10), new Vector2(43, 0),
-                new Vector2(28, -15), new Vector2(15, -15), new Vector2(0, 0)
-            };
-            var sections = new[] {
-                new Subsection[0],
-                new Subsection[0],
-                new Subsection[0],
-                new Subsection[0],
-                new Subsection[0],
-                new Subsection[0],
-                new Subsection[0],
-                new Subsection[0]
-            };
-            var verticals = new Vector2[0][] {
-
-            };
-
-            ////Actual office floorplan
+            ////Diagonal bend shape
             //var shape = new[] {
-            //    new Vector2(-25, 17),
-            //    new Vector2(0, 17),
-            //    new Vector2(3, 15),
-            //    new Vector2(33, 15),
-            //    new Vector2(38, 0),
-            //    new Vector2(-25, -25)
+            //    new Vector2(10, 10), new Vector2(20, 0), new Vector2(23, 0), new Vector2(33, 10), new Vector2(43, 0),
+            //    new Vector2(28, -15), new Vector2(15, -15), new Vector2(0, 0)
             //};
             //var sections = new[] {
             //    new Subsection[0],
@@ -138,16 +117,39 @@ Spaces:
             //    new Subsection[0],
             //    new Subsection[0],
             //    new Subsection[0],
+            //    new Subsection[0],
+            //    new Subsection[0],
             //    new Subsection[0]
             //};
-            //var verticals = new[] {
-            //    new[] {
-            //        new Vector2(0, 0),
-            //        new Vector2(7, 0),
-            //        new Vector2(7, -7),
-            //        new Vector2(0, -7),
-            //    }
+            //var verticals = new Vector2[0][] {
+
             //};
+
+            //Actual office floorplan
+            var shape = new[] {
+                new Vector2(-25, 17),
+                new Vector2(0, 17),
+                new Vector2(3, 15),
+                new Vector2(33, 15),
+                new Vector2(38, 0),
+                new Vector2(-25, -25)
+            };
+            var sections = new[] {
+                new Subsection[0],
+                new Subsection[0],
+                new Subsection[0],
+                new Subsection[0],
+                new Subsection[0],
+                new Subsection[0]
+            };
+            var verticals = new[] {
+                new[] {
+                    new Vector2(0, 0),
+                    new Vector2(7, 0),
+                    new Vector2(7, -7),
+                    new Vector2(0, -7),
+                }
+            };
 
             ////rectangle
             //var shape = new[] {
