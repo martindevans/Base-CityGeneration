@@ -4,7 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Utilities.Numbers;
-using ClipperRedux;
+using ClipperLib;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.Conditionals
 {

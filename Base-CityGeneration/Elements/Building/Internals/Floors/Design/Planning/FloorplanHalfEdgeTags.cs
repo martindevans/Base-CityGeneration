@@ -27,6 +27,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
 
         public static FloorplanHalfEdgeTag Merge(FloorplanHalfEdgeTag a, FloorplanHalfEdgeTag b)
         {
+            Contract.Requires(a != null);
+            Contract.Requires(b != null);
+            Contract.Ensures(Contract.Result<FloorplanHalfEdgeTag>() != null);
+
             if (a.IsImpassable == b.IsImpassable)
                 return new FloorplanHalfEdgeTag(a.IsImpassable);
 

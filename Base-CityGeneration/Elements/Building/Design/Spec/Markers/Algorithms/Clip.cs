@@ -1,11 +1,10 @@
-﻿using EpimetheusPlugins.Procedural.Utilities;
-using Myre.Collections;
+﻿using Myre.Collections;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
-using ClipperRedux;
+using ClipperLib;
 using JetBrains.Annotations;
 
 namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
@@ -26,13 +25,13 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
 
             const int SCALE = 1000;
 
-            c.AddPolygon(footprint.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Y * SCALE))).ToList(), PolyType.Subject);
+            c.AddPath(footprint.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Y * SCALE))).ToList(), PolyType.ptSubject, true);
 
             var clip = _lot ? lot : basis;
-            c.AddPolygon(clip.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Y * SCALE))).ToList(), PolyType.Clip);
+            c.AddPath(clip.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Y * SCALE))).ToList(), PolyType.ptClip, true);
 
             var solutions = new List<List<IntPoint>>();
-            c.Execute(ClipType.Intersection, solutions);
+            c.Execute(ClipType.ctIntersection, solutions);
 
             var clipperSolution = solutions.Single();
             Contract.Assume(clipperSolution != null);

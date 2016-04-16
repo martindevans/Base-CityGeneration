@@ -156,12 +156,12 @@
       <HintPath>..\packages\CGAL_StraightSkeleton_Dotnet.3.0.0.0\lib\net46\CGAL_StraightSkeleton_Dotnet.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="ClipperRedux, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ClipperRedux.1.0.0.0\lib\net46\ClipperRedux.dll</HintPath>
+    <Reference Include="clipper_library, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Clipper.6.2.10\lib\net40\clipper_library.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5947.363, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5947.363\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5948.34062, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5948.34062\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FortuneVoronoi, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -217,16 +217,16 @@
       <HintPath>..\packages\Placeholder.AI.Control.15.0.0.0\lib\net46\Placeholder.AI.Control.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.AI.Pathfinding, Version=10.2.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.AI.Pathfinding.10.2.0.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
+    <Reference Include="Placeholder.AI.Pathfinding, Version=11.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.AI.Pathfinding.11.0.0.0\lib\net46\Placeholder.AI.Pathfinding.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Audio2, Version=5.2.8.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>..\packages\Placeholder.Audio2.5.2.8.0\lib\net46\Placeholder.Audio2.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=13.0.1.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.13.0.1.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
+    <Reference Include="Placeholder.ConstructiveSolidGeometry, Version=13.0.2.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Placeholder.ConstructiveSolidGeometry.13.0.2.0\lib\net46\Placeholder.ConstructiveSolidGeometry.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder.Entities, Version=2.1.2.0, Culture=neutral, processorArchitecture=x86">
@@ -402,6 +402,7 @@
     <Compile Include="Elements\Building\SpecBuilding.cs" />
     <Compile Include="Elements\Building\SpecBuildingContainer.cs" />
     <Compile Include="Entry.cs" />
+    <Compile Include="Extensions\PolytreeExtensions.cs" />
     <Compile Include="IUnwrappable.cs" />
     <Compile Include="Parcels\Parcelling\Rules\AspectRatioRule.cs" />
     <Compile Include="Styles\InternalWalls.cs" />

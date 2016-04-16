@@ -8,18 +8,17 @@ using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric;
-using Base_CityGeneration.Utilities.Extensions;
+using Base_CityGeneration.Extensions;
 using Base_CityGeneration.Utilities.Numbers;
-using ClipperRedux;
+using ClipperLib;
 using EpimetheusPlugins.Extensions;
-using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using HandyCollections.Heap;
 using JetBrains.Annotations;
 using Myre.Collections;
+using Placeholder.AI.Pathfinding.Graph;
 using Placeholder.AI.Pathfinding.SpanningTree;
-using SwizzleMyVectors.Geometry;
+using PrimitiveSvgBuilder;
 using Face = Base_CityGeneration.Datastructures.HalfEdge.Face<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using HalfEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using Vertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
@@ -192,17 +191,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             return floorplan;
         }
 
-        private const float POINT_SCALE = 1000f;
-        private static IntPoint ToPoint(Vector2 p)
-        {
-            return new IntPoint((int)(p.X * POINT_SCALE), (int)(p.Y * POINT_SCALE));
-        }
-
-        private static Vector2 ToVector(IntPoint p)
-        {
-            return new Vector2(p.X / POINT_SCALE, p.Y / POINT_SCALE);
-        }
-
         private void PlanRegion(IFloorPlanBuilder floorplan, Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
             Contract.Requires(region != null);
@@ -229,10 +217,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             foreach (var face in map.Faces)
             {
                 //if (face.Tag.Spec is RoomSpec)
-                {
-                    var shape = face.Vertices.Select(a => a.Position).ToArray();
-                    floorplan.Add(shape, _wallThickness);
-                }
+                //{
+                //    var shape = face.Vertices.Select(a => a.Position).ToArray();
+                //    floorplan.Add(shape, _wallThickness, true);
+                //}
                 //else if (face.Tag.Spec is GroupSpec)
                 //{
                 //    todo: recursive create group layout
@@ -248,71 +236,203 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         {
             //Narrow down to only the vertices which are not on the border of this region and then generate the spanning tree(s) to connect these vertices
             var vertices = map.Vertices.Where(v => v.Edges.All(e => e.Tag == null || !e.Tag.IsImpassable));
-            var spanningTrees = vertices.SpanningTreeKruskal<Vertex, HalfEdge>();
 
-            //Convert spanning trees into polygons (with zero width on the corridors)
-            var outlines = (
-                from tree in spanningTrees
-                let outline = WalkTreeOutline(tree)
-                select outline
-            ).ToArray();
+            var spanningTrees = vertices
+                .SpanningTreeKruskal<Vertex, HalfEdge>();
+
+            var paths = spanningTrees
+                .Select(SimplifySpanningTree)
+                .Select(CleanSpanningTree)
+                .SelectMany(WalkTreePaths)
+                .ToList();
 
             //Grow corridors to full width
             var corridorWidth = _corridorParameters.Width.SelectFloatValue(_random, _metadata);
+            var offset = new List<List<IntPoint>>();
+            var offsetter = new ClipperOffset(miterLimit: 1);
+            offsetter.AddPaths(paths, JoinType.jtMiter, EndType.etOpenButt);
+            offsetter.Execute(ref offset, corridorWidth * POINT_SCALE * 0.5f);
 
-            var shapes = Clipper.OffsetPolygons(
-                outlines.Select(o => o.Select(ToPoint).ToArray()).ToArray(),
-                corridorWidth * POINT_SCALE * 0.5f,
-                JoinType.Miter,
-                2,
-                false
-            ).Select(s => s.Select(ToVector).ToArray()).ToArray();
+            //We now have a shape for each spanning tree, convert back into vector space (from clipper IntPoint space)
+            var shapes = offset.Select(o => o.Select(ToVector).ToArray()).ToArray();
 
-            //intersect corridors with region footprint
-            var regionShape = region.Points.Select(ToPoint).ToArray();
+            //todo: TEMP VISUALIZATION CODE
+            var b = new SvgBuilder(40);
+
+            //For each corridor shape add it as a room to the floorplan
+            var regionShape = region.Points.Select(ToPoint).ToList();
             var clipper = new Clipper();
-            var results = new List<List<IntPoint>>(1);
             foreach (var shape in shapes)
             {
-                clipper.Clear();
-                results.Clear();
+                //Remove holes and generally simplify the shape
+                var cleanedShapes = CleanCorridorPolygon(clipper, regionShape, shape, corridorWidth * POINT_SCALE);
 
-                clipper.AddPolygon(regionShape, PolyType.Clip);
-                clipper.AddPolygon(shape.Select(ToPoint).ToArray(), PolyType.Subject);
-                clipper.Execute(ClipType.Intersection, results);
+                //It may in fact be *several* shapes now! Add each as a room shape
+                foreach (var result in cleanedShapes)
+                {
+                    var roomShape = result.Select(ToVector).Clockwise().ToArray();
 
-                foreach (var result in results)
-                    builder.Add(result.Select(ToVector).Clockwise(), _wallThickness);
+                    var rooms = builder.Add(roomShape, _wallThickness);
+
+                    //todo: TEMP VISUALIZATION CODE
+                    foreach (var room in rooms)
+                        b.Outline(room.OuterFootprint, "none", "cornflowerblue");
+                    b.Outline(roomShape, "red");
+                }
             }
+
+            ////todo: TEMP VISUALIZATION CODE
+            //foreach (var spanningTree in spanningTrees)
+            //{
+            //    foreach (var halfEdge in spanningTree.Edges)
+            //    {
+            //        b.Circle(halfEdge.StartVertex.Position, 0.21f, spanningTree.Leaves.Contains(halfEdge.StartVertex) ? "green" : "blue");
+            //        b.Circle(halfEdge.EndVertex.Position, 0.21f, spanningTree.Leaves.Contains(halfEdge.EndVertex) ? "green" : "blue");
+            //        b.Line(halfEdge.StartVertex.Position, halfEdge.EndVertex.Position, 1, "black");
+            //    }
+            //}
+
+            Console.WriteLine(b);
         }
 
-        private static IReadOnlyList<Vector2> WalkTreeOutline(Tree<Vertex, HalfEdge> tree)
+        /// <summary>
+        /// Given a spanning tree convert it into a geometrically equivalent spanning tree, but simpler
+        /// </summary>
+        /// <typeparam name="TV"></typeparam>
+        /// <typeparam name="TE"></typeparam>
+        /// <param name="tree"></param>
+        /// <returns></returns>
+        private static Tree<TV, TE> SimplifySpanningTree<TV, TE>(Tree<TV, TE> tree)
+            where TV : IVertex<TV, TE>
+            where TE : IEdge<TV, TE>
         {
-            Contract.Requires(tree != null);
-            Contract.Ensures(Contract.Result<IReadOnlyList<Vector2>>() != null);
+            //The spanning tree has a load of vertices in it which we don't really need!
+            //Convert into a node graph, and then apply linear simplification
 
-            var result = new List<Vector2>(tree.VertexCount * 2);
+            return tree;
+        }
 
-            //Select a random leaf node as the start point
-            var leaf = tree.Vertices.First(v => v.Edges.Where(tree.Contains).Count() == 1);
-            WalkTreeOutline(result, tree, leaf, null);
+        /// <summary>
+        /// Remove unneeded nodes from a corridor spanning tree
+        /// </summary>
+        /// <typeparam name="TV"></typeparam>
+        /// <typeparam name="TE"></typeparam>
+        /// <param name="tree"></param>
+        /// <returns></returns>
+        private static Tree<TV, TE> CleanSpanningTree<TV, TE>(Tree<TV, TE> tree)
+            where TV : IVertex<TV, TE>
+            where TE : IEdge<TV, TE>
+        {
+            return tree;
+        }
 
+        /// <summary>
+        /// Clean up a proposed corridor shape (primarily removing holes, which are invalid in a floorplan)
+        /// </summary>
+        /// <param name="clipper"></param>
+        /// <param name="outline"></param>
+        /// <param name="corridor"></param>
+        /// <param name="width"></param>
+        /// <returns></returns>
+        private static List<List<IntPoint>> CleanCorridorPolygon(Clipper clipper, List<IntPoint> outline, IEnumerable<Vector2> corridor, float width)
+        {
+            //Clean up after the previous run, just in case
+            clipper.Clear();
+
+            //Clip this spanning tree to the footprint of the floorplan (to create a polytree)
+            var result = new List<List<IntPoint>>();
+            clipper.AddPath(outline, PolyType.ptClip, true);
+            clipper.AddPath(corridor.Select(ToPoint).ToList(), PolyType.ptSubject, true);
+            clipper.Execute(ClipType.ctIntersection, result);
+
+            //Clean up after self, to be polite
+            clipper.Clear();
+
+            //Keep simplifying, and removing holes until nothing happens
+            do
+            {
+                //merge together vertices which are very close
+                result = Clipper.CleanPolygons(result, width / 8);
+
+                //Remove holes from the result
+                var holes = result.RemoveAll(r => !Clipper.Orientation(r));
+
+                //Once we have one single polygon, or removing holes did nothing we've finished!
+                if (result.Count == 1 || holes == 0)
+                    return result;
+
+            } while (result.Count > 0);
+
+            //This shouldn't ever happen unless we simplify away to nothing
             return result;
         }
 
-        private static void WalkTreeOutline(ICollection<Vector2> result, Tree<Vertex, HalfEdge> tree, Vertex node, Vertex parent)
+        /// <summary>
+        /// Walk a series of paths which cover the entire spanning tree (paths, not polygons!)
+        /// </summary>
+        /// <param name="tree"></param>
+        /// <returns></returns>
+        private static List<List<IntPoint>> WalkTreePaths(Tree<Vertex, HalfEdge> tree)
         {
-            Contract.Requires(result != null);
+            Contract.Requires(tree != null);
+            Contract.Ensures(Contract.Result<IReadOnlyList<IReadOnlyList<IntPoint>>>() != null);
 
-            result.Add(node.Position);
-            foreach (var edge in tree.Edges.Where(e => e.ConnectsTo(node) && !e.ConnectsTo(parent)))
+            //From each interior node trace out length 2 paths to add connected vertices
+            //So if we have a tree like:
+            //
+            // 1 -> 2 -> 3
+            //        -> 4
+            //
+            //We trace paths from 2 (the only interior node in this example) from all connected nodes to all other connected nodes:
+            //
+            // 1, 2, 3
+            // 1, 2, 4
+            // 3, 2, 4
+
+            //First find all the interior nodes
+            ICollection<Vertex> interiorNodes = new List<Vertex>();
+            ICollection<Vertex> leafNodes = new List<Vertex>();
+            tree.Classify(interiorNodes, leafNodes);
+
+            //Create a place to store results (with a guesstimate at size)
+            var results = new List<List<IntPoint>>(interiorNodes.Count * 3);
+
+            //Create short overlapping paths from each interior node to every pair of adjacent nodes
+            foreach (var interior in interiorNodes)
             {
-                var childNode = edge.EndVertex.Equals(node) ? edge.StartVertex : edge.EndVertex;
-                WalkTreeOutline(result, tree, childNode, node);
+                foreach (var ba in interior.Edges.Where(tree.Contains))
+                {
+                    var ba1 = ba;
+                    foreach (var bc in interior.Edges.Where(e => tree.Contains(e) && !e.Equals(ba1)))
+                    {
+                        var a = ba.EndVertex;
+                        var b = interior;
+                        var c = bc.EndVertex;
 
-                result.Add(node.Position);
+                        results.Add(new List<IntPoint> {
+                            ToPoint(a.Position),
+                            ToPoint(b.Position),
+                            ToPoint(c.Position),
+                        });
+                    }
+                }
             }
+
+            return results;
         }
+
+        #region clipper point/vector conversion
+        private const float POINT_SCALE = 1000f;
+        private static IntPoint ToPoint(Vector2 p)
+        {
+            return new IntPoint((int)(p.X * POINT_SCALE), (int)(p.Y * POINT_SCALE));
+        }
+
+        private static Vector2 ToVector(IntPoint p)
+        {
+            return new Vector2(p.X / POINT_SCALE, p.Y / POINT_SCALE);
+        }
+        #endregion
 
         #region removing/merging faces
         /// <summary>

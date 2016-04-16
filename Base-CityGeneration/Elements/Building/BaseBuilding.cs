@@ -14,7 +14,7 @@ using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Blocks;
 using Base_CityGeneration.Elements.Roads;
-using ClipperRedux;
+using ClipperLib;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
 
@@ -431,14 +431,15 @@ namespace Base_CityGeneration.Elements.Building
                 var ii = i;
                 //Transform footprint from floor[i] space into floor[0] space
                 var transformed = floors[i].Bounds.Footprint.Select(a => Vector3.Transform(a.X_Y(0), floors[ii].InverseWorldTransformation * floors[0].WorldTransformation));
-                c.AddPolygon(
+                c.AddPath(
                     transformed.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Z * SCALE))).ToList(),
-                    i == 0 ? PolyType.Subject : PolyType.Clip
+                    i == 0 ? PolyType.ptSubject : PolyType.ptClip,
+                    true
                 );
             }
 
             var result = new List<List<IntPoint>>();
-            c.Execute(ClipType.Intersection, result);
+            c.Execute(ClipType.ctIntersection, result);
 
             return result[0].Select(a => new Vector2(a.X / (float)SCALE, a.Y / (float)SCALE)).ToArray();
         }
@@ -531,11 +532,11 @@ namespace Base_CityGeneration.Elements.Building
             return default(IEnumerable<VerticalSelection>);
         }
 
-        protected override IEnumerable<BaseBuilding.Footprint> SelectExternals()
+        protected override IEnumerable<Footprint> SelectExternals()
         {
-            Contract.Ensures(Contract.Result<IEnumerable<BaseBuilding.Footprint>>() != null);
+            Contract.Ensures(Contract.Result<IEnumerable<Footprint>>() != null);
 
-            return default(IEnumerable<BaseBuilding.Footprint>);
+            return default(IEnumerable<Footprint>);
         }
 
         public override bool Accept(Prism bounds, INamedDataProvider parameters)
