@@ -166,7 +166,8 @@ Spaces:
             //};
 
             var floorplan = designer.Design(random, metadata, finder, shape, sections, 0.175f, verticals, new List<VerticalSelection>());
-            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 55));
+
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 55, basic:true));
         }
     }
 }
