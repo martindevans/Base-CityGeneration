@@ -149,6 +149,13 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
                 if (shape.Count == 0)
                     continue;
 
+                Console.WriteLine("new[] {");
+                foreach (var vector2 in shape)
+                {
+                    Console.WriteLine("new Vector2({0}f, {1}f),", vector2.X, vector2.Y);
+                }
+                Console.WriteLine("}");
+
                 //Mark the neighbourhood cache as dirty...
                 //...this means it will recalculate all neighbourhood relationships in the entire plan next time there is a query
                 _neighbourhood.Dirty = true;
