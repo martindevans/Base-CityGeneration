@@ -3,17 +3,29 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Utilities.Extensions;
 using ClipperLib;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural.Utilities;
-using MathHelperRedux;
-using Placeholder.ConstructiveSolidGeometry;
+using Myre.Extensions;
+using PrimitiveSvgBuilder;
 using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Geometry.Walls
 {
     public static class SectionsExtension
     {
+        [Pure]
+        public static IEnumerable<Section> Sections(this IEnumerable<Vector2> outer, float width, out Vector2[] innerArr)
+        {
+            Contract.Requires(outer != null);
+            Contract.Requires(width > 0);
+            Contract.Ensures(Contract.Result<IEnumerable<Section>>() != null);
+            Contract.Ensures(Contract.ValueAtReturn(out innerArr) != null);
+
+            return outer.ToArray().Sections(width, out innerArr);
+        }
+
         /// <summary>
         /// Given 2 polygons (of the same length) which define the inner and outer boundaries of the walls of a room, calculate the sections which make up the wall.
         /// </summary>
@@ -30,26 +42,30 @@ namespace Base_CityGeneration.Geometry.Walls
         /// <param name="outer">The outer boundary of the wall</param>
         /// <param name="width">The thickness of the walls</param>
         /// <param name="innerArr"></param>
+        /// <param name="corners"></param>
         /// <returns>Sections of the wall. Facades are the flat sections, and corners join facades.</returns>
         [Pure]
-        public static IEnumerable<Section> Sections(this IReadOnlyList<Vector2> outer, float width, out Vector2[] innerArr)
+        public static IEnumerable<Section> Sections(this IReadOnlyList<Vector2> outer, float width, out Vector2[] innerArr, out IReadOnlyList<IReadOnlyList<Vector2>> corners)
         {
             Contract.Requires(outer != null);
             Contract.Requires(width > 0);
             Contract.Ensures(Contract.Result<IEnumerable<Section>>() != null);
 
-            innerArr = outer.Shrink(width).ToArray();
+            innerArr = outer.Shrink(width, 1).ToArray();
 
             //Sanity check if shrinking has deleted the room!
             if (innerArr.Length == 0)
+            {
+                corners = new IReadOnlyList<Vector2>[0];
                 return Array.Empty<Section>();
+            }
 
             //Create a place to put the results
             var results = new List<Section>(innerArr.Length * 2);
 
             //loop over segments of inner array
             //inner array length is always <= outer array length
-            for (int i = 0; i < innerArr.Length; i++)
+            for (var i = 0; i < innerArr.Length; i++)
             {
                 var a = innerArr[i];
                 var b = innerArr[(i + 1) % innerArr.Length];
@@ -59,6 +75,10 @@ namespace Base_CityGeneration.Geometry.Walls
                 float aT;
                 float bT;
                 var outerSegmentIndex = FindOuterSegment(innerSegment, width, outer, out aT, out bT);
+
+                if (outerSegmentIndex == -1)
+                    continue;
+
                 var outerSegment = new LineSegment2(outer[outerSegmentIndex], outer[(outerSegmentIndex + 1) % outer.Count]);
 
                 //Clamp into the valid range
@@ -81,23 +101,26 @@ namespace Base_CityGeneration.Geometry.Walls
                 results.Add(new Section(innerEnd, innerStart, aP, bP));
             }
 
+            //Calculate corner sections
+
+
+            corners = CalculateCorners(outer, width, results);
             return results;
         }
 
-        /// <summary>
-        /// Given a set of wall sections and the outline of the room which formed them calculate all the corner geometry
-        /// </summary>
-        public static IReadOnlyList<IReadOnlyList<Vector2>> Corners(this IEnumerable<Section> sections, IEnumerable<Vector2> outer, IEnumerable<Vector2> inner)
+        private static IReadOnlyList<IReadOnlyList<Vector2>> CalculateCorners(IReadOnlyList<Vector2> outer, float width, IReadOnlyList<Section> sections)
         {
-            Contract.Requires(sections != null);
-            Contract.Requires(outer != null);
-            Contract.Requires(inner != null);
-            Contract.Ensures(Contract.Result<IReadOnlyList<IReadOnlyList<Vector2>>>() != null);
+            const float TOLERANCE = 0.01f;
+
+            //Reform inner boundary, but slightly larger than it should be (that's our error tolerance);
+            var inner = outer.Shrink(width - TOLERANCE, 1);
+
+            //Reform outer boundary, but slightly smaller than it should be (more error tolerance)
+            var outerAdjusted = outer.Shrink(TOLERANCE, 1000);
 
             var clipper = new Clipper();
-
             //Create a ring shape which is all the outer walls of this room (outer - inner)
-            clipper.AddPath(outer.Select(ToPoint).ToList(), PolyType.ptSubject, true);
+            clipper.AddPath(outerAdjusted.Select(ToPoint).ToList(), PolyType.ptSubject, true);
             clipper.AddPath(inner.Select(ToPoint).ToList(), PolyType.ptClip, true);
             var ringResult = new List<List<IntPoint>>();
             clipper.Execute(ClipType.ctDifference, ringResult);
@@ -106,7 +129,7 @@ namespace Base_CityGeneration.Geometry.Walls
             clipper.Clear();
             clipper.AddPaths(ringResult, PolyType.ptSubject, true);
             foreach (var section in sections)
-                clipper.AddPath(new List<IntPoint> {ToPoint(section.A), ToPoint(section.B), ToPoint(section.C), ToPoint(section.D) }, PolyType.ptClip, true);
+                clipper.AddPath(new List<IntPoint> { ToPoint(section.Inner1), ToPoint(section.Inner2), ToPoint(section.Outer1), ToPoint(section.Outer2) }, PolyType.ptClip, true);
             var result = new List<List<IntPoint>>();
             clipper.Execute(ClipType.ctDifference, result);
 
@@ -167,7 +190,9 @@ namespace Base_CityGeneration.Geometry.Walls
                 }
             }
 
-            throw new InvalidOperationException("Failed to find a parallel outer segment the correct distance away");
+            aT = 0;
+            bT = 0;
+            return -1;
         }
 
         [Pure]
@@ -180,134 +205,186 @@ namespace Base_CityGeneration.Geometry.Walls
             Vector2[] _;
             return Sections(outer, width, out _);
         }
+    }
+
+    /// <summary>
+    /// A section of a wall.
+    /// </summary>
+    public struct Section
+    {
+        #region fields and properties
+        private readonly Vector2 _normal;
+        /// <summary>
+        /// Points from the inside to the outside
+        /// </summary>
+        public Vector2 Normal
+        {
+            get
+            {
+                return _normal;
+            }
+        }
+
+        private readonly float _thickness;
+        /// <summary>
+        /// The thickness of the wall along the normal
+        /// </summary>
+        public float Thickness
+        {
+            get
+            {
+                return _thickness;
+            }
+        }
+
+        private readonly Vector2 _along;
+        /// <summary>
+        /// Points from one side to the other (across, but not necessarily perpendicular to, the normal)
+        /// </summary>
+        public Vector2 Along
+        {
+            get
+            {
+                return _along;
+            }
+        }
+
+        private readonly float _width;
+        /// <summary>
+        /// The size of the wall along the "along" vector
+        /// </summary>
+        public float Width
+        {
+            get
+            {
+                return _width;
+            }
+        }
+
+        private readonly Vector2 _inner1;
 
         /// <summary>
-        /// A section of a wall.
+        /// Inside 1
         /// </summary>
-        public struct Section
+        public Vector2 Inner1
         {
-            #region fields and properties
-            private readonly Vector2 _normal;
-            /// <summary>
-            /// Points from the inside to the outside
-            /// </summary>
-            public Vector2 Normal
+            get
             {
-                get
-                {
-                    return _normal;
-                }
+                return _inner1;
+            }
+        }
+
+        private readonly Vector2 _inner2;
+
+        /// <summary>
+        /// Inside 2
+        /// </summary>
+        public Vector2 Inner2
+        {
+            get
+            {
+                return _inner2;
+            }
+        }
+
+        private readonly Vector2 _outer1;
+
+        /// <summary>
+        /// Outside 1
+        /// </summary>
+        public Vector2 Outer1
+        {
+            get
+            {
+                return _outer1;
+            }
+        }
+
+        private readonly Vector2 _outer2;
+
+        /// <summary>
+        /// Outside 2
+        /// </summary>
+        public Vector2 Outer2
+        {
+            get
+            {
+                return _outer2;
+            }
+        }
+
+        public LineSegment2 ExternalLineSegment { get { return new LineSegment2(_outer1, _outer2); } }
+        public LineSegment2 InternalLineSegment { get { return new LineSegment2(_inner1, _inner2); } }
+        #endregion
+
+        #region constructor
+        public Section(Vector2 inside1, Vector2 inside2, Vector2 outside2, Vector2 outside1)
+        {
+            _inner1 = inside1;
+            _inner2 = inside2;
+            _outer1 = outside2;
+            _outer2 = outside1;
+
+            var normal = outside1 - inside1;
+            _thickness = normal.Length();
+            _normal = normal / _thickness;
+
+            var width = outside2 - outside1;
+            _width = width.Length();
+            _along = width / _width;
+        }
+        #endregion
+
+        public Vector2[] GetCorners(Vector2[] corners = null)
+        {
+            Contract.Requires(corners == null || corners.Length >= 4);
+            Contract.Ensures(Contract.Result<IList<Vector2>>() != null);
+
+            if (corners == null)
+                corners = new Vector2[4];
+
+            corners[0] = Inner1;
+            corners[1] = Inner2;
+            corners[2] = Outer1;
+            corners[3] = Outer2;
+
+            return corners;
+        }
+
+        /// <summary>
+        /// Determines if 2 sections are the same (except for rotational differences). e.g. ABCD == BCDA
+        /// </summary>
+        /// <param name="other"></param>
+        /// <param name="epsilon"></param>
+        /// <returns></returns>
+        public bool Matches(Section other, float epsilon = 0.01f)
+        {
+            if (Inner1.TolerantEquals(other.Inner1, epsilon))
+            {
+                return Inner2.TolerantEquals(other.Inner2, epsilon)
+                    && Outer1.TolerantEquals(other.Outer1, epsilon)
+                    && Outer2.TolerantEquals(other.Outer2, epsilon);
+            }
+            else if (Inner1.TolerantEquals(other.Inner2, epsilon))
+            {
+                return Inner2.TolerantEquals(other.Outer1, epsilon)
+                    && Outer1.TolerantEquals(other.Outer2, epsilon)
+                    && Outer2.TolerantEquals(other.Inner1, epsilon);
+            }
+            else if (Inner1.TolerantEquals(other.Outer1, epsilon))
+            {
+                return Inner2.TolerantEquals(other.Outer2, epsilon)
+                    && Outer1.TolerantEquals(other.Inner1, epsilon)
+                    && Outer2.TolerantEquals(other.Inner2, epsilon);
+            }
+            else if (Inner1.TolerantEquals(other.Outer2, epsilon))
+            {
+                return Inner2.TolerantEquals(other.Inner1, epsilon)
+                    && Outer1.TolerantEquals(other.Inner2, epsilon)
+                    && Outer2.TolerantEquals(other.Outer1, epsilon);
             }
 
-            private readonly float _thickness;
-            /// <summary>
-            /// The thickness of the wall along the normal
-            /// </summary>
-            public float Thickness
-            {
-                get
-                {
-                    return _thickness;
-                }
-            }
-
-            private readonly Vector2 _along;
-            /// <summary>
-            /// Points from one side to the other (across, but not necessarily perpendicular to, the normal)
-            /// </summary>
-            public Vector2 Along
-            {
-                get
-                {
-                    return _along;
-                }
-            }
-
-            private readonly float _width;
-            /// <summary>
-            /// The size of the wall along the "along" vector
-            /// </summary>
-            public float Width
-            {
-                get
-                {
-                    return _width;
-                }
-            }
-
-            private readonly Vector2 _a;
-            public Vector2 A
-            {
-                get
-                {
-                    return _a;
-                }
-            }
-
-            private readonly Vector2 _b;
-            public Vector2 B
-            {
-                get
-                {
-                    return _b;
-                }
-            }
-
-            private readonly Vector2 _c;
-            public Vector2 C
-            {
-                get
-                {
-                    return _c;
-                }
-            }
-
-            private readonly Vector2 _d;
-            public Vector2 D
-            {
-                get
-                {
-                    return _d;
-                }
-            }
-
-            public LineSegment2 ExternalLineSegment { get { return new LineSegment2(_c, _d); } }
-            public LineSegment2 InternalLineSegment { get { return new LineSegment2(_a, _b); } }
-            #endregion
-
-            #region constructor
-            public Section(Vector2 inside1, Vector2 inside2, Vector2 outside2, Vector2 outside1)
-            {
-                _a = inside1;
-                _b = inside2;
-                _c = outside2;
-                _d = outside1;
-
-                var normal = outside1 - inside1;
-                _thickness = normal.Length();
-                _normal = normal / _thickness;
-
-                var width = outside2 - outside1;
-                _width = width.Length();
-                _along = width / _width;
-            }
-            #endregion
-
-            public Vector2[] GetCorners(Vector2[] corners = null)
-            {
-                Contract.Requires(corners == null || corners.Length >= 4);
-                Contract.Ensures(Contract.Result<IList<Vector2>>() != null);
-
-                if (corners == null)
-                    corners = new Vector2[4];
-
-                corners[0] = A;
-                corners[1] = B;
-                corners[2] = C;
-                corners[3] = D;
-
-                return corners;
-            }
+            return false;
         }
     }
 }

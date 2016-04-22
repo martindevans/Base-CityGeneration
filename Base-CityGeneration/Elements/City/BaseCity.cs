@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Datastructures.HalfEdge;
@@ -58,7 +57,8 @@ namespace Base_CityGeneration.Elements.City
         /// <returns></returns>
         protected virtual IEnumerable<ScriptReference> ChooseRoadScript(HalfEdge<IVertexBuilder, IHalfEdgeBuilder, IFaceBuilder> topology, Prism topography)
         {
-            return ScriptReference.Find<BasicRoad>();
+            //return ScriptReference.Find<BasicRoad>();
+            throw new NotImplementedException();
         }
 
         /// <summary>

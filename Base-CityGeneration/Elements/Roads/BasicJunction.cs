@@ -7,7 +7,6 @@ using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using System.Numerics;
 using Myre.Collections;
-using Myre.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;

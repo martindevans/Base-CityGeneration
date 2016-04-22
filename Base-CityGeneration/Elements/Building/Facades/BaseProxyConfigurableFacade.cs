@@ -1,6 +1,6 @@
 ﻿using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Procedural.Utilities;
 using System.Collections.Generic;
+using Base_CityGeneration.Geometry.Walls;
 
 namespace Base_CityGeneration.Elements.Building.Facades
 {
@@ -12,7 +12,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
     {
         public IConfigurableFacade Facade { get; set; }
 
-        public Walls.Section Section
+        public Section Section
         {
             get { return Facade.Section; }
             set { Facade.Section = value; }

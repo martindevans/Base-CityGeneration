@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
@@ -96,8 +97,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         {
             if (RoomAB == room)
                 return new LineSegment2(A, B);
-            else
+            else if (RoomCD == room)
                 return new LineSegment2(C, D);
+
+            throw new ArgumentException("Must supply either RoomAB or RoomCD", "room");
         }
     }
 }

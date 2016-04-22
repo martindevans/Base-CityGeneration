@@ -4,7 +4,6 @@ using Base_CityGeneration.Elements.Building.Internals.Floors;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using Myre.Collections;
 using System;
@@ -14,6 +13,7 @@ using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Blocks;
 using Base_CityGeneration.Elements.Roads;
+using Base_CityGeneration.Geometry.Walls;
 using ClipperLib;
 using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
@@ -239,11 +239,9 @@ namespace Base_CityGeneration.Elements.Building
                     throw new InvalidOperationException(string.Format("Tried to created {0} facades for {1} walls", footprint.Facades.Count, footprint.Shape.Count));
 
                 //Generate wall sections to fill in
-                var footprintWallSections = footprint.Shape.Sections(thickness);
-
-                //Split into corner sections and non corner sections
-                var corners = footprintWallSections.Where(a => a.IsCorner).ToArray();
-                var sections = footprintWallSections.Where(a => !a.IsCorner).ToArray();
+                Vector2[] inner;
+                IReadOnlyList<IReadOnlyList<Vector2>> corners;
+                var sections = footprint.Shape.Sections(thickness, out inner, out corners);
 
                 //Create the tiny bits of facade in the corners
                 CreateCornerFacades(geometry, footprint, topIndex, corners, material);
@@ -255,7 +253,7 @@ namespace Base_CityGeneration.Elements.Building
             return results;
         }
 
-        private void CreatePrimaryFacades(Footprint footprint, Walls.Section[] sections, ICollection<IBuildingFacade> results)
+        private void CreatePrimaryFacades(Footprint footprint, IEnumerable<Section> sections, ICollection<IBuildingFacade> results)
         {
             for (int sideIndex = 0; sideIndex < footprint.Facades.Count; sideIndex++)
             {
@@ -274,7 +272,7 @@ namespace Base_CityGeneration.Elements.Building
                                where bD < 0.1f
                                let d = aD + bD
                                orderby d
-                               select s).Cast<Walls.Section?>().FirstOrDefault();
+                               select s).Cast<Section?>().FirstOrDefault();
 
                 //Failed to find a section, this can happen when wall segments are so small the two corner segments either end completely cover the actual wall
                 if (!maybeSection.HasValue)
@@ -293,7 +291,7 @@ namespace Base_CityGeneration.Elements.Building
                     var top = _floors[facade.Top].FloorAltitude + _floors[facade.Top].FloorHeight;
                     var mid = (bot + top) * 0.5f;
 
-                    var prism = new Prism(top - bot, section.A, section.B, section.C, section.D);
+                    var prism = new Prism(top - bot, section.Inner1, section.Inner2, section.Outer1, section.Outer2);
 
                     //Create a configurable facade in the space
                     var configurableNode = (ConfigurableFacade)CreateChild(prism, Quaternion.Identity, new Vector3(0, mid, 0), new ScriptReference(typeof(ConfigurableFacade)));
@@ -322,7 +320,7 @@ namespace Base_CityGeneration.Elements.Building
             }
         }
 
-        private void CreateCornerFacades(ISubdivisionGeometry geometry, Footprint footprint, int topIndex, Walls.Section[] corners, string material)
+        private void CreateCornerFacades(ISubdivisionGeometry geometry, Footprint footprint, int topIndex, IReadOnlyList<IReadOnlyList<Vector2>> corners, string material)
         {
             Contract.Requires(geometry != null);
             Contract.Requires(corners != null);
@@ -339,10 +337,10 @@ namespace Base_CityGeneration.Elements.Building
 
                 try
                 {
-                    var prism = geometry.CreatePrism(material, new[] {
-                        corner.A, corner.B, corner.C, corner.D
-                    }, top - bot).Translate(new Vector3(0, mid, 0));
-                    geometry.Union(prism);
+                    geometry.Union(geometry
+                        .CreatePrism(material, corner, top - bot)
+                        .Translate(new Vector3(0, mid, 0))
+                    );
                 }
                 catch (ArgumentException)
                 {
