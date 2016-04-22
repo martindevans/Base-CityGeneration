@@ -152,24 +152,24 @@
     <StartupObject>Base_CityGeneration.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CGAL_StraightSkeleton_Dotnet, Version=3.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\CGAL_StraightSkeleton_Dotnet.3.0.0.0\lib\net46\CGAL_StraightSkeleton_Dotnet.dll</HintPath>
+    <Reference Include="CGAL_StraightSkeleton_Dotnet, Version=3.0.2.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\CGAL_StraightSkeleton_Dotnet.3.0.2.0\lib\net46\CGAL_StraightSkeleton_Dotnet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="clipper_library, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Clipper.6.2.10\lib\net40\clipper_library.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5948.34062, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5948.34062\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5954.27566, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5954.27566\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FortuneVoronoi, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\FortuneVoronoi.4.0.0.0\lib\net46\FortuneVoronoi.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="HandyCollections, Version=5.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\HandyCollections.5.6.0.0\lib\net46\HandyCollections.dll</HintPath>
+    <Reference Include="HandyCollections, Version=5.8.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HandyCollections.5.8.0.0\lib\net46\HandyCollections.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
@@ -181,8 +181,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
-    <Reference Include="Myre, Version=10.1.3.0, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\Myre.10.1.3.0\lib\net46\Myre.dll</HintPath>
+    <Reference Include="Myre, Version=11.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\Myre.11.0.0.0\lib\net46\Myre.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Myre.Debugging, Version=4.0.5.0, Culture=neutral, processorArchitecture=x86">
@@ -206,7 +206,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.3.0\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.3.1\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder, Version=3.2.0.0, Culture=neutral, processorArchitecture=x86">
@@ -397,7 +397,6 @@
     <Compile Include="Elements\Building\Internals\Floors\Plan\IRoomPlan.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\Mesh\IVertexTag.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\Mesh\MeshCorridorExtensions.cs" />
-    <Compile Include="Datastructures\Extensions\MeshWallExtensions.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\Geometric\RoomPlan.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\EmptyRoom.cs" />
     <Compile Include="Elements\Building\SpecBuilding.cs" />

@@ -4,10 +4,10 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
-using EpimetheusPlugins.Procedural.Utilities;
 using EpimetheusPlugins.Scripts;
 using EpimetheusPlugins.Services.CSG;
 using System.Numerics;
+using Base_CityGeneration.Geometry.Walls;
 using EpimetheusPlugins.Entities.Prefabs.Graphical;
 using EpimetheusPlugins.Extensions;
 using Myre;
@@ -26,7 +26,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
     public class BaseFacade
         : ProceduralScript, IFacade
     {
-        public Walls.Section Section { get; set; }
+        public Section Section { get; set; }
 
         public override bool Accept(Prism bounds, INamedDataProvider parameters)
         {
@@ -77,7 +77,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <param name="geometry"></param>
         /// <param name="hierarchicalParameters"></param>
         /// <returns></returns>
-        private static ICsgShape ConvertStampToBrush(Walls.Section section, Stamp stamp, string material, ICsgFactory geometry, INamedDataProvider hierarchicalParameters)
+        private static ICsgShape ConvertStampToBrush(Section section, Stamp stamp, string material, ICsgFactory geometry, INamedDataProvider hierarchicalParameters)
         {
             Contract.Requires(geometry != null);
             Contract.Requires(hierarchicalParameters != null);

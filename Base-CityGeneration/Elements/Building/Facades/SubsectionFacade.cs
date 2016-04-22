@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
+using Base_CityGeneration.Geometry.Walls;
 using SwizzleMyVectors.Geometry;
 using MathHelperRedux;
 
@@ -33,7 +33,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <param name="depthMin">The minimum depth on the parent</param>
         /// <param name="depthMax">The maximum depth on the parent</param>
         /// <param name="section"></param>
-        public SubsectionFacade(IConfigurableFacade parent, Vector2 min, Vector2 max, float depthMin, float depthMax, Walls.Section section)
+        public SubsectionFacade(IConfigurableFacade parent, Vector2 min, Vector2 max, float depthMin, float depthMax, Section section)
         {
             Contract.Requires(parent != null);
 
@@ -122,6 +122,6 @@ namespace Base_CityGeneration.Elements.Building.Facades
             return parentXY - _delta;
         }
 
-        public Walls.Section Section { get; set; }
+        public Section Section { get; set; }
     }
 }

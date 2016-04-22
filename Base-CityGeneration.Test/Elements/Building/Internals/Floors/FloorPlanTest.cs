@@ -446,31 +446,32 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
         [TestMethod]
         public void RoomSectionGenerationGeneratesExternalSections()
         {
-            var room = _plan.Add(_plan.ExternalFootprint, 0.25f).Single();
+            var room = _plan.Add(_plan.ExternalFootprint, 3.25f).Single();
 
             _plan.Freeze();
             DrawPlan();
 
-            var facades = room.GetWalls().ToArray();
+            var walls = room.GetWalls().ToArray();
+            var corners = room.GetCorners();
 
-            Assert.AreEqual(8, facades.Length);
-            Assert.AreEqual(4, facades.Count(f => f.Section.IsCorner));
-            Assert.AreEqual(4, facades.Count(f => !f.Section.IsCorner));
-            Assert.IsTrue(facades.All(f => f.IsExternal));
+            Assert.AreEqual(4, walls.Length);
+            Assert.AreEqual(4, corners.Count);
+            Assert.AreEqual(4, walls.Count(w => w.IsExternal));
         }
 
         [TestMethod]
         public void RoomSectionGenerationGeneratesExternalSectionsForHalfExternalRoom()
         {
-            var room = _plan.Add(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(0, 100), new Vector2(0, -100) }, 0.25f).Single();
+            var room = _plan.Add(new Vector2[] { new Vector2(-100, -100), new Vector2(-100, 100), new Vector2(0, 100), new Vector2(0, -100) }, 3.25f).Single();
 
             _plan.Freeze();
             DrawPlan();
 
-            var facades = room.GetWalls().ToArray();
+            var walls = room.GetWalls().ToArray();
+            var corners = room.GetCorners();
 
-            Assert.AreEqual(4, facades.Count(f => f.Section.IsCorner));
-            Assert.AreEqual(7, facades.Count(f => f.IsExternal));
+            Assert.AreEqual(4, corners.Count);
+            Assert.AreEqual(4, walls.Length);
         }
 
         [TestMethod]
@@ -481,10 +482,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             _plan.Freeze();
             DrawPlan();
 
-            var facades = room.GetWalls().ToArray();
+            var walls = room.GetWalls().ToArray();
 
-            Assert.AreEqual(4, facades.Count(f => !f.Section.IsCorner));
-            Assert.AreEqual(1, facades.Count(f => !f.IsExternal));
+            Assert.AreEqual(4, walls.Length);
+            Assert.AreEqual(1, walls.Count(w => !w.IsExternal));
         }
 
         [TestMethod]
@@ -498,15 +499,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             var facades = roomA.GetWalls().ToArray();
 
-            var internalFacades = facades.Where(f => !f.IsExternal).ToArray();
+            Assert.AreEqual(1, roomA.Neighbours.Count());
+            Assert.AreEqual(1, facades.Count(f => !f.IsExternal));
 
-            Assert.AreEqual(1, internalFacades.Count(f => f.NeighbouringRoom == roomB));
-            Assert.AreEqual(3, internalFacades.Length);
-
-            //Check that the neighbour section has points lying on both rooms
-            var n = internalFacades.Single(f => f.NeighbouringRoom == roomB);
-            Assert.IsTrue(roomB.Edges().Any(e => e.DistanceToPoint(n.Section.C) <= 3.25f));
-            Assert.IsTrue(roomA.Edges().Any(e => e.DistanceToPoint(n.Section.A) <= 3.25f));
+            Assert.AreEqual(1, roomB.Neighbours.Count());
         }
 
         private void AssertAllWindings()
@@ -615,10 +611,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             var roomLeft = _plan.Add(new Vector2[] { new Vector2(-20, -20), new Vector2(-20, 0), new Vector2(0, 0), new Vector2(0, -20) }, 5).Single();
             var roomRight = _plan.Add(new Vector2[] { new Vector2(5, -2), new Vector2(5, 20), new Vector2(25, 20), new Vector2(25, -2) }, 5).Single();
 
-            Assert.IsFalse(roomLeft.GetWalls().Any(f => f.NeighbouringRoom != null));
-            Assert.IsFalse(roomRight.GetWalls().Any(f => f.NeighbouringRoom != null));
-
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan));
+
+            Assert.AreEqual(0, roomRight.Neighbours.Count());
+            Assert.AreEqual(0, roomLeft.Neighbours.Count());
         }
 
         [TestMethod]
@@ -701,6 +697,40 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
             }, 5);
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan));
+        }
+
+        [TestMethod]
+        public void RegressionTest_ComplexRoomNeighbours()
+        {
+            var a = _plan.Add(new[] {
+                new Vector2(-70, -75),
+                new Vector2(0, -25),
+                new Vector2(-50, -25),
+
+
+                new Vector2(-50, 25),
+                new Vector2(0, 25),
+                new Vector2(0, 75),
+
+                new Vector2(50, 75),
+                new Vector2(50, -75),
+            }, 1).Single();
+
+            var b = _plan.Add(new[] {
+                new Vector2(-90, -75),
+                new Vector2(-90, 0),
+                new Vector2(0, 0),
+                new Vector2(0, -75),
+            }, 1).Single();
+
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan, 3, true));
+
+            //This used to throw (index out of range exception due to neighbour calculation assuming inner and outer arrays are the same length)
+            var na = a.GetWalls();
+
+            Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan, 3, false));
+
+            Assert.AreEqual(3, a.Neighbours.Count());
         }
 
         [TestMethod]
@@ -1017,14 +1047,12 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                     if (!catchit)
                         throw;
                     else
-                        Assert.Fail("Failing seed = " + seed);
+                        Assert.Fail(string.Format("Failing seed = {0}", seed.ToString()));
                 }
             };
 
-            for (int s = 0; s < 100; s++)
-            {
+            for (var s = 0; s < 100; s++)
                 iterate(s * 2389, true);
-            }
         }
 
         [TestMethod]
@@ -1087,11 +1115,11 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             var c = _plan.Add(new[]
             {
-                new Vector2(-70f, -50),
+                new Vector2(-70f, -45),
                 new Vector2(-70f, 50),
                 new Vector2(60, 50),
-                new Vector2(60, -50),
-            }, 5).Single();
+                new Vector2(60, -45),
+            }, 7).Single();
 
             var d = _plan.Add(new[]
             {
@@ -1133,10 +1161,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
                 new Vector2(60, -50),
             }, 5).Single();
 
-            Assert.AreEqual(8, b.GetWalls().Count());
-            Assert.AreEqual(14, c.GetWalls().Count());
-
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(_plan, 4));
+
+            Assert.AreEqual(4, b.GetWalls().Count());
+            Assert.AreEqual(6, c.GetWalls().Count());
         }
 
         [TestMethod]
@@ -1197,10 +1225,10 @@ namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
 
             foreach (var facade in f)
             {
-                Assert.IsFalse(facade.Section.A.IsNaN());
-                Assert.IsFalse(facade.Section.B.IsNaN());
-                Assert.IsFalse(facade.Section.C.IsNaN());
-                Assert.IsFalse(facade.Section.D.IsNaN());
+                Assert.IsFalse(facade.Section.Inner1.IsNaN());
+                Assert.IsFalse(facade.Section.Inner2.IsNaN());
+                Assert.IsFalse(facade.Section.Outer1.IsNaN());
+                Assert.IsFalse(facade.Section.Outer2.IsNaN());
                 Assert.IsFalse(facade.Section.Along.IsNaN());
             }
         }

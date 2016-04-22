@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Geometry.Walls;
 using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
@@ -32,9 +34,20 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         IEnumerable<Facade> GetWalls();
 
         /// <summary>
+        /// Get the corner sections of the walls around this room
+        /// </summary>
+        /// <returns></returns>
+        IReadOnlyList<IReadOnlyList<Vector2>> GetCorners();  
+
+        /// <summary>
         /// Get all the neighbour relationships for this room
         /// </summary>
         IEnumerable<Neighbour> Neighbours { get; }
+
+        /// <summary>
+        /// Sections around this room
+        /// </summary>
+        IReadOnlyList<Section> Sections { get; }
     }
 
     [ContractClassFor(typeof(IRoomPlan))]
@@ -70,11 +83,26 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             return null;
         }
 
+        public IReadOnlyList<IReadOnlyList<Vector2>> GetCorners()
+        {
+            Contract.Ensures(Contract.Result<IReadOnlyList<IReadOnlyList<Vector2>>>() != null);
+            return null;
+        }
+
         public IEnumerable<Neighbour> Neighbours
         {
             get
             {
                 Contract.Ensures(Contract.Result<IEnumerable<Neighbour>>() != null);
+                return null;
+            }
+        }
+
+        public IReadOnlyList<Section> Sections
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IReadOnlyList<Section>>() != null);
                 return null;
             }
         }
@@ -110,6 +138,24 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
             return points
                 .Select((t, i) => new LineSegment2(t, points[(i + 1) % points.Count]));
+        }
+
+        public static Section FindSection(this IRoomPlan room, LineSegment2 segment)
+        {
+            var segmentLongLine = segment.LongLine;
+
+            foreach (var section in room.Sections)
+            {
+                var externalLongRay = section.ExternalLineSegment.LongLine;
+
+                //Check that the lines are collinear
+                if (externalLongRay.Parallelism(segmentLongLine) != Parallelism.Collinear)
+                    continue;
+
+                return section;
+            }
+
+            throw new InvalidOperationException("Cannot find a section for the given line segment");
         }
     }
 }

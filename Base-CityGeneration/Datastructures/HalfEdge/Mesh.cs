@@ -553,6 +553,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
         {
             Contract.Requires(vertices != null);
             Contract.Requires(vertices.Length >= 3);
+            Contract.Requires(Contract.ForAll(vertices, v => v != null));
             Contract.Ensures(Contract.Result<Face<TVTag, TETag, TFTag>>() != null);
 
             var face = GetOrConstructFace((IReadOnlyList<Vertex<TVTag, TETag, TFTag>>)vertices);

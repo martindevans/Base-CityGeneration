@@ -215,7 +215,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             //todo: connectivity (doors + corridors)
 
             //Insert faces which are rooms (i.e. not groups) into the floorplan
-            foreach (var face in map.Faces.Skip(53).Take(1))
+            foreach (var face in map.Faces)
             {
                 //if (face.Tag.Spec is RoomSpec)
                 //{

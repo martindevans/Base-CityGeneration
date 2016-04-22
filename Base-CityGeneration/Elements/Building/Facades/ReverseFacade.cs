@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using EpimetheusPlugins.Procedural.Utilities;
 using System.Numerics;
-
+using Base_CityGeneration.Geometry.Walls;
 using MathHelperRedux;
 
 namespace Base_CityGeneration.Elements.Building.Facades
@@ -16,7 +15,7 @@ namespace Base_CityGeneration.Elements.Building.Facades
     {
         private readonly IConfigurableFacade _parent;
 
-        public ReverseFacade(IConfigurableFacade parent, Walls.Section section)
+        public ReverseFacade(IConfigurableFacade parent, Section section)
         {
             Contract.Requires(parent != null);
 
@@ -48,6 +47,6 @@ namespace Base_CityGeneration.Elements.Building.Facades
             return new Vector2(-xy.X, xy.Y);
         }
 
-        public Walls.Section Section { get; set; }
+        public Section Section { get; set; }
     }
 }

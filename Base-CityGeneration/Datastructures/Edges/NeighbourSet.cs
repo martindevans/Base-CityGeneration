@@ -90,8 +90,8 @@ namespace Base_CityGeneration.Datastructures.Edges
                             segmentLine.ClosestPointDistanceAlongLine(sp), segmentLine.ClosestPointDistanceAlongLine(ep),
                             item.Value,
                             st, et
-                            )
-                        );
+                        )
+                    );
                 }
             }
 

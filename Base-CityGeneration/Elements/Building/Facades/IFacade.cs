@@ -1,4 +1,4 @@
-﻿using EpimetheusPlugins.Procedural.Utilities;
+﻿using Base_CityGeneration.Geometry.Walls;
 
 namespace Base_CityGeneration.Elements.Building.Facades
 {
@@ -12,6 +12,6 @@ namespace Base_CityGeneration.Elements.Building.Facades
         /// <summary>
         /// The wall section which this facade is filling in
         /// </summary>
-        Walls.Section Section { get; set; }
+        Section Section { get; set; }
     }
 }
