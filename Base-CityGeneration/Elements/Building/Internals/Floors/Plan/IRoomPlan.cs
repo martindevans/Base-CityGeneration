@@ -142,6 +142,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
 
         public static Section FindSection(this IRoomPlan room, LineSegment2 segment)
         {
+            Contract.Requires(room != null);
+
             var segmentLongLine = segment.LongLine;
 
             foreach (var section in room.Sections)

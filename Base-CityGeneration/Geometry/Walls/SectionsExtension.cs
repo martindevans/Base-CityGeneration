@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
-using Base_CityGeneration.Utilities.Extensions;
 using ClipperLib;
 using EpimetheusPlugins.Extensions;
 using EpimetheusPlugins.Procedural.Utilities;
-using Myre.Extensions;
-using PrimitiveSvgBuilder;
 using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Geometry.Walls
@@ -23,7 +20,8 @@ namespace Base_CityGeneration.Geometry.Walls
             Contract.Ensures(Contract.Result<IEnumerable<Section>>() != null);
             Contract.Ensures(Contract.ValueAtReturn(out innerArr) != null);
 
-            return outer.ToArray().Sections(width, out innerArr);
+            IReadOnlyList<IReadOnlyList<Vector2>> corners;
+            return outer.ToArray().Sections(width, out innerArr, out corners);
         }
 
         /// <summary>
