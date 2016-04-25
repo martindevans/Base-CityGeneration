@@ -649,6 +649,7 @@ namespace Base_CityGeneration.Datastructures.HalfEdge
             var vArr = new Vertex<TVTag, TETag, TFTag>[vertices.Length - (v2 - v1) + 1];
             Array.Copy(vertices, 0, vArr, 0, v1 + 1);
             Array.Copy(vertices, v2, vArr, v1 + 1, vertices.Length - v2);
+            Contract.Assume(Contract.ForAll(vArr, v => v != null));
             result1 = GetOrConstructFace(vArr);
 
             //if (swap)
