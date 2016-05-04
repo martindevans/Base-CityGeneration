@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Numerics;
 
-namespace Base_CityGeneration.Test.Elements.Building.Internals.Floors
+namespace Base_CityGeneration.Test
 {
     public static class TestHelperExtensions
     {

@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Base_CityGeneration.Elements.Building.Design;
-using Base_CityGeneration.Elements.Building.Design.Spec;
-using Base_CityGeneration.Elements.Building.Design.Spec.Markers;
-using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using Base_CityGeneration.Elements.Building.Design.Spec.Ref;
 using EpimetheusPlugins.Scripts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -15,7 +12,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Ref
     {
         private static FloorSelection CreateFloor(string name, float height, int number)
         {
-            return new FloorSelection(name, new KeyValuePair<string, string>[0], new FootprintMarker(new BaseFootprintAlgorithm[0]), new ScriptReference(typeof(TestScript)), height, number);
+            return new FloorSelection(name, new KeyValuePair<string, string>[0], new ScriptReference(typeof(TestScript)), height, number);
         }
 
         private readonly FloorSelection[] _floors = {

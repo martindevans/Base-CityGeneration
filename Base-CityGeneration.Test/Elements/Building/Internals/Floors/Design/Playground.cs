@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using Base_CityGeneration.Elements.Building.Design;
+using Base_CityGeneration.Elements.Building.Internals.Floors;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design;
 using Base_CityGeneration.Test.Elements.Building.Design;
 using Base_CityGeneration.TestHelpers;
@@ -164,7 +164,7 @@ Spaces:
             //    new Subsection[0],
             //};
 
-            var floorplan = designer.Design(random, metadata, finder, shape, sections, 0.175f, verticals, new List<VerticalSelection>());
+            var floorplan = designer.Design(random, metadata, finder, shape, sections, 0.175f, verticals, new List<ConstrainedVerticalSelection>());
 
             Console.WriteLine(SvgRoomVisualiser.FloorplanToSvg(floorplan, 55, basic:false));
         }

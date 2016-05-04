@@ -90,12 +90,12 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
 
         private IReadOnlyList<IReadOnlyList<Vector2>> ShapesForRoom(IEnumerable<Vector2> roomFootprint, bool split = false)
         {
-            if (roomFootprint == null)
-                throw new ArgumentNullException("roomFootprint");
+            Contract.Requires(roomFootprint != null);
 
+            //Winding check
             var clipperRoomFootprint = roomFootprint.Select(ToPoint).ToList();
             if (Clipper.Orientation(clipperRoomFootprint))
-                throw new ArgumentException("Room footprint must be clockwise wound");
+                clipperRoomFootprint.Reverse();
 
             //Contain within floor outer edge
             var solution = ClipToFloor(clipperRoomFootprint, split);

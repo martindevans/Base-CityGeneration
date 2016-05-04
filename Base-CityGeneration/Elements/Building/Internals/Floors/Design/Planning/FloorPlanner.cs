@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Numerics;
 using Base_CityGeneration.Datastructures.Extensions;
 using Base_CityGeneration.Datastructures.HalfEdge;
-using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric;
@@ -16,10 +14,7 @@ using EpimetheusPlugins.Scripts;
 using HandyCollections.Heap;
 using JetBrains.Annotations;
 using Myre.Collections;
-using Placeholder.AI.Pathfinding.Graph.NodeGraph;
 using Placeholder.AI.Pathfinding.SpanningTree;
-using PrimitiveSvgBuilder;
-using SwizzleMyVectors;
 using Face = Base_CityGeneration.Datastructures.HalfEdge.Face<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using HalfEdge = Base_CityGeneration.Datastructures.HalfEdge.HalfEdge<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
 using Vertex = Base_CityGeneration.Datastructures.HalfEdge.Vertex<Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanVertexTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanHalfEdgeTag, Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning.FloorplanFaceTag>;
@@ -180,7 +175,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         }
         #endregion
 
-        public IFloorPlanBuilder Plan(Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
+        public IFloorPlanBuilder Plan(Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<ConstrainedVerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
             Contract.Requires(region != null);
             Contract.Requires(overlappingVerticals != null);
@@ -192,7 +187,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
             return floorplan;
         }
 
-        private void PlanRegion(IFloorPlanBuilder floorplan, Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
+        private void PlanRegion(IFloorPlanBuilder floorplan, Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<ConstrainedVerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
             Contract.Requires(region != null);
             Contract.Requires(overlappingVerticals != null);

@@ -71,7 +71,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
         #endregion
 
         #region design
-        public IFloorPlanBuilder Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<Vector2> footprint, IReadOnlyList<IReadOnlyList<Subsection>> sections, float wallThickness, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<VerticalSelection> startingVerticals)
+        public IFloorPlanBuilder Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IReadOnlyList<Vector2> footprint, IReadOnlyList<IReadOnlyList<Subsection>> sections, float wallThickness, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<ConstrainedVerticalSelection> startingVerticals)
         {
             Contract.Requires(random != null);
             Contract.Requires(metadata != null);

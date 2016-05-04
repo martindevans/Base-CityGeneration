@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Numerics;
-using Base_CityGeneration.Elements.Building.Design;
-using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using EpimetheusPlugins.Entities;
 using EpimetheusPlugins.Procedural;
 using Myre.Collections;
@@ -25,25 +22,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         /// Altitude of the *base* of this floor
         /// </summary>
         float FloorAltitude { get; set; }
-
-        /// <summary>
-        /// Height of this floor
-        /// </summary>
-        float FloorHeight { get; set; }
-
-        /// <summary>
-        /// Vertical features which cross this floor
-        /// </summary>
-        IReadOnlyCollection<IVerticalFeature> Overlaps { set; }
-
-        /// <summary>
-        /// Choose the footprint for a given vertical feature
-        /// </summary>
-        /// <param name="feature">The vertical feature we are placing (which *starts* at this floor)</param>
-        /// <param name="space">The available space to place the vertical feature within (may be restricted by higher floors being a different shape)</param>
-        /// <param name="floors">The floors which this vertical feature crosses</param>
-        /// <returns>The footprint of this feature</returns>
-        IEnumerable<Vector2> PlaceVerticalFeature(VerticalSelection feature, IReadOnlyList<Vector2> space, IReadOnlyList<IFloor> floors);
     }
 
     [ContractClassFor(typeof(IFloor))]
@@ -60,29 +38,6 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
         {
             get { return default(float); }
             set { }
-        }
-
-        float IFloor.FloorHeight
-        {
-            get { return default(float); }
-            set { }
-        }
-
-        IReadOnlyCollection<IVerticalFeature> IFloor.Overlaps
-        {
-            set { }
-        }
-
-        IEnumerable<Vector2> IFloor.PlaceVerticalFeature(VerticalSelection feature, IReadOnlyList<Vector2> space, IReadOnlyList<IFloor> floors)
-        {
-            Contract.Requires(feature != null);
-            Contract.Requires(space != null);
-            Contract.Requires(floors != null);
-
-            Contract.Ensures(Contract.Result<IEnumerable<Vector2>>() != null);
-            Contract.Ensures(Contract.Result<IEnumerable<Vector2>>().Count() >= 3);
-
-            return default(IEnumerable<Vector2>);
         }
 
         void ISubdivisionContext.AddPrerequisite(ISubdivisionContext prerequisite, bool recursive)

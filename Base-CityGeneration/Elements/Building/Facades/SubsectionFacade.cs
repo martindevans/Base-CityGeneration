@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Geometry.Walls;
+using EpimetheusPlugins.Procedural;
 using SwizzleMyVectors.Geometry;
 using MathHelperRedux;
 
@@ -93,6 +94,11 @@ namespace Base_CityGeneration.Elements.Building.Facades
                 stamp.Additive, stamp.Material,
                 stamp.Shape.Select(ToParentXY).ToArray()
             ));
+        }
+
+        public ISubdivisionContext GetDependencyContext()
+        {
+            return _parent.GetDependencyContext();
         }
 
         private float ToParentDepth(float depth)

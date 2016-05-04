@@ -35,6 +35,11 @@ namespace Base_CityGeneration.Elements.Building.Facades
             _stamps.Add(stamp);
         }
 
+        public ISubdivisionContext GetDependencyContext()
+        {
+            return this;
+        }
+
         protected override IEnumerable<Stamp> EmbossingStamps(INamedDataCollection hierarchicalParameters, float width, float height)
         {
             return Stamps;

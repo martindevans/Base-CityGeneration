@@ -157,7 +157,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
             if (result == null)
                 return null;
 
-            return new FloorSelection(id, result.Tags, selector, result.Script, height);
+            return new FloorSelection(id, result.Tags, result.Script, height);
         }
 
         public IEnumerable<IEnumerable<FloorSelection>> Select(BaseFloorSelector selector, Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder)
