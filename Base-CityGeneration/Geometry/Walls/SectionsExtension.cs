@@ -100,9 +100,8 @@ namespace Base_CityGeneration.Geometry.Walls
             }
 
             //Calculate corner sections
-
-
             corners = CalculateCorners(outer, width, results);
+
             return results;
         }
 

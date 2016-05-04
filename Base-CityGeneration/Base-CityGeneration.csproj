@@ -160,8 +160,8 @@
       <HintPath>..\packages\Clipper.6.2.10\lib\net40\clipper_library.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5954.27566, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5954.27566\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5963.32771, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5963.32771\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FortuneVoronoi, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -206,7 +206,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.3.1\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.3.3\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder, Version=3.2.0.0, Culture=neutral, processorArchitecture=x86">
@@ -373,6 +373,8 @@
     <Compile Include="Elements\Building\Design\Spec\Ref\SearchDirection.cs" />
     <Compile Include="Elements\Building\Design\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Design\Spec\RepeatSpec.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\BaseFloor.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\ConstrainedVerticalSelection.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\FloorDesigner.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Planning\CorridorHelpers.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Planning\FloorPlanner.cs" />
@@ -399,9 +401,12 @@
     <Compile Include="Elements\Building\Internals\Floors\Plan\Mesh\MeshCorridorExtensions.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Plan\Geometric\RoomPlan.cs" />
     <Compile Include="Elements\Building\Internals\Rooms\EmptyRoom.cs" />
+    <Compile Include="Elements\Building\Internals\Rooms\IdentityRoom.cs" />
+    <Compile Include="Elements\Building\Internals\VerticalFeatures\IVerticalFeatureContainer.cs" />
     <Compile Include="Elements\Building\SpecBuilding.cs" />
     <Compile Include="Elements\Building\SpecBuildingContainer.cs" />
     <Compile Include="Entry.cs" />
+    <Compile Include="Extensions\ClipperExtensions.cs" />
     <Compile Include="Extensions\PolytreeExtensions.cs" />
     <Compile Include="Geometry\Walls\SectionsExtension.cs" />
     <Compile Include="IUnwrappable.cs" />

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using Base_CityGeneration.Geometry.Walls;
 using Base_CityGeneration.Utilities.Extensions;
+using EpimetheusPlugins.Scripts;
 using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
@@ -14,6 +16,10 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
     {
         #region fields and properties
         private readonly GeometricFloorplan _plan;
+        public IFloorPlan Plan
+        {
+            get { return _plan; }
+        }
 
         private readonly IReadOnlyList<Vector2> _innerFootprint; 
         public IReadOnlyList<Vector2> InnerFootprint { get { return _innerFootprint; } }
@@ -37,6 +43,14 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
         {
             get { return _id; }
         }
+
+        private readonly List<KeyValuePair<float, ScriptReference>> _scripts = new List<KeyValuePair<float, ScriptReference>>();
+        public IEnumerable<KeyValuePair<float, ScriptReference>> Scripts
+        {
+            get { return _scripts; }
+        }
+
+        public IPlannedRoom Node { get; set; }
         #endregion
 
         #region constructor
@@ -98,6 +112,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
             return _corners;
         }
 
+        private IReadOnlyList<Facade> _facadeCache;
         /// <summary>
         /// Get all facades surrounding this room.
         /// </summary>
@@ -106,31 +121,37 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
         {
             Contract.Ensures(Contract.Result<IEnumerable<Facade>>() != null);
 
-            //Create a place to put results
-            var results = new List<Facade>();
-            //Iterate the *sections* (in a non arbitrary order)
-            foreach (var section in _sections)
+            if (_facadeCache == null)
             {
-                if (IsExternalSection(section))
+
+                //Create a place to put results
+                var results = new List<Facade>();
+                //Iterate the *sections* (in a non arbitrary order)
+                foreach (var section in _sections)
                 {
-                    //External facade! Create one long section (marked as external)
-                    results.Add(new Facade(true, section));
+                    if (IsExternalSection(section))
+                    {
+                        //External facade! Create one long section (marked as external)
+                        results.Add(new Facade(true, section));
+                    }
+                    else
+                    {
+                        //not external, but also no neighbours! Create one long section (marked as not external)
+                        results.Add(new Facade(false, section));
+                    }
                 }
-                else
+
+                //Link the facades together around the room
+                for (var i = 0; i < results.Count; i++)
                 {
-                    //not external, but also no neighbours! Create one long section (marked as not external)
-                    results.Add(new Facade(false, section));
+                    results[i].Next = results[(i + 1) % results.Count];
+                    results[i].Previous = results[(i + results.Count - 1) % results.Count];
                 }
+
+                _facadeCache = results;
             }
 
-            //Link the facades together around the room
-            for (var i = 0; i < results.Count; i++)
-            {
-                results[i].Next = results[(i + 1) % results.Count];
-                results[i].Previous = results[(i + results.Count - 1) % results.Count];
-            }
-
-            return results;
+            return _facadeCache;
         }
 
         private bool IsExternalSection(Section section)
@@ -155,10 +176,25 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
                 if (Math.Abs(edge.LongLine.DistanceToPoint(segment.Start)) > WallThickness || Math.Abs(edge.LongLine.DistanceToPoint(segment.End)) > WallThickness)
                     continue;
 
+                //Check if start point lies on this outer segment
+                var sT = edge.LongLine.ClosestPointDistanceAlongLine(segment.Start);
+                if (sT < 0 || sT > 1)
+                    continue;
+
+                //Check if end point lies on this outer segment
+                var eT = edge.LongLine.ClosestPointDistanceAlongLine(segment.End);
+                if (eT < 0 || eT > 1)
+                    continue;
+
                 return true;
             }
 
             return false;
+        }
+
+        public void AddScript(float chance, ScriptReference script)
+        {
+            _scripts.Add(new KeyValuePair<float, ScriptReference>(chance, script));
         }
     }
 }

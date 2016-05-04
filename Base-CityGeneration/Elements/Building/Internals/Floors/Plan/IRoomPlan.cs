@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
+using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using Base_CityGeneration.Geometry.Walls;
+using EpimetheusPlugins.Procedural;
+using EpimetheusPlugins.Scripts;
 using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
@@ -11,6 +14,11 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
     [ContractClass(typeof(IRoomPlanContract))]
     public interface IRoomPlan
     {
+        /// <summary>
+        /// Get the plan which contains this room
+        /// </summary>
+        IFloorPlan Plan { get; }
+
         /// <summary>
         /// The outer footprint of this room (does not intersect any other rooms)
         /// </summary>
@@ -37,7 +45,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         /// Get the corner sections of the walls around this room
         /// </summary>
         /// <returns></returns>
-        IReadOnlyList<IReadOnlyList<Vector2>> GetCorners();  
+        IReadOnlyList<IReadOnlyList<Vector2>> GetCorners();
 
         /// <summary>
         /// Get all the neighbour relationships for this room
@@ -48,11 +56,37 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         /// Sections around this room
         /// </summary>
         IReadOnlyList<Section> Sections { get; }
+
+        /// <summary>
+        /// Add a script as a possible choice for this room
+        /// </summary>
+        /// <param name="chance">Chance of this script being chosen (relative to all other chances). Must be positive.</param>
+        /// <param name="script">Script which this room *may* use (must not be null)</param>
+        void AddScript(float chance, ScriptReference script);
+
+        /// <summary>
+        /// Get all scripts (with associated probability) for this room
+        /// </summary>
+        IEnumerable<KeyValuePair<float, ScriptReference>> Scripts { get; }
+
+        /// <summary>
+        /// Get the subdivision context which is created from this plan (may be null)
+        /// </summary>
+        IPlannedRoom Node { get; set; }
     }
 
     [ContractClassFor(typeof(IRoomPlan))]
     abstract class IRoomPlanContract : IRoomPlan
     {
+        public IFloorPlan Plan
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IFloorPlan>() != null);
+                return null;
+            }
+        }
+
         public IReadOnlyList<Vector2> OuterFootprint
         {
             get
@@ -110,6 +144,28 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         protected IRoomPlanContract(uint id)
         {
             _id = id;
+        }
+
+
+        public void AddScript(float chance, ScriptReference script)
+        {
+            Contract.Requires(script != null);
+            Contract.Requires(chance > 0);
+        }
+
+        public IEnumerable<KeyValuePair<float, ScriptReference>> Scripts
+        {
+            get
+            {
+                Contract.Ensures(Contract.Result<IEnumerable<KeyValuePair<float, ScriptReference>>>() != null);
+                return null;
+            }
+        }
+
+        public IPlannedRoom Node
+        {
+            get { return null; }
+            set { }
         }
     }
 

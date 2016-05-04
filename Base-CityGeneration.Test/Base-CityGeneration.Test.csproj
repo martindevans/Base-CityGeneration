@@ -62,12 +62,12 @@
       <HintPath>..\packages\Clipper.6.2.10\lib\net40\clipper_library.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5954.27566, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5954.27566\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5963.32771, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5963.32771\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5954.27569, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5954.27569\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
+    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5963.32773, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5963.32773\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=5.8.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -109,7 +109,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.3.1\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.3.3\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Placeholder, Version=3.2.0.0, Culture=neutral, processorArchitecture=x86">
@@ -214,6 +214,7 @@
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\BevelTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\TwistTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\ShrinkTest.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\BaseFloorTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\FloorplanRegionTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Playground.cs" />
     <Compile Include="Elements\Building\Design\BuildingDesignerTest.cs" />
@@ -233,7 +234,7 @@
     <Compile Include="Utilities\Numbers\NormallyDistributedValueTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\Ref\IdRefTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\SerializationTest.cs" />
-    <Compile Include="Elements\Building\Internals\Floors\TestHelperExtensions.cs" />
+    <Compile Include="TestHelperExtensions.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\ConvertToMesh.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\NetworkBuilderTest.cs" />
     <Compile Include="Elements\Roads\Hyperstreamline\NetworkConfigurationTest.cs" />

@@ -1,7 +1,6 @@
 ﻿using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
-using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using Base_CityGeneration.Styles;
 using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
@@ -12,10 +11,9 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Blocks;
+using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
 using Base_CityGeneration.Elements.Roads;
 using Base_CityGeneration.Geometry.Walls;
-using ClipperLib;
-using SwizzleMyVectors;
 using SwizzleMyVectors.Geometry;
 
 namespace Base_CityGeneration.Elements.Building
@@ -67,7 +65,7 @@ namespace Base_CityGeneration.Elements.Building
         #endregion
 
         #region vertical data
-        private IReadOnlyCollection<IVerticalFeature> _verticals;
+        private IReadOnlyList<VerticalSelection> _verticals;
 
         /// <summary>
         /// Get all vertical features which overlap the given floor range
@@ -75,10 +73,10 @@ namespace Base_CityGeneration.Elements.Building
         /// <param name="lowest">Bottom floor of returned verticals must be less than or equal to this</param>
         /// <param name="highest">Top floor of returned verticals must be greater than or equal to this</param>
         /// <returns></returns>
-        public IEnumerable<IVerticalFeature> Verticals(int lowest, int highest)
+        public IEnumerable<VerticalSelection> Verticals(int lowest, int highest)
         {
             CheckSubdivided();
-            return _verticals.Where(a => a.BottomFloorIndex <= lowest && a.TopFloorIndex >= highest);
+            return _verticals.Where(a => a.Bottom <= lowest && a.Top >= highest);
         }
         #endregion
 
@@ -99,14 +97,23 @@ namespace Base_CityGeneration.Elements.Building
 
             //Create things
             _floors = CreateFloors(SelectFloors(), Footprints(externals));
-            _verticals = CreateVerticals(SelectVerticals(), _floors);
+            _verticals = SelectVerticals().ToArray();
             _facades = CreateFacades(geometry, externals, hierarchicalParameters);
 
-            //Set up relationship between floor and verticals (floor PrerequisiteOf vertical)
-            foreach (var vertical in _verticals)
+            //Setup relationship between floors (floor PrerequisiteOf floor-further-from-ground)
+            foreach (var keyValuePair in _floors)
             {
-                for (var i = vertical.BottomFloorIndex; i <= vertical.TopFloorIndex; i++)
-                    vertical.AddPrerequisite(_floors[i]);
+                //Ground floor has no prerequisites
+                if (keyValuePair.Key == 0)
+                    continue;
+
+                //Work out the index of the prerequisite
+                var prereqIndex = keyValuePair.Key < 0 ? keyValuePair.Key + 1 : keyValuePair.Key - 1;
+
+                //Try to find it (this *shouldn't* ever fail, if we have a continuous run of floors)
+                IFloor prereq;
+                if (_floors.TryGetValue(prereqIndex, out prereq))
+                    keyValuePair.Value.AddPrerequisite(prereq);
             }
         }
 
@@ -123,7 +130,7 @@ namespace Base_CityGeneration.Elements.Building
             _belowGroundFloors = floors.Count(a => a.Index < 0);
 
             //Collection of results (floor index -> floor node)
-            Dictionary<int, IFloor> result = new Dictionary<int, IFloor>();
+            var result = new Dictionary<int, IFloor>();
 
             //calculate offset to lowest basement
             //todo: do I need to add/subtract GroundHeight to this?
@@ -136,7 +143,7 @@ namespace Base_CityGeneration.Elements.Building
                 var footprint = footprintSelector(floor.Index);
 
                 //Create node
-                IFloor node = (IFloor)CreateChild(
+                var node = (IFloor)CreateChild(
                     new Prism(floor.Height, footprint),
                     Quaternion.Identity,
                     new Vector3(0, offset + floor.Height / 2f, 0),
@@ -144,7 +151,6 @@ namespace Base_CityGeneration.Elements.Building
                 );
                 node.FloorIndex = floor.Index;
                 node.FloorAltitude = offset;
-                node.FloorHeight = floor.Height;
 
                 //Move offset up for next floor
                 offset += floor.Height;
@@ -157,61 +163,6 @@ namespace Base_CityGeneration.Elements.Building
         }
 
         protected abstract IEnumerable<FloorSelection> SelectFloors();
-
-        private IReadOnlyCollection<IVerticalFeature> CreateVerticals(IEnumerable<VerticalSelection> verticals, IReadOnlyDictionary<int, IFloor> floors)
-        {
-            Contract.Requires(verticals != null);
-            Contract.Requires(Contract.ForAll(verticals, a => a.Bottom <= a.Top), "Attempted to crete a vertical element where bottom > top");
-            Contract.Requires(floors != null);
-            Contract.Ensures(Contract.Result<IReadOnlyCollection<IVerticalFeature>>() != null);
-
-            var results = new List<IVerticalFeature>();
-
-            foreach (var verticalSelection in verticals)
-            {
-                //Get all floors this feature overlaps
-                var crossedFloors = (
-                    from i in Enumerable.Range(verticalSelection.Bottom, verticalSelection.Top - verticalSelection.Bottom + 1)
-                    select floors[i]
-                    ).ToArray();
-
-                //Calculate the intersection of all crossed floor footprints
-                var intersection = IntersectionOfFootprints(crossedFloors);
-
-                //Ask the bottom floors where this element should be placed
-                var footprint = crossedFloors[0].PlaceVerticalFeature(verticalSelection, intersection, crossedFloors);
-
-                //Transform from floor space into building space
-                var transform = crossedFloors[0].InverseWorldTransformation * WorldTransformation;
-                var bFootprint = footprint.Select(a => Vector3.Transform(a.X_Y(0), transform).XZ()).ToArray();
-
-                //Clockwise wind
-                if (bFootprint.Area() < 0)
-                    Array.Reverse(bFootprint);
-
-                //Calculate height
-                var height = crossedFloors.Sum(a => a.Bounds.Height);
-
-                //Create vertical element node
-                var vertical = (IVerticalFeature)CreateChild(
-                    new Prism(height, bFootprint),
-                    Quaternion.Identity,
-                    new Vector3(0, height / 2, 0),
-                    verticalSelection.Script
-                    );
-                vertical.BottomFloorIndex = verticalSelection.Bottom;
-                vertical.TopFloorIndex = verticalSelection.Top;
-
-                //Accumulate all verticals
-                results.Add(vertical);
-            }
-
-            //Associate vertical elements with the floors they intersect
-            foreach (var floor in _floors.Values)
-                floor.Overlaps = results.Where(a => a.TopFloorIndex >= floor.FloorIndex && a.BottomFloorIndex <= floor.FloorIndex).ToArray();
-
-            return results;
-        }
 
         protected abstract IEnumerable<VerticalSelection> SelectVerticals();
 
@@ -255,7 +206,7 @@ namespace Base_CityGeneration.Elements.Building
 
         private void CreatePrimaryFacades(Footprint footprint, IEnumerable<Section> sections, ICollection<IBuildingFacade> results)
         {
-            for (int sideIndex = 0; sideIndex < footprint.Facades.Count; sideIndex++)
+            for (var sideIndex = 0; sideIndex < footprint.Facades.Count; sideIndex++)
             {
                 //Get start and end point of this wall
                 var sideStart = footprint.Shape[sideIndex];
@@ -288,7 +239,7 @@ namespace Base_CityGeneration.Elements.Building
                         throw new InvalidOperationException(string.Format("Facade associated with wall at floor {0} attempted to place itself at floor {1}", footprint.BottomIndex, facade.Bottom));
 
                     var bot = _floors[facade.Bottom].FloorAltitude;
-                    var top = _floors[facade.Top].FloorAltitude + _floors[facade.Top].FloorHeight;
+                    var top = _floors[facade.Top].FloorAltitude + _floors[facade.Top].Bounds.Height;
                     var mid = (bot + top) * 0.5f;
 
                     var prism = new Prism(top - bot, section.Inner1, section.Inner2, section.Outer1, section.Outer2);
@@ -328,7 +279,7 @@ namespace Base_CityGeneration.Elements.Building
 
             //Calculate altitude of bottom and top of this facade
             var bot = _floors[footprint.BottomIndex].FloorAltitude;
-            var top = _floors[topIndex].FloorAltitude + _floors[topIndex].FloorHeight;
+            var top = _floors[topIndex].FloorAltitude + _floors[topIndex].Bounds.Height;
             var mid = (bot + top) * 0.5f;
 
             //Fill in corner sections (solid)
@@ -416,38 +367,15 @@ namespace Base_CityGeneration.Elements.Building
                 throw new InvalidOperationException("Cannot query BaseBuilding before it is subdivided");
         }
 
-        private static IReadOnlyList<Vector2> IntersectionOfFootprints(IReadOnlyList<IFloor> floors)
-        {
-            Contract.Requires(floors != null);
-            Contract.Ensures(Contract.Result<IReadOnlyList<Vector2>>() != null);
-
-            const int SCALE = 1000;
-            var c = new Clipper();
-
-            for (var i = 0; i < floors.Count; i++)
-            {
-                var ii = i;
-                //Transform footprint from floor[i] space into floor[0] space
-                var transformed = floors[i].Bounds.Footprint.Select(a => Vector3.Transform(a.X_Y(0), floors[ii].InverseWorldTransformation * floors[0].WorldTransformation));
-                c.AddPath(
-                    transformed.Select(a => new IntPoint((int)(a.X * SCALE), (int)(a.Z * SCALE))).ToList(),
-                    i == 0 ? PolyType.ptSubject : PolyType.ptClip,
-                    true
-                );
-            }
-
-            var result = new List<List<IntPoint>>();
-            c.Execute(ClipType.ctIntersection, result);
-
-            return result[0].Select(a => new Vector2(a.X / (float)SCALE, a.Y / (float)SCALE)).ToArray();
-        }
-
         private static Func<int, IReadOnlyList<Vector2>> Footprints(IEnumerable<Footprint> externals)
         {
             Contract.Requires(externals != null);
             Contract.Ensures(Contract.Result<Func<int, IReadOnlyList<Vector2>>>() != null);
 
             var footprints = externals.ToDictionary(a => a.BottomIndex, a => a);
+
+            if (!footprints.ContainsKey(0))
+                throw new ArgumentException("Externals must contain a footprint for floor zero", "externals");
 
             return floor => {
                 //There's always a floor zero footprint
@@ -481,10 +409,44 @@ namespace Base_CityGeneration.Elements.Building
         }
         #endregion
 
+        #region IVerticalFeatureContainer implementation
+        private readonly List<KeyValuePair<VerticalSelection, IVerticalFeature>> _verticalNodes = new List<KeyValuePair<VerticalSelection, IVerticalFeature>>();
+
+        void IVerticalFeatureContainer.Add(VerticalSelection selection, IVerticalFeature feature)
+        {
+            //Ensure that all the floors overlapping this vertical are not subdivided
+            for (int i = selection.Bottom; i < selection.Top; i++)
+                if (Floor(i).State != SubdivisionStates.NotSubdivided)
+                    throw new InvalidOperationException("Cannot add vertical element overlapping a floor which is already subdivided");
+
+            //This element is valid, store it
+            _verticalNodes.Add(new KeyValuePair<VerticalSelection, IVerticalFeature>(selection, feature));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="floorIndex"></param>
+        /// <param name="checkSubdivided"></param>
+        /// <returns></returns>
+        IEnumerable<KeyValuePair<VerticalSelection, IVerticalFeature>> IVerticalFeatureContainer.Overlapping(int floorIndex, bool checkSubdivided)
+        {
+            //Check that all floors closer to zero are already subdivided
+            foreach (var index in floorIndex >= 0 ? Enumerable.Range(0, floorIndex) : Enumerable.Range(floorIndex, -floorIndex))
+            {
+                var floor = Floor(index);
+                if (checkSubdivided && floor.State != SubdivisionStates.Subdivided)
+                    throw new InvalidOperationException(string.Format("Cannot get vertical elements for floor {0} - floor {1} is not yet subdivided", floor, index));
+            }
+
+            return _verticalNodes.Where(a => a.Key.Bottom <= floorIndex && a.Key.Top >= floorIndex);
+        }
+        #endregion
+
         /// <summary>
         /// Information about a footprint of the building, building footprint can change on arbitrary floors of the buildings
         /// </summary>
-        protected struct Footprint
+        public struct Footprint
         {
             /// <summary>
             /// Footprint covers all floors up to the next footprint from this floor

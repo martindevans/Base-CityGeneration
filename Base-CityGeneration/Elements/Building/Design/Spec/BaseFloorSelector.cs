@@ -27,7 +27,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec
 
             var result = tags.SelectScript(random, finder, typeof(IFloor));
             if (result != null)
-                return new FloorSelection(id, result.Tags, this, result.Script, height);
+                return new FloorSelection(id, result.Tags, result.Script, height);
             else
                 return null;
         }

@@ -16,7 +16,7 @@ namespace Base_CityGeneration
         /// <param name="queryNode">Take an intermediate node and produce a result</param>
         /// <param name="stopTypes">A set of types to stop at if encountered and cancel the search</param>
         /// <returns></returns>
-        public static TResult SearchUp<TResult, TNode>(ISubdivisionContext start, Func<TNode, TResult> queryNode, params Type[] stopTypes)
+        public static TResult SearchUp<TResult, TNode>(this ISubdivisionContext start, Func<TNode, TResult> queryNode, params Type[] stopTypes)
             where TResult : class
             where TNode : class
         {

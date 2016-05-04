@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Base_CityGeneration.Elements.Blocks;
+using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Facades;
 using Base_CityGeneration.Elements.Building.Internals.Floors;
 using Base_CityGeneration.Elements.Building.Internals.VerticalFeatures;
@@ -8,7 +9,7 @@ using Base_CityGeneration.Elements.Generic;
 namespace Base_CityGeneration.Elements.Building
 {
     public interface IBuilding
-        : IGrounded, INeighbour
+        : IGrounded, INeighbour, IVerticalFeatureContainer
     {
         /// <summary>
         /// Total number of floors (above + below ground)
@@ -38,7 +39,7 @@ namespace Base_CityGeneration.Elements.Building
         /// <param name="lowest">The lowest floor in the range</param>
         /// <param name="highest">The highest floor in the range</param>
         /// <returns></returns>
-        IEnumerable<IVerticalFeature> Verticals(int lowest, int highest);
+        IEnumerable<VerticalSelection> Verticals(int lowest, int highest);
 
         /// <summary>
         /// Get all the facades surrounding a particular floor

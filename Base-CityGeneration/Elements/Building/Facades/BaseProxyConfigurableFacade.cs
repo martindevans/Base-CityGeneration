@@ -27,5 +27,11 @@ namespace Base_CityGeneration.Elements.Building.Facades
         {
             Facade.AddStamp(stamp);
         }
+
+
+        public ISubdivisionContext GetDependencyContext()
+        {
+            return Facade.GetDependencyContext();
+        }
     }
 }
