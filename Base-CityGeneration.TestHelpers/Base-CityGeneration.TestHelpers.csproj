@@ -62,8 +62,8 @@
       <HintPath>..\packages\Clipper.6.2.10\lib\net40\clipper_library.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5963.32771, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5963.32771\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5969.32544, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5969.32544\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=5.8.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -193,6 +193,8 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scripts\BaseTestBuilding.cs" />
+    <Compile Include="Scripts\BaseTestFloor.cs" />
+    <Compile Include="Scripts\BlankRoom.cs" />
     <Compile Include="Scripts\BlankTestFloor.cs" />
     <Compile Include="Scripts\BlankTestVertical.cs" />
     <Compile Include="Scripts\DefaultTestFacade.cs" />

@@ -48,7 +48,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
                 bool isInner = DetermineCornerType(ab, bc);
 
                 //Invert this corner is this is the right type of corner
-                if (angle > MathHelper.ToRadians(_angle.SelectFloatValue(random, metadata)) || ((isInner && !_inner) || (!isInner && !_outer)))
+                if (angle > _angle.SelectFloatValue(random, metadata).ToRadians() || ((isInner && !_inner) || (!isInner && !_outer)))
                 {
                     //Angle is not acute enough, copy across this point to the result
                     result.Add(b);

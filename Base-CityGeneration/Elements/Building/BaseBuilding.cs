@@ -151,6 +151,7 @@ namespace Base_CityGeneration.Elements.Building
                 );
                 node.FloorIndex = floor.Index;
                 node.FloorAltitude = offset;
+                CreatedFloor(node);
 
                 //Move offset up for next floor
                 offset += floor.Height;
@@ -159,7 +160,25 @@ namespace Base_CityGeneration.Elements.Building
                 result.Add(node.FloorIndex, node);
             }
 
+            CreatedFloors(result);
             return result;
+        }
+
+        /// <summary>
+        /// Called immediately after the given floor has been created
+        /// </summary>
+        /// <remarks>Other arbitrary floors may not yet have been constructed!</remarks>
+        /// <param name="node"></param>
+        protected virtual void CreatedFloor(IFloor node)
+        {
+        }
+
+        /// <summary>
+        /// Called immediately after all floors have been created
+        /// </summary>
+        /// <param name="floors"></param>
+        protected virtual void CreatedFloors(IReadOnlyDictionary<int, IFloor> floors)
+        {
         }
 
         protected abstract IEnumerable<FloorSelection> SelectFloors();
@@ -249,6 +268,7 @@ namespace Base_CityGeneration.Elements.Building
                     configurableNode.Section = section;
 
                     //Create the specified facade in the *same* space
+                    //This facade is just a proxy which passes all it's stamps to the configurable facade (created above)
                     var externalFacade = (BaseBuildingFacade)CreateChild(prism, Quaternion.Identity, new Vector3(0, mid, 0), facade.Script);
                     externalFacade.Facade = configurableNode;
                     externalFacade.Section = section;
@@ -260,11 +280,11 @@ namespace Base_CityGeneration.Elements.Building
                     configurableNode.AddPrerequisite(externalFacade, true);
 
                     //Make sure floors subdivide before configurable facade (this ensures it too can configure the facade)
-                    for (int i = externalFacade.BottomFloorIndex; i <= externalFacade.TopFloorIndex; i++)
+                    for (var i = externalFacade.BottomFloorIndex; i <= externalFacade.TopFloorIndex; i++)
                         configurableNode.AddPrerequisite(_floors[i], false);
 
                     //Make sure the building facade subdivides before the floor (this ensures the floor can see the effects of the facade)
-                    for (int i = externalFacade.BottomFloorIndex; i <= externalFacade.TopFloorIndex; i++)
+                    for (var i = externalFacade.BottomFloorIndex; i <= externalFacade.TopFloorIndex; i++)
                         _floors[i].AddPrerequisite(externalFacade, true);
 
                 }

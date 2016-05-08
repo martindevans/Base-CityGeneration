@@ -13,8 +13,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
     {
         public IValueGenerator Area { get; private set; }
 
-        public MinArea(IValueGenerator area, BaseFootprintAlgorithm algorithm)
-            : base(algorithm)
+        public MinArea(IValueGenerator area, BaseFootprintAlgorithm algorithm, BaseFootprintAlgorithm fallback)
+            : base(algorithm, fallback)
         {
             Contract.Requires(area != null);
             Contract.Requires(algorithm != null);
@@ -39,7 +39,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
 
             public override BaseFootprintAlgorithm Unwrap()
             {
-                return new MinArea(IValueGeneratorContainer.FromObject(Area), Action.Unwrap());
+                return new MinArea(IValueGeneratorContainer.FromObject(Area), Action.Unwrap(), Fallback.UnwrapNullable());
             }
         }
     }

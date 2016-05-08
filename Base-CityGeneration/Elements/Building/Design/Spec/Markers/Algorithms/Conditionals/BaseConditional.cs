@@ -10,12 +10,21 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
         : BaseFootprintAlgorithm
     {
         private readonly BaseFootprintAlgorithm _action;
+        private readonly BaseFootprintAlgorithm _fallback;
 
-        protected BaseConditional(BaseFootprintAlgorithm action)
+        protected BaseConditional(BaseFootprintAlgorithm action, BaseFootprintAlgorithm fallback)
         {
             Contract.Requires(action != null);
 
-            _action = action;
+            _action = action ?? new Identity();
+            _fallback = fallback ?? new Identity();
+        }
+
+        [ContractInvariantMethod]
+        private void ContractInvariants()
+        {
+            Contract.Invariant(_action != null);
+            Contract.Invariant(_fallback != null);
         }
 
         public override IReadOnlyList<Vector2> Apply(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis, IReadOnlyList<Vector2> lot)
@@ -27,8 +36,8 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
             if (Condition(random, metadata, result, basis))
                 return result;
 
-            //Result was unacceptable, return input
-            return footprint;
+            //Result is unacceptable. Apply fallback
+            return _fallback.Apply(random, metadata, footprint, basis, lot);
         }
 
         protected abstract bool Condition(Func<double> random, INamedDataCollection metadata, IReadOnlyList<Vector2> footprint, IReadOnlyList<Vector2> basis);
@@ -37,6 +46,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms.C
            : BaseContainer
         {
             public BaseContainer Action { get; set; }
+            public BaseContainer Fallback { get; set; }
         }
     }
 }

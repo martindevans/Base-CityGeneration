@@ -35,7 +35,7 @@ namespace Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms
                 var bc = c - b;
                 var angle = Math.Acos(Vector2.Dot(ab, bc));
 
-                if (angle > MathHelper.ToRadians(_angle.SelectFloatValue(random, metadata)))
+                if (angle > _angle.SelectFloatValue(random, metadata).ToRadians())
                 {
                     //Angle is not acute enough, copy across this point to the result
                     result.Add(b);
