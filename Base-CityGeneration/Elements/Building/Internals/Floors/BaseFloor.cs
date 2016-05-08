@@ -131,7 +131,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             CreateCeilings(bounds, geometry, verticals, Metadata.DefaultCeilingMaterial(Random));
 
             //Create room scripts
-            CreateRoomScripts(roomOffsetY, _roomHeight, _plan);
+            CreateRoomNodes(roomOffsetY, _roomHeight, _plan);
 
             //Create external facades (subsections of building over this floor facade)
             var externalFacades = CreateExternalFacades(bounds, _plan);
@@ -549,7 +549,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             return result;
         }
 
-        private void CreateRoomScripts(float yOffset, float height, IFloorPlan plan)
+        private void CreateRoomNodes(float yOffset, float height, IFloorPlan plan)
         {
             Contract.Requires(plan != null);
 

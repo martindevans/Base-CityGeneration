@@ -38,7 +38,7 @@ namespace Base_CityGeneration.Test.Elements.Building
 
             Assert.IsNotNull(result);
 
-            var building = result.Children.OfType<BaseTestBuilding>().Single();
+            var building = result.Root.Children.OfType<BaseTestBuilding>().Single();
             Assert.IsNotNull(building.Floor(0));
             Assert.IsNotNull(building.Floor(-1));
             Assert.AreEqual(1, building.AboveGroundFloors);
@@ -58,7 +58,7 @@ namespace Base_CityGeneration.Test.Elements.Building
 
             Assert.IsNotNull(result);
 
-            var building = result.Children.OfType<BaseTestBuilding>().Single();
+            var building = result.Root.Children.OfType<BaseTestBuilding>().Single();
             Assert.IsNotNull(building.Floor(0));
             Assert.IsNotNull(building.Floor(-1));
             Assert.AreEqual(4, building.AboveGroundFloors);

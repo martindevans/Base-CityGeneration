@@ -383,6 +383,8 @@ namespace Base_CityGeneration.Elements.Building.Design
             serializer.Settings.RegisterTagMapping("Bevel", typeof(Bevel.Container));
             serializer.Settings.RegisterTagMapping("InvertCorner", typeof(InvertCorner.Container));
             serializer.Settings.RegisterTagMapping("MinArea", typeof(MinArea.Container));
+            serializer.Settings.RegisterTagMapping("MetaSet", typeof(MetaSet.Container));
+            serializer.Settings.RegisterTagMapping("MetaPredicate", typeof(MetaPredicate.Container));
 
             //Floor element types
             serializer.Settings.RegisterTagMapping("Floor", typeof(FloorSpec.Container));

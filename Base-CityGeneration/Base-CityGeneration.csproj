@@ -160,8 +160,8 @@
       <HintPath>..\packages\Clipper.6.2.10\lib\net40\clipper_library.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5963.32771, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5963.32771\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5969.32544, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5969.32544\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FortuneVoronoi, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -338,6 +338,9 @@
     <Compile Include="Elements\Building\Design\FloorSelection.cs" />
     <Compile Include="Elements\Building\Design\Spec\FacadeConstraints\ClearanceConstraint.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\BaseFootprintAlgorithm.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Conditionals\MetaPredicate.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\MetaSet.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Identity.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\InvertCorner.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Bevel.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Clip.cs" />

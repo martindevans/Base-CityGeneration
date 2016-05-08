@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 using Base_CityGeneration.Elements.Building.Design.Spec.Markers.Algorithms;
 using Myre.Collections;
+using PrimitiveSvgBuilder;
 
 namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Markers.Algorithms
 {
@@ -18,14 +18,7 @@ namespace Base_CityGeneration.Test.Elements.Building.Design.Spec.Markers.Algorit
             //Assert.IsFalse(Clipper.Orientation(result.Select(a => new IntPoint((int)(a.X * 1000), (int)(a.Y * 1000))).ToList()));
 
             //Display result
-            const float SCALE = 10;
-            StringBuilder svg = new StringBuilder();
-            svg.Append(string.Format("M {0} {1} ", result[0].X * SCALE, result[0].Y * SCALE));
-            for (int i = 1; i < result.Count; i++)
-                svg.Append(string.Format("L {0} {1} ", result[i].X * SCALE, result[i].Y * SCALE));
-            svg.Append("Z");
-            var min = result.Aggregate(Vector2.Min) * SCALE;
-            Console.WriteLine("<svg width=\"500px\" height=\"500px\"><g transform=\"translate({1} {2})\"><path d=\"{0}\"></path></g></svg>", svg, -min.X, -min.Y);
+            Console.WriteLine(new SvgBuilder(10).Outline(result));
 
             return result.ToArray();
         }

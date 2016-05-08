@@ -62,12 +62,12 @@
       <HintPath>..\packages\Clipper.6.2.10\lib\net40\clipper_library.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5963.32771, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5963.32771\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5969.32544, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5969.32544\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5963.32773, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5963.32773\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
+    <Reference Include="EpimetheusPlugins.Testing, Version=1.0.5969.32546, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.Testing.1.0.5969.32546\lib\net46\EpimetheusPlugins.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HandyCollections, Version=5.8.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -192,6 +192,10 @@
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="TopologicalSorting, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\TopologicalSorting.1.0.2\lib\net40\TopologicalSorting.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDependentAssemblyPaths Condition=" '$(VS100COMNTOOLS)' != '' " Include="$(VS100COMNTOOLS)..\IDE\PrivateAssemblies">
@@ -210,8 +214,12 @@
     <Compile Include="Elements\Building\BaseBuildingTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\FacadeConstraints\ClearanceConstraintTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\BaseAlgorithmTest.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Conditionals\MinAreaTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\InvertCornerTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\BevelTest.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Act.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\MetaSetTest.cs" />
+    <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\Throw.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\TwistTest.cs" />
     <Compile Include="Elements\Building\Design\Spec\Markers\Algorithms\ShrinkTest.cs" />
     <Compile Include="Elements\Building\Internals\Floors\BaseFloorTest.cs" />

@@ -39,5 +39,11 @@ namespace Base_CityGeneration
 
             return collection.Select(a => a.Unwrap());
         }
+
+        internal static T UnwrapNullable<T>(this IUnwrappable<T> unwrappable)
+            where T : class
+        {
+            return unwrappable == null ? null : unwrappable.Unwrap();
+        }
     }
 }
