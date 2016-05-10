@@ -48,6 +48,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
         public GeometricFloorplan(IReadOnlyList<Vector2> footprint)
         {
             Contract.Requires(footprint != null);
+            Contract.Requires(footprint.Count >= 3);
 
             _externalFootprint = footprint;
 

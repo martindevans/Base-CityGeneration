@@ -4,12 +4,10 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Security.Cryptography.X509Certificates;
-using Base_CityGeneration.Datastructures.HalfEdge;
-using Base_CityGeneration.Elements.Building.Design;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Design.Spaces;
 using Base_CityGeneration.Elements.Building.Internals.Floors.Plan;
+using Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric;
 using Base_CityGeneration.Utilities.Numbers;
 using EpimetheusPlugins.Scripts;
 using JetBrains.Annotations;
@@ -82,10 +80,26 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design
             Contract.Requires(startingVerticals != null && Contract.ForAll(startingVerticals, s => s != null));
             Contract.Ensures(Contract.Result<IFloorPlanBuilder>() != null);
 
-            var region = CreateRegion(footprint, sections);
+            var plan = new GeometricFloorplan(footprint);
+            Design(random, metadata, finder, plan, sections, wallThickness, overlappingVerticals, startingVerticals);
+
+            return plan;
+        }
+
+        public void Design(Func<double> random, INamedDataCollection metadata, Func<KeyValuePair<string, string>[], Type[], ScriptReference> finder, IFloorPlanBuilder builder, IReadOnlyList<IReadOnlyList<Subsection>> sections, float wallThickness, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<ConstrainedVerticalSelection> startingVerticals)
+        {
+            Contract.Requires(random != null);
+            Contract.Requires(metadata != null);
+            Contract.Requires(finder != null);
+            Contract.Requires(builder != null);
+            Contract.Requires(sections != null && sections.Count == builder.ExternalFootprint.Count);
+            Contract.Requires(overlappingVerticals != null && Contract.ForAll(overlappingVerticals, o => o != null));
+            Contract.Requires(startingVerticals != null && Contract.ForAll(startingVerticals, s => s != null));
+
+            var region = CreateRegion(builder.ExternalFootprint, sections);
 
             var planner = new FloorPlanner(random, metadata, finder, wallThickness, _wallGrowthParameters, _roomMergeParameters, _corridorParameters);
-            return planner.Plan(region, overlappingVerticals, startingVerticals, _spaces);
+            planner.Plan(builder, region, overlappingVerticals, startingVerticals, _spaces);
         }
 
         /// <summary>

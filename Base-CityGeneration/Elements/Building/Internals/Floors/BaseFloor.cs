@@ -127,8 +127,8 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             CreateVerticalNodes(verticals);
 
             //Create Floor and ceiling (with holes for vertical sections)
-            CreateFloors(bounds, geometry, verticals, Metadata.DefaultCeilingMaterial(Random));
-            CreateCeilings(bounds, geometry, verticals, Metadata.DefaultCeilingMaterial(Random));
+            CreateFloors(bounds, geometry, verticals, HierarchicalParameters.DefaultCeilingMaterial(Random));
+            CreateCeilings(bounds, geometry, verticals, HierarchicalParameters.DefaultCeilingMaterial(Random));
 
             //Create room scripts
             CreateRoomNodes(roomOffsetY, _roomHeight, _plan);
@@ -534,7 +534,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                     Array.Reverse(points);
 
                 //Create a room which is the space of this vertical element
-                var r = plan.Add(points, Metadata.InternalWallThickness(Random)).Single();
+                var r = plan.Add(points, HierarchicalParameters.InternalWallThickness(Random)).Single();
 
                 //set room to use identity script
                 //  Consider:

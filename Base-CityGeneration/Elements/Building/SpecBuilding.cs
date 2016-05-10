@@ -11,6 +11,7 @@ namespace Base_CityGeneration.Elements.Building
     /// <summary>
     /// A building created from a design spec (generally you should not use this directly, use SpecBuildingContainer)
     /// </summary>
+    /// <remarks>This building finds the specs in the metadata, it does not generate a spec! A SpecBuildingContainer generates a spec and places it into the metadata</remarks>
     [Script("40DA258F-477C-4D2D-A5A6-AC0D35E7C935", "Spec Building")]
     public class SpecBuilding
         : BaseBuilding
@@ -25,7 +26,7 @@ namespace Base_CityGeneration.Elements.Building
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
             //Get internals generated up tree in container
-            var internals = hierarchicalParameters.GetValue(SpecBuildingContainer.BuildingInternalsName);
+            var internals = hierarchicalParameters.GetValue(BaseSpecBuildingContainer.BuildingInternalsName);
 
             //Generate externals, now we can get the neighbour information that we need from the surrounding containers
             _design = internals.Externals(Random, hierarchicalParameters, (a, b) => ScriptReference.Find(a, b).Random((Func<double>)Random), GetNeighbourInfo(bounds));
