@@ -160,8 +160,8 @@
       <HintPath>..\packages\Clipper.6.2.10\lib\net40\clipper_library.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EpimetheusPlugins, Version=1.0.5969.32544, Culture=neutral, processorArchitecture=x86">
-      <HintPath>..\packages\EpimetheusPlugins.1.0.5969.32544\lib\net46\EpimetheusPlugins.dll</HintPath>
+    <Reference Include="EpimetheusPlugins, Version=1.0.5973.26806, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\EpimetheusPlugins.1.0.5973.26806\lib\net46\EpimetheusPlugins.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FortuneVoronoi, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -377,6 +377,7 @@
     <Compile Include="Elements\Building\Design\Spec\Ref\TaggedRef.cs" />
     <Compile Include="Elements\Building\Design\Spec\RepeatSpec.cs" />
     <Compile Include="Elements\Building\Internals\Floors\BaseFloor.cs" />
+    <Compile Include="Elements\Building\Internals\Floors\BaseSpecFloor.cs" />
     <Compile Include="Elements\Building\Internals\Floors\ConstrainedVerticalSelection.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\FloorDesigner.cs" />
     <Compile Include="Elements\Building\Internals\Floors\Design\Planning\CorridorHelpers.cs" />
@@ -407,7 +408,7 @@
     <Compile Include="Elements\Building\Internals\Rooms\IdentityRoom.cs" />
     <Compile Include="Elements\Building\Internals\VerticalFeatures\IVerticalFeatureContainer.cs" />
     <Compile Include="Elements\Building\SpecBuilding.cs" />
-    <Compile Include="Elements\Building\SpecBuildingContainer.cs" />
+    <Compile Include="Elements\Building\BaseSpecBuildingContainer.cs" />
     <Compile Include="Entry.cs" />
     <Compile Include="Extensions\ClipperExtensions.cs" />
     <Compile Include="Extensions\PolytreeExtensions.cs" />

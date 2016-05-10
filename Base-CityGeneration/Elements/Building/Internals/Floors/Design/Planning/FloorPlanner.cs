@@ -175,16 +175,15 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Design.Planning
         }
         #endregion
 
-        public IFloorPlanBuilder Plan(Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<ConstrainedVerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
+        public void Plan(IFloorPlanBuilder plan, Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<ConstrainedVerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
         {
+            Contract.Requires(plan != null);
             Contract.Requires(region != null);
             Contract.Requires(overlappingVerticals != null);
             Contract.Requires(startingVerticals != null);
             Contract.Requires(spaces != null);
 
-            var floorplan = new GeometricFloorplan(region.Points.ToArray());
-            PlanRegion(floorplan, region, overlappingVerticals, startingVerticals, spaces);
-            return floorplan;
+            PlanRegion(plan, region, overlappingVerticals, startingVerticals, spaces);
         }
 
         private void PlanRegion(IFloorPlanBuilder floorplan, Region region, IReadOnlyList<IReadOnlyList<Vector2>> overlappingVerticals, IReadOnlyList<ConstrainedVerticalSelection> startingVerticals, IReadOnlyList<BaseSpaceSpec> spaces)
