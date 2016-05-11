@@ -40,7 +40,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
             //then this would be the *default* but I want this to be an obscure option no one uses! If you
             //use this by accident you will get an exception (telling you exactly what's wrong)
 
-            if (findInMetadata)
+            if (!findInMetadata)
                 throw new ArgumentException("If this is false then no spec will be found, must be true", "findInMetadata");
 
             _designer = null;

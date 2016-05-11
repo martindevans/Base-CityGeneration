@@ -555,13 +555,21 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
 
             foreach (var roomPlan in plan.Rooms)
             {
+                //Check if all assigned options are null and if so substitute in an alternative set
+                var scripts = roomPlan.Scripts;
+                if (roomPlan.Scripts.All(a => a.Value == null))
+                    scripts = SubstituteNullRoomPlanScripts(roomPlan, plan);
+
                 //Create the room (engine chooses which script to take from the options presented)
-                var room = CreateChild(
-                    new Prism(height, roomPlan.InnerFootprint),
-                    Quaternion.Identity,
-                    new Vector3(0, yOffset, 0),
-                    roomPlan.Scripts
-                );
+                var room = CreateRoomNode(height, roomPlan.InnerFootprint, yOffset, scripts);
+
+                //If we created a null room try again with another set of scripts
+                if (room == null)
+                {
+                    scripts = SubstituteNullRoomScripts(roomPlan, plan);
+                    if (scripts != null && scripts.Count > 0)
+                        room = CreateRoomNode(height, roomPlan.InnerFootprint, yOffset, scripts);
+                }
 
                 var planned = room as IPlannedRoom;
                 if (planned != null)
@@ -573,6 +581,44 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors
                     roomPlan.Node = planned;
                 }
             }
+        }
+
+        private ISubdivisionContext CreateRoomNode(float height, IReadOnlyList<Vector2> footprint, float yOffset, IReadOnlyList<KeyValuePair<float, ScriptReference>> scripts)
+        {
+            return CreateChild(
+                new Prism(height, footprint),
+                Quaternion.Identity,
+                new Vector3(0, yOffset, 0),
+                scripts
+            );
+        }
+
+        /// <summary>
+        /// A room with a null plan has been found, this is a chance to substitute in another set of scripts for the plan
+        /// </summary>
+        /// <param name="room"></param>
+        /// <param name="plan"></param>
+        /// <returns></returns>
+        protected virtual IReadOnlyList<KeyValuePair<float, ScriptReference>> SubstituteNullRoomPlanScripts(IRoomPlan room, IFloorPlan plan)
+        {
+            Contract.Requires(room != null);
+            Contract.Requires(plan != null);
+
+            return Array.Empty<KeyValuePair<float, ScriptReference>>();
+        }
+
+        /// <summary>
+        /// A room was created but it resulted in a null result, this is a chance to substitute in another set of scripts and try again
+        /// </summary>
+        /// <param name="room"></param>
+        /// <param name="plan"></param>
+        /// <returns>A set of scripts to try to create another room, or null to not attempt again</returns>
+        protected virtual IReadOnlyList<KeyValuePair<float, ScriptReference>> SubstituteNullRoomScripts(IRoomPlan room, IFloorPlan plan)
+        {
+            Contract.Requires(room != null);
+            Contract.Requires(plan != null);
+
+            return null;
         }
         #endregion
 

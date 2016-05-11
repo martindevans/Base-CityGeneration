@@ -45,7 +45,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan.Geometric
         }
 
         private readonly List<KeyValuePair<float, ScriptReference>> _scripts = new List<KeyValuePair<float, ScriptReference>>();
-        public IEnumerable<KeyValuePair<float, ScriptReference>> Scripts
+        public IReadOnlyList<KeyValuePair<float, ScriptReference>> Scripts
         {
             get { return _scripts; }
         }
