@@ -93,10 +93,10 @@ namespace Base_CityGeneration.Elements.Building
         public override void Subdivide(Prism bounds, ISubdivisionGeometry geometry, INamedDataCollection hierarchicalParameters)
         {
             //Select external building parameters
-            var externals = SelectExternals();
+            var externals = SelectExternals().ToArray();
 
             //Create things
-            _floors = CreateFloors(SelectFloors(), Footprints(externals));
+            _floors = CreateFloors(SelectFloors().ToArray(), Footprints(externals));
             _verticals = SelectVerticals().ToArray();
             _facades = CreateFacades(geometry, externals, hierarchicalParameters);
 

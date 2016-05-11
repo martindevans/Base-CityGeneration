@@ -5,7 +5,6 @@ using System.Linq;
 using System.Numerics;
 using Base_CityGeneration.Elements.Building.Internals.Rooms;
 using Base_CityGeneration.Geometry.Walls;
-using EpimetheusPlugins.Procedural;
 using EpimetheusPlugins.Scripts;
 using SwizzleMyVectors.Geometry;
 
@@ -67,7 +66,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
         /// <summary>
         /// Get all scripts (with associated probability) for this room
         /// </summary>
-        IEnumerable<KeyValuePair<float, ScriptReference>> Scripts { get; }
+        IReadOnlyList<KeyValuePair<float, ScriptReference>> Scripts { get; }
 
         /// <summary>
         /// Get the subdivision context which is created from this plan (may be null)
@@ -153,7 +152,7 @@ namespace Base_CityGeneration.Elements.Building.Internals.Floors.Plan
             Contract.Requires(chance > 0);
         }
 
-        public IEnumerable<KeyValuePair<float, ScriptReference>> Scripts
+        public IReadOnlyList<KeyValuePair<float, ScriptReference>> Scripts
         {
             get
             {
